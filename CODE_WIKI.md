@@ -607,7 +607,7 @@ export const deepLinkStore = observable({
 
 - `App.onShow` 把 `options.query.tool` 写入 `deepLinkStore`。
 - 首页 `onLoad` / `onShow` 消费 `takePending()`。
-- 首页还会调用 `wx.getEnterOptionsSync()` 作为补漏，并设置 60ms 兜底探测。
+- 首页仅在 `onLoad` 调用一次 `wx.getEnterOptionsSync()` 作为补漏（严禁放到 `onShow`：启动参数会持续保留 `?tool=xxx`，返回首页时会二次跳链），并设置 60ms 兜底探测。
 
 ### 5.7 Resume Store（`core/stores/resume.ts`）
 

@@ -183,6 +183,9 @@ Component({
       if (toolId) {
         this.scheduleDeepLink(toolId)
       }
+      /* 此处是处理首次加载时页面 query 缺失、仅启动参数携带深链的补漏；
+         只在 onLoad 消费一次，绝不能放到 onShow（否则返回首页会二次跳转） */
+      this.handleEnterOptions()
     },
 
     ensurePageInit() {
@@ -240,7 +243,10 @@ Component({
       if (pending) {
         this.scheduleDeepLink(pending)
       }
-      this.handleEnterOptions()
+      /* 深链只在页面首次加载时消费一次：
+         getEnterOptionsSync 会持续返回本次启动参数，返回首页时仍是 ?tool=xxx；
+         若在每次 onShow 读取，返回约 300ms 后会再次跳回工具页。
+         onLoad 的 query、App.onShow 的 pending 与下方 60ms 兜底已覆盖全部进入路径。 */
       /* 此处是处理 App.onShow 晚于页面 onShow 的边界 */
       if (runtime.pendingProbeTimer) {
         clearTimeout(runtime.pendingProbeTimer)
@@ -356,7 +362,7 @@ Component({
       }
     },
 
-    /* 此处是处理热启动分享参数解析的边界 */
+    /* 此处是处理首次加载启动参数解析的边界；只允许 onLoad 调用 */
     handleEnterOptions(): void {
       try {
         const options = wx.getEnterOptionsSync()
