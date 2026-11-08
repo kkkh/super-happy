@@ -26,6 +26,7 @@
     "@tailwindcss/postcss": "^4.3.3",
     "@weapp-tailwindcss/cli": "^5.6.3",
     "fantasticon": "^4.1.0",
+    "lightningcss": "^1.33.0",
     "miniprogram-api-typings": "^5.2.3",
     "miniprogram-automator": "^0.13.0",
     "miniprogram-ci": "^2.1.31",
