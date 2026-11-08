@@ -337,15 +337,23 @@ async function main() {
   return 0
 }
 
+/**
+ * miniprogram-ci 的编译器会留下子进程 / 定时器句柄，
+ * 仅设置 process.exitCode 不能保证进程退出；这里在日志刷新后强制收口，
+ * 避免 CI 步骤一直挂到 timeout。
+ */
+function finish(code) {
+  process.exitCode = code
+  setTimeout(() => process.exit(code), 200)
+}
+
 main()
-  .then((code) => {
-    process.exitCode = code
-  })
+  .then(finish)
   .catch((error) => {
     const message = error && error.message ? error.message : String(error)
     console.error(`[ci] 上传失败：${message}`)
     if (/private.?key|密钥/i.test(message)) {
       console.error('[ci] 请检查上传密钥是否有效，并确认小程序后台已配置当前 IP 白名单。')
     }
-    process.exitCode = 1
+    finish(1)
   })
