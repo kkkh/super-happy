@@ -1,0 +1,170 @@
+<glass-tool-shell
+  tool-id="password"
+  title="{{toolName}}"
+  kicker="{{kicker}}"
+  desc="{{desc}}"
+  poster-data="{{posterData}}"
+  state="{{shellState}}"
+  run-label="{{hasResult ? '再生成一个' : '生成密码'}}"
+  has-result="{{hasResult}}"
+  error="{{error}}"
+  empty-title="设置规则，生成随机密码"
+  empty-sub="优先使用密码学安全随机数"
+  bind:run="onRun"
+  bind:example="onExample"
+  bind:reset="onReset"
+>
+  <view slot="input" class="sg-tool-fields">
+    <view class="tool-field">
+      <view class="tool-field__head">
+        <text class="tool-field__label">密码长度</text>
+        <text class="tool-field__hint">{{lengthHint}}</text>
+      </view>
+      <view class="tool-slider">
+        <slider
+          min="4"
+          max="64"
+          value="{{length}}"
+          step="1"
+          aria-label="密码长度"
+          active-color="var(--glass-accent)"
+          background-color="var(--glass-bg-soft)"
+          block-color="var(--glass-accent)"
+          block-size="{{22}}"
+          bindchanging="onLengthChanging"
+          bindchange="onLengthChange"
+        />
+      </view>
+      <view class="tool-scale">
+        <text>4 位</text>
+        <text>64 位</text>
+      </view>
+    </view>
+
+    <view class="tool-switch-row">
+      <view class="tool-switch-row__text">
+        <text class="tool-switch-row__title">大写字母</text>
+        <text class="tool-switch-row__sub">A–Z</text>
+      </view>
+      <view class="tool-switch">
+        <switch
+          checked="{{uppercase}}"
+          color="var(--glass-accent)"
+          aria-label="大写字母"
+          data-field="uppercase"
+          bindchange="onToggle"
+        />
+      </view>
+    </view>
+
+    <view class="tool-switch-row">
+      <view class="tool-switch-row__text">
+        <text class="tool-switch-row__title">小写字母</text>
+        <text class="tool-switch-row__sub">a–z</text>
+      </view>
+      <view class="tool-switch">
+        <switch
+          checked="{{lowercase}}"
+          color="var(--glass-accent)"
+          aria-label="小写字母"
+          data-field="lowercase"
+          bindchange="onToggle"
+        />
+      </view>
+    </view>
+
+    <view class="tool-switch-row">
+      <view class="tool-switch-row__text">
+        <text class="tool-switch-row__title">数字</text>
+        <text class="tool-switch-row__sub">0–9</text>
+      </view>
+      <view class="tool-switch">
+        <switch
+          checked="{{digits}}"
+          color="var(--glass-accent)"
+          aria-label="数字"
+          data-field="digits"
+          bindchange="onToggle"
+        />
+      </view>
+    </view>
+
+    <view class="tool-switch-row">
+      <view class="tool-switch-row__text">
+        <text class="tool-switch-row__title">符号</text>
+        <text class="tool-switch-row__sub">! @ # $ % 等</text>
+      </view>
+      <view class="tool-switch">
+        <switch
+          checked="{{symbols}}"
+          color="var(--glass-accent)"
+          aria-label="符号"
+          data-field="symbols"
+          bindchange="onToggle"
+        />
+      </view>
+    </view>
+
+    <view class="tool-switch-row">
+      <view class="tool-switch-row__text">
+        <text class="tool-switch-row__title">排除易混淆字符</text>
+        <text class="tool-switch-row__sub">0 O 1 l I</text>
+      </view>
+      <view class="tool-switch">
+        <switch
+          checked="{{excludeAmbiguous}}"
+          color="var(--glass-accent)"
+          aria-label="排除易混淆字符"
+          data-field="excludeAmbiguous"
+          bindchange="onToggle"
+        />
+      </view>
+    </view>
+  </view>
+
+  <view slot="result" class="sg-tool-result">
+    <view class="sg-tool-result__head">
+      <text class="sg-tool-result__label">随机密码</text>
+      <text class="sg-tool-result__meta">{{length}} 位 / RANDOM</text>
+    </view>
+
+    <text class="tool-password" selectable>{{password}}</text>
+
+    <view class="tool-meter">
+      <view class="tool-meter__fill" style="width: {{strengthPercent}}%;"></view>
+    </view>
+    <view class="tool-meter__row">
+      <text class="tool-meter__value">{{strengthText}}</text>
+      <text class="tool-meter__note">{{entropyText}}</text>
+    </view>
+
+    <view class="sg-tool-rows">
+      <view class="sg-tool-row">
+        <text class="sg-tool-row__k">字符组成</text>
+        <text class="sg-tool-row__v">{{classesText}}</text>
+      </view>
+      <view class="sg-tool-row">
+        <text class="sg-tool-row__k">密码长度</text>
+        <text class="sg-tool-row__v">{{length}} 位</text>
+      </view>
+    </view>
+
+    <view class="tool-actions">
+      <glass-button variant="ghost" size="md" block bind:tap="onCopy">
+        复制密码
+      </glass-button>
+    </view>
+  </view>
+
+  <view slot="note">
+    <glass-card tone="amber" radius="lg" padding="md" depth="soft">
+      <view class="sg-tool-note">
+        <text class="sg-tool-note__title">随机与隐私</text>
+        <text class="sg-tool-note__text">
+          优先调用 wx.getRandomValues 获取密码学安全随机数，并用拒绝采样避免取模偏差；接口不可用时回退 Math.random。
+          密码只在当前页面内存中显示，不写入本地存储，关闭页面即清空。
+        </text>
+      </view>
+    </glass-card>
+  </view>
+</glass-tool-shell>

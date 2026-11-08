@@ -1,0 +1,35 @@
+/* g-toast · 底部悬浮胶囊 */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(160rpx + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 1100;
+  max-width: 78vw;
+  padding: 20rpx 40rpx;
+  border-radius: 999rpx;
+  background-color: var(--g-elevated);
+  border: 1rpx solid var(--g-stroke-strong);
+  box-shadow: var(--g-shadow-lift);
+  animation: toast-rise 0.36s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.toast_text {
+  font-size: 26rpx;
+  color: var(--g-ink);
+  letter-spacing: 1rpx;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@keyframes toast-rise {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(32rpx) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "name": "qinchao-toolbox",
+  "version": "1.0.0",
+  "private": true,
+  "description": "超欢 · Skyline 原生效率工具小程序（TypeScript strict + glass-easel + Tailwind v4）",
+  "scripts": {
+    "build:style": "weapp-tw -i styles/tokens.css -o styles/generated/tailwind.wxss --target weapp",
+    "build:icon": "npx fantasticon .icon-src -o .icon-dist -n gicon --font-types ttf --asset-types json",
+    "typecheck": "tsc --noEmit",
+    "test": "node --experimental-strip-types --test tests/*.test.js",
+    "test:hologram": "node --experimental-strip-types --test tests/spatial-hologram.test.js",
+    "test:integration": "node --experimental-strip-types --test tests/*.integration.test.js",
+    "test:integration:hologram": "node --experimental-strip-types --test tests/spatial-hologram.integration.test.js",
+    "test:visual:hologram": "node tests/visual/spatial-hologram.visual.js",
+    "test:visual:hologram:connect": "node tests/visual/spatial-hologram.visual.js --connect",
+    "test:visual:hologram:dry": "node tests/visual/spatial-hologram.visual.js --dry-run",
+    "test:e2e:palette": "node tests/e2e/magic-wand-palette.e2e.js",
+    "test:e2e:palette:connect": "node tests/e2e/magic-wand-palette.e2e.js --connect",
+    "ci:upload": "node scripts/ci-upload.js"
+  },
+  "dependencies": {
+    "mobx-miniprogram": "^6.12.3",
+    "mobx-miniprogram-bindings": "^7.0.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "@weapp-tailwindcss/cli": "^5.6.3",
+    "fantasticon": "^4.1.0",
+    "miniprogram-api-typings": "^5.2.3",
+    "miniprogram-automator": "^0.13.0",
+    "miniprogram-ci": "^2.1.31",
+    "postcss": "^8.5.32",
+    "postcss-cli": "^12.0.0",
+    "remixicon": "^4.6.0",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^7.0.2",
+    "weapp-tailwindcss": "^5.6.3"
+  }
+}

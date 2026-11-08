@@ -1,0 +1,234 @@
+<view class="legal-page {{themeClass}}">
+  <view class="legal-aurora" aria-hidden="true">
+    <view class="sg-aurora-a legal-aurora__a"></view>
+    <view class="sg-aurora-b legal-aurora__b"></view>
+    <view class="sg-aurora-c legal-aurora__c"></view>
+  </view>
+
+  <g-navbar title="隐私与说明" back transparent />
+
+  <scroll-view
+    enhanced
+    show-scrollbar="{{false}}"
+    bounces="{{false}}"
+    scroll-y
+    type="list"
+    class="legal-scroll"
+    scroll-into-view="{{scrollTarget}}"
+    scroll-with-animation
+  >
+    <view class="legal-inner">
+      <view class="legal-head">
+        <text class="legal-kicker">LEGAL / LOCAL ONLY</text>
+        <text class="legal-title">先说清楚，再开始</text>
+        <text class="legal-desc">超欢不登录、不联网请求、不上传任何内容。以下说明生效于 {{effectiveDate}}。</text>
+      </view>
+
+      <view class="legal-seg" aria-role="tablist" aria-label="说明章节">
+        <view
+          wx:for="{{sections}}"
+          wx:key="key"
+          class="legal-seg__item {{active === item.key ? 'legal-seg__item--active' : ''}}"
+          hover-class="legal-seg__item--press"
+          hover-start-time="0"
+          hover-stay-time="120"
+          data-key="{{item.key}}"
+          aria-role="tab"
+          aria-selected="{{active === item.key}}"
+          aria-label="跳转到{{item.title}}"
+          bindtap="onNav"
+        >
+          <text class="legal-seg__label">{{item.title}}</text>
+        </view>
+      </view>
+
+      <view id="legal-privacy" class="legal-anchor">
+        <glass-card tone="iris" radius="xl" padding="lg" depth="soft" card-class="legal-card">
+          <view class="legal-card__head">
+            <view class="legal-card__index" aria-hidden="true">
+              <text class="legal-card__index-text">01</text>
+            </view>
+            <view class="legal-card__head-main">
+              <text class="legal-card__title">隐私说明</text>
+              <text class="legal-card__kicker">PRIVACY / NO CLOUD</text>
+            </view>
+          </view>
+
+          <text class="legal-body">本小程序是一款纯本机效率工具合集，没有账号体系、没有后端服务、没有广告 SDK、没有第三方统计 SDK。我们不收集、不上传您的姓名、手机号、邮箱、位置、设备标识或任何输入内容；工具输入只在本机参与计算，轨迹摘要按下方说明保存在本机。</text>
+
+          <view class="legal-list">
+            <view class="legal-list__item">
+              <view class="legal-list__dot" aria-hidden="true"></view>
+              <text class="legal-list__text">文本与数字只在本机计算；除您主动产生的轨迹摘要外，关闭页面即释放。</text>
+            </view>
+            <view class="legal-list__item">
+              <view class="legal-list__dot" aria-hidden="true"></view>
+              <text class="legal-list__text">图片只在您主动选择时读取该张图片，并在本机处理，临时文件在页面退出时清理。</text>
+            </view>
+            <view class="legal-list__item">
+              <view class="legal-list__dot" aria-hidden="true"></view>
+              <text class="legal-list__text">保存图片时才申请相册写入权限；不扫描相册列表、不上传图片。</text>
+            </view>
+            <view class="legal-list__item">
+              <view class="legal-list__dot" aria-hidden="true"></view>
+              <text class="legal-list__text">不申请位置、通讯录、相机或麦克风权限，也不读取剪贴板内容；仅在您点击复制时写入剪贴板。</text>
+            </view>
+          </view>
+
+          <text class="legal-body">您可在微信「设置 → 小程序 → 超欢 → 权限管理」中撤回相册权限。撤回后仅影响保存图片，不影响本机计算。</text>
+          <text class="legal-body">本程序不面向未成年人定向收集信息，也不提供付费、打赏、社交、抽奖或虚拟支付功能。</text>
+        </glass-card>
+      </view>
+
+      <view id="legal-data" class="legal-anchor">
+        <glass-card tone="aurora" radius="xl" padding="lg" depth="soft" card-class="legal-card">
+          <view class="legal-card__head">
+            <view class="legal-card__index" aria-hidden="true">
+              <text class="legal-card__index-text">02</text>
+            </view>
+            <view class="legal-card__head-main">
+              <text class="legal-card__title">本机数据</text>
+              <text class="legal-card__kicker">LOCAL DATA / SUMMARY</text>
+            </view>
+          </view>
+
+          <text class="legal-body">为了记住您的常用工具与定位本机异常，本机只保存以下轻量数据，分别位于 tbx:、gallery: 与 diag: 命名空间：</text>
+
+          <view class="legal-list">
+            <view class="legal-list__item">
+              <view class="legal-list__dot" aria-hidden="true"></view>
+              <text class="legal-list__text">tbx:recent：最近使用的工具 id，最多 12 个。</text>
+            </view>
+            <view class="legal-list__item">
+              <view class="legal-list__dot" aria-hidden="true"></view>
+              <text class="legal-list__text">tbx:favorites：收藏的工具 id，最多 100 个。</text>
+            </view>
+            <view class="legal-list__item">
+              <view class="legal-list__dot" aria-hidden="true"></view>
+              <text class="legal-list__text">tbx:history：本机计算轨迹摘要，最多 100 条，超限自动淘汰最旧；含工具名称、时间、输入/输出摘要与白昼/夜航主题快照，默认在数据驾驶舱脱敏显示，可一键清空。</text>
+            </view>
+            <view class="legal-list__item">
+              <view class="legal-list__dot" aria-hidden="true"></view>
+              <text class="legal-list__text">tbx:legacy-tip-home：旧简历迁移提示的关闭状态。</text>
+            </view>
+            <view class="legal-list__item">
+              <view class="legal-list__dot" aria-hidden="true"></view>
+              <text class="legal-list__text">gallery.works.favorites：作品收藏的作品 id，最多 200 个，与简历模块共用。</text>
+            </view>
+            <view class="legal-list__item">
+              <view class="legal-list__dot" aria-hidden="true"></view>
+              <text class="legal-list__text">diag:errors.v1：本机错误诊断日志，最多 20 条，含发生时间、错误摘要、堆栈与页面路径；仅在崩溃或未处理异常时写入，不联网、不上传。</text>
+            </view>
+            <view class="legal-list__item">
+              <view class="legal-list__dot" aria-hidden="true"></view>
+              <text class="legal-list__text">app:storage.version：本地数据版本号，仅用于升级时安全迁移旧数据。</text>
+            </view>
+            <view class="legal-list__item">
+              <view class="legal-list__dot" aria-hidden="true"></view>
+              <text class="legal-list__text">不保存任何图片、完整输入原文或搜索词；轨迹只保留摘要。</text>
+            </view>
+          </view>
+
+          <text class="legal-body">「我的 → 清空工具数据」只删除上述 tbx: 前缀数据（含本机计算轨迹），不会影响简历内容、作品数据、作品收藏、外观设置与诊断日志。外观设置沿用旧版的 gallery.theme.mode，由超欢整体共用，不属于工具数据。</text>
+          <text class="legal-body">诊断日志只用于定位本机异常，可在微信「设置 → 通用 → 存储空间 → 小程序缓存」中随小程序缓存一并清除。</text>
+          <text class="legal-body">若功能变化导致本地数据处理方式变化，我们会更新本页内容与生效日期；继续使用即表示您知悉更新后的说明。</text>
+          <text class="legal-body">23 个工具页面与简历页面按功能拆分为多个分包，首次打开某个工具或简历时微信会按需下载对应分包，下载完成后可离线使用；作品图集同样位于独立分包。这是微信分包机制，不是本程序上传数据。</text>
+        </glass-card>
+      </view>
+
+      <view id="legal-disclaimer" class="legal-anchor">
+        <glass-card tone="amber" radius="xl" padding="lg" depth="soft" card-class="legal-card">
+          <view class="legal-card__head">
+            <view class="legal-card__index" aria-hidden="true">
+              <text class="legal-card__index-text">03</text>
+            </view>
+            <view class="legal-card__head-main">
+              <text class="legal-card__title">免责声明</text>
+              <text class="legal-card__kicker">REFERENCE ONLY</text>
+            </view>
+          </view>
+
+          <text class="legal-body">个税、房贷、存款复利等金融类试算结果仅供参考，不构成税务、投资、贷款或法律建议；实际金额以税务、银行等官方机构的最终结果为准。</text>
+          <text class="legal-body">BMI 等健康类结果仅依据公开公式估算，不构成医疗诊断或健康建议；如有健康问题请咨询专业医生。</text>
+          <text class="legal-body">日期间隔、年龄、倒数日按设备本地日期计算，不含法定节假日与调休；跨时区或系统时间异常时结果可能变化。</text>
+          <text class="legal-body">因输入错误、政策调整、设备时间异常或依赖上述结果作出的决定，开发者不承担由此产生的责任。</text>
+        </glass-card>
+      </view>
+
+      <view id="legal-license" class="legal-anchor">
+        <glass-card tone="neutral" radius="xl" padding="lg" depth="soft" card-class="legal-card">
+          <view class="legal-card__head">
+            <view class="legal-card__index" aria-hidden="true">
+              <text class="legal-card__index-text">04</text>
+            </view>
+            <view class="legal-card__head-main">
+              <text class="legal-card__title">开源许可</text>
+              <text class="legal-card__kicker">OPEN SOURCE / THANKS</text>
+            </view>
+          </view>
+
+          <text class="legal-body">本小程序在以下开源项目与资源的基础上构建，谨致谢意：</text>
+
+          <view class="legal-list">
+            <view class="legal-list__item">
+              <view class="legal-list__dot" aria-hidden="true"></view>
+              <text class="legal-list__text">Remix Icon · Apache License 2.0 · 界面图标字体子集。</text>
+            </view>
+            <view class="legal-list__item">
+              <view class="legal-list__dot" aria-hidden="true"></view>
+              <text class="legal-list__text">Instrument Serif · SIL Open Font License 1.1 · 数字衬线字体子集。</text>
+            </view>
+            <view class="legal-list__item">
+              <view class="legal-list__dot" aria-hidden="true"></view>
+              <text class="legal-list__text">MobX / mobx-miniprogram · MIT License · 状态管理。</text>
+            </view>
+            <view class="legal-list__item">
+              <view class="legal-list__dot" aria-hidden="true"></view>
+              <text class="legal-list__text">Tailwind CSS · MIT License · 样式工具链（仅构建期）。</text>
+            </view>
+            <view class="legal-list__item">
+              <view class="legal-list__dot" aria-hidden="true"></view>
+              <text class="legal-list__text">二维码编码器 · MIT License · 纯本地生成二维码。</text>
+            </view>
+            <view class="legal-list__item">
+              <view class="legal-list__dot" aria-hidden="true"></view>
+              <text class="legal-list__text">界面、字标与品牌图形由开发者原创或已获授权。</text>
+            </view>
+          </view>
+
+          <text class="legal-body">本程序不包含广告 SDK、统计 SDK、推送 SDK，也不接入任何网络接口。</text>
+        </glass-card>
+      </view>
+
+      <glass-card
+        tone="iris"
+        radius="lg"
+        padding="md"
+        depth="deep"
+        interactive
+        aria-label="复制邮箱 {{email}}"
+        card-class="legal-contact-card"
+        bind:tap="onCopyEmail"
+      >
+        <view class="legal-contact" aria-role="button" aria-label="复制邮箱 {{email}}">
+          <view class="legal-contact__copy">
+            <text class="legal-contact__label">EMAIL / 联系</text>
+            <text class="legal-contact__value">{{email}}</text>
+          </view>
+          <view class="legal-contact__icon" aria-hidden="true">
+            <g-icon name="copy" size="{{30}}" tone="iris" />
+          </view>
+        </view>
+      </glass-card>
+
+      <view class="legal-footer">
+        <text>超欢 · 纯本机 · 无广告 · 无登录</text>
+        <text class="legal-footer__meta">VERSION {{version}} · EFFECTIVE {{effectiveDate}}</text>
+      </view>
+    </view>
+  </scroll-view>
+
+  <glass-toast z-index="{{1001}}" />
+  <privacy-guard />
+  <update-guard />
+</view>

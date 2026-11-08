@@ -1,0 +1,162 @@
+<glass-tool-shell
+  tool-id="palette"
+  title="{{toolName}}"
+  kicker="{{kicker}}"
+  desc="{{desc}}"
+  poster-data="{{posterData}}"
+  sensitive="privacy"
+  state="{{analyzing ? 'running' : 'idle'}}"
+  show-run="{{false}}"
+  show-example="{{false}}"
+  has-result="{{hasResult}}"
+  error="{{error}}"
+  empty-title="从相册选择图片，提取主色"
+  empty-sub="缩到 64×64 后统计，图片不出本机"
+  bind:reset="onReset"
+>
+  <view slot="input" class="sg-tool-fields">
+    <view class="tool-stage" aria-label="{{imagePath ? '已选择图片' : '尚未选择图片'}}">
+      <image
+        wx:if="{{imagePath}}"
+        class="tool-stage__preview"
+        src="{{imagePath}}"
+        mode="aspectFit"
+        aria-label="待取色图片"
+      />
+      <view wx:else class="tool-stage__blank">
+        <view class="tool-stage__icon">
+          <g-icon name="eye" size="{{44}}" tone="media" />
+        </view>
+        <text class="tool-stage__title">从相册选择图片</text>
+        <text class="tool-stage__sub">自动提取主色、平均色与五色色板</text>
+      </view>
+      <view wx:if="{{analyzing}}" class="tool-stage__loading">
+        <view class="tool-stage__spinner" aria-hidden="true"></view>
+        <text class="tool-stage__loading-text">本机分析颜色</text>
+      </view>
+    </view>
+
+    <view class="tool-meta">
+      <text class="tool-meta__hint">{{imagePath ? imageMeta : '只在点击时读取您选择的图片'}}</text>
+    </view>
+
+    <glass-button
+      variant="primary"
+      size="md"
+      block
+      loading="{{analyzing}}"
+      loading-text="本机分析中"
+      aria-label="{{imagePath ? '重新选择图片' : '从相册选择图片'}}"
+      bind:tap="onChoose"
+    >
+      {{imagePath ? '重新选择图片' : '从相册选择图片'}}
+    </glass-button>
+  </view>
+
+  <view slot="result" class="sg-tool-result">
+    <view class="sg-tool-result__head">
+      <text class="sg-tool-result__label">主色</text>
+      <text class="sg-tool-result__meta">DOMINANT / 64 × 64</text>
+    </view>
+
+    <view class="tool-dominant">
+      <view
+        class="tool-dominant__block"
+        style="background-color: {{dominantHex}};"
+        aria-hidden="true"
+      ></view>
+      <view class="tool-dominant__info">
+        <text class="tool-dominant__hex">{{dominantHex}}</text>
+        <text class="tool-dominant__rgb">{{dominantRgb}}</text>
+      </view>
+      <glass-button
+        variant="ghost"
+        size="sm"
+        aria-label="复制主色 {{dominantHex}}"
+        data-hex="{{dominantHex}}"
+        bind:tap="onCopyColor"
+      >
+        复制
+      </glass-button>
+    </view>
+
+    <view class="tool-metrics">
+      <view class="tool-metric">
+        <text class="tool-metric__k">色板数量</text>
+        <animated-number
+          value="{{colorCount}}"
+          decimals="0"
+          suffix=" 色"
+          size="lg"
+          tone="aurora"
+        />
+      </view>
+      <view class="tool-metric">
+        <text class="tool-metric__k">主色占比</text>
+        <animated-number
+          value="{{dominantPercent}}"
+          decimals="1"
+          suffix="%"
+          size="lg"
+          tone="amber"
+        />
+      </view>
+    </view>
+
+    <view class="tool-block">
+      <view class="sg-tool-result__head">
+        <text class="sg-tool-result__label">五色色板</text>
+        <text class="sg-tool-result__meta">{{colorCount}} COLORS</text>
+      </view>
+
+      <view class="tool-swatches">
+        <view wx:for="{{colors}}" wx:key="hex" class="tool-swatch">
+          <view
+            class="tool-swatch__chip"
+            style="background-color: {{item.hex}};"
+            aria-hidden="true"
+          ></view>
+          <text class="tool-swatch__hex">{{item.hex}}</text>
+          <text class="tool-swatch__pct">{{item.percent}}</text>
+          <glass-button
+            variant="ghost"
+            size="sm"
+            block
+            aria-label="复制颜色 {{item.hex}}"
+            data-hex="{{item.hex}}"
+            bind:tap="onCopyColor"
+          >
+            复制
+          </glass-button>
+        </view>
+      </view>
+    </view>
+
+    <view class="sg-tool-rows">
+      <view class="sg-tool-row">
+        <text class="sg-tool-row__k">平均色</text>
+        <text class="sg-tool-row__v">{{averageHex}}</text>
+      </view>
+      <view class="sg-tool-row">
+        <text class="sg-tool-row__k">平均 RGB</text>
+        <text class="sg-tool-row__v">{{averageRgb}}</text>
+      </view>
+      <view class="sg-tool-row">
+        <text class="sg-tool-row__k">采样</text>
+        <text class="sg-tool-row__v">64 × 64 缩略图</text>
+      </view>
+    </view>
+  </view>
+
+  <view slot="note">
+    <glass-card tone="amber" radius="lg" padding="md" depth="soft">
+      <view class="sg-tool-note">
+        <text class="sg-tool-note__title">取色口径</text>
+        <text class="sg-tool-note__text">
+          图片先缩到 64×64 并在本机统计颜色，自动合并相近色；百分比为该色在有效像素中的占比。
+          不读取相册列表、不上传图片、不保存色板。
+        </text>
+      </view>
+    </glass-card>
+  </view>
+</glass-tool-shell>

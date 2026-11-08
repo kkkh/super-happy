@@ -1,0 +1,45 @@
+<view
+  class="glass-slider {{disabled ? 'glass-slider--disabled' : ''}}"
+  catchtouchmove="onTouchMove"
+  aria-role="slider"
+  aria-label="{{ariaLabel}}"
+  aria-valuemin="{{min}}"
+  aria-valuemax="{{max}}"
+  aria-valuenow="{{displayValue}}"
+  aria-disabled="{{disabled}}"
+>
+  <view wx:if="{{showValue && caption}}" class="glass-slider__head">
+    <text class="glass-slider__caption">{{caption}}</text>
+    <text class="glass-slider__value">{{displayValue}}</text>
+  </view>
+
+  <view
+    class="glass-slider__stage"
+    bindtouchstart="onTouchStart"
+    catchtouchmove="onTouchMove"
+    bindtouchend="onTouchEnd"
+    bindtouchcancel="onTouchCancel"
+  >
+    <view class="glass-slider__track">
+      <view class="glass-slider__fill" style="width: {{percent}}%;"></view>
+      <view
+        class="glass-slider__thumb {{dragging ? 'glass-slider__thumb--dragging' : ''}}"
+        style="left: {{percent}}%;"
+        aria-hidden="true"
+      >
+        <view class="glass-slider__thumb-core"></view>
+        <view class="glass-slider__thumb-halo"></view>
+      </view>
+    </view>
+
+    <view wx:if="{{marks.length}}" class="glass-slider__marks" aria-hidden="true">
+      <text
+        wx:for="{{marks}}"
+        wx:key="label"
+        class="glass-slider__mark {{index <= activeIndex ? 'glass-slider__mark--active' : ''}}"
+      >
+        {{item.label}}
+      </text>
+    </view>
+  </view>
+</view>

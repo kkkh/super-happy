@@ -1,0 +1,67 @@
+<root-portal wx:if="{{visible}}">
+  <view
+    class="privacy-guard"
+    aria-role="dialog"
+    aria-label="隐私保护指引授权"
+    catchtouchmove="noop"
+  >
+    <view class="privacy-mask" catchtap="noop" aria-hidden="true"></view>
+
+    <glass-card
+      tone="iris"
+      radius="xl"
+      padding="lg"
+      depth="deep"
+      card-class="privacy-card"
+    >
+      <view class="privacy-head">
+        <text class="privacy-kicker">PRIVACY / LOCAL ONLY</text>
+        <text class="privacy-title">隐私保护指引</text>
+        <text class="privacy-desc">
+          访问相册或保存图片前，需要您同意《超欢隐私保护指引》。所有处理只在本机完成，不上传任何内容。
+        </text>
+      </view>
+
+      <view class="privacy-points">
+        <view class="privacy-point">
+          <view class="privacy-point__dot"></view>
+          <text class="privacy-point__text">只读取您主动选择的那张图片。</text>
+        </view>
+        <view class="privacy-point">
+          <view class="privacy-point__dot"></view>
+          <text class="privacy-point__text">保存图片时才申请相册写入权限。</text>
+        </view>
+        <view class="privacy-point">
+          <view class="privacy-point__dot"></view>
+          <text class="privacy-point__text">不收集、不存储、不上传您的任何内容。</text>
+        </view>
+      </view>
+
+      <view class="privacy-actions">
+        <button
+          id="privacy-agree-btn"
+          class="privacy-action privacy-action--agree"
+          open-type="agreePrivacyAuthorization"
+          bindagreeprivacyauthorization="onAgree"
+        >
+          同意并继续
+        </button>
+        <button
+          class="privacy-action privacy-action--disagree"
+          hover-class="privacy-action--press"
+          bindtap="onDisagree"
+        >
+          暂不同意
+        </button>
+      </view>
+
+      <navigator
+        class="privacy-link"
+        url="/pages/legal/index?section=privacy"
+        hover-class="privacy-link--press"
+      >
+        查看完整隐私说明
+      </navigator>
+    </glass-card>
+  </view>
+</root-portal>

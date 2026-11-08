@@ -1,0 +1,77 @@
+/* ==========================================================================
+   二维码生成 · 空间玻璃页面样式
+   - 只使用 --glass-* / --sg-* 令牌
+   - 二维码图片保留原生 image 节点，尺寸由页面数据驱动
+   ========================================================================== */
+
+/* ---- 选项分栏 ---- */
+.tool-field {
+  display: flex;
+  flex-direction: column;
+  gap: 14rpx;
+  box-sizing: border-box;
+}
+
+.tool-field__label {
+  color: var(--glass-text-2);
+  font-size: 24rpx;
+  font-weight: 600;
+}
+
+.tool-chips {
+  display: flex;
+  flex-direction: row;
+  gap: 12rpx;
+  box-sizing: border-box;
+}
+
+.tool-chip {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ---- 结果 ---- */
+.tool-qr {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 24rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: var(--glass-radius-lg);
+  background-color: var(--glass-bg);
+  box-shadow: var(--glass-shadow-soft);
+}
+
+.tool-qr__img {
+  display: block;
+  max-width: 100%;
+  border-radius: var(--glass-radius-xs);
+}
+
+.tool-metrics {
+  display: flex;
+  flex-direction: row;
+  gap: 14rpx;
+  box-sizing: border-box;
+}
+
+.tool-metric {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 8rpx;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 16rpx 18rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: var(--glass-radius-sm);
+  background-color: var(--glass-bg-soft);
+}
+
+.tool-metric__k {
+  color: var(--glass-text-3);
+  font-size: 19rpx;
+}
+
+/* ---- 注释 ---- */

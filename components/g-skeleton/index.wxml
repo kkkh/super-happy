@@ -1,0 +1,6 @@
+<view class="sk {{card ? 'sk_card' : ''}}">
+  <view wx:if="{{avatar}}" class="sk_avatar sk_shine"></view>
+  <view class="sk_col">
+    <view wx:for="{{rowList}}" wx:key="*this" class="sk_row sk_shine" style="width: {{index === rowList.length - 1 ? 56 : 92}}%;"></view>
+  </view>
+</view>

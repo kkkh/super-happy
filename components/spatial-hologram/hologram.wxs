@@ -1,0 +1,105 @@
+/**
+ * spatial-hologram 阻尼内核
+ * - change:prop 接收目标角度
+ * - ownerInstance.getState()/setState() 保存单实例状态，避免多个 rAF 循环叠加
+ * - ownerInstance.requestAnimationFrame 逐帧阻尼，直接 setStyle 到 scene
+ * - 不通过 callMethod 回写，避免每帧跨线程 setData
+ */
+var SCENE_SELECTOR = '#holo-scene'
+
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value))
+}
+
+function applyTransform(ownerInstance, rotateX, rotateY) {
+  if (!ownerInstance || typeof ownerInstance.selectComponent !== 'function') {
+    return
+  }
+  var scene = ownerInstance.selectComponent(SCENE_SELECTOR)
+  if (!scene || typeof scene.setStyle !== 'function') {
+    return
+  }
+  scene.setStyle({
+    transform:
+      'rotateX(' + rotateX.toFixed(3) + 'deg) rotateY(' +
+      rotateY.toFixed(3) + 'deg)'
+  })
+}
+
+function canAnimate(ownerInstance) {
+  return Boolean(
+    ownerInstance &&
+    typeof ownerInstance.requestAnimationFrame === 'function' &&
+    typeof ownerInstance.getState === 'function' &&
+    typeof ownerInstance.setState === 'function'
+  )
+}
+
+function loop(ownerInstance) {
+  if (!canAnimate(ownerInstance)) {
+    return
+  }
+
+  var state = ownerInstance.getState()
+  if (!state || !state.running) {
+    return
+  }
+
+  var damping = clamp(state.damping || 0.12, 0.05, 0.5)
+  state.currentX = state.currentX + (state.targetX - state.currentX) * damping
+  state.currentY = state.currentY + (state.targetY - state.currentY) * damping
+
+  applyTransform(ownerInstance, state.currentX, state.currentY)
+  ownerInstance.setState(state)
+
+  var doneX = Math.abs(state.targetX - state.currentX) < 0.015
+  var doneY = Math.abs(state.targetY - state.currentY) < 0.015
+
+  if (doneX && doneY) {
+    state.currentX = state.targetX
+    state.currentY = state.targetY
+    state.running = false
+    ownerInstance.setState(state)
+    applyTransform(ownerInstance, state.currentX, state.currentY)
+    return
+  }
+
+  ownerInstance.requestAnimationFrame(function () {
+    loop(ownerInstance)
+  })
+}
+
+function onTiltChange(newConfig, oldConfig, ownerInstance) {
+  if (!newConfig || !ownerInstance) {
+    return
+  }
+
+  if (!canAnimate(ownerInstance)) {
+    applyTransform(ownerInstance, newConfig.targetX, newConfig.targetY)
+    return
+  }
+
+  var state = ownerInstance.getState() || {}
+  state.targetX = clamp(newConfig.targetX, -24, 24)
+  state.targetY = clamp(newConfig.targetY, -24, 24)
+  state.damping = clamp(newConfig.damping, 0.05, 0.5)
+
+  if (typeof state.currentX !== 'number') {
+    state.currentX = state.targetX
+  }
+  if (typeof state.currentY !== 'number') {
+    state.currentY = state.targetY
+  }
+
+  var shouldStart = !state.running
+  state.running = true
+  ownerInstance.setState(state)
+
+  if (shouldStart) {
+    loop(ownerInstance)
+  }
+}
+
+module.exports = {
+  onTiltChange: onTiltChange
+}

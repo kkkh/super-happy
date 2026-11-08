@@ -1,0 +1,281 @@
+/* ==========================================================================
+   glass-tool-shell · 空间玻璃工具页骨架
+   - 只使用 --glass-* / --sg-* 令牌，无硬编码色值
+   - 环境光背景由 app.wxss 的 .sg-ambient-surface 提供
+   - 布局：固定导航 + 可滚动内容，输入/结果由 glass-card 承托
+   ========================================================================== */
+
+.tool-shell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  box-sizing: border-box;
+  overflow: hidden;
+  background-color: var(--glass-canvas);
+  color: var(--glass-text);
+  font-family: var(--glass-font-sans);
+}
+
+.tool-shell__ambient {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.tool-shell__aura-a {
+  position: absolute;
+  top: -18%;
+  left: -26%;
+  width: 102%;
+  height: 58%;
+}
+
+.tool-shell__aura-b {
+  position: absolute;
+  top: 10%;
+  right: -30%;
+  width: 94%;
+  height: 52%;
+}
+
+.tool-shell__aura-c {
+  position: absolute;
+  bottom: -20%;
+  left: -8%;
+  width: 104%;
+  height: 60%;
+}
+
+.tool-shell__nav {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  gap: 18rpx;
+  padding-left: var(--glass-gutter);
+  padding-right: var(--glass-gutter);
+  padding-bottom: 16rpx;
+  min-height: 88rpx;
+}
+
+.tool-shell__back {
+  flex: 0 0 auto;
+}
+
+.tool-shell__kicker {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 18rpx;
+  letter-spacing: 0.12em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tool-shell__nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  flex: 0 0 auto;
+}
+
+.tool-shell__scroll {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  min-height: 0;
+}
+
+.tool-shell__body {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  gap: 28rpx;
+  padding-top: 8rpx;
+  padding-left: var(--glass-gutter);
+  padding-right: var(--glass-gutter);
+  padding-bottom: calc(env(safe-area-inset-bottom) + 48rpx);
+}
+
+.tool-shell__hero {
+  display: flex;
+  flex-direction: column;
+  padding: 8rpx 4rpx 12rpx;
+}
+
+.tool-shell__title {
+  color: var(--glass-text);
+  font-size: 52rpx;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.tool-shell__desc {
+  margin-top: 12rpx;
+  color: var(--glass-text-2);
+  font-size: 25rpx;
+  line-height: 1.55;
+}
+
+.tool-shell__privacy {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 8rpx;
+  margin-top: 18rpx;
+  padding: 8rpx 16rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: 999rpx;
+  background-color: var(--glass-bg-soft);
+  color: var(--glass-text-3);
+  font-size: 19rpx;
+}
+
+.tool-shell__alert {
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+  padding: 20rpx 24rpx;
+  border: 1rpx solid var(--sg-danger);
+  border-radius: var(--glass-radius-md);
+  background-color: color-mix(in srgb, var(--sg-danger) 12%, transparent);
+}
+
+.tool-shell__alert-dot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34rpx;
+  height: 34rpx;
+  border-radius: 50%;
+  background-color: var(--sg-danger);
+  color: var(--glass-on-accent);
+  font-size: 22rpx;
+  font-weight: 700;
+}
+
+.tool-shell__alert-text {
+  flex: 1;
+  color: var(--glass-text);
+  font-size: 24rpx;
+  line-height: 1.5;
+}
+
+.tool-shell__actions {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding-top: 4rpx;
+}
+
+.tool-shell__actions-solo {
+  justify-content: center;
+}
+
+.tool-shell__bridge {
+  height: 1rpx;
+  margin-bottom: 8rpx;
+}
+
+.tool-shell__footer {
+  padding-top: 8rpx;
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 16rpx;
+  letter-spacing: 0.08em;
+  text-align: center;
+}
+
+/* ---- 极光海报入口 ---- */
+.tool-shell__poster {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  margin-top: 4rpx;
+  margin-bottom: 8rpx;
+}
+
+.tool-shell__poster-glyph {
+  margin-right: 8rpx;
+  font-size: 28rpx;
+  line-height: 1;
+  text-shadow: 0 0 14rpx rgba(159, 124, 255, 0.9);
+}
+
+/* ---- 流转入口：呼吸微光 ---- */
+.tool-shell__workflow {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  margin-top: 4rpx;
+  margin-bottom: 8rpx;
+}
+
+.tool-shell__workflow-halo {
+  position: absolute;
+  top: 10rpx;
+  right: 28rpx;
+  bottom: 10rpx;
+  left: 28rpx;
+  z-index: 0;
+  border-radius: 999rpx;
+  background-image: radial-gradient(
+    ellipse at center,
+    var(--glass-accent-soft) 0%,
+    rgba(159, 124, 255, 0) 72%
+  );
+  opacity: 0.4;
+  animation: tool-shell-workflow-breathe 3.4s var(--glass-ease-out) infinite;
+  pointer-events: none;
+  will-change: opacity, transform;
+}
+
+.tool-shell__workflow-btn {
+  position: relative;
+  z-index: 1;
+}
+
+.tool-shell__workflow-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10rpx;
+}
+
+.tool-shell__workflow-glyph {
+  font-size: 30rpx;
+  font-weight: 600;
+  line-height: 1;
+  text-shadow: 0 0 16rpx var(--glass-accent-soft);
+}
+
+@keyframes tool-shell-workflow-breathe {
+  0%,
+  100% {
+    opacity: 0.28;
+    transform: scale(0.97);
+  }
+
+  50% {
+    opacity: 0.58;
+    transform: scale(1.02);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tool-shell__workflow-halo {
+    animation: none;
+    opacity: 0.4;
+  }
+}

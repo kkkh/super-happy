@@ -1,0 +1,80 @@
+<wxs src="./sheet.wxs" module="sheet"></wxs>
+
+<view
+  wx:if="{{visible}}"
+  class="custom-class glass-sheet {{active ? 'glass-sheet_active' : ''}}"
+  style="z-index: {{zIndex}}; {{customStyle}}"
+>
+  <view
+    class="glass-sheet__mask"
+    catchtouchmove="noop"
+    bindtap="onMaskTap"
+    aria-hidden="true"
+  ></view>
+
+  <view
+    class="glass-sheet__panel glass-sheet_size_{{size}}"
+    aria-role="dialog"
+    aria-modal="true"
+    aria-label="{{ariaLabel}}"
+  >
+    <view class="glass-sheet__drag">
+      <view
+        wx:if="{{showHandle}}"
+        class="glass-sheet__handle"
+        data-threshold="{{dismissThreshold}}"
+        bindtouchstart="sheet.onDragStart"
+        catchtouchmove="sheet.onDragMove"
+        catchtouchend="sheet.onDragEnd"
+        catchtouchcancel="sheet.onDragCancel"
+        aria-hidden="true"
+      >
+        <view class="glass-sheet__handle_bar"></view>
+      </view>
+
+      <view
+        wx:if="{{title || description || showClose}}"
+        class="glass-sheet__header"
+        catchtouchmove="noop"
+      >
+        <view class="glass-sheet__header_text">
+          <text wx:if="{{title}}" class="glass-sheet__title">{{title}}</text>
+          <text wx:if="{{description}}" class="glass-sheet__desc">{{description}}</text>
+        </view>
+
+        <view
+          wx:if="{{showClose}}"
+          class="glass-sheet__close"
+          hover-class="glass-sheet__close_pressed"
+          hover-stay-time="80"
+          aria-role="button"
+          aria-label="关闭"
+          catchtap="onCloseTap"
+        >
+          <text class="glass-sheet__close_glyph">×</text>
+        </view>
+      </view>
+
+      <scroll-view
+        scroll-y
+        enhanced
+        show-scrollbar="{{false}}"
+        class="glass-sheet__body"
+      >
+        <view class="glass-sheet__body_inner">
+          <slot></slot>
+        </view>
+      </scroll-view>
+
+      <view
+        wx:if="{{showFooter}}"
+        class="glass-sheet__footer"
+        catchtouchmove="noop"
+      >
+        <slot name="footer"></slot>
+      </view>
+
+      <view class="glass-sheet__safe"></view>
+    </view>
+  </view>
+</view>

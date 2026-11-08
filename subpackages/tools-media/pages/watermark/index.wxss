@@ -1,0 +1,774 @@
+/* ==========================================================================
+   水印工作台 · 极简极光玻璃
+   - 页面固定 100vh：导航 + 60% 预览 + Tab + 固定高度控制面板
+   - 预览内 DOM 图层负责 60fps 手势，Canvas 预览图落定后覆盖在最上层
+   - 所有材质只消费 --glass-* / --sg-* 令牌
+   ========================================================================== */
+
+.wm-page {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  box-sizing: border-box;
+  color: var(--glass-text);
+  font-family: var(--glass-font-sans);
+  background-color: var(--glass-canvas);
+}
+
+/* ---- 底层极光 ---- */
+.wm-aurora {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.wm-aurora__a {
+  position: absolute;
+  top: -20%;
+  left: -30%;
+  width: 108%;
+  height: 64%;
+}
+
+.wm-aurora__b {
+  position: absolute;
+  top: 4%;
+  right: -32%;
+  width: 100%;
+  height: 58%;
+}
+
+.wm-aurora__c {
+  position: absolute;
+  bottom: -24%;
+  left: -12%;
+  width: 112%;
+  height: 62%;
+}
+
+/* ---- 导航 ---- */
+.wm-nav {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 16rpx;
+  box-sizing: border-box;
+  padding-left: 24rpx;
+  padding-bottom: 8rpx;
+}
+
+.wm-nav__copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.wm-nav__kicker {
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 17rpx;
+  letter-spacing: 0.12em;
+}
+
+.wm-nav__title {
+  margin-top: 2rpx;
+  color: var(--glass-text);
+  font-size: 34rpx;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.wm-nav__badge {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8rpx;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  padding: 6rpx 14rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: 999rpx;
+  background-color: var(--glass-bg-soft);
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 16rpx;
+  letter-spacing: 0.08em;
+}
+
+.wm-nav__dot {
+  width: 8rpx;
+  height: 8rpx;
+  border-radius: 50%;
+  background-color: var(--glass-accent-2);
+  box-shadow: 0 0 10rpx var(--glass-accent-2);
+}
+
+/* ---- 预览舞台 ---- */
+.wm-stage {
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+  margin: 0 24rpx;
+  overflow: hidden;
+  box-sizing: border-box;
+  border: 1rpx solid var(--glass-border);
+  border-radius: 32rpx;
+  background-color: var(--glass-bg-soft);
+  box-shadow:
+    inset 0 1rpx 0 var(--glass-highlight),
+    var(--glass-shadow-soft);
+}
+
+.wm-stage__glow {
+  position: absolute;
+  top: -40%;
+  left: 10%;
+  width: 80%;
+  height: 90%;
+  border-radius: 50%;
+  background-color: rgba(159, 124, 255, 0.18);
+  filter: blur(70px);
+  pointer-events: none;
+}
+
+.wm-viewport {
+  position: absolute;
+  top: 62rpx;
+  right: 20rpx;
+  bottom: 108rpx;
+  left: 20rpx;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+
+.wm-box {
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+  border-radius: 10rpx;
+  background-color: #05070d;
+  box-shadow: 0 12rpx 36rpx rgba(0, 0, 0, 0.36);
+}
+
+.wm-box__image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* ---- 空状态 ---- */
+.wm-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14rpx;
+  box-sizing: border-box;
+  padding: 24rpx;
+  text-align: center;
+}
+
+.wm-empty__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 108rpx;
+  height: 108rpx;
+  box-sizing: border-box;
+  border: 1rpx solid var(--glass-border-strong);
+  border-radius: 30rpx;
+  background-color: var(--glass-accent-soft);
+  box-shadow: var(--glass-shadow-soft);
+}
+
+.wm-empty__title {
+  color: var(--glass-text);
+  font-size: 28rpx;
+  font-weight: 700;
+}
+
+.wm-empty__sub {
+  color: var(--glass-text-3);
+  font-size: 19rpx;
+  line-height: 1.5;
+}
+
+.wm-empty__action {
+  margin-top: 6rpx;
+}
+
+/* ---- 舞台 HUD ---- */
+.wm-stage__meta {
+  position: absolute;
+  top: 18rpx;
+  left: 20rpx;
+  right: 20rpx;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  pointer-events: none;
+}
+
+.wm-meta__text {
+  max-width: 50%;
+  overflow: hidden;
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 17rpx;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.wm-meta__badge {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6rpx;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  padding: 4rpx 12rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: 999rpx;
+  background-color: var(--glass-bg-soft);
+  color: var(--glass-text-3);
+  font-size: 16rpx;
+}
+
+.wm-stage__history {
+  position: absolute;
+  left: 16rpx;
+  bottom: 16rpx;
+  display: flex;
+  flex-direction: row;
+  gap: 8rpx;
+  z-index: 30;
+}
+
+.wm-history__glyph {
+  font-family: var(--glass-font-mono);
+  font-size: 26rpx;
+  line-height: 1;
+}
+
+/* 流转入口：极光微光呼吸，和壳层「流转到其他工具」同一视觉语言 */
+.wm-flow__glyph {
+  margin-right: 6rpx;
+  color: var(--glass-accent);
+  font-family: var(--glass-font-mono);
+  font-size: 26rpx;
+  line-height: 1;
+  text-shadow: 0 0 12rpx rgba(159, 124, 255, 0.72);
+  animation: wm-flow-glow 1800ms var(--glass-ease-out) infinite;
+}
+
+@keyframes wm-flow-glow {
+  0%,
+  100% {
+    opacity: 0.72;
+    text-shadow: 0 0 10rpx rgba(159, 124, 255, 0.55);
+  }
+
+  50% {
+    opacity: 1;
+    text-shadow: 0 0 20rpx rgba(159, 124, 255, 0.95);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wm-flow__glyph {
+    animation: none;
+  }
+}
+
+.wm-stage__cta {
+  position: absolute;
+  right: 16rpx;
+  bottom: 16rpx;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10rpx;
+  z-index: 30;
+}
+
+/* ---- Tab ---- */
+.wm-tabs {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: row;
+  flex-shrink: 0;
+  gap: 12rpx;
+  box-sizing: border-box;
+  padding: 14rpx 32rpx 10rpx;
+}
+
+.wm-tabs__cell {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ---- 控制面板 ---- */
+.wm-panel {
+  position: relative;
+  z-index: 2;
+  flex-shrink: 0;
+}
+
+.wm-panel__inner {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  box-sizing: border-box;
+  padding: 0 32rpx 32rpx;
+}
+
+.wm-panel__anchor {
+  width: 100%;
+  height: 0;
+}
+
+.wm-field {
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+  margin-bottom: 22rpx;
+}
+
+.wm-field__head {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.wm-field__label {
+  color: var(--glass-text-2);
+  font-size: 24rpx;
+  font-weight: 600;
+}
+
+.wm-field__hint {
+  color: var(--glass-text-3);
+  font-size: 19rpx;
+}
+
+.wm-field__value {
+  color: var(--glass-text);
+  font-family: var(--glass-font-mono);
+  font-size: 22rpx;
+}
+
+.wm-textarea {
+  width: 100%;
+  min-height: 112rpx;
+  box-sizing: border-box;
+  padding: 18rpx 20rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: var(--glass-radius-sm);
+  background-color: var(--glass-bg-soft);
+  color: var(--glass-text);
+  font-family: var(--glass-font-sans);
+  font-size: 26rpx;
+  line-height: 1.5;
+}
+
+.wm-textarea__placeholder {
+  color: var(--glass-text-3);
+}
+
+.wm-swatches {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  padding-top: 2rpx;
+}
+
+.wm-swatch {
+  width: 54rpx;
+  height: 54rpx;
+  box-sizing: border-box;
+  border: 2rpx solid rgba(255, 255, 255, 0.32);
+  border-radius: 50%;
+  box-shadow: 0 6rpx 16rpx rgba(0, 0, 0, 0.24);
+}
+
+.wm-swatch_active {
+  border-color: var(--glass-accent-2);
+  box-shadow:
+    0 0 0 4rpx var(--glass-accent-2-soft),
+    0 0 16rpx var(--glass-accent-2);
+}
+
+.wm-chips {
+  display: flex;
+  flex-direction: row;
+  gap: 12rpx;
+  margin-bottom: 18rpx;
+}
+
+.wm-chips__cell {
+  flex: 1;
+  min-width: 0;
+}
+
+.wm-masks {
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+  margin-top: 18rpx;
+}
+
+.wm-masks__row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  box-sizing: border-box;
+  padding: 12rpx 16rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: var(--glass-radius-sm);
+  background-color: var(--glass-bg-soft);
+}
+
+.wm-masks__copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.wm-masks__name {
+  color: var(--glass-text);
+  font-size: 22rpx;
+  font-weight: 600;
+}
+
+.wm-masks__size {
+  margin-top: 2rpx;
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 18rpx;
+}
+
+.wm-presets {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.wm-preset {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+  box-sizing: border-box;
+  padding: 18rpx 20rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: var(--glass-radius-md);
+  background-color: var(--glass-bg-soft);
+  box-shadow: inset 0 1rpx 0 var(--glass-highlight);
+}
+
+.wm-preset_pressed {
+  border-color: var(--glass-border-strong);
+  background-color: var(--glass-bg-strong);
+}
+
+.wm-preset__copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.wm-preset__title {
+  color: var(--glass-text);
+  font-size: 26rpx;
+  font-weight: 700;
+}
+
+.wm-preset__desc {
+  margin-top: 4rpx;
+  color: var(--glass-text-3);
+  font-size: 20rpx;
+  line-height: 1.4;
+}
+
+.wm-preset__action {
+  flex-shrink: 0;
+  box-sizing: border-box;
+  padding: 6rpx 16rpx;
+  border-radius: 999rpx;
+  background-color: var(--glass-accent-soft);
+  color: var(--glass-accent);
+  font-size: 19rpx;
+  font-weight: 600;
+}
+
+.wm-panel__hint {
+  display: block;
+  margin-top: 6rpx;
+  color: var(--glass-text-3);
+  font-size: 19rpx;
+  line-height: 1.6;
+}
+
+/* ---- 预览图层 ---- */
+.wm-layer {
+  position: absolute;
+  transform-origin: center center;
+  will-change: transform;
+  /* 手势统一由底下的手势面接管，图层不参与命中，避免事件无法直达 WXS */
+  pointer-events: none;
+}
+
+.wm-layer_active {
+  outline: 1rpx dashed rgba(255, 255, 255, 0.55);
+  outline-offset: 8rpx;
+}
+
+.wm-layer_text {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+}
+
+.wm-layer_logo {
+  z-index: 22;
+}
+
+.wm-textbox {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.wm-textbox__line {
+  display: block;
+  white-space: nowrap;
+  font-weight: 700;
+}
+
+.wm-stamp {
+  position: absolute;
+  right: -18%;
+  bottom: -34%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  border: 2rpx solid #e5484d;
+  border-radius: 50%;
+  color: #e5484d;
+  transform: rotate(-12deg);
+  opacity: 0.86;
+}
+
+.wm-stamp__main {
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.wm-stamp__sub {
+  margin-top: 2rpx;
+  font-family: var(--glass-font-mono);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+
+.wm-logo {
+  display: block;
+}
+
+/* ---- 平铺预览 ---- */
+.wm-tile {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 18;
+}
+
+.wm-tile__grid {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 200%;
+  transform-origin: center center;
+}
+
+.wm-tile__row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 18rpx;
+}
+
+.wm-tile__cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-right: 24rpx;
+  padding: 8rpx 14rpx;
+  box-sizing: border-box;
+}
+
+.wm-tile__text {
+  display: block;
+  white-space: nowrap;
+  font-weight: 700;
+}
+
+/* ---- 打码预览 ---- */
+.wm-mask {
+  position: absolute;
+  overflow: hidden;
+  box-sizing: border-box;
+  border: 1rpx solid rgba(255, 255, 255, 0.34);
+  border-radius: 8rpx;
+  z-index: 16;
+  pointer-events: none;
+}
+
+.wm-mask__effect {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
+.wm-mask__grid {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background-image: linear-gradient(
+      45deg,
+      rgba(255, 255, 255, 0.07) 25%,
+      transparent 25%,
+      transparent 75%,
+      rgba(255, 255, 255, 0.07) 75%
+    ),
+    linear-gradient(
+      45deg,
+      rgba(255, 255, 255, 0.07) 25%,
+      transparent 25%,
+      transparent 75%,
+      rgba(255, 255, 255, 0.07) 75%
+    );
+  background-size: 12rpx 12rpx;
+  background-position: 0 0, 6rpx 6rpx;
+}
+
+.wm-mask_blur .wm-mask__grid {
+  display: none;
+}
+
+.wm-mask__label {
+  position: absolute;
+  left: 6rpx;
+  bottom: 6rpx;
+  box-sizing: border-box;
+  padding: 2rpx 8rpx;
+  border-radius: 999rpx;
+  background-color: rgba(7, 10, 18, 0.6);
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 15rpx;
+}
+
+/* ---- 框选选框 ---- */
+.wm-marquee {
+  position: absolute;
+  box-sizing: border-box;
+  border: 2rpx dashed var(--glass-accent-2);
+  border-radius: 8rpx;
+  background-color: rgba(110, 231, 200, 0.14);
+  z-index: 32;
+  pointer-events: none;
+}
+
+/* ---- Canvas 合成结果 ---- */
+.wm-render {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms var(--glass-ease-out);
+  z-index: 40;
+}
+
+.wm-render_show {
+  opacity: 1;
+}
+
+/* ---- 隐藏画布 ---- */
+.wm-canvas {
+  position: fixed;
+  left: -9999rpx;
+  top: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ---- 省电 / 减少动态 ---- */
+.motion-saver .wm-render {
+  transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wm-render {
+    transition-duration: 1ms;
+  }
+}
+
+/* ---- 夜间：压住画面的紫色反光 ---- */
+.theme-dark .wm-stage__glow {
+  background-color: rgba(148, 116, 255, 0.12);
+}
+
+.theme-dark .wm-box {
+  background-color: #03050a;
+}

@@ -1,0 +1,250 @@
+/* ==========================================================================
+   glass-bottom-sheet · 极光底部抽屉
+   - 遮罩独立于面板，点击遮罩关闭
+   - 面板开合由 CSS spring 完成；拖拽位移由 WXS 直接 setStyle
+   - 底部安全区使用 env(safe-area-inset-bottom)
+   ========================================================================== */
+
+.glass-sheet {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  align-items: flex-end;
+  font-family: var(--glass-font-sans);
+}
+
+/* ---- 遮罩 ---- */
+.glass-sheet__mask {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1;
+  background-color: var(--glass-scrim);
+  opacity: 0;
+  transition: opacity 320ms var(--glass-ease-out);
+}
+
+.glass-sheet_active .glass-sheet__mask {
+  opacity: 1;
+}
+
+/* ---- 面板：只负责布局与开合位移 ---- */
+.glass-sheet__panel {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-height: 82vh;
+  box-sizing: border-box;
+  overflow: hidden;
+  transform: translate3d(0, 100%, 0);
+  transition: transform 420ms var(--glass-ease-spring);
+  will-change: transform;
+}
+
+.glass-sheet_active .glass-sheet__panel {
+  transform: translate3d(0, 0, 0);
+}
+
+/* ---- 高度策略 ---- */
+.glass-sheet_size_auto {
+  max-height: 82vh;
+}
+
+.glass-sheet_size_half {
+  height: 54vh;
+  max-height: 54vh;
+}
+
+.glass-sheet_size_full {
+  height: 92vh;
+  max-height: 92vh;
+}
+
+/* ---- 拖拽容器：承载全部玻璃材质，WXS 只移动这一层 ---- */
+.glass-sheet__drag {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  width: 100%;
+  min-height: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+  border: 1rpx solid var(--sg-glass-border, var(--glass-border));
+  border-bottom: none;
+  border-radius: var(--sg-radius-sheet, var(--glass-radius-sheet))
+    var(--sg-radius-sheet, var(--glass-radius-sheet)) 0 0;
+  background-color: var(--sg-glass-bg-strong, var(--glass-bg-strong));
+  box-shadow:
+    var(--sg-sss-shadow, var(--glass-shadow)),
+    inset 0 1rpx 0 var(--sg-glass-highlight, var(--glass-highlight)),
+    0 0 48rpx var(--sg-chromatic-glow, transparent);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  will-change: transform;
+}
+
+/* 顶部镜面高光线 */
+.glass-sheet__drag::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 8%;
+  right: 8%;
+  z-index: 6;
+  height: 1rpx;
+  pointer-events: none;
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--glass-highlight) 24%,
+    var(--glass-highlight) 76%,
+    transparent 100%
+  );
+  opacity: 0.72;
+}
+
+/* 红蓝分离色散边缘 */
+.glass-sheet__drag::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  border-radius: inherit;
+  box-shadow:
+    1rpx 0 0 var(--sg-chromatic-red, rgba(255, 58, 96, 0.24)),
+    -1rpx 0 0 var(--sg-chromatic-blue, rgba(54, 110, 255, 0.24)),
+    0 0 36rpx var(--sg-chromatic-glow, rgba(120, 136, 255, 0.18));
+  opacity: var(--sg-chromatic-opacity, 0.82);
+  mix-blend-mode: screen;
+}
+
+/* ---- 把手 ---- */
+.glass-sheet__handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 20rpx 0 8rpx;
+  box-sizing: border-box;
+}
+
+.glass-sheet__handle_bar {
+  width: 72rpx;
+  height: 8rpx;
+  border-radius: 4rpx;
+  background-color: var(--glass-text-3);
+  opacity: 0.55;
+}
+
+/* ---- 头部 ---- */
+.glass-sheet__header {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-shrink: 0;
+  padding: 8rpx 36rpx 20rpx;
+  box-sizing: border-box;
+}
+
+.glass-sheet__header_text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.glass-sheet__title {
+  color: var(--glass-text);
+  font-size: 34rpx;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: 0.01em;
+}
+
+.glass-sheet__desc {
+  margin-top: 8rpx;
+  color: var(--glass-text-3);
+  font-size: 24rpx;
+  line-height: 1.45;
+}
+
+.glass-sheet__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 56rpx;
+  height: 56rpx;
+  margin-left: 20rpx;
+  box-sizing: border-box;
+  border: 1rpx solid var(--glass-border);
+  border-radius: 50%;
+  background-color: var(--glass-bg);
+  transition:
+    transform var(--glass-duration-fast) var(--glass-ease-out),
+    opacity var(--glass-duration-fast) var(--glass-ease-out);
+}
+
+.glass-sheet__close_pressed {
+  transform: scale(0.9);
+  opacity: 0.72;
+}
+
+.glass-sheet__close_glyph {
+  color: var(--glass-text-2);
+  font-size: 30rpx;
+  line-height: 1;
+  transform: translateY(-1rpx);
+}
+
+/* ---- 内容 ---- */
+.glass-sheet__body {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+}
+
+.glass-sheet__body_inner {
+  padding: 0 36rpx 24rpx;
+  box-sizing: border-box;
+}
+
+/* ---- 底部 ---- */
+.glass-sheet__footer {
+  flex-shrink: 0;
+  padding: 8rpx 36rpx 0;
+  box-sizing: border-box;
+}
+
+/* ---- 安全区 ---- */
+.glass-sheet__safe {
+  flex-shrink: 0;
+  height: calc(16rpx + var(--glass-safe-bottom));
+}
+
+/* ---- 低端机降级 ---- */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass-sheet__panel {
+    background-color: var(--glass-bg-strong);
+  }
+}
+
+/* ---- 减少动态偏好 ---- */
+@media (prefers-reduced-motion: reduce) {
+  .glass-sheet__mask,
+  .glass-sheet__panel,
+  .glass-sheet__close {
+    transition-duration: 1ms;
+  }
+}

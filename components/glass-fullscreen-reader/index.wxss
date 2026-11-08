@@ -1,0 +1,196 @@
+/* ==========================================================================
+   glass-fullscreen-reader · 全屏沉浸阅读
+   - 遮罩纯色，面板单层 blur，避免双层滤镜掉帧
+   - 倒金字塔：lead 放大加粗，body 常规阅读
+   ========================================================================== */
+
+.reader {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  font-family: var(--glass-font-sans);
+  pointer-events: none;
+}
+
+.reader__mask {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background-color: var(--glass-scrim);
+  opacity: 0;
+  transition: opacity 240ms var(--glass-ease-out);
+  pointer-events: auto;
+}
+
+.reader_active .reader__mask {
+  opacity: 1;
+}
+
+.reader__panel {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  width: 100%;
+  min-height: 0;
+  padding-top: calc(20rpx + var(--glass-safe-top));
+  box-sizing: border-box;
+  overflow: hidden;
+  background-color: var(--glass-bg-strong);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  opacity: 0;
+  transform: translate3d(0, 28rpx, 0) scale(0.99);
+  transition:
+    opacity 240ms var(--glass-ease-out),
+    transform 300ms var(--glass-ease-spring);
+  pointer-events: auto;
+  will-change: transform, opacity;
+}
+
+.reader_active .reader__panel {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+}
+
+.reader__aura {
+  position: absolute;
+  top: -180rpx;
+  right: -120rpx;
+  width: 520rpx;
+  height: 520rpx;
+  border-radius: 50%;
+  background-image: radial-gradient(circle, var(--glass-accent-soft) 0%, transparent 68%);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.reader__nav {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24rpx;
+  padding: 12rpx 36rpx 0;
+  box-sizing: border-box;
+}
+
+.reader__nav-copy {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 10rpx;
+}
+
+.reader__kicker {
+  color: var(--glass-accent);
+  font-family: var(--glass-font-mono);
+  font-size: 20rpx;
+  letter-spacing: 0.16em;
+}
+
+.reader__title {
+  color: var(--glass-text);
+  font-size: 34rpx;
+  font-weight: 600;
+  line-height: 1.35;
+  word-break: break-all;
+}
+
+.reader__meta {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  padding: 14rpx 38rpx 20rpx;
+  box-sizing: border-box;
+}
+
+.reader__meta-text {
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 19rpx;
+  letter-spacing: 0.03em;
+}
+
+.reader__meta-dot {
+  color: var(--glass-text-3);
+  font-size: 19rpx;
+}
+
+.reader__scroll {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+}
+
+.reader__content {
+  display: flex;
+  flex-direction: column;
+  gap: 26rpx;
+  max-width: 980rpx;
+  margin: 0 auto;
+  padding: 12rpx 40rpx 40rpx;
+  box-sizing: border-box;
+}
+
+.reader__lead {
+  color: var(--glass-text);
+  font-size: 36rpx;
+  font-weight: 600;
+  line-height: 1.6;
+  letter-spacing: 0.01em;
+  word-break: break-all;
+  white-space: pre-wrap;
+}
+
+.reader__body {
+  color: var(--glass-text-2);
+  font-size: 28rpx;
+  font-weight: 400;
+  line-height: 1.85;
+  word-break: break-all;
+  white-space: pre-wrap;
+}
+
+.reader__safe {
+  flex-shrink: 0;
+  height: calc(24rpx + env(safe-area-inset-bottom));
+}
+
+/* ---- 底部复制 ---- */
+.reader__actions {
+  position: relative;
+  z-index: 2;
+  flex-shrink: 0;
+  padding: 12rpx 36rpx 8rpx;
+  box-sizing: border-box;
+}
+
+/* ---- 低端机降级 ---- */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .reader__panel {
+    background-color: var(--glass-bg-solid, var(--glass-bg-strong));
+  }
+}
+
+/* ---- 减少动态偏好 ---- */
+@media (prefers-reduced-motion: reduce) {
+  .reader__mask,
+  .reader__panel {
+    transition-duration: 1ms;
+  }
+}

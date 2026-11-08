@@ -1,0 +1,712 @@
+<wxs src="./gesture.wxs" module="gesture"></wxs>
+
+<view class="wm-page sg-ambient-surface sg-ambient-iris {{themeClass}} {{themeSwitching ? 'theme-breathing' : ''}}">
+  <!-- 极光底：与首页 / 工具页同一套环境光 -->
+  <view class="wm-aurora" aria-hidden="true">
+    <view class="sg-aurora-a wm-aurora__a"></view>
+    <view class="sg-aurora-b wm-aurora__b"></view>
+    <view class="sg-aurora-c wm-aurora__c"></view>
+  </view>
+
+  <!-- 自定义导航：右侧自动避让胶囊按钮 -->
+  <view class="wm-nav" style="padding-top: {{navTop}}px; padding-right: {{navRight}}px;">
+    <glass-button
+      variant="ghost"
+      size="sm"
+      shape="rounded"
+      custom-class="wm-nav__back"
+      aria-label="返回"
+      bind:tap="onBack"
+    >
+      <g-icon name="back" size="{{30}}" tone="ink" />
+    </glass-button>
+
+    <view class="wm-nav__copy">
+      <text class="wm-nav__kicker">WATERMARK LAB</text>
+      <text class="wm-nav__title">{{toolName}}</text>
+    </view>
+
+    <view class="wm-nav__badge" aria-hidden="true">
+      <view class="wm-nav__dot"></view>
+      <text>LOCAL</text>
+    </view>
+  </view>
+
+  <!-- 预览区：严格 60% 屏幕高度 -->
+  <view class="wm-stage" style="height: {{stageHeight}}px;">
+    <view class="wm-stage__glow" aria-hidden="true"></view>
+
+    <view id="wm-viewport" class="wm-viewport">
+      <view
+        wx:if="{{hasImage}}"
+        id="wm-surface"
+        class="wm-box"
+        style="width: {{displayW}}px; height: {{displayH}}px;"
+        data-box-left="{{surfaceLeft}}"
+        data-box-top="{{surfaceTop}}"
+        data-box-w="{{displayW}}"
+        data-box-h="{{displayH}}"
+        prop="{{gestureConfig}}"
+        change:prop="{{gesture.onConfigChange}}"
+        bindtouchstart="{{gesture.onTouchStart}}"
+        catchtouchmove="{{gesture.onTouchMove}}"
+        bindtouchend="{{gesture.onTouchEnd}}"
+        bindtouchcancel="{{gesture.onTouchCancel}}"
+        aria-role="group"
+        aria-label="水印编辑画布"
+      >
+        <image
+          class="wm-box__image"
+          src="{{imagePath}}"
+          mode="scaleToFill"
+          aria-label="待添加水印的原图"
+        />
+
+        <!-- 打码预览：交互态用玻璃近似，落定后由 Canvas 真实合成覆盖 -->
+        <view
+          wx:for="{{maskViews}}"
+          wx:key="id"
+          class="wm-mask {{item.kindClass}}"
+          style="{{item.boxStyle}}"
+          aria-hidden="true"
+        >
+          <view class="wm-mask__effect" style="{{item.effectStyle}}"></view>
+          <view class="wm-mask__grid"></view>
+          <text class="wm-mask__label">{{item.labelStyle}}</text>
+        </view>
+
+        <!-- 平铺水印预览：只在交互时露出，落定后由 Canvas 接管 -->
+        <view wx:if="{{textLayer.tile}}" class="wm-tile" aria-hidden="true">
+          <view
+            class="wm-tile__grid"
+            style="transform: translate(-50%, -50%) rotate({{textLayer.rotation}}deg) scale({{textLayer.scale}}); opacity: {{textView.opacity}};"
+          >
+            <view
+              wx:for="{{tileRows}}"
+              wx:for-item="row"
+              wx:for-index="rowIndex"
+              wx:key="*this"
+              class="wm-tile__row"
+            >
+              <view
+                wx:for="{{tileCells}}"
+                wx:for-item="cell"
+                wx:for-index="cellIndex"
+                wx:key="*this"
+                class="wm-tile__cell"
+              >
+                <text
+                  wx:for="{{textLines}}"
+                  wx:for-item="line"
+                  wx:for-index="lineIndex"
+                  wx:key="key"
+                  class="wm-tile__text"
+                  style="font-size: {{textView.fontPx}}px; line-height: {{textView.linePx}}px; letter-spacing: {{textView.letterPx}}px; color: {{textView.color}}; text-shadow: {{textView.shadow}};"
+                >{{line.text}}</text>
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <!-- 文字图层 -->
+        <view
+          wx:if="{{!textLayer.tile}}"
+          id="wm-layer-text"
+          class="wm-layer wm-layer_text {{activeLayer === 'text' ? 'wm-layer_active' : ''}}"
+          style="left: {{textLayer.x}}%; top: {{textLayer.y}}%; transform: translate(-50%, -50%) rotate({{textLayer.rotation}}deg) scale({{textLayer.scale}});"
+          aria-label="文字水印图层"
+        >
+          <view
+            class="wm-textbox"
+            style="padding: {{textView.padY}}px {{textView.padX}}px; border-radius: {{textView.radiusPx}}px; background-color: {{textView.background}}; opacity: {{textView.opacity}};"
+          >
+            <text
+              wx:for="{{textLines}}"
+              wx:key="key"
+              class="wm-textbox__line"
+              style="font-size: {{textView.fontPx}}px; line-height: {{textView.linePx}}px; letter-spacing: {{textView.letterPx}}px; color: {{textView.color}}; text-shadow: {{textView.shadow}};"
+            >{{item.text}}</text>
+
+            <view
+              wx:if="{{textLayer.stamp}}"
+              class="wm-stamp"
+              style="width: {{textView.stampPx}}px; height: {{textView.stampPx}}px;"
+              aria-hidden="true"
+            >
+              <text
+                class="wm-stamp__main"
+                style="font-size: {{textView.fontPx * 0.6}}px;"
+              >超欢</text>
+              <text
+                class="wm-stamp__sub"
+                style="font-size: {{textView.fontPx * 0.2}}px;"
+              >ORIGINAL</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 图片 Logo 图层 -->
+        <view
+          wx:if="{{logoLayer}}"
+          id="wm-layer-logo"
+          class="wm-layer wm-layer_logo {{activeLayer === 'logo' ? 'wm-layer_active' : ''}}"
+          style="left: {{logoLayer.x}}%; top: {{logoLayer.y}}%; transform: translate(-50%, -50%) rotate({{logoLayer.rotation}}deg) scale(1);"
+          aria-label="图片 Logo 图层"
+        >
+          <image
+            class="wm-logo"
+            src="{{logoLayer.src}}"
+            mode="scaleToFill"
+            style="width: {{logoView.widthPx}}px; height: {{logoView.heightPx}}px; opacity: {{logoView.opacity}};"
+            aria-label="图片 Logo 水印"
+          />
+        </view>
+
+        <!-- 框选打码选框 -->
+        <view id="wm-marquee" class="wm-marquee" style="opacity: 0; left: 0; top: 0; width: 0; height: 0;"></view>
+
+        <!-- Canvas 合成结果：交互时隐藏，落定后淡入，实现所见即所得 -->
+        <image
+          wx:if="{{previewSrc}}"
+          class="wm-render {{previewVisible ? 'wm-render_show' : ''}}"
+          src="{{previewSrc}}"
+          mode="scaleToFill"
+          aria-hidden="true"
+        />
+      </view>
+
+      <view wx:else class="wm-empty">
+        <view class="wm-empty__icon">
+          <g-icon name="image" size="{{48}}" tone="media" />
+        </view>
+        <text class="wm-empty__title">选一张图片，开始加印</text>
+        <text class="wm-empty__sub">大图自动压到 2000px · 全程本机处理 · 不上传</text>
+        <view class="wm-empty__action">
+          <glass-button
+            variant="aurora"
+            size="md"
+            loading="{{choosing}}"
+            loading-text="读取中"
+            aria-label="从相册选择图片"
+            bind:tap="onChooseImage"
+          >
+            从相册选择图片
+          </glass-button>
+        </view>
+      </view>
+    </view>
+
+    <view class="wm-stage__meta">
+      <text class="wm-meta__text">{{hasImage ? imageMeta : '尚未选择图片'}}</text>
+      <view class="wm-meta__badge">
+        <g-icon name="eye" size="{{18}}" tone="ink3" />
+        <text>本机处理</text>
+      </view>
+    </view>
+
+    <view class="wm-stage__history" aria-label="历史操作">
+      <glass-button
+        variant="ghost"
+        size="sm"
+        disabled="{{!undoAvailable}}"
+        aria-label="撤销上一步"
+        bind:tap="onUndo"
+      >
+        <text class="wm-history__glyph">↶</text>
+      </glass-button>
+      <glass-button
+        variant="ghost"
+        size="sm"
+        disabled="{{!redoAvailable}}"
+        aria-label="重做下一步"
+        bind:tap="onRedo"
+      >
+        <text class="wm-history__glyph">↷</text>
+      </glass-button>
+    </view>
+
+    <view class="wm-stage__cta">
+      <glass-button
+        wx:if="{{hasImage}}"
+        variant="ghost"
+        size="sm"
+        aria-label="重新选择图片"
+        bind:tap="onChooseImage"
+      >
+        换图
+      </glass-button>
+      <glass-button
+        wx:if="{{hasImage}}"
+        variant="tint"
+        size="sm"
+        aria-label="流转当前水印图片"
+        bind:tap="onWorkflowTap"
+      >
+        <text class="wm-flow__glyph" aria-hidden="true">⇄</text>
+        <text>流转</text>
+      </glass-button>
+      <glass-button
+        variant="aurora"
+        size="sm"
+        loading="{{saving}}"
+        loading-text="导出中"
+        disabled="{{!hasImage}}"
+        aria-label="保存带水印的图片到相册"
+        bind:tap="onSaveImage"
+      >
+        保存到相册
+      </glass-button>
+    </view>
+  </view>
+
+  <!-- Tab 切换 -->
+  <view class="wm-tabs" aria-role="tablist" aria-label="水印控制面板">
+    <view wx:for="{{tabs}}" wx:key="key" class="wm-tabs__cell">
+      <glass-button
+        variant="{{activeTab === item.key ? 'primary' : 'ghost'}}"
+        size="sm"
+        shape="rounded"
+        block
+        custom-class="wm-tab"
+        data-key="{{item.key}}"
+        aria-role="tab"
+        aria-label="{{item.label}}面板"
+        bind:tap="onTabTap"
+      >
+        {{item.label}}
+      </glass-button>
+    </view>
+  </view>
+
+  <!-- 控制面板 -->
+  <scroll-view
+    class="wm-panel"
+    style="height: {{panelHeight}}px;"
+    scroll-y
+    enhanced
+    show-scrollbar="{{false}}"
+    bounces="{{false}}"
+    type="list"
+    scroll-into-view="{{panelAnchor}}"
+    scroll-with-animation
+  >
+    <view class="wm-panel__inner">
+      <view id="wm-panel-top" class="wm-panel__anchor" aria-hidden="true"></view>
+      <!-- 文字 -->
+      <glass-card wx:if="{{activeTab === 'text'}}" tone="iris" radius="lg" padding="md" depth="soft">
+        <view class="wm-field">
+          <view class="wm-field__head">
+            <text class="wm-field__label">水印文案</text>
+            <text class="wm-field__hint">{{textLines.length}} 行</text>
+          </view>
+          <textarea
+            class="wm-textarea"
+            value="{{textLayer.text}}"
+            maxlength="160"
+            auto-height
+            adjust-position
+            cursor-spacing="24"
+            show-confirm-bar="{{false}}"
+            placeholder="支持多行，换行即换行"
+            placeholder-class="wm-textarea__placeholder"
+            bindinput="onTextInput"
+            bindblur="onTextBlur"
+            aria-label="水印文字内容"
+          />
+        </view>
+
+        <view class="wm-field">
+          <view class="wm-field__head">
+            <text class="wm-field__label">字号</text>
+            <text class="wm-field__value">{{textLayer.fontSize}}</text>
+          </view>
+          <glass-slider
+            value="{{textLayer.fontSize}}"
+            min="8"
+            max="120"
+            step="1"
+            aria-label="字号"
+            data-field="fontSize"
+            bind:input="onTextSliderInput"
+            bind:change="onTextSliderChange"
+          />
+        </view>
+
+        <view class="wm-field">
+          <view class="wm-field__head">
+            <text class="wm-field__label">字间距</text>
+            <text class="wm-field__value">{{textLayer.letterSpacing}}</text>
+          </view>
+          <glass-slider
+            value="{{textLayer.letterSpacing}}"
+            min="0"
+            max="24"
+            step="0.5"
+            aria-label="字间距"
+            data-field="letterSpacing"
+            bind:input="onTextSliderInput"
+            bind:change="onTextSliderChange"
+          />
+        </view>
+
+        <view class="wm-field">
+          <view class="wm-field__head">
+            <text class="wm-field__label">旋转</text>
+            <text class="wm-field__value">{{textLayer.rotation}}°</text>
+          </view>
+          <glass-slider
+            value="{{textLayer.rotation}}"
+            min="-180"
+            max="180"
+            step="1"
+            aria-label="文字旋转角度"
+            data-field="rotation"
+            bind:input="onTextSliderInput"
+            bind:change="onTextSliderChange"
+          />
+        </view>
+
+        <view class="wm-field">
+          <view class="wm-field__head">
+            <text class="wm-field__label">行间距</text>
+            <text class="wm-field__value">{{textLayer.lineHeight}}</text>
+          </view>
+          <glass-slider
+            value="{{textLayer.lineHeight}}"
+            min="1"
+            max="2.4"
+            step="0.1"
+            aria-label="行间距"
+            data-field="lineHeight"
+            bind:input="onTextSliderInput"
+            bind:change="onTextSliderChange"
+          />
+        </view>
+
+        <view class="wm-field">
+          <view class="wm-field__head">
+            <text class="wm-field__label">不透明度</text>
+            <text class="wm-field__value">{{textLayer.opacity}}%</text>
+          </view>
+          <glass-slider
+            value="{{textLayer.opacity}}"
+            min="20"
+            max="100"
+            step="1"
+            aria-label="文字不透明度"
+            data-field="opacity"
+            bind:input="onTextSliderInput"
+            bind:change="onTextSliderChange"
+          />
+        </view>
+
+        <view class="wm-field">
+          <text class="wm-field__label">文字颜色</text>
+          <view class="wm-swatches">
+            <view
+              wx:for="{{colors}}"
+              wx:key="value"
+              class="wm-swatch {{textLayer.color === item.value ? 'wm-swatch_active' : ''}}"
+              style="background-color: {{item.value}};"
+              data-color="{{item.value}}"
+              aria-role="button"
+              aria-label="{{item.label}}色"
+              bindtap="onColorTap"
+            ></view>
+          </view>
+        </view>
+
+        <view class="wm-chips">
+          <view class="wm-chips__cell">
+            <glass-button
+              variant="{{textLayer.outline ? 'primary' : 'ghost'}}"
+              size="sm"
+              shape="rounded"
+              block
+              data-field="outline"
+              aria-label="描边开关"
+              bind:tap="onToggleTap"
+            >描边</glass-button>
+          </view>
+          <view class="wm-chips__cell">
+            <glass-button
+              variant="{{textLayer.bgEnabled ? 'primary' : 'ghost'}}"
+              size="sm"
+              shape="rounded"
+              block
+              data-field="bgEnabled"
+              aria-label="半透明底框开关"
+              bind:tap="onToggleTap"
+            >底框</glass-button>
+          </view>
+          <view class="wm-chips__cell">
+            <glass-button
+              variant="{{textLayer.shadow ? 'primary' : 'ghost'}}"
+              size="sm"
+              shape="rounded"
+              block
+              data-field="shadow"
+              aria-label="投影开关"
+              bind:tap="onToggleTap"
+            >投影</glass-button>
+          </view>
+        </view>
+
+        <view class="wm-chips">
+          <view class="wm-chips__cell">
+            <glass-button
+              variant="{{textLayer.tile ? 'primary' : 'ghost'}}"
+              size="sm"
+              shape="rounded"
+              block
+              data-field="tile"
+              aria-label="全屏平铺开关"
+              bind:tap="onToggleTap"
+            >全屏平铺</glass-button>
+          </view>
+          <view class="wm-chips__cell">
+            <glass-button
+              variant="{{textLayer.stamp ? 'primary' : 'ghost'}}"
+              size="sm"
+              shape="rounded"
+              block
+              data-field="stamp"
+              aria-label="图章开关"
+              bind:tap="onToggleTap"
+            >图章</glass-button>
+          </view>
+        </view>
+
+        <view wx:if="{{textLayer.bgEnabled}}" class="wm-field">
+          <view class="wm-field__head">
+            <text class="wm-field__label">底框浓度</text>
+            <text class="wm-field__value">{{textLayer.bgOpacity}}%</text>
+          </view>
+          <glass-slider
+            value="{{textLayer.bgOpacity}}"
+            min="0"
+            max="90"
+            step="1"
+            aria-label="底框不透明度"
+            data-field="bgOpacity"
+            bind:input="onTextSliderInput"
+            bind:change="onTextSliderChange"
+          />
+        </view>
+
+        <text class="wm-panel__hint">单指拖拽水印，双指捏合缩放 / 旋转；手势结束自动入历史栈。</text>
+      </glass-card>
+
+      <!-- Logo -->
+      <glass-card wx:if="{{activeTab === 'logo'}}" tone="mint" radius="lg" padding="md" depth="soft">
+        <view class="wm-field">
+          <view class="wm-field__head">
+            <text class="wm-field__label">图片 Logo</text>
+            <text class="wm-field__hint">{{logoLayer ? '可拖动 · 可旋转' : 'PNG / JPG 均可'}}</text>
+          </view>
+          <glass-button
+            variant="primary"
+            size="md"
+            block
+            loading="{{choosing}}"
+            loading-text="读取中"
+            aria-label="{{logoLayer ? '更换 Logo' : '上传 Logo'}}"
+            bind:tap="onChooseLogo"
+          >
+            {{logoLayer ? '更换 Logo' : '上传 Logo'}}
+          </glass-button>
+        </view>
+
+        <view wx:if="{{logoLayer}}" class="wm-field">
+          <view class="wm-field__head">
+            <text class="wm-field__label">Logo 大小</text>
+            <text class="wm-field__value">{{logoView.scalePercent}}%</text>
+          </view>
+          <glass-slider
+            value="{{logoView.scalePercent}}"
+            min="5"
+            max="60"
+            step="1"
+            aria-label="Logo 大小"
+            data-field="scale"
+            bind:input="onLogoSliderInput"
+            bind:change="onLogoSliderChange"
+          />
+        </view>
+
+        <view wx:if="{{logoLayer}}" class="wm-field">
+          <view class="wm-field__head">
+            <text class="wm-field__label">Logo 不透明度</text>
+            <text class="wm-field__value">{{logoLayer.opacity}}%</text>
+          </view>
+          <glass-slider
+            value="{{logoLayer.opacity}}"
+            min="10"
+            max="100"
+            step="1"
+            aria-label="Logo 不透明度"
+            data-field="opacity"
+            bind:input="onLogoSliderInput"
+            bind:change="onLogoSliderChange"
+          />
+        </view>
+
+        <view wx:if="{{logoLayer}}" class="wm-field">
+          <view class="wm-field__head">
+            <text class="wm-field__label">Logo 旋转</text>
+            <text class="wm-field__value">{{logoLayer.rotation}}°</text>
+          </view>
+          <glass-slider
+            value="{{logoLayer.rotation}}"
+            min="-180"
+            max="180"
+            step="1"
+            aria-label="Logo 旋转角度"
+            data-field="rotation"
+            bind:input="onLogoSliderInput"
+            bind:change="onLogoSliderChange"
+          />
+        </view>
+
+        <view wx:if="{{logoLayer}}" class="wm-chips">
+          <view class="wm-chips__cell">
+            <glass-button
+              variant="ghost"
+              size="sm"
+              block
+              aria-label="删除 Logo 图层"
+              bind:tap="onDeleteLogo"
+            >删除 Logo</glass-button>
+          </view>
+        </view>
+
+        <text class="wm-panel__hint">文字与 Logo 可同时存在，导出时按图层顺序合成。</text>
+      </glass-card>
+
+      <!-- 打码 -->
+      <glass-card wx:if="{{activeTab === 'mask'}}" tone="amber" radius="lg" padding="md" depth="soft">
+        <view class="wm-field">
+          <text class="wm-field__label">打码方式</text>
+          <view class="wm-chips">
+            <view class="wm-chips__cell">
+              <glass-button
+                variant="{{maskKind === 'mosaic' ? 'primary' : 'ghost'}}"
+                size="sm"
+                shape="rounded"
+                block
+                data-kind="mosaic"
+                aria-label="马赛克打码"
+                bind:tap="onMaskKindTap"
+              >马赛克</glass-button>
+            </view>
+            <view class="wm-chips__cell">
+              <glass-button
+                variant="{{maskKind === 'blur' ? 'primary' : 'ghost'}}"
+                size="sm"
+                shape="rounded"
+                block
+                data-kind="blur"
+                aria-label="高斯模糊打码"
+                bind:tap="onMaskKindTap"
+              >高斯模糊</glass-button>
+            </view>
+          </view>
+        </view>
+
+        <view class="wm-field">
+          <view class="wm-field__head">
+            <text class="wm-field__label">强度</text>
+            <text class="wm-field__value">{{maskStrength}}</text>
+          </view>
+          <glass-slider
+            value="{{maskStrength}}"
+            min="6"
+            max="40"
+            step="1"
+            aria-label="打码强度"
+            bind:input="onMaskSliderInput"
+            bind:change="onMaskSliderChange"
+          />
+        </view>
+
+        <glass-button
+          variant="{{maskDrawing ? 'aurora' : 'primary'}}"
+          size="md"
+          block
+          disabled="{{!hasImage}}"
+          aria-label="{{maskDrawing ? '正在框选区域' : '框选打码区域'}}"
+          bind:tap="onStartMask"
+        >
+          {{maskDrawing ? '正在框选 · 拖动画面' : '框选打码区域'}}
+        </glass-button>
+
+        <view wx:if="{{maskViews.length}}" class="wm-masks">
+          <view
+            wx:for="{{maskViews}}"
+            wx:key="id"
+            class="wm-masks__row"
+          >
+            <view class="wm-masks__copy">
+              <text class="wm-masks__name">{{item.labelStyle}}区域</text>
+              <text class="wm-masks__size">{{item.sizeText}}</text>
+            </view>
+            <glass-button
+              variant="ghost"
+              size="sm"
+              data-id="{{item.id}}"
+              aria-label="删除该打码区域"
+              bind:tap="onDeleteMask"
+            >删除</glass-button>
+          </view>
+        </view>
+
+        <text class="wm-panel__hint">框选只作用于本机图片；导出时按真实像素重新计算，不会失真。</text>
+      </glass-card>
+
+      <!-- 预设 -->
+      <glass-card wx:if="{{activeTab === 'preset'}}" tone="iris" radius="lg" padding="md" depth="soft">
+        <view class="wm-presets">
+          <view
+            wx:for="{{presets}}"
+            wx:key="key"
+            class="wm-preset"
+            hover-class="wm-preset_pressed"
+            hover-stay-time="80"
+            data-key="{{item.key}}"
+            aria-role="button"
+            aria-label="应用{{item.label}}预设"
+            bindtap="onPresetTap"
+          >
+            <view class="wm-preset__copy">
+              <text class="wm-preset__title">{{item.label}}</text>
+              <text class="wm-preset__desc">{{item.desc}}</text>
+            </view>
+            <text class="wm-preset__action">应用</text>
+          </view>
+        </view>
+
+        <text class="wm-panel__hint">预设只改文字图层参数，Logo 与打码区域保持不动；可随时撤销。</text>
+      </glass-card>
+    </view>
+  </scroll-view>
+
+  <workflow-receiver tool-id="watermark" />
+  <workflow-panel
+    show="{{workflowPanelVisible}}"
+    source-tool-id="watermark"
+    bind:close="onWorkflowPanelClose"
+  />
+  <glass-toast />
+  <privacy-guard />
+
+  <canvas
+    wx:if="{{canvasMounted}}"
+    id="wm-canvas"
+    type="2d"
+    class="wm-canvas"
+    style="width: 8px; height: 8px;"
+  ></canvas>
+
+  <!-- 保存相册是长任务，期间不弹更新窗口 -->
+  <update-guard blocked="{{saving}}" />
+</view>

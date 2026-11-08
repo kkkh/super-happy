@@ -1,0 +1,3 @@
+<view class="tag tag_{{tone}} {{solid ? 'tag_solid' : ''}}">
+  <slot></slot>
+</view>

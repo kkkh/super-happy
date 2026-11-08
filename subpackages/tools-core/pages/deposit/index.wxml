@@ -1,0 +1,137 @@
+<glass-tool-shell
+  tool-id="deposit"
+  title="{{toolName}}"
+  kicker="{{kicker}}"
+  desc="{{desc}}"
+  poster-data="{{posterData}}"
+  sensitive="finance"
+  state="{{shellState}}"
+  run-label="计算本息"
+  has-result="{{hasResult}}"
+  error="{{error}}"
+  empty-title="填入本金与利率，试算复利"
+  empty-sub="支持按年、按季、按月复利"
+  bind:run="onRun"
+  bind:example="onExample"
+  bind:reset="onReset"
+>
+  <view slot="input" class="sg-tool-fields">
+    <glass-input
+      label="本金"
+      hint="存入金额，最多两位小数"
+      type="digit"
+      maxlength="{{16}}"
+      value="{{principal}}"
+      placeholder="例如 10000"
+      data-field="principal"
+      aria-label="存款本金"
+      bind:input="onInput"
+      bind:confirm="onInput"
+    >
+      <text slot="suffix" class="sg-tool-unit">元</text>
+    </glass-input>
+
+    <glass-input
+      label="年利率"
+      hint="0–24%，最多两位小数"
+      type="digit"
+      maxlength="{{6}}"
+      value="{{rate}}"
+      placeholder="例如 3"
+      data-field="rate"
+      aria-label="年利率百分比"
+      bind:input="onInput"
+      bind:confirm="onInput"
+    >
+      <text slot="suffix" class="sg-tool-unit">%</text>
+    </glass-input>
+
+    <glass-input
+      label="存款年限"
+      hint="1–50 年"
+      type="number"
+      maxlength="{{4}}"
+      value="{{years}}"
+      placeholder="例如 3"
+      data-field="years"
+      aria-label="存款年限"
+      bind:input="onInput"
+      bind:confirm="onInput"
+    >
+      <text slot="suffix" class="sg-tool-unit">年</text>
+    </glass-input>
+
+    <view class="tool-field">
+      <view class="tool-field__head">
+        <text class="tool-field__label">复利频率</text>
+        <text class="tool-field__note">利息再投资</text>
+      </view>
+      <view class="tool-seg">
+        <glass-button
+          wx:for="{{frequencies}}"
+          wx:key="key"
+          variant="{{frequency === item.key ? 'primary' : 'ghost'}}"
+          size="sm"
+          haptic="none"
+          data-key="{{item.key}}"
+          aria-label="{{item.label}}复利"
+          bind:tap="onFrequency"
+        >
+          {{item.label}}
+        </glass-button>
+      </view>
+    </view>
+  </view>
+
+  <view slot="result" class="sg-tool-result">
+    <view class="sg-tool-result__head">
+      <text class="sg-tool-result__label">本息合计</text>
+      <text class="sg-tool-result__meta">{{years}} 年 · {{rate}}%</text>
+    </view>
+
+    <view class="sg-tool-result__main">
+      <animated-number
+        value="{{totalValue}}"
+        decimals="2"
+        prefix="¥"
+        size="xl"
+        tone="aurora"
+      />
+    </view>
+
+    <text class="sg-tool-result__caption">本金 {{principalText}}</text>
+
+    <view class="sg-tool-rows">
+      <view class="sg-tool-row">
+        <text class="sg-tool-row__k">利息</text>
+        <text class="sg-tool-row__v">{{interestText}}</text>
+      </view>
+      <view class="sg-tool-row">
+        <text class="sg-tool-row__k">等效年化</text>
+        <text class="sg-tool-row__v">{{annualYieldText}}</text>
+      </view>
+      <view class="sg-tool-row">
+        <text class="sg-tool-row__k">复利次数</text>
+        <text class="sg-tool-row__v">{{timesText}}</text>
+      </view>
+    </view>
+
+    <view class="sg-tool-result__actions">
+      <glass-button variant="ghost" size="md" block bind:tap="onCopy">
+        复制结果
+      </glass-button>
+    </view>
+  </view>
+
+  <view slot="note">
+    <glass-card tone="amber" radius="lg" padding="md" depth="soft">
+      <view class="sg-tool-note">
+        <text class="sg-tool-note__title">试算说明</text>
+        <text class="sg-tool-note__text">
+          按固定年利率与固定复利频率估算，不考虑税费、提前支取、利率变化与银行计息规则差异。
+          结果仅供参考，不构成存款或投资建议。
+        </text>
+      </view>
+    </glass-card>
+  </view>
+</glass-tool-shell>

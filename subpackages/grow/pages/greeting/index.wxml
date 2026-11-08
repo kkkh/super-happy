@@ -1,0 +1,48 @@
+<view class="page_root {{themeClass}}">
+  <g-navbar title="您好" back transparent />
+
+  <scroll-view enhanced show-scrollbar="{{false}}" bounces="{{false}}" scroll-y type="list" class="greet_scroll">
+    <view class="greet_body">
+      <!-- 徽章：承接主页入口环的飞跃（share-element） -->
+      <view class="greet_badge anim-scale-in" aria-hidden="true">
+        <share-element key="fly-entry-greeting" transition="true">
+          <view class="greet_badge_ring greet_badge_ring_iris">
+            <g-orbit size="{{224}}" />
+          </view>
+        </share-element>
+      </view>
+
+      <!-- 开场白 -->
+      <view class="greet_intro anim-rise delay-2">
+        <text class="greet_title">序厅 · 开场白</text>
+        <text class="greet_sub">三句话，认识我</text>
+      </view>
+
+      <!-- 问候卡 -->
+      <view class="greet_cards">
+        <view wx:for="{{cards}}" wx:key="id" class="anim-rise delay-{{index + 3}}">
+          <g-card padding="lg" sheen>
+            <view class="greet_card">
+              <view class="greet_card_icon greet_card_icon_{{item.tone}}">
+                <g-icon name="{{item.icon}}" size="{{38}}" tone="{{item.tone}}" />
+              </view>
+              <view class="greet_card_text">
+                <text class="greet_card_title">{{item.title}}</text>
+                <text class="greet_card_body">{{item.body}}</text>
+              </view>
+              <g-tag tone="{{item.tone}}">0{{index + 1}}</g-tag>
+            </view>
+          </g-card>
+        </view>
+      </view>
+
+      <!-- 版记 -->
+      <view class="greet_foot anim-fade delay-6">
+        <text class="greet_foot_text">「作品即简历」</text>
+      </view>
+    </view>
+  </scroll-view>
+
+  <g-toast />
+  <update-guard />
+</view>

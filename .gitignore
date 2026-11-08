@@ -1,0 +1,22 @@
+# 依赖
+node_modules/
+subpackages/tools-core/node_modules/
+
+# miniprogram-ci 上传密钥
+private/
+*.key
+*.pem
+
+# 本机配置与产物
+.DS_Store
+miniprogram-ci-qrcode.*
+project.private.config.json
+.vscode/
+.trae/
+.trae-html-share-packages/
+.legacy/
+.screenshots/
+.icon-dist/
+tests/visual/reports/
+未命名.png
+preview-qr.png

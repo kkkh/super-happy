@@ -1,0 +1,169 @@
+/**
+ * glass-card 触控光追内核
+ * - bindtouchstart/move/end 由 WXS 接管，不触发 setData
+ * - requestAnimationFrame 合并高频移动事件
+ * - 只改 .glass-card__light 的 transform，光斑走 GPU 合成
+ * - touchend/cancel 缓动回到中心
+ */
+var LIGHT_SELECTOR = '.glass-card__light'
+var RESET_TRANSITION = 'transform 420ms cubic-bezier(0.22, 1, 0.36, 1)'
+
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value))
+}
+
+function isEnabled(event) {
+  var dataset = (event.currentTarget && event.currentTarget.dataset) || {}
+  var value = dataset.lightTracking
+  return value === true || value === 'true' || value === 1 || value === '1'
+}
+
+function selectLight(ownerInstance) {
+  if (!ownerInstance || typeof ownerInstance.selectComponent !== 'function') {
+    return null
+  }
+  return ownerInstance.selectComponent(LIGHT_SELECTOR)
+}
+
+function calcPosition(event) {
+  var touches = event.touches || []
+  var touch = touches[0]
+  var current = event.currentTarget || {}
+  if (!touch) {
+    return null
+  }
+
+  var dataset = (event.currentTarget && event.currentTarget.dataset) || {}
+  var left = typeof current.offsetLeft === 'number' ? current.offsetLeft : 0
+  var top = typeof current.offsetTop === 'number' ? current.offsetTop : 0
+  var width = typeof current.offsetWidth === 'number' ? current.offsetWidth : 0
+  var height = typeof current.offsetHeight === 'number' ? current.offsetHeight : 0
+
+  if (width <= 0) {
+    width = +dataset.cardW || 0
+  }
+  if (height <= 0) {
+    height = +dataset.cardH || 0
+  }
+
+  if (width <= 0 || height <= 0) {
+    return null
+  }
+
+  var pageX =
+    typeof touch.pageX === 'number' ? touch.pageX : touch.clientX
+  var pageY =
+    typeof touch.pageY === 'number' ? touch.pageY : touch.clientY
+
+  return {
+    x: clamp(((pageX - left) / width - 0.5) * 100, -38, 38),
+    y: clamp(((pageY - top) / height - 0.5) * 100, -38, 38)
+  }
+}
+
+function applyLight(ownerInstance) {
+  if (!ownerInstance || typeof ownerInstance.getState !== 'function') {
+    return
+  }
+
+  var state = ownerInstance.getState() || {}
+  state.scheduled = false
+
+  if (state.ending) {
+    return
+  }
+
+  var lightNode = selectLight(ownerInstance)
+  if (!lightNode || typeof lightNode.setStyle !== 'function') {
+    return
+  }
+
+  lightNode.setStyle({
+    transform:
+      'translate3d(' + (state.x || 0) + '%, ' + (state.y || 0) + '%, 0)'
+  })
+}
+
+function queueMove(event, ownerInstance) {
+  if (!isEnabled(event) || !ownerInstance) {
+    return
+  }
+
+  var point = calcPosition(event)
+  if (!point) {
+    return
+  }
+
+  var state = ownerInstance.getState() || {}
+  state.x = point.x
+  state.y = point.y
+  state.ending = false
+
+  if (state.scheduled) {
+    ownerInstance.setState(state)
+    return
+  }
+
+  state.scheduled = true
+  ownerInstance.setState(state)
+
+  if (typeof ownerInstance.requestAnimationFrame === 'function') {
+    ownerInstance.requestAnimationFrame(function () {
+      applyLight(ownerInstance)
+    })
+  } else {
+    applyLight(ownerInstance)
+  }
+}
+
+function onTouchStart(event, ownerInstance) {
+  if (!isEnabled(event)) {
+    return
+  }
+
+  var lightNode = selectLight(ownerInstance)
+  if (lightNode && typeof lightNode.setStyle === 'function') {
+    lightNode.setStyle({ transition: 'none' })
+  }
+
+  queueMove(event, ownerInstance)
+}
+
+function onTouchMove(event, ownerInstance) {
+  queueMove(event, ownerInstance)
+}
+
+function resetLight(ownerInstance) {
+  if (!ownerInstance || typeof ownerInstance.getState !== 'function') {
+    return
+  }
+
+  var state = ownerInstance.getState() || {}
+  state.ending = true
+  state.x = 0
+  state.y = 0
+  ownerInstance.setState(state)
+
+  var lightNode = selectLight(ownerInstance)
+  if (lightNode && typeof lightNode.setStyle === 'function') {
+    lightNode.setStyle({
+      transition: RESET_TRANSITION,
+      transform: 'translate3d(0%, 0%, 0)'
+    })
+  }
+}
+
+function onTouchEnd(event, ownerInstance) {
+  resetLight(ownerInstance)
+}
+
+function onTouchCancel(event, ownerInstance) {
+  resetLight(ownerInstance)
+}
+
+module.exports = {
+  onTouchStart: onTouchStart,
+  onTouchMove: onTouchMove,
+  onTouchEnd: onTouchEnd,
+  onTouchCancel: onTouchCancel
+}

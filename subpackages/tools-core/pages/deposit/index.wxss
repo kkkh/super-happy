@@ -1,0 +1,44 @@
+/* ==========================================================================
+   存款复利 · 空间玻璃页面样式
+   - 只使用 --glass-* / --sg-* 令牌，无硬编码色值
+   ========================================================================== */
+
+/* ---- 复利频率 ---- */
+.tool-field {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+  box-sizing: border-box;
+  padding-top: 2rpx;
+}
+
+.tool-field__head {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 20rpx;
+  box-sizing: border-box;
+  padding: 0 4rpx;
+}
+
+.tool-field__label {
+  color: var(--glass-text-2);
+  font-size: 24rpx;
+  font-weight: 600;
+}
+
+.tool-field__note {
+  color: var(--glass-text-3);
+  font-size: 19rpx;
+}
+
+.tool-seg {
+  display: flex;
+  flex-direction: row;
+  gap: 12rpx;
+}
+
+/* ---- 结果 ---- */
+/* ---- 明细行 ---- */
+/* ---- 注释 ---- */

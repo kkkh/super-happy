@@ -1,0 +1,169 @@
+<view class="hash-page {{themeClass}}">
+<glass-tool-shell
+  tool-id="hash"
+  title="{{toolName}}"
+  kicker="{{kicker}}"
+  desc="{{desc}}"
+  state="{{state}}"
+  run-label="计算 Hash"
+  can-run="{{canRun}}"
+  has-result="{{hasResult}}"
+  error="{{error}}"
+  update-blocked="{{tooLongShow}}"
+  empty-title="输入文本，计算单向摘要"
+  empty-sub="MD5 / SHA-1 / SHA-256 / SHA-512 · 本机计算"
+  poster-data="{{posterData}}"
+  poster-enabled="{{true}}"
+  bind:run="onCompute"
+  bind:reset="onReset"
+  bind:example="onExample"
+>
+  <view slot="input" class="hash-inputs">
+    <view class="hash-control">
+      <text class="hash-control__label">算法</text>
+      <view class="hash-seg hash-seg_algorithm">
+        <view
+          wx:for="{{algorithms}}"
+          wx:key="key"
+          class="hash-seg__item {{algorithm === item.key ? 'hash-seg__item_active' : ''}} {{state === 'running' ? 'hash-seg__item_disabled' : ''}}"
+          data-key="{{item.key}}"
+          hover-class="hash-pressed"
+          hover-stay-time="80"
+          aria-role="button"
+          aria-label="{{item.label}}"
+          bindtap="onAlgorithmChange"
+        >
+          {{item.label}}
+        </view>
+      </view>
+    </view>
+
+    <view class="hash-switch-row">
+      <view class="hash-switch-row__text">
+        <text class="hash-switch-row__title">HMAC 模式</text>
+        <text class="hash-switch-row__sub">用密钥对消息进行带密钥摘要</text>
+      </view>
+      <switch
+        checked="{{hmac}}"
+        disabled="{{state === 'running'}}"
+        color="var(--glass-accent)"
+        aria-label="HMAC 模式"
+        bindchange="onHmacChange"
+      />
+    </view>
+
+    <view wx:if="{{hmac}}" class="hash-secret">
+      <text class="hash-control__label">HMAC 密钥</text>
+      <input
+        class="hash-secret__input"
+        value="{{secret}}"
+        maxlength="-1"
+        disabled="{{state === 'running'}}"
+        placeholder="输入 HMAC 密钥，不能为空"
+        placeholder-class="hash-placeholder"
+        cursor-spacing="{{120}}"
+        aria-label="HMAC 密钥"
+        bindinput="onSecretInput"
+      />
+    </view>
+
+    <view class="hash-editor">
+      <view class="hash-editor__head">
+        <text class="hash-editor__label">原始文本</text>
+        <text class="hash-editor__count">{{textCount}} 字符</text>
+      </view>
+      <textarea
+        class="hash-editor__area"
+        value="{{text}}"
+        maxlength="-1"
+        disabled="{{state === 'running'}}"
+        placeholder="粘贴或输入需要计算摘要的文本…"
+        placeholder-class="hash-placeholder"
+        cursor-spacing="{{120}}"
+        aria-label="Hash 输入文本"
+        bindinput="onInput"
+      />
+    </view>
+
+    <view wx:if="{{state === 'running'}}" class="hash-loading" aria-live="polite">
+      <view class="hash-loading__spinner" aria-hidden="true"></view>
+      <view class="hash-loading__copy">
+        <text class="hash-loading__title">正在本机计算 {{selectedLabel}}</text>
+        <text class="hash-loading__sub">{{hmac ? 'HMAC 带密钥摘要' : '单向散列摘要'}} · 不会上传文本</text>
+      </view>
+    </view>
+  </view>
+
+  <view slot="result" class="hash-result">
+    <view class="hash-summary">
+      <view class="hash-summary__left">
+        <text class="hash-summary__kicker">HASH DIGEST</text>
+        <text class="hash-summary__title">{{algorithmLabel}} · {{modeLabel}}</text>
+      </view>
+      <text class="hash-summary__meta">{{inputChars}} 字符 · {{elapsedMs}}ms</text>
+    </view>
+
+    <glass-card radius="lg" padding="md" depth="soft">
+      <view class="hash-output">
+        <text class="hash-output__label">结果摘要</text>
+        <text class="hash-output__value" selectable>{{displayHex}}</text>
+      </view>
+    </glass-card>
+
+    <view class="hash-case-row">
+      <text class="hash-control__label">结果大小写</text>
+      <view class="hash-seg hash-seg_case">
+        <view
+          class="hash-seg__item {{caseMode === 'lower' ? 'hash-seg__item_active' : ''}} {{state === 'running' ? 'hash-seg__item_disabled' : ''}}"
+          data-mode="lower"
+          hover-class="hash-pressed"
+          hover-stay-time="80"
+          aria-role="button"
+          aria-label="小写十六进制"
+          bindtap="onCaseMode"
+        >
+          小写
+        </view>
+        <view
+          class="hash-seg__item {{caseMode === 'upper' ? 'hash-seg__item_active' : ''}} {{state === 'running' ? 'hash-seg__item_disabled' : ''}}"
+          data-mode="upper"
+          hover-class="hash-pressed"
+          hover-stay-time="80"
+          aria-role="button"
+          aria-label="大写十六进制"
+          bindtap="onCaseMode"
+        >
+          大写
+        </view>
+      </view>
+    </view>
+
+    <view class="hash-actions">
+      <glass-button
+        variant="tint"
+        size="md"
+        block
+        disabled="{{copyLocked}}"
+        bind:tap="onCopy"
+      >
+        {{copyLabel}}
+      </glass-button>
+    </view>
+
+    <text class="hash-flow-hint">
+      顶部「流转」将发送当前{{caseMode === 'upper' ? '大写' : '小写'}} Hash 结果
+    </text>
+  </view>
+</glass-tool-shell>
+
+<glass-modal
+  show="{{tooLongShow}}"
+  title="输入超过 100,000 字符"
+  description="{{tooLongText}}"
+  confirm-text="知道了"
+  show-cancel="{{false}}"
+  z-index="{{250}}"
+  bind:confirm="onTooLongConfirm"
+  bind:cancel="onTooLongConfirm"
+/>
+</view>

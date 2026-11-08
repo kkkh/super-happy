@@ -1,0 +1,8 @@
+<view class="stat">
+  <text wx:if="{{kicker}}" class="stat_kicker">{{kicker}}</text>
+  <view class="stat_value_row">
+    <text class="stat_value">{{display}}</text>
+    <text wx:if="{{suffix}}" class="stat_suffix">{{suffix}}</text>
+  </view>
+  <text wx:if="{{label}}" class="stat_label">{{label}}</text>
+</view>

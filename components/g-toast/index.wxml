@@ -1,0 +1,3 @@
+<view wx:if="{{toastShow}}" class="toast" catchtap="noop" aria-role="alert" aria-label="{{toastMessage}}">
+  <text class="toast_text">{{toastMessage}}</text>
+</view>

@@ -1,0 +1,1460 @@
+/* ==========================================================================
+   全局样式入口 · 曜石画廊
+   - 原子化工具类：Tailwind v4 编译产物（唯一样式真相源的编译结果）
+   - 语义令牌运行时真值：--g-* 命名空间，双主题（深色 · 黑曜石 / 浅色 · 晨瓷）
+   - 三重保障：
+     1) page 级默认值 + @media (prefers-color-scheme) —— 零 JS 首帧即正确主题
+     2) theme.json + darkmode —— 窗口背景 / 状态栏随系统翻转（见 app.json）
+     3) .theme-light / .theme-dark —— uiStore 手动覆盖（页面根节点显式挂载）
+   ========================================================================== */
+@import "./styles/generated/tailwind.wxss";
+@import "./styles/v3.wxss";
+
+/* Tailwind 产物中的 .border 固定为 1px；小程序内统一收敛到 1rpx */
+.border {
+  border-width: 1rpx;
+}
+
+/* 极端字号/Android WebView 字体放大保护：阻止自动字体膨胀与横向溢出 */
+page {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  overflow-x: hidden;
+}
+
+/* ---- 深色 · 黑曜石（品牌默认基调；系统深色首帧） ---- */
+page,
+.theme-dark {
+  /* 表面材质 */
+  --g-canvas: #06080f;
+  --g-well: #0b0f1a;
+  --g-surface: rgba(255, 255, 255, 0.055);
+  --g-surface-strong: rgba(255, 255, 255, 0.09);
+  --g-solid: #10141f;
+  --g-elevated: rgba(13, 18, 29, 0.92);
+  --g-scrim: rgba(4, 6, 11, 0.64);
+
+  /* 描边 */
+  --g-stroke: rgba(255, 255, 255, 0.1);
+  --g-stroke-strong: rgba(255, 255, 255, 0.2);
+
+  /* 墨色五阶 */
+  --g-ink: #f4f6fb;
+  --g-ink-2: #dce2ef;
+  --g-ink-3: #8c99b6;
+  --g-ink-4: #5d6b8b;
+  --g-ink-5: #3e4a63;
+
+  /* 主色 1 · iris 铟蓝 */
+  --g-iris: #8a93ec;
+  --g-iris-2: #a7b0f2;
+  --g-iris-soft: rgba(107, 118, 220, 0.16);
+  --g-iris-border: rgba(138, 147, 236, 0.35);
+  --g-iris-glow: rgba(107, 118, 220, 0.4);
+
+  /* 主色 2 · aurora 薄荷 */
+  --g-aurora: #54cfb2;
+  --g-aurora-2: #7fe0c8;
+  --g-aurora-soft: rgba(82, 205, 176, 0.14);
+  --g-aurora-border: rgba(127, 224, 200, 0.32);
+  --g-aurora-glow: rgba(82, 205, 176, 0.35);
+
+  /* 点缀 · amber 暖金 */
+  --g-amber: #e9c68d;
+  --g-amber-soft: rgba(232, 197, 138, 0.14);
+  --g-amber-border: rgba(232, 197, 138, 0.32);
+  --g-amber-glow: rgba(232, 197, 138, 0.3);
+
+  /* 渐变与光影 */
+  --g-gradient-accent: linear-gradient(135deg, #6b76dc 0%, #5560c4 55%, #434ca3 100%);
+  --g-gradient-avatar: linear-gradient(135deg, rgba(138, 147, 236, 0.9), rgba(82, 205, 176, 0.7), rgba(232, 197, 138, 0.6));
+  --g-orb-iris: rgba(107, 118, 220, 0.4);
+  --g-orb-aurora: rgba(82, 205, 176, 0.28);
+  --g-orb-amber: rgba(232, 197, 138, 0.16);
+  --g-ph-iris-a: rgba(138, 147, 236, 0.85);
+  --g-ph-iris-b: rgba(67, 76, 163, 0.8);
+  --g-ph-aurora-a: rgba(127, 224, 200, 0.8);
+  --g-ph-aurora-b: rgba(42, 148, 128, 0.8);
+  --g-ph-amber-a: rgba(232, 197, 138, 0.8);
+  --g-ph-amber-b: rgba(163, 128, 67, 0.8);
+  --g-ring-iris: rgba(138, 147, 236, 0.55);
+  --g-ring-aurora: rgba(127, 224, 200, 0.5);
+  --g-grid: rgba(255, 255, 255, 0.05);
+  --g-ph-glyph: rgba(255, 255, 255, 0.75);
+  --g-dot-off: rgba(255, 255, 255, 0.12);
+  --g-skeleton: rgba(255, 255, 255, 0.05);
+  --g-skeleton-hi: rgba(255, 255, 255, 0.12);
+  --g-sheen-hi: rgba(255, 255, 255, 0.09);
+  --g-hi: rgba(255, 255, 255, 0.22);
+  --g-hero-glow: rgba(107, 118, 220, 0.45);
+  --g-cover-scrim-0: rgba(6, 8, 15, 0);
+  --g-cover-scrim: rgba(6, 8, 15, 0.85);
+  --g-hero-scrim-0: rgba(6, 8, 15, 0);
+  --g-hero-scrim: rgba(6, 8, 15, 0.92);
+  --g-shadow-glass: 0 8rpx 32rpx rgba(3, 6, 12, 0.45);
+  --g-shadow-lift: 0 16rpx 48rpx rgba(3, 6, 12, 0.55);
+
+  background-color: var(--g-canvas);
+  color: var(--g-ink);
+}
+
+/* ---- 浅色 · 晨瓷（系统浅色首帧） ---- */
+@media (prefers-color-scheme: light) {
+  page {
+    --g-canvas: #f3f5fa;
+    --g-well: #e8ebf3;
+    --g-surface: rgba(255, 255, 255, 0.68);
+    --g-surface-strong: rgba(255, 255, 255, 0.86);
+    --g-solid: #ffffff;
+    --g-elevated: rgba(255, 255, 255, 0.94);
+    --g-scrim: rgba(18, 22, 34, 0.38);
+
+    --g-stroke: rgba(18, 24, 40, 0.1);
+    --g-stroke-strong: rgba(18, 24, 40, 0.18);
+
+    --g-ink: #151926;
+    --g-ink-2: #39404f;
+    --g-ink-3: #656f86;
+    --g-ink-4: #97a0b4;
+    --g-ink-5: #b8c0d0;
+
+    --g-iris: #4c56b7;
+    --g-iris-2: #6b76dc;
+    --g-iris-soft: rgba(107, 118, 220, 0.1);
+    --g-iris-border: rgba(76, 86, 183, 0.3);
+    --g-iris-glow: rgba(107, 118, 220, 0.22);
+
+    --g-aurora: #16826b;
+    --g-aurora-2: #2a9480;
+    --g-aurora-soft: rgba(42, 148, 128, 0.1);
+    --g-aurora-border: rgba(22, 130, 107, 0.3);
+    --g-aurora-glow: rgba(42, 148, 128, 0.2);
+
+    --g-amber: #8e6a24;
+    --g-amber-soft: rgba(196, 164, 96, 0.16);
+    --g-amber-border: rgba(142, 106, 36, 0.32);
+    --g-amber-glow: rgba(196, 164, 96, 0.25);
+
+    --g-gradient-accent: linear-gradient(135deg, #5560c4 0%, #4c56b7 55%, #3e4694 100%);
+    --g-gradient-avatar: linear-gradient(135deg, rgba(107, 118, 220, 0.85), rgba(42, 148, 128, 0.65), rgba(196, 164, 96, 0.6));
+    --g-orb-iris: rgba(107, 118, 220, 0.3);
+    --g-orb-aurora: rgba(53, 179, 153, 0.22);
+    --g-orb-amber: rgba(232, 197, 138, 0.42);
+    --g-ph-iris-a: rgba(107, 118, 220, 0.5);
+    --g-ph-iris-b: rgba(76, 86, 183, 0.42);
+    --g-ph-aurora-a: rgba(53, 179, 153, 0.46);
+    --g-ph-aurora-b: rgba(22, 130, 107, 0.4);
+    --g-ph-amber-a: rgba(232, 197, 138, 0.66);
+    --g-ph-amber-b: rgba(142, 106, 36, 0.4);
+    --g-ring-iris: rgba(76, 86, 183, 0.5);
+    --g-ring-aurora: rgba(22, 130, 107, 0.46);
+    --g-grid: rgba(18, 24, 40, 0.05);
+    --g-ph-glyph: rgba(18, 24, 40, 0.55);
+    --g-dot-off: rgba(18, 24, 40, 0.12);
+    --g-skeleton: rgba(18, 24, 40, 0.06);
+    --g-skeleton-hi: rgba(255, 255, 255, 0.75);
+    --g-sheen-hi: rgba(255, 255, 255, 0.55);
+    --g-hi: rgba(255, 255, 255, 0.95);
+    --g-hero-glow: rgba(107, 118, 220, 0.28);
+    --g-cover-scrim-0: rgba(243, 245, 250, 0);
+    --g-cover-scrim: rgba(243, 245, 250, 0.88);
+    --g-hero-scrim-0: rgba(243, 245, 250, 0);
+    --g-hero-scrim: rgba(243, 245, 250, 0.94);
+    --g-shadow-glass: 0 8rpx 32rpx rgba(23, 30, 52, 0.1);
+    --g-shadow-lift: 0 16rpx 48rpx rgba(23, 30, 52, 0.16);
+
+    background-color: var(--g-canvas);
+    color: var(--g-ink);
+  }
+}
+
+/* ---- 浅色 · 晨瓷（手动覆盖类：与上方媒体查询同源同值） ---- */
+.theme-light {
+  --g-canvas: #f3f5fa;
+  --g-well: #e8ebf3;
+  --g-surface: rgba(255, 255, 255, 0.68);
+  --g-surface-strong: rgba(255, 255, 255, 0.86);
+  --g-solid: #ffffff;
+  --g-elevated: rgba(255, 255, 255, 0.94);
+  --g-scrim: rgba(18, 22, 34, 0.38);
+
+  --g-stroke: rgba(18, 24, 40, 0.1);
+  --g-stroke-strong: rgba(18, 24, 40, 0.18);
+
+  --g-ink: #151926;
+  --g-ink-2: #39404f;
+  --g-ink-3: #656f86;
+  --g-ink-4: #97a0b4;
+  --g-ink-5: #b8c0d0;
+
+  --g-iris: #4c56b7;
+  --g-iris-2: #6b76dc;
+  --g-iris-soft: rgba(107, 118, 220, 0.1);
+  --g-iris-border: rgba(76, 86, 183, 0.3);
+  --g-iris-glow: rgba(107, 118, 220, 0.22);
+
+  --g-aurora: #16826b;
+  --g-aurora-2: #2a9480;
+  --g-aurora-soft: rgba(42, 148, 128, 0.1);
+  --g-aurora-border: rgba(22, 130, 107, 0.3);
+  --g-aurora-glow: rgba(42, 148, 128, 0.2);
+
+  --g-amber: #8e6a24;
+  --g-amber-soft: rgba(196, 164, 96, 0.16);
+  --g-amber-border: rgba(142, 106, 36, 0.32);
+  --g-amber-glow: rgba(196, 164, 96, 0.25);
+
+  --g-gradient-accent: linear-gradient(135deg, #5560c4 0%, #4c56b7 55%, #3e4694 100%);
+  --g-gradient-avatar: linear-gradient(135deg, rgba(107, 118, 220, 0.85), rgba(42, 148, 128, 0.65), rgba(196, 164, 96, 0.6));
+  --g-orb-iris: rgba(107, 118, 220, 0.3);
+  --g-orb-aurora: rgba(53, 179, 153, 0.22);
+  --g-orb-amber: rgba(232, 197, 138, 0.42);
+  --g-ph-iris-a: rgba(107, 118, 220, 0.5);
+  --g-ph-iris-b: rgba(76, 86, 183, 0.42);
+  --g-ph-aurora-a: rgba(53, 179, 153, 0.46);
+  --g-ph-aurora-b: rgba(22, 130, 107, 0.4);
+  --g-ph-amber-a: rgba(232, 197, 138, 0.66);
+  --g-ph-amber-b: rgba(142, 106, 36, 0.4);
+  --g-ring-iris: rgba(76, 86, 183, 0.5);
+  --g-ring-aurora: rgba(22, 130, 107, 0.46);
+  --g-grid: rgba(18, 24, 40, 0.05);
+  --g-ph-glyph: rgba(18, 24, 40, 0.55);
+  --g-dot-off: rgba(18, 24, 40, 0.12);
+  --g-skeleton: rgba(18, 24, 40, 0.06);
+  --g-skeleton-hi: rgba(255, 255, 255, 0.75);
+  --g-sheen-hi: rgba(255, 255, 255, 0.55);
+  --g-hi: rgba(255, 255, 255, 0.95);
+  --g-hero-glow: rgba(107, 118, 220, 0.28);
+  --g-cover-scrim-0: rgba(243, 245, 250, 0);
+  --g-cover-scrim: rgba(243, 245, 250, 0.88);
+  --g-hero-scrim-0: rgba(243, 245, 250, 0);
+  --g-hero-scrim: rgba(243, 245, 250, 0.94);
+  --g-shadow-glass: 0 8rpx 32rpx rgba(23, 30, 52, 0.1);
+  --g-shadow-lift: 0 16rpx 48rpx rgba(23, 30, 52, 0.16);
+}
+
+/* ---- 页面根节点：全屏包裹层，主题类的宿主 ---- */
+.page_root {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100vh;
+  background-color: var(--g-canvas);
+  color: var(--g-ink);
+  font-family: -apple-system, "PingFang SC", "Source Han Sans SC", "Noto Sans CJK SC", "Microsoft YaHei", "SF Pro Display", "Helvetica Neue", sans-serif;
+  /* 统一基线行高：PingFang 与思源/雅黑的默认行盒不同，显式锁定避免 1px 垂直偏移 */
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 全局按压反馈：所有可点击元素的 hover-class 统一消费该材质态 */
+.press,
+.press-soft,
+.v3_press {
+  transition:
+    transform 0.18s cubic-bezier(0.2, 0.9, 0.25, 1),
+    opacity 0.18s cubic-bezier(0.2, 0.9, 0.25, 1);
+}
+
+.press {
+  transform: scale(0.97);
+  opacity: 0.9;
+}
+
+.press-soft {
+  transform: scale(0.985);
+  opacity: 0.96;
+}
+
+/* ==========================================================================
+   Glass 3.0 · 极光毛玻璃设计令牌
+   - 与既有 --g-* / --v3-* / --tbx-* 并行，不覆盖旧页面
+   - 默认深色（与当前首帧一致），系统浅色 / .theme-light 切换晨雾玻璃
+   - 组件层只消费 --glass-*，禁止在组件 WXSS 内写裸色值
+   ========================================================================== */
+
+page {
+  /* ---- 公共尺度 ---- */
+  --glass-radius-xs: 12rpx;
+  --glass-radius-sm: 20rpx;
+  --glass-radius-md: 28rpx;
+  --glass-radius-lg: 40rpx;
+  --glass-radius-xl: 56rpx;
+  --glass-radius-sheet: 64rpx;
+  --glass-gutter: 32rpx;
+  --glass-safe-top: env(safe-area-inset-top, 0px);
+  --glass-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --glass-safe-left: env(safe-area-inset-left, 0px);
+  --glass-safe-right: env(safe-area-inset-right, 0px);
+
+  /* ---- 动效 ---- */
+  --glass-ease-spring: cubic-bezier(0.18, 0.89, 0.32, 1.16);
+  --glass-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --glass-ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --glass-duration-fast: 180ms;
+  --glass-duration-base: 280ms;
+  --glass-duration-slow: 520ms;
+
+  /* ---- 层级 ---- */
+  --glass-z-base: 1;
+  --glass-z-overlay: 100;
+  --glass-z-sheet: 200;
+  --glass-z-toast: 300;
+  --glass-z-palette: 400;
+
+  /* ---- 字体 ---- */
+  --glass-font-sans: -apple-system, "SF Pro Display", "PingFang SC", "Source Han Sans SC", "Noto Sans CJK SC", "Microsoft YaHei", sans-serif;
+  --glass-font-mono: "SF Mono", "Menlo", "Roboto Mono", "Courier New", monospace;
+
+  /* ---- 强调色上的文字 ---- */
+  --glass-on-accent: #ffffff;
+  --glass-on-warm: #241505;
+
+  /* ---- 噪点 ---- */
+  --glass-noise-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.62'/%3E%3C/svg%3E");
+  --glass-noise-size: 160rpx 160rpx;
+}
+
+/* ---- 深色 · 极光黑曜（默认） ---- */
+page,
+.theme-dark {
+  --glass-canvas: #070a12;
+  --glass-canvas-2: #0b0f19;
+  --glass-aurora-1: rgba(96, 118, 255, 0.2);
+  --glass-aurora-2: rgba(46, 220, 188, 0.12);
+  --glass-aurora-3: rgba(255, 188, 120, 0.1);
+
+  --glass-bg: rgba(13, 17, 26, 0.52);
+  --glass-bg-soft: rgba(13, 17, 26, 0.34);
+  --glass-bg-strong: rgba(20, 25, 38, 0.76);
+  --glass-blur: 32px;
+  --glass-saturate: 180%;
+  --glass-border: rgba(255, 255, 255, 0.14);
+  --glass-border-strong: rgba(255, 255, 255, 0.28);
+  --glass-highlight: rgba(255, 255, 255, 0.32);
+  --glass-inner-glow: rgba(255, 255, 255, 0.1);
+  --glass-scrim: rgba(3, 5, 10, 0.64);
+  --glass-text: #f5f7fc;
+  --glass-text-2: #c6cede;
+  --glass-text-3: #8a94ab;
+  --glass-accent: #8f9bff;
+  --glass-accent-2: #6ee7c8;
+  --glass-accent-warm: #ffcf8a;
+  --glass-accent-soft: rgba(143, 155, 255, 0.14);
+  /* 选中态 / 焦点态专用：比 soft 更亮一档，只作光晕，不作填充 */
+  --glass-accent-glow: rgba(143, 155, 255, 0.3);
+  --glass-accent-2-soft: rgba(110, 231, 200, 0.12);
+  --glass-accent-warm-soft: rgba(255, 207, 138, 0.12);
+  --glass-danger: #ff7a63;
+  --glass-shadow: 0 28rpx 90rpx rgba(0, 0, 0, 0.48);
+  --glass-shadow-soft: 0 12rpx 40rpx rgba(0, 0, 0, 0.32);
+  --glass-noise-opacity: 0.07;
+  --glass-sheen: linear-gradient(120deg, rgba(255, 255, 255, 0) 18%, rgba(255, 255, 255, 0.16) 46%, rgba(255, 255, 255, 0) 72%);
+  --glass-border-gradient: linear-gradient(135deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.08) 36%, rgba(255, 255, 255, 0.02) 62%, rgba(255, 255, 255, 0.34));
+}
+
+/* ---- 系统深色：显式声明，保证首帧与手动切换一致 ---- */
+@media (prefers-color-scheme: dark) {
+  page {
+    --glass-canvas: #070a12;
+    --glass-canvas-2: #0b0f19;
+    --glass-aurora-1: rgba(96, 118, 255, 0.2);
+    --glass-aurora-2: rgba(46, 220, 188, 0.12);
+    --glass-aurora-3: rgba(255, 188, 120, 0.1);
+    --glass-bg: rgba(13, 17, 26, 0.52);
+    --glass-bg-soft: rgba(13, 17, 26, 0.34);
+    --glass-bg-strong: rgba(20, 25, 38, 0.76);
+    --glass-blur: 32px;
+    --glass-saturate: 180%;
+    --glass-border: rgba(255, 255, 255, 0.14);
+    --glass-border-strong: rgba(255, 255, 255, 0.28);
+    --glass-highlight: rgba(255, 255, 255, 0.32);
+    --glass-inner-glow: rgba(255, 255, 255, 0.1);
+    --glass-scrim: rgba(3, 5, 10, 0.64);
+    --glass-text: #f5f7fc;
+    --glass-text-2: #c6cede;
+    --glass-text-3: #8a94ab;
+    --glass-accent: #8f9bff;
+    --glass-accent-2: #6ee7c8;
+    --glass-accent-warm: #ffcf8a;
+    --glass-accent-soft: rgba(143, 155, 255, 0.14);
+  /* 选中态 / 焦点态专用：比 soft 更亮一档，只作光晕，不作填充 */
+  --glass-accent-glow: rgba(143, 155, 255, 0.3);
+    --glass-accent-2-soft: rgba(110, 231, 200, 0.12);
+    --glass-accent-warm-soft: rgba(255, 207, 138, 0.12);
+    --glass-danger: #ff7a63;
+    --glass-shadow: 0 28rpx 90rpx rgba(0, 0, 0, 0.48);
+    --glass-shadow-soft: 0 12rpx 40rpx rgba(0, 0, 0, 0.32);
+    --glass-noise-opacity: 0.07;
+    --glass-sheen: linear-gradient(120deg, rgba(255, 255, 255, 0) 18%, rgba(255, 255, 255, 0.16) 46%, rgba(255, 255, 255, 0) 72%);
+    --glass-border-gradient: linear-gradient(135deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.08) 36%, rgba(255, 255, 255, 0.02) 62%, rgba(255, 255, 255, 0.34));
+  }
+}
+
+/* ---- 系统浅色 · 晨雾玻璃 ---- */
+@media (prefers-color-scheme: light) {
+  page {
+    --glass-canvas: #eef1f7;
+    --glass-canvas-2: #f8f9fc;
+    --glass-aurora-1: rgba(112, 138, 255, 0.22);
+    --glass-aurora-2: rgba(255, 184, 138, 0.18);
+    --glass-aurora-3: rgba(68, 220, 190, 0.12);
+    --glass-bg: rgba(255, 255, 255, 0.54);
+    --glass-bg-soft: rgba(255, 255, 255, 0.34);
+    --glass-bg-strong: rgba(255, 255, 255, 0.78);
+    --glass-blur: 26px;
+    --glass-saturate: 150%;
+    --glass-border: rgba(255, 255, 255, 0.72);
+    --glass-border-strong: rgba(255, 255, 255, 0.92);
+    --glass-highlight: rgba(255, 255, 255, 0.98);
+    --glass-inner-glow: rgba(255, 255, 255, 0.9);
+    --glass-scrim: rgba(22, 28, 42, 0.34);
+    --glass-text: #151a24;
+    --glass-text-2: #4e5768;
+    --glass-text-3: #7c869a;
+    --glass-accent: #5367ff;
+    --glass-accent-2: #0fb59a;
+    --glass-accent-warm: #d99a32;
+    --glass-accent-soft: rgba(83, 103, 255, 0.12);
+  /* 选中态 / 焦点态专用：比 soft 更亮一档，只作光晕，不作填充 */
+  --glass-accent-glow: rgba(83, 103, 255, 0.26);
+    --glass-accent-2-soft: rgba(15, 181, 154, 0.12);
+    --glass-accent-warm-soft: rgba(217, 154, 50, 0.12);
+    --glass-danger: #e85b43;
+    --glass-shadow: 0 24rpx 72rpx rgba(42, 58, 92, 0.16);
+    --glass-shadow-soft: 0 10rpx 32rpx rgba(42, 58, 92, 0.1);
+    --glass-noise-opacity: 0.05;
+    --glass-sheen: linear-gradient(120deg, rgba(255, 255, 255, 0) 18%, rgba(255, 255, 255, 0.42) 46%, rgba(255, 255, 255, 0) 72%);
+    --glass-border-gradient: linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.42) 36%, rgba(255, 255, 255, 0.18) 62%, rgba(255, 255, 255, 0.86));
+  }
+}
+
+/* ---- 手动浅色 · 晨雾玻璃（与媒体查询同源同值） ---- */
+.theme-light {
+  --glass-canvas: #eef1f7;
+  --glass-canvas-2: #f8f9fc;
+  --glass-aurora-1: rgba(112, 138, 255, 0.22);
+  --glass-aurora-2: rgba(255, 184, 138, 0.18);
+  --glass-aurora-3: rgba(68, 220, 190, 0.12);
+  --glass-bg: rgba(255, 255, 255, 0.54);
+  --glass-bg-soft: rgba(255, 255, 255, 0.34);
+  --glass-bg-strong: rgba(255, 255, 255, 0.78);
+  --glass-blur: 26px;
+  --glass-saturate: 150%;
+  --glass-border: rgba(255, 255, 255, 0.72);
+  --glass-border-strong: rgba(255, 255, 255, 0.92);
+  --glass-highlight: rgba(255, 255, 255, 0.98);
+  --glass-inner-glow: rgba(255, 255, 255, 0.9);
+  --glass-scrim: rgba(22, 28, 42, 0.34);
+  --glass-text: #151a24;
+  --glass-text-2: #4e5768;
+  --glass-text-3: #7c869a;
+  --glass-accent: #5367ff;
+  --glass-accent-2: #0fb59a;
+  --glass-accent-warm: #d99a32;
+  --glass-accent-soft: rgba(83, 103, 255, 0.12);
+  /* 选中态 / 焦点态专用：比 soft 更亮一档，只作光晕，不作填充 */
+  --glass-accent-glow: rgba(83, 103, 255, 0.26);
+  --glass-accent-2-soft: rgba(15, 181, 154, 0.12);
+  --glass-accent-warm-soft: rgba(217, 154, 50, 0.12);
+  --glass-danger: #e85b43;
+  --glass-shadow: 0 24rpx 72rpx rgba(42, 58, 92, 0.16);
+  --glass-shadow-soft: 0 10rpx 32rpx rgba(42, 58, 92, 0.1);
+  --glass-noise-opacity: 0.05;
+  --glass-sheen: linear-gradient(120deg, rgba(255, 255, 255, 0) 18%, rgba(255, 255, 255, 0.42) 46%, rgba(255, 255, 255, 0) 72%);
+  --glass-border-gradient: linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.42) 36%, rgba(255, 255, 255, 0.18) 62%, rgba(255, 255, 255, 0.86));
+}
+
+/* ---- 低端机 / 不支持 backdrop-filter 的降级 ---- */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  page,
+  .theme-dark {
+    --glass-blur: 0px;
+    --glass-bg: rgba(13, 17, 26, 0.94);
+    --glass-bg-soft: rgba(13, 17, 26, 0.88);
+    --glass-bg-strong: rgba(20, 25, 38, 0.97);
+    --glass-highlight: rgba(255, 255, 255, 0.12);
+    --glass-noise-opacity: 0;
+  }
+
+  .theme-light {
+    --glass-blur: 0px;
+    --glass-bg: rgba(248, 249, 252, 0.94);
+    --glass-bg-soft: rgba(248, 249, 252, 0.88);
+    --glass-bg-strong: rgba(255, 255, 255, 0.98);
+    --glass-highlight: rgba(255, 255, 255, 0.6);
+    --glass-noise-opacity: 0;
+  }
+
+  @media (prefers-color-scheme: light) {
+    page {
+      --glass-blur: 0px;
+      --glass-bg: rgba(248, 249, 252, 0.94);
+      --glass-bg-soft: rgba(248, 249, 252, 0.88);
+      --glass-bg-strong: rgba(255, 255, 255, 0.98);
+      --glass-highlight: rgba(255, 255, 255, 0.6);
+      --glass-noise-opacity: 0;
+    }
+  }
+}
+
+/* ---- 减少动态偏好 ---- */
+@media (prefers-reduced-motion: reduce) {
+  page {
+    --glass-duration-fast: 1ms;
+    --glass-duration-base: 1ms;
+    --glass-duration-slow: 1ms;
+  }
+}
+
+/* ==========================================================================
+   Glass 3.0 · 页面级基础类
+   ========================================================================== */
+
+.glass-page {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 100vh;
+  color: var(--glass-text);
+  background-color: var(--glass-canvas);
+  background-image:
+    radial-gradient(120% 80% at 8% 0%, var(--glass-aurora-1), transparent 60%),
+    radial-gradient(100% 70% at 92% 8%, var(--glass-aurora-2), transparent 65%),
+    radial-gradient(80% 60% at 50% 100%, var(--glass-aurora-3), transparent 70%),
+    linear-gradient(180deg, var(--glass-canvas-2), var(--glass-canvas));
+  font-family: var(--glass-font-sans);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+.glass-surface {
+  background: var(--glass-bg);
+  border: 1rpx solid var(--glass-border);
+  box-shadow: var(--glass-shadow), inset 0 1rpx 0 var(--glass-highlight);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+}
+
+.glass-noise-layer {
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-noise-layer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  border-radius: inherit;
+  background-image: var(--glass-noise-image);
+  background-size: var(--glass-noise-size);
+  opacity: var(--glass-noise-opacity);
+  mix-blend-mode: soft-light;
+}
+
+.glass-safe-bottom {
+  padding-bottom: calc(24rpx + var(--glass-safe-bottom));
+}
+
+.glass-safe-top {
+  padding-top: calc(24rpx + var(--glass-safe-top));
+}
+
+.glass-press {
+  transition:
+    transform var(--glass-duration-fast) var(--glass-ease-out),
+    opacity var(--glass-duration-fast) var(--glass-ease-out),
+    box-shadow var(--glass-duration-base) var(--glass-ease-out);
+}
+
+.glass-press-active {
+  transform: scale(0.975);
+  opacity: 0.92;
+}
+
+.glass-sheen-layer {
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-sheen-layer::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  border-radius: inherit;
+  background-image: var(--glass-sheen);
+  opacity: 0.36;
+}
+
+/* ==========================================================================
+   Spatial Glass 26 · 广色域 / 次表面散射 / 动态光追 / 环境光 / 对比度守护
+   - 本段为增量基座，不覆盖旧 --g-* / --v3-* / --tbx-* 令牌
+   - P3 / LCH / color-mix 全部放在 @supports 内，旧设备保留 sRGB 回退
+   - --sg-* 为新组件命名空间；部分 --glass-* 仅在支持广色域时提亮
+   ========================================================================== */
+
+page,
+.theme-light {
+  --sg-paper: #f4f5f1;
+  --sg-paper-2: #e9ece4;
+  --sg-ink: #111318;
+  --sg-ink-2: #47505a;
+  --sg-ink-3: #707a82;
+
+  --sg-iris: #6d78ff;
+  --sg-mint: #5fdcc7;
+  --sg-warm: #ffb083;
+  --sg-danger: #ff5c6d;
+
+  --sg-ambient-cold: #7c8cff;
+  --sg-ambient-warm: #ffb083;
+  --sg-ambient-iris: #9f7cff;
+  --sg-ambient-mint: #5fdcc7;
+  --sg-ambient-night: #1a2238;
+
+  --sg-ambient-a: var(--sg-ambient-cold);
+  --sg-ambient-b: var(--sg-ambient-mint);
+  --sg-ambient-c: var(--sg-ambient-warm);
+  --sg-ambient-a-soft: rgba(124, 140, 255, 0.22);
+  --sg-ambient-b-soft: rgba(95, 220, 199, 0.16);
+  --sg-ambient-c-soft: rgba(255, 176, 131, 0.18);
+  --sg-ambient-intensity: 1;
+  --sg-ambient-haze: 0.18;
+  --sg-ambient-transition: 520ms cubic-bezier(0.22, 1, 0.36, 1);
+
+  --sg-glass-bg: rgba(255, 255, 255, 0.62);
+  --sg-glass-bg-strong: rgba(255, 255, 255, 0.82);
+  --sg-glass-border: rgba(255, 255, 255, 0.55);
+  --sg-glass-border-strong: rgba(255, 255, 255, 0.76);
+  --sg-glass-highlight: rgba(255, 255, 255, 0.92);
+  --sg-glass-fallback-bg: rgba(250, 251, 247, 0.94);
+  --sg-glass-fallback-bg-strong: rgba(255, 255, 255, 0.97);
+
+  --sg-chromatic-red: rgba(255, 58, 96, 0.24);
+  --sg-chromatic-blue: rgba(54, 110, 255, 0.24);
+  --sg-chromatic-cyan: rgba(62, 236, 220, 0.18);
+  --sg-chromatic-glow: rgba(120, 136, 255, 0.18);
+  --sg-chromatic-opacity: 0.82;
+
+  --sg-sss-inner:
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.9),
+    inset 0 -1rpx 0 rgba(255, 255, 255, 0.18),
+    inset 1rpx 0 0 rgba(255, 90, 120, 0.06),
+    inset -1rpx 0 0 rgba(70, 110, 255, 0.06);
+  --sg-sss-shadow:
+    0 0 0 1rpx rgba(255, 255, 255, 0.08),
+    0 12rpx 32rpx rgba(28, 38, 58, 0.08),
+    0 42rpx 120rpx rgba(28, 38, 58, 0.12);
+
+  --sg-light-x: 50%;
+  --sg-light-y: 12%;
+  --sg-light-size: 58%;
+  --sg-light-color: rgba(255, 255, 255, 0.52);
+  --sg-light-strong: rgba(255, 255, 255, 0.86);
+  --sg-light-angle: 135deg;
+
+  --sg-contrast-text: #14171c;
+  --sg-contrast-text-2: #3d464f;
+  --sg-text-shadow:
+    0 1rpx 1rpx rgba(255, 255, 255, 0.5),
+    0 1rpx 2rpx rgba(0, 0, 0, 0.14);
+  --sg-text-shadow-strong:
+    0 1rpx 0 rgba(255, 255, 255, 0.72),
+    0 2rpx 10rpx rgba(0, 0, 0, 0.2);
+  --sg-backplate: rgba(250, 251, 247, 0.82);
+  --sg-backplate-border: rgba(255, 255, 255, 0.68);
+  --sg-focus-ring: rgba(92, 108, 255, 0.52);
+
+  --sg-radius-sm: 18rpx;
+  --sg-radius-md: 28rpx;
+  --sg-radius-lg: 42rpx;
+  --sg-radius-xl: 56rpx;
+  --sg-radius-sheet: 72rpx;
+
+  --sg-gpu-transform: translateZ(0);
+}
+
+.theme-dark {
+  --sg-paper: #0a0d12;
+  --sg-paper-2: #11151d;
+  --sg-ink: #f3f5f8;
+  --sg-ink-2: #b4bcc8;
+  --sg-ink-3: #828b99;
+
+  --sg-iris: #8e9bff;
+  --sg-mint: #74f0da;
+  --sg-warm: #ffc09a;
+  --sg-danger: #ff7a88;
+
+  --sg-ambient-cold: #6a7bff;
+  --sg-ambient-warm: #ff9a6b;
+  --sg-ambient-iris: #b184ff;
+  --sg-ambient-mint: #5fe3cb;
+  --sg-ambient-night: #0b1022;
+
+  --sg-ambient-a: var(--sg-ambient-cold);
+  --sg-ambient-b: var(--sg-ambient-mint);
+  --sg-ambient-c: var(--sg-ambient-warm);
+  --sg-ambient-a-soft: rgba(106, 123, 255, 0.2);
+  --sg-ambient-b-soft: rgba(95, 227, 203, 0.13);
+  --sg-ambient-c-soft: rgba(255, 154, 107, 0.14);
+  --sg-ambient-intensity: 0.78;
+  --sg-ambient-haze: 0.34;
+
+  --sg-glass-bg: rgba(18, 22, 32, 0.58);
+  --sg-glass-bg-strong: rgba(22, 27, 39, 0.78);
+  --sg-glass-border: rgba(255, 255, 255, 0.12);
+  --sg-glass-border-strong: rgba(255, 255, 255, 0.2);
+  --sg-glass-highlight: rgba(255, 255, 255, 0.24);
+  --sg-glass-fallback-bg: rgba(14, 17, 24, 0.94);
+  --sg-glass-fallback-bg-strong: rgba(18, 22, 30, 0.97);
+
+  --sg-chromatic-red: rgba(255, 76, 112, 0.3);
+  --sg-chromatic-blue: rgba(76, 126, 255, 0.3);
+  --sg-chromatic-cyan: rgba(76, 238, 224, 0.16);
+  --sg-chromatic-glow: rgba(130, 146, 255, 0.22);
+  --sg-chromatic-opacity: 0.86;
+
+  --sg-sss-inner:
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.18),
+    inset 0 -1rpx 0 rgba(255, 255, 255, 0.06),
+    inset 1rpx 0 0 rgba(255, 90, 120, 0.1),
+    inset -1rpx 0 0 rgba(80, 120, 255, 0.12);
+  --sg-sss-shadow:
+    0 0 0 1rpx rgba(255, 255, 255, 0.03),
+    0 16rpx 42rpx rgba(0, 0, 0, 0.32),
+    0 54rpx 140rpx rgba(0, 0, 0, 0.46);
+
+  --sg-light-x: 50%;
+  --sg-light-y: 8%;
+  --sg-light-size: 62%;
+  --sg-light-color: rgba(255, 255, 255, 0.16);
+  --sg-light-strong: rgba(255, 255, 255, 0.3);
+
+  --sg-contrast-text: #f7f8fb;
+  --sg-contrast-text-2: #c5ccd6;
+  --sg-text-shadow:
+    0 1rpx 2rpx rgba(0, 0, 0, 0.55),
+    0 0 12rpx rgba(0, 0, 0, 0.2);
+  --sg-text-shadow-strong:
+    0 1rpx 0 rgba(0, 0, 0, 0.7),
+    0 2rpx 14rpx rgba(0, 0, 0, 0.36);
+  --sg-backplate: rgba(12, 15, 22, 0.86);
+  --sg-backplate-border: rgba(255, 255, 255, 0.14);
+  --sg-focus-ring: rgba(142, 155, 255, 0.6);
+}
+
+/* ---- 系统深色：页面尚未拿到 .theme-dark 时的首帧兜底 ---- */
+@media (prefers-color-scheme: dark) {
+  page {
+    --sg-paper: #0a0d12;
+    --sg-paper-2: #11151d;
+    --sg-ink: #f3f5f8;
+    --sg-ink-2: #b4bcc8;
+    --sg-ink-3: #828b99;
+
+    --sg-iris: #8e9bff;
+    --sg-mint: #74f0da;
+    --sg-warm: #ffc09a;
+    --sg-danger: #ff7a88;
+
+    --sg-ambient-cold: #6a7bff;
+    --sg-ambient-warm: #ff9a6b;
+    --sg-ambient-iris: #b184ff;
+    --sg-ambient-mint: #5fe3cb;
+    --sg-ambient-night: #0b1022;
+
+    --sg-ambient-a-soft: rgba(106, 123, 255, 0.2);
+    --sg-ambient-b-soft: rgba(95, 227, 203, 0.13);
+    --sg-ambient-c-soft: rgba(255, 154, 107, 0.14);
+    --sg-ambient-intensity: 0.78;
+    --sg-ambient-haze: 0.34;
+
+    --sg-glass-bg: rgba(18, 22, 32, 0.58);
+    --sg-glass-bg-strong: rgba(22, 27, 39, 0.78);
+    --sg-glass-border: rgba(255, 255, 255, 0.12);
+    --sg-glass-border-strong: rgba(255, 255, 255, 0.2);
+    --sg-glass-highlight: rgba(255, 255, 255, 0.24);
+    --sg-glass-fallback-bg: rgba(14, 17, 24, 0.94);
+    --sg-glass-fallback-bg-strong: rgba(18, 22, 30, 0.97);
+
+    --sg-chromatic-red: rgba(255, 76, 112, 0.3);
+    --sg-chromatic-blue: rgba(76, 126, 255, 0.3);
+    --sg-chromatic-glow: rgba(130, 146, 255, 0.22);
+
+    --sg-contrast-text: #f7f8fb;
+    --sg-contrast-text-2: #c5ccd6;
+    --sg-text-shadow:
+      0 1rpx 2rpx rgba(0, 0, 0, 0.55),
+      0 0 12rpx rgba(0, 0, 0, 0.2);
+    --sg-text-shadow-strong:
+      0 1rpx 0 rgba(0, 0, 0, 0.7),
+      0 2rpx 14rpx rgba(0, 0, 0, 0.36);
+    --sg-backplate: rgba(12, 15, 22, 0.86);
+    --sg-backplate-border: rgba(255, 255, 255, 0.14);
+    --sg-focus-ring: rgba(142, 155, 255, 0.6);
+  }
+}
+
+/* ---- 环境光预设 ---- */
+.sg-ambient-cold {
+  --sg-ambient-a: var(--sg-ambient-cold);
+  --sg-ambient-b: var(--sg-ambient-iris);
+  --sg-ambient-c: var(--sg-ambient-mint);
+  --sg-ambient-a-soft: rgba(124, 140, 255, 0.22);
+  --sg-ambient-b-soft: rgba(159, 124, 255, 0.16);
+  --sg-ambient-c-soft: rgba(95, 220, 199, 0.14);
+}
+
+.sg-ambient-warm {
+  --sg-ambient-a: var(--sg-ambient-warm);
+  --sg-ambient-b: var(--sg-ambient-iris);
+  --sg-ambient-c: var(--sg-ambient-mint);
+  --sg-ambient-a-soft: rgba(255, 176, 131, 0.2);
+  --sg-ambient-b-soft: rgba(159, 124, 255, 0.15);
+  --sg-ambient-c-soft: rgba(95, 220, 199, 0.1);
+}
+
+.sg-ambient-iris {
+  --sg-ambient-a: var(--sg-ambient-iris);
+  --sg-ambient-b: var(--sg-ambient-cold);
+  --sg-ambient-c: var(--sg-ambient-warm);
+  --sg-ambient-a-soft: rgba(159, 124, 255, 0.22);
+  --sg-ambient-b-soft: rgba(124, 140, 255, 0.16);
+  --sg-ambient-c-soft: rgba(255, 176, 131, 0.12);
+}
+
+.sg-ambient-mint {
+  --sg-ambient-a: var(--sg-ambient-mint);
+  --sg-ambient-b: var(--sg-ambient-cold);
+  --sg-ambient-c: var(--sg-ambient-iris);
+  --sg-ambient-a-soft: rgba(95, 220, 199, 0.2);
+  --sg-ambient-b-soft: rgba(124, 140, 255, 0.14);
+  --sg-ambient-c-soft: rgba(159, 124, 255, 0.12);
+}
+
+.sg-ambient-night {
+  --sg-ambient-a: var(--sg-ambient-night);
+  --sg-ambient-b: var(--sg-ambient-cold);
+  --sg-ambient-c: var(--sg-ambient-iris);
+  --sg-ambient-intensity: 0.42;
+  --sg-ambient-haze: 0.52;
+}
+
+/* ---- 极光氛围层：实色椭圆 + 80px 高斯模糊，真机可见的彩色底光 ---- */
+.sg-aurora-a {
+  background-color: rgba(147, 71, 255, 0.6);
+  border-radius: 50%;
+  filter: blur(80px);
+}
+
+.sg-aurora-b {
+  background-color: rgba(56, 189, 248, 0.62);
+  border-radius: 50%;
+  filter: blur(80px);
+}
+
+.sg-aurora-c {
+  background-color: rgba(255, 120, 214, 0.42);
+  border-radius: 50%;
+  filter: blur(80px);
+}
+
+/* 夜航：同一组极光整体收一档，深色画布上不过曝 */
+.theme-dark .sg-aurora-a,
+.theme-dark .sg-aurora-b,
+.theme-dark .sg-aurora-c {
+  opacity: 0.72;
+}
+
+/* 主题切换呼吸：真实昼↔夜翻转时播放一次，掩盖硬切 */
+@keyframes sg-theme-breathe {
+  0% {
+    opacity: 1;
+  }
+
+  30% {
+    opacity: 0.84;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+.theme-breathing {
+  animation: sg-theme-breathe 420ms var(--glass-ease-out);
+}
+
+.sg-ambient-surface {
+  background-color: var(--sg-paper);
+  background-image:
+    radial-gradient(
+      120% 82% at 8% -4%,
+      var(--sg-ambient-a-soft) 0%,
+      transparent 62%
+    ),
+    radial-gradient(
+      92% 68% at 96% 18%,
+      var(--sg-ambient-b-soft) 0%,
+      transparent 66%
+    ),
+    radial-gradient(
+      110% 78% at 52% 108%,
+      var(--sg-ambient-c-soft) 0%,
+      transparent 68%
+    );
+  background-attachment: local;
+  transition:
+    background-color var(--sg-ambient-transition),
+    background-image var(--sg-ambient-transition);
+}
+
+.sg-ambient-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background-image:
+    radial-gradient(
+      70% 54% at var(--sg-light-x) var(--sg-light-y),
+      var(--sg-light-color) 0%,
+      transparent 70%
+    ),
+    linear-gradient(
+      var(--sg-ambient-haze),
+      var(--sg-ambient-haze)
+    );
+  opacity: var(--sg-ambient-intensity);
+  mix-blend-mode: soft-light;
+}
+
+/* ---- 动态光追 ---- */
+.sg-light-track {
+  --sg-light-x: 50%;
+  --sg-light-y: 12%;
+  --sg-light-size: 64%;
+  position: relative;
+  isolation: isolate;
+  background-image: radial-gradient(
+    ellipse var(--sg-light-size) 52% at var(--sg-light-x) var(--sg-light-y),
+    var(--sg-light-color) 0%,
+    transparent 70%
+  );
+}
+
+.sg-light-sheen::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  border-radius: inherit;
+  background-image:
+    radial-gradient(
+      circle at var(--sg-light-x) var(--sg-light-y),
+      var(--sg-light-strong) 0%,
+      transparent 34%
+    ),
+    linear-gradient(
+      var(--sg-light-angle),
+      transparent 28%,
+      rgba(255, 255, 255, 0.18) 46%,
+      transparent 64%
+    );
+  opacity: 0.72;
+  mix-blend-mode: screen;
+}
+
+/* ---- 次表面散射 + 色散边缘 ---- */
+.sg-chromatic {
+  position: relative;
+  isolation: isolate;
+}
+
+.sg-chromatic::before {
+  content: "";
+  position: absolute;
+  inset: -1rpx;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  box-shadow:
+    1rpx 0 0 var(--sg-chromatic-red),
+    -1rpx 0 0 var(--sg-chromatic-blue),
+    0 1rpx 0 var(--sg-chromatic-cyan),
+    0 0 24rpx var(--sg-chromatic-glow);
+  opacity: var(--sg-chromatic-opacity);
+  mix-blend-mode: screen;
+}
+
+.sg-chromatic::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  border-radius: inherit;
+  box-shadow: var(--sg-sss-inner);
+  background-image: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.14) 0%,
+    transparent 18%,
+    transparent 82%,
+    rgba(0, 0, 0, 0.06) 100%
+  );
+}
+
+/* ---- 毛玻璃基座 ---- */
+.sg-glass {
+  position: relative;
+  border: 1rpx solid var(--sg-glass-border);
+  border-radius: var(--sg-radius-lg);
+  background-color: var(--sg-glass-bg);
+  box-shadow:
+    var(--sg-sss-shadow),
+    inset 0 1rpx 0 var(--sg-glass-highlight);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-font-smoothing: antialiased;
+  transition:
+    background-color 320ms var(--glass-ease-out),
+    box-shadow 420ms var(--glass-ease-out);
+}
+
+.sg-glass-strong {
+  background-color: var(--sg-glass-bg-strong);
+  border-color: var(--sg-glass-border-strong);
+}
+
+/* ---- GPU 合成层 ---- */
+.sg-gpu {
+  transform: var(--sg-gpu-transform);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  will-change: transform, opacity;
+  contain: layout style;
+}
+
+.sg-gpu-layer {
+  transform: translateZ(0);
+  will-change: transform;
+  pointer-events: none;
+}
+
+/* ---- 对比度守护 ---- */
+.text-on-glass {
+  color: var(--sg-contrast-text);
+  text-shadow: var(--sg-text-shadow);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.text-on-glass--strong {
+  color: var(--sg-contrast-text);
+  text-shadow: var(--sg-text-shadow-strong);
+}
+
+.text-on-glass--secondary {
+  color: var(--sg-contrast-text-2);
+  text-shadow: var(--sg-text-shadow);
+}
+
+.text-on-glass--difference {
+  color: #ffffff;
+  text-shadow: none;
+  mix-blend-mode: difference;
+  isolation: isolate;
+}
+
+.sg-contrast-backplate {
+  border: 1rpx solid var(--sg-backplate-border);
+  border-radius: var(--sg-radius-md);
+  background-color: var(--sg-backplate);
+  box-shadow: 0 8rpx 28rpx rgba(0, 0, 0, 0.08);
+  -webkit-backdrop-filter: blur(18rpx);
+  backdrop-filter: blur(18rpx);
+}
+
+.sg-focus-ring {
+  outline: none;
+  box-shadow: 0 0 0 4rpx var(--sg-focus-ring);
+}
+
+/* ---- 广色域 P3 ---- */
+@supports (color: color(display-p3 1 0 0)) {
+  page,
+  .theme-light {
+    --sg-paper: color(display-p3 0.956 0.958 0.932);
+    --sg-paper-2: color(display-p3 0.912 0.924 0.892);
+    --sg-ink: color(display-p3 0.066 0.074 0.094);
+    --sg-ink-2: color(display-p3 0.278 0.314 0.353);
+    --sg-ink-3: color(display-p3 0.44 0.48 0.52);
+
+    --sg-iris: color(display-p3 0.46 0.49 1);
+    --sg-mint: color(display-p3 0.42 0.9 0.82);
+    --sg-warm: color(display-p3 1 0.68 0.5);
+    --sg-danger: color(display-p3 1 0.34 0.4);
+
+    --sg-ambient-cold: color(display-p3 0.48 0.55 1);
+    --sg-ambient-warm: color(display-p3 1 0.68 0.5);
+    --sg-ambient-iris: color(display-p3 0.64 0.48 1);
+    --sg-ambient-mint: color(display-p3 0.38 0.88 0.78);
+    --sg-ambient-night: color(display-p3 0.08 0.12 0.22);
+
+    --sg-chromatic-red: color(display-p3 1 0.2 0.36);
+    --sg-chromatic-blue: color(display-p3 0.28 0.42 1);
+    --sg-chromatic-cyan: color(display-p3 0.24 0.9 0.84);
+    --sg-chromatic-glow: color(display-p3 0.52 0.58 1);
+
+    --glass-accent: color(display-p3 0.46 0.49 1);
+    --glass-accent-2: color(display-p3 0.42 0.9 0.82);
+    --glass-accent-warm: color(display-p3 1 0.68 0.5);
+    --glass-danger: color(display-p3 1 0.34 0.4);
+  }
+
+  .theme-dark {
+    --sg-paper: color(display-p3 0.038 0.05 0.07);
+    --sg-paper-2: color(display-p3 0.07 0.085 0.11);
+    --sg-ink: color(display-p3 0.95 0.958 0.976);
+    --sg-ink-2: color(display-p3 0.7 0.74 0.79);
+    --sg-ink-3: color(display-p3 0.5 0.54 0.6);
+
+    --sg-iris: color(display-p3 0.56 0.62 1);
+    --sg-mint: color(display-p3 0.45 0.94 0.84);
+    --sg-warm: color(display-p3 1 0.72 0.56);
+    --sg-danger: color(display-p3 1 0.4 0.47);
+
+    --sg-ambient-cold: color(display-p3 0.42 0.5 1);
+    --sg-ambient-warm: color(display-p3 1 0.6 0.4);
+    --sg-ambient-iris: color(display-p3 0.7 0.52 1);
+    --sg-ambient-mint: color(display-p3 0.38 0.9 0.8);
+    --sg-ambient-night: color(display-p3 0.04 0.06 0.12);
+
+    --sg-chromatic-red: color(display-p3 1 0.28 0.42);
+    --sg-chromatic-blue: color(display-p3 0.34 0.48 1);
+    --sg-chromatic-cyan: color(display-p3 0.3 0.92 0.86);
+    --sg-chromatic-glow: color(display-p3 0.56 0.62 1);
+
+    --glass-accent: color(display-p3 0.56 0.62 1);
+    --glass-accent-2: color(display-p3 0.45 0.94 0.84);
+    --glass-accent-warm: color(display-p3 1 0.72 0.56);
+    --glass-danger: color(display-p3 1 0.4 0.47);
+  }
+}
+
+/* ---- LCH 感知均匀层 ---- */
+@supports (color: lch(50% 50 250)) {
+  page,
+  .theme-light {
+    --sg-paper: lch(96.8% 2 96);
+    --sg-paper-2: lch(93.2% 2.4 110);
+    --sg-ink: lch(18% 3 264);
+    --sg-ink-2: lch(40% 5 264);
+    --sg-ink-3: lch(58% 4 264);
+    --sg-contrast-text: lch(17% 2 264);
+    --sg-contrast-text-2: lch(38% 4 264);
+  }
+
+  .theme-dark {
+    --sg-paper: lch(7.6% 2 270);
+    --sg-paper-2: lch(12% 2.4 270);
+    --sg-ink: lch(96% 1.6 260);
+    --sg-ink-2: lch(76% 2.6 260);
+    --sg-ink-3: lch(58% 3 260);
+    --sg-contrast-text: lch(96% 1.6 260);
+    --sg-contrast-text-2: lch(78% 2.4 260);
+  }
+}
+
+/* ---- color-mix 半透明与色散光晕 ---- */
+@supports (color: color-mix(in srgb, red, blue)) {
+  page,
+  .theme-light {
+    --sg-ambient-a-soft: color-mix(in oklab, var(--sg-ambient-a) 24%, transparent);
+    --sg-ambient-b-soft: color-mix(in oklab, var(--sg-ambient-b) 17%, transparent);
+    --sg-ambient-c-soft: color-mix(in oklab, var(--sg-ambient-c) 18%, transparent);
+    --sg-glass-bg: color-mix(in oklab, var(--sg-paper) 64%, transparent);
+    --sg-glass-bg-strong: color-mix(in oklab, var(--sg-paper) 84%, transparent);
+    --sg-glass-border: color-mix(in oklab, var(--sg-ink) 10%, transparent);
+    --sg-glass-border-strong: color-mix(in oklab, var(--sg-ink) 16%, transparent);
+    --sg-chromatic-red: color-mix(in oklab, var(--sg-danger) 26%, transparent);
+    --sg-chromatic-blue: color-mix(in oklab, var(--sg-iris) 28%, transparent);
+    --sg-chromatic-cyan: color-mix(in oklab, var(--sg-mint) 18%, transparent);
+    --sg-backplate: color-mix(in oklab, var(--sg-paper) 82%, transparent);
+    --glass-accent-soft: color-mix(in oklab, var(--glass-accent) 16%, transparent);
+    --glass-accent-2-soft: color-mix(in oklab, var(--glass-accent-2) 14%, transparent);
+    --glass-accent-warm-soft: color-mix(in oklab, var(--glass-accent-warm) 14%, transparent);
+  }
+
+  .theme-dark {
+    --sg-ambient-a-soft: color-mix(in oklab, var(--sg-ambient-a) 22%, transparent);
+    --sg-ambient-b-soft: color-mix(in oklab, var(--sg-ambient-b) 15%, transparent);
+    --sg-ambient-c-soft: color-mix(in oklab, var(--sg-ambient-c) 15%, transparent);
+    --sg-glass-bg: color-mix(in oklab, var(--sg-paper) 58%, transparent);
+    --sg-glass-bg-strong: color-mix(in oklab, var(--sg-paper) 78%, transparent);
+    --sg-glass-border: color-mix(in oklab, var(--sg-ink) 12%, transparent);
+    --sg-glass-border-strong: color-mix(in oklab, var(--sg-ink) 20%, transparent);
+    --sg-chromatic-red: color-mix(in oklab, var(--sg-danger) 30%, transparent);
+    --sg-chromatic-blue: color-mix(in oklab, var(--sg-iris) 30%, transparent);
+    --sg-chromatic-cyan: color-mix(in oklab, var(--sg-mint) 16%, transparent);
+    --sg-backplate: color-mix(in oklab, var(--sg-paper) 86%, transparent);
+    --glass-accent-soft: color-mix(in oklab, var(--glass-accent) 14%, transparent);
+    --glass-accent-2-soft: color-mix(in oklab, var(--glass-accent-2) 14%, transparent);
+    --glass-accent-warm-soft: color-mix(in oklab, var(--glass-accent-warm) 12%, transparent);
+  }
+}
+
+/* ---- 低端机：关闭 backdrop-filter ---- */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .sg-glass {
+    background-color: var(--sg-glass-fallback-bg);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    border-color: var(--sg-glass-border-strong);
+    box-shadow: 0 18rpx 48rpx rgba(0, 0, 0, 0.2);
+  }
+
+  .sg-glass-strong,
+  .sg-contrast-backplate {
+    background-color: var(--sg-glass-fallback-bg-strong);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .sg-light-sheen::before,
+  .sg-ambient-veil {
+    opacity: 0.32;
+  }
+
+  .sg-chromatic::before {
+    opacity: 0.56;
+  }
+}
+
+/* ---- 对比度增强偏好 ---- */
+@media (prefers-contrast: more) {
+  .text-on-glass,
+  .text-on-glass--secondary {
+    text-shadow:
+      0 0 2rpx rgba(0, 0, 0, 0.92),
+      0 1rpx 2rpx rgba(0, 0, 0, 0.92);
+  }
+
+  .sg-glass,
+  .sg-contrast-backplate {
+    background-color: var(--sg-glass-fallback-bg-strong);
+  }
+
+  .sg-chromatic::before {
+    opacity: 0.5;
+  }
+}
+
+/* ==========================================================================
+   设置中心 · 全局动效 / 光效档位
+   - 由 uiStore.themeClass 挂载到所有页面根节点，组件通过 CSS 变量继承
+   - motion-lite：延长过渡、降低极光存在感
+   - motion-saver：1ms 过渡 + 关闭极光模糊，低端机 / 省电模式使用
+   - light-off：关闭动态光追与大面积高斯模糊，静态渐变仍然保留
+   ========================================================================== */
+.motion-lite {
+  --glass-duration-fast: 260ms;
+  --glass-duration-base: 380ms;
+  --glass-duration-slow: 640ms;
+  --sg-ambient-transition: 680ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.motion-saver {
+  --glass-duration-fast: 1ms;
+  --glass-duration-base: 1ms;
+  --glass-duration-slow: 1ms;
+  --sg-ambient-transition: 1ms linear;
+}
+
+.theme-breathing.motion-saver {
+  animation: none;
+}
+
+.motion-lite .sg-aurora-a,
+.motion-lite .sg-aurora-b,
+.motion-lite .sg-aurora-c {
+  opacity: 0.62;
+}
+
+/* 动态光效关闭：保留色彩，去掉 80px 大模糊和流动光追 */
+.light-off .sg-aurora-a,
+.light-off .sg-aurora-b,
+.light-off .sg-aurora-c {
+  opacity: 0.26;
+  filter: blur(28px);
+  animation: none !important;
+}
+
+.light-off .sg-ambient-veil {
+  opacity: 0.18;
+}
+
+.light-off .sg-light-track {
+  background-image: none;
+}
+
+.light-off .sg-light-sheen::before {
+  opacity: 0.18;
+}
+
+/* 系统「减少动态效果」优先级最高 */
+@media (prefers-reduced-motion: reduce) {
+  .motion-lite,
+  .motion-saver {
+    --glass-duration-fast: 1ms;
+    --glass-duration-base: 1ms;
+    --glass-duration-slow: 1ms;
+    --sg-ambient-transition: 1ms linear;
+  }
+
+  .motion-lite .sg-aurora-a,
+  .motion-lite .sg-aurora-b,
+  .motion-lite .sg-aurora-c {
+    animation: none !important;
+  }
+}
+
+/* ---- 减少动态 ---- */
+@media (prefers-reduced-motion: reduce) {
+  .sg-gpu,
+  .sg-light-sheen::before,
+  .sg-ambient-surface,
+  .theme-breathing {
+    transition-duration: 1ms;
+    animation-duration: 1ms;
+  }
+
+  .sg-ambient-veil {
+    opacity: calc(var(--sg-ambient-intensity) * 0.7);
+  }
+}
+
+/* ==========================================================================
+   工具页共享基元 · 20 页统一结构
+   - 输入字段栈 / 结果卡内容 / 键值行 / 说明卡
+   - 页面只保留 tool-<page>-* 专属布局
+   ========================================================================== */
+
+.sg-tool-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 22rpx;
+}
+
+.sg-tool-unit {
+  color: var(--glass-text-3);
+  font-size: 22rpx;
+}
+
+.sg-tool-result {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+  padding-top: 4rpx;
+  padding-right: 2rpx;
+  padding-bottom: 4rpx;
+  padding-left: 2rpx;
+  box-sizing: border-box;
+}
+
+.sg-tool-result__head {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.sg-tool-result__label {
+  color: var(--glass-text-2);
+  font-size: 24rpx;
+  font-weight: 600;
+}
+
+.sg-tool-result__meta {
+  color: var(--glass-text-3);
+  font-size: 19rpx;
+}
+
+.sg-tool-result__main {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 18rpx;
+}
+
+.sg-tool-result__caption {
+  color: var(--glass-text-2);
+  font-size: 24rpx;
+  line-height: 1.6;
+}
+
+.sg-tool-result__actions {
+  padding-top: 8rpx;
+}
+
+.sg-tool-result__unit {
+  color: var(--glass-text-2);
+  font-size: 26rpx;
+  font-weight: 600;
+}
+
+.sg-tool-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+  padding-top: 4rpx;
+}
+
+.sg-tool-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+}
+
+.sg-tool-row__k {
+  color: var(--glass-text-3);
+  font-size: 22rpx;
+}
+
+.sg-tool-row__v {
+  color: var(--glass-text);
+  font-family: var(--glass-font-mono);
+  font-size: 23rpx;
+  text-align: right;
+}
+
+.sg-tool-note {
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+}
+
+.sg-tool-note__title {
+  color: var(--glass-text);
+  font-size: 24rpx;
+  font-weight: 700;
+}
+
+.sg-tool-note__text {
+  color: var(--glass-text-2);
+  font-size: 21rpx;
+  line-height: 1.7;
+}
+

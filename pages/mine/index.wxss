@@ -1,0 +1,445 @@
+/* ==========================================================================
+   pages/mine · 液态玻璃「我的」页
+   - 页面级材质令牌：低不透明度 + 强模糊
+   - 全部卡片由 glass-card 承托，列表项透明且仅保留按压高光
+   - 无硬编码黑色边框 / 纯黑按钮
+   ========================================================================== */
+
+.mine-page {
+  position: relative;
+  height: 100vh;
+  box-sizing: border-box;
+  overflow: hidden;
+  background-color: var(--glass-canvas);
+  color: var(--glass-text);
+  font-family: var(--glass-font-sans);
+}
+
+/* 昼夜两套页面材质：夜航为吸光黑曜玻璃 */
+.mine-page.theme-light {
+  --glass-bg: rgba(255, 255, 255, 0.18);
+  --glass-bg-soft: rgba(255, 255, 255, 0.12);
+  --glass-bg-strong: rgba(255, 255, 255, 0.26);
+  --glass-border: rgba(255, 255, 255, 0.42);
+  --glass-blur: 24px;
+  --glass-saturate: 200%;
+  --glass-shadow-soft: inset 0 1px 2px rgba(255, 255, 255, 0.8),
+    0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.mine-page.theme-dark {
+  --glass-bg: rgba(13, 17, 26, 0.56);
+  --glass-bg-soft: rgba(13, 17, 26, 0.36);
+  --glass-bg-strong: rgba(20, 25, 38, 0.76);
+  --glass-border: rgba(255, 255, 255, 0.14);
+  --glass-highlight: rgba(255, 255, 255, 0.2);
+  --glass-blur: 28px;
+  --glass-saturate: 180%;
+  --glass-shadow-soft: inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 16px 40px rgba(0, 0, 0, 0.42);
+}
+
+.mine-aurora {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.mine-aurora__a {
+  position: absolute;
+  top: -20%;
+  left: -30%;
+  width: 104%;
+  height: 62%;
+}
+
+.mine-aurora__b {
+  position: absolute;
+  top: 18%;
+  right: -34%;
+  width: 96%;
+  height: 58%;
+}
+
+.mine-aurora__c {
+  position: absolute;
+  bottom: -26%;
+  left: -12%;
+  width: 110%;
+  height: 64%;
+}
+
+.mine-scroll {
+  position: relative;
+  z-index: 1;
+  height: 100vh;
+}
+
+.mine-inner {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding-top: calc(env(safe-area-inset-top) + 56rpx);
+  padding-left: 32rpx;
+  padding-right: 32rpx;
+  padding-bottom: calc(120px + env(safe-area-inset-bottom));
+}
+
+.mine-head {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 30rpx;
+}
+
+.mine-kicker {
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 19rpx;
+  letter-spacing: 0.14em;
+}
+
+.mine-title {
+  margin-top: 14rpx;
+  color: var(--glass-text);
+  font-size: 56rpx;
+  font-weight: 700;
+  line-height: 1.12;
+}
+
+.mine-sub {
+  margin-top: 12rpx;
+  color: var(--glass-text-2);
+  font-size: 24rpx;
+  line-height: 1.55;
+}
+
+/* ---- 个人信息卡 ---- */
+.mine-profile {
+  display: block;
+  margin-bottom: 34rpx;
+  box-sizing: border-box;
+  box-shadow:
+    inset 0 1px 2px var(--glass-highlight),
+    var(--glass-shadow-soft);
+}
+
+.mine-profile__row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.mine-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 96rpx;
+  height: 96rpx;
+  box-sizing: border-box;
+  border: 1px solid var(--glass-border);
+  border-radius: 30rpx;
+  background-color: var(--glass-bg-strong);
+  box-shadow:
+    inset 0 2px 4px var(--glass-highlight),
+    0 4px 12px rgba(70, 60, 130, 0.12);
+}
+
+.mine-avatar__text {
+  color: var(--glass-text);
+  font-size: 36rpx;
+  font-weight: 700;
+}
+
+.mine-profile__copy {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.mine-profile__name {
+  color: var(--glass-text);
+  font-size: 34rpx;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.mine-profile__role {
+  margin-top: 8rpx;
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 18rpx;
+  letter-spacing: 0.08em;
+  line-height: 1.4;
+}
+
+/* ---- 分组标题 ---- */
+.mine-group-head {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin: 8rpx 4rpx 16rpx;
+}
+
+.mine-group-head__title {
+  color: var(--glass-text);
+  font-size: 30rpx;
+  font-weight: 700;
+}
+
+.mine-group-head__spec {
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 18rpx;
+  letter-spacing: 0.08em;
+}
+
+/* ---- 外观分段控制：真滑块，不再靠选中项自己换底色 ---- */
+.mine-seg {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  box-sizing: border-box;
+  padding: 6rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: 999rpx;
+  background-color: var(--glass-bg-soft);
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
+  box-shadow: inset 0 1px 2px var(--glass-highlight);
+}
+
+.mine-seg__thumb {
+  position: absolute;
+  top: 6rpx;
+  bottom: 6rpx;
+  left: 6rpx;
+  width: calc((100% - 12rpx) / 3);
+  border-radius: 999rpx;
+  /* 选中态是一枚被点亮的玻璃，不是凹槽：白霜面 + 强调色光晕 */
+  background-color: rgba(255, 255, 255, 0.26);
+  background-image: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.5) 0%,
+    rgba(255, 255, 255, 0.08) 58%
+  );
+  box-shadow:
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.9),
+    inset 0 0 0 1rpx var(--glass-accent-glow),
+    0 0 16rpx var(--glass-accent-glow),
+    0 0 40rpx var(--glass-accent-glow),
+    0 8rpx 24rpx rgba(70, 60, 130, 0.1);
+  transition: transform 360ms var(--glass-ease-spring);
+  pointer-events: none;
+}
+
+/* 夜航：面更薄，但边缘更亮、光晕更开，避免变成黑色凹槽 */
+.mine-page.theme-dark .mine-seg__thumb {
+  background-color: rgba(255, 255, 255, 0.14);
+  background-image:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0.04) 60%),
+    linear-gradient(0deg, var(--glass-accent-soft) 0%, transparent 68%);
+  box-shadow:
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.42),
+    inset 0 0 0 1rpx var(--glass-accent-glow),
+    inset 0 -10rpx 22rpx var(--glass-accent-soft),
+    0 0 18rpx var(--glass-accent-glow),
+    0 0 48rpx var(--glass-accent-glow),
+    0 10rpx 26rpx rgba(0, 0, 0, 0.36);
+}
+
+.mine-seg__item {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  min-height: 64rpx;
+  border-radius: 999rpx;
+  background-color: transparent;
+  color: var(--glass-text-3);
+  font-size: 23rpx;
+  font-weight: 600;
+  box-sizing: border-box;
+  transition: color 220ms var(--glass-ease-out);
+}
+
+.mine-seg__item--active {
+  color: var(--glass-accent);
+  text-shadow:
+    0 0 12rpx var(--glass-accent-glow),
+    0 0 28rpx var(--glass-accent-glow);
+}
+
+.mine-seg__item--press {
+  opacity: 0.72;
+}
+
+.mine-seg__dot {
+  width: 8rpx;
+  height: 8rpx;
+  border-radius: 50%;
+  background-color: var(--glass-text-3);
+  opacity: 0.5;
+}
+
+.mine-seg__item--active .mine-seg__dot {
+  background-color: var(--glass-accent);
+  opacity: 1;
+  box-shadow:
+    0 0 12rpx var(--glass-accent-glow),
+    0 0 26rpx var(--glass-accent-glow);
+}
+
+.mine-seg__label {
+  line-height: 1;
+}
+
+.mine-seg__hint {
+  margin: 12rpx 8rpx 20rpx;
+  color: var(--glass-text-3);
+  font-size: 20rpx;
+  line-height: 1.5;
+}
+
+/* ---- 数据统计 ---- */
+.mine-stats {
+  display: block;
+  margin-bottom: 34rpx;
+  box-sizing: border-box;
+  box-shadow:
+    inset 0 1px 2px var(--glass-highlight),
+    0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.mine-stats__row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.mine-stat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6rpx;
+}
+
+.mine-stat__num {
+  color: var(--glass-text);
+  font-family: var(--glass-font-mono);
+  font-size: 40rpx;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.mine-stat__label {
+  color: var(--glass-text-3);
+  font-size: 20rpx;
+}
+
+/* ---- 功能列表 ---- */
+.mine-panel {
+  display: block;
+  margin-bottom: 34rpx;
+  box-sizing: border-box;
+  box-shadow:
+    inset 0 1px 2px var(--glass-highlight),
+    0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.mine-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 20rpx;
+  padding-top: 24rpx;
+  padding-right: 26rpx;
+  padding-bottom: 24rpx;
+  padding-left: 26rpx;
+  box-sizing: border-box;
+  background-color: transparent;
+  transition: background-color 180ms cubic-bezier(0.2, 0.9, 0.25, 1);
+}
+
+.mine-row--press {
+  background-color: rgba(255, 255, 255, 0.24);
+  background-image: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.5) 0%,
+    rgba(255, 255, 255, 0.18) 36%,
+    rgba(255, 255, 255, 0) 62%
+  );
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+}
+
+/* 夜航按压：只留一层薄镜面 */
+.mine-page.theme-dark .mine-row--press {
+  background-color: rgba(255, 255, 255, 0.1);
+  background-image: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.2) 0%,
+    rgba(255, 255, 255, 0.06) 36%,
+    rgba(255, 255, 255, 0) 62%
+  );
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.32);
+}
+
+.mine-row--danger .mine-row__title {
+  color: var(--glass-danger);
+}
+
+.mine-row__copy {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.mine-row__title {
+  color: var(--glass-text);
+  font-size: 27rpx;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.mine-row__sub {
+  margin-top: 6rpx;
+  color: var(--glass-text-3);
+  font-size: 21rpx;
+  line-height: 1.45;
+}
+
+.mine-row__tag {
+  flex-shrink: 0;
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 18rpx;
+  letter-spacing: 0.08em;
+}
+
+/* ---- 页脚 ---- */
+.mine-colophon {
+  padding: 10rpx 4rpx 20rpx;
+  text-align: center;
+}
+
+.mine-colophon__meta {
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 17rpx;
+  letter-spacing: 0.06em;
+  line-height: 1.7;
+}

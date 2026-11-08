@@ -1,0 +1,303 @@
+/* ==========================================================================
+   glass-card · 极光毛玻璃卡片
+   - 所有颜色 / 模糊 / 阴影 / 动效均消费 app.wxss 的 --glass-* 令牌
+   - 外层负责渐变边框与厚度阴影，内层负责背板模糊与内容裁剪
+   - 组件样式隔离，不污染页面
+   ========================================================================== */
+
+.glass-card {
+  --card-radius: var(--glass-radius-lg);
+  --card-pad: 28rpx;
+  --card-shadow: var(--glass-shadow-soft);
+  --card-aura: transparent;
+  --card-light: var(--sg-light-strong, rgba(255, 255, 255, 0.86));
+  --card-light-opacity: 0.55;
+  --card-dispersion-red: var(--sg-chromatic-red, rgba(255, 58, 96, 0.24));
+  --card-dispersion-blue: var(--sg-chromatic-blue, rgba(54, 110, 255, 0.24));
+  --card-dispersion-glow: var(--sg-chromatic-glow, rgba(120, 136, 255, 0.18));
+  --card-dispersion-opacity: var(--sg-chromatic-opacity, 0.82);
+  --card-sss: var(
+    --sg-sss-inner,
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.9),
+    inset 0 -1rpx 0 rgba(255, 255, 255, 0.18),
+    inset 1rpx 0 0 rgba(255, 90, 120, 0.06),
+    inset -1rpx 0 0 rgba(70, 110, 255, 0.06)
+  );
+
+  position: relative;
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: var(--card-radius);
+  background-color: transparent;
+  box-shadow: var(--card-shadow);
+  transition:
+    transform var(--glass-duration-fast) var(--glass-ease-out),
+    box-shadow var(--glass-duration-base) var(--glass-ease-out),
+    opacity var(--glass-duration-fast) var(--glass-ease-out);
+}
+
+/* ---- 1rpx 渐变高光边框：外层渐变 + 1rpx padding ---- */
+.glass-card_bordered {
+  padding: 1rpx;
+  background-image: var(--glass-border-gradient);
+  background-color: var(--glass-border);
+}
+
+.glass-card__surface {
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  border-radius: calc(var(--card-radius) - 1rpx);
+  background-color: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  box-shadow:
+    inset 0 1rpx 0 var(--glass-highlight),
+    inset 0 -24rpx 48rpx rgba(0, 0, 0, 0.06);
+}
+
+/* 兼容不支持 backdrop-filter 的低端机：加深背板，保证可读性 */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass-card__surface {
+    background-color: var(--glass-bg-strong);
+    box-shadow:
+      inset 0 1rpx 0 var(--glass-highlight),
+      0 1rpx 0 rgba(0, 0, 0, 0.08);
+  }
+}
+
+/* ---- 动态光追层 ---- */
+.glass-card__light {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  border-radius: inherit;
+  background-image: radial-gradient(
+    circle 38% at 50% 50%,
+    var(--card-light) 0%,
+    transparent 70%
+  );
+  opacity: var(--card-light-opacity);
+  transform: translate3d(0%, 0%, 0);
+  transition: transform 180ms var(--glass-ease-out);
+  mix-blend-mode: screen;
+  will-change: transform;
+}
+
+/* ---- 次表面散射 ---- */
+.glass-card__sss {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  border-radius: inherit;
+  box-shadow: var(--card-sss);
+}
+
+/* ---- 红蓝分离色散 ---- */
+.glass-card__dispersion {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  border-radius: inherit;
+  box-shadow:
+    1rpx 0 0 var(--card-dispersion-red),
+    -1rpx 0 0 var(--card-dispersion-blue),
+    0 0 28rpx var(--card-dispersion-glow);
+  opacity: var(--card-dispersion-opacity);
+  mix-blend-mode: screen;
+}
+
+/* ---- 极光染色层 ---- */
+.glass-card__aura {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background-image: radial-gradient(
+    90% 70% at 12% 0%,
+    var(--card-aura) 0%,
+    transparent 68%
+  );
+}
+
+/* ---- 噪点层 ---- */
+.glass-card__noise {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  border-radius: inherit;
+  background-image: var(--glass-noise-image);
+  background-size: var(--glass-noise-size);
+  opacity: var(--glass-noise-opacity);
+  mix-blend-mode: soft-light;
+}
+
+/* ---- 静态流光层 ---- */
+.glass-card__sheen {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  border-radius: inherit;
+  background-image: var(--glass-sheen);
+  opacity: 0.34;
+}
+
+/* ---- 顶部镜面高光线 ---- */
+.glass-card__edge {
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  z-index: 6;
+  height: 1rpx;
+  pointer-events: none;
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--glass-highlight) 22%,
+    var(--glass-highlight) 78%,
+    transparent 100%
+  );
+  opacity: 0.72;
+}
+
+/* ---- 内容层 ---- */
+.glass-card__content {
+  position: relative;
+  z-index: 7;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.glass-card__header {
+  padding: var(--card-pad) var(--card-pad) 0;
+  box-sizing: border-box;
+}
+
+.glass-card__body {
+  padding: var(--card-pad);
+  box-sizing: border-box;
+}
+
+.glass-card__footer {
+  padding: 0 var(--card-pad) var(--card-pad);
+  box-sizing: border-box;
+}
+
+/* ---- 圆角档位 ---- */
+.glass-card_radius_sm {
+  --card-radius: var(--glass-radius-sm);
+}
+
+.glass-card_radius_md {
+  --card-radius: var(--glass-radius-md);
+}
+
+.glass-card_radius_lg {
+  --card-radius: var(--glass-radius-lg);
+}
+
+.glass-card_radius_xl {
+  --card-radius: var(--glass-radius-xl);
+}
+
+/* ---- 内边距档位 ---- */
+.glass-card_padding_none {
+  --card-pad: 0rpx;
+}
+
+.glass-card_padding_sm {
+  --card-pad: 20rpx;
+}
+
+.glass-card_padding_md {
+  --card-pad: 28rpx;
+}
+
+.glass-card_padding_lg {
+  --card-pad: 40rpx;
+}
+
+/* ---- 厚度阴影档位 ---- */
+.glass-card_depth_flat {
+  --card-shadow: 0 0 0 rgba(0, 0, 0, 0);
+}
+
+.glass-card_depth_soft {
+  --card-shadow: var(--glass-shadow-soft);
+}
+
+.glass-card_depth_deep {
+  --card-shadow: var(--glass-shadow);
+}
+
+/* ---- 语义色调 ---- */
+.glass-card_tone_neutral {
+  --card-aura: transparent;
+  --card-light: var(--sg-light-strong, rgba(255, 255, 255, 0.86));
+}
+
+.glass-card_tone_iris {
+  --card-aura: var(--glass-accent-soft);
+  --card-light: var(--glass-accent-soft);
+  --card-dispersion-red: var(--sg-chromatic-red, rgba(255, 58, 96, 0.24));
+  --card-dispersion-blue: var(--sg-chromatic-blue, rgba(54, 110, 255, 0.28));
+}
+
+.glass-card_tone_aurora {
+  --card-aura: var(--glass-accent-2-soft);
+  --card-light: var(--glass-accent-2-soft);
+  --card-dispersion-red: var(--sg-chromatic-cyan, rgba(62, 236, 220, 0.18));
+  --card-dispersion-blue: var(--sg-chromatic-blue, rgba(54, 110, 255, 0.24));
+}
+
+.glass-card_tone_amber {
+  --card-aura: var(--glass-accent-warm-soft);
+  --card-light: var(--glass-accent-warm-soft);
+  --card-dispersion-red: var(--sg-chromatic-red, rgba(255, 58, 96, 0.2));
+  --card-dispersion-blue: var(--sg-chromatic-red, rgba(255, 176, 131, 0.18));
+}
+
+/* ---- 低端机：关闭色散 / 光追 ---- */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass-card__dispersion {
+    display: none;
+  }
+
+  .glass-card__light {
+    opacity: calc(var(--card-light-opacity) * 0.5);
+  }
+}
+
+/* ---- 减少动态 ---- */
+@media (prefers-reduced-motion: reduce) {
+  .glass-card__light {
+    transition: none;
+  }
+}
+
+/* ---- 交互态 ---- */
+.glass-card_interactive {
+  cursor: pointer;
+}
+
+.glass-card_pressed {
+  transform: scale(0.982) translateY(1rpx);
+  box-shadow: var(--glass-shadow-soft);
+}
+
+.glass-card_pressed .glass-card__surface {
+  box-shadow:
+    inset 0 1rpx 0 var(--glass-highlight),
+    inset 0 -16rpx 32rpx rgba(0, 0, 0, 0.04);
+}

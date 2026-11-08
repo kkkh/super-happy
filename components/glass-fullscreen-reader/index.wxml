@@ -1,0 +1,70 @@
+<view
+  wx:if="{{visible}}"
+  class="custom-class reader {{active ? 'reader_active' : ''}}"
+  style="z-index: {{zIndex}}; {{customStyle}}"
+>
+  <view
+    class="reader__mask"
+    catchtouchmove="noop"
+    bindtap="onMaskTap"
+    aria-hidden="true"
+  ></view>
+
+  <view
+    class="reader__panel"
+    aria-role="dialog"
+    aria-modal="true"
+    aria-label="{{ariaLabel}}"
+  >
+    <view class="reader__aura" aria-hidden="true"></view>
+
+    <view class="reader__nav">
+      <view class="reader__nav-copy">
+        <text class="reader__kicker">FULL RESULT</text>
+        <text class="reader__title">{{title}}</text>
+      </view>
+      <glass-button
+        variant="ghost"
+        size="md"
+        shape="rounded"
+        aria-label="关闭完整结果"
+        bind:tap="onCloseTap"
+      >
+        ×
+      </glass-button>
+    </view>
+
+    <view class="reader__meta">
+      <text class="reader__meta-text">{{charText}}</text>
+      <text class="reader__meta-dot" aria-hidden="true">·</text>
+      <text class="reader__meta-text">本机内容 · 不上传</text>
+    </view>
+
+    <scroll-view
+      scroll-y
+      enhanced
+      show-scrollbar="{{false}}"
+      bounces="{{false}}"
+      class="reader__scroll"
+    >
+      <view class="reader__content">
+        <text wx:if="{{lead}}" class="reader__lead">{{lead}}</text>
+        <text wx:if="{{body}}" class="reader__body">{{body}}</text>
+      </view>
+    </scroll-view>
+
+    <view class="reader__actions">
+      <glass-button
+        variant="tint"
+        size="md"
+        block
+        disabled="{{copyLocked}}"
+        bind:tap="onCopyTap"
+      >
+        {{copyLabel}}
+      </glass-button>
+    </view>
+
+    <view class="reader__safe"></view>
+  </view>
+</view>

@@ -1,0 +1,181 @@
+<view class="tool-shell sg-ambient-surface {{themeClass}} {{themeSwitching ? 'theme-breathing' : ''}}">
+  <view class="tool-shell__ambient" aria-hidden="true">
+    <view class="sg-aurora-a tool-shell__aura-a"></view>
+    <view class="sg-aurora-b tool-shell__aura-b"></view>
+    <view class="sg-aurora-c tool-shell__aura-c"></view>
+  </view>
+
+  <view
+    class="tool-shell__nav"
+    style="padding-top: {{headInset}}px; padding-right: {{navRight}}px;"
+  >
+    <glass-button
+      variant="ghost"
+      size="sm"
+      shape="rounded"
+      custom-class="tool-shell__back"
+      aria-label="返回"
+      bind:tap="onBack"
+    >
+      <g-icon name="back" size="{{30}}" tone="ink" />
+    </glass-button>
+
+    <text class="tool-shell__kicker">{{kickerLabel}}</text>
+
+    <view class="tool-shell__nav-actions">
+      <glass-button
+        wx:if="{{showExample}}"
+        variant="ghost"
+        size="sm"
+        aria-label="填入示例"
+        bind:tap="onExample"
+      >
+        示例
+      </glass-button>
+      <glass-button
+        variant="{{isFavorite ? 'warm' : 'ghost'}}"
+        size="sm"
+        aria-label="{{isFavorite ? '取消收藏' : '收藏'}}{{title}}"
+        bind:tap="onToggleFavorite"
+      >
+        <g-icon name="star" size="{{26}}" tone="{{isFavorite ? 'amber' : 'ink4'}}" />
+      </glass-button>
+    </view>
+  </view>
+
+  <scroll-view
+    class="tool-shell__scroll"
+    scroll-y
+    enhanced
+    show-scrollbar="{{false}}"
+    bounces="{{false}}"
+    type="list"
+    scroll-into-view="{{scrollTarget}}"
+    scroll-with-animation
+  >
+    <view id="glass-tool-top" class="tool-shell__body">
+      <view class="tool-shell__hero">
+        <text class="tool-shell__title">{{title}}</text>
+        <text class="tool-shell__desc">{{desc}}</text>
+        <view wx:if="{{privacyText}}" class="tool-shell__privacy">
+          <g-icon name="eye" size="{{22}}" tone="ink3" />
+          <text>{{privacyText}}</text>
+        </view>
+      </view>
+
+      <glass-tool-card
+        variant="input"
+        label="INPUT / 输入"
+        code="{{codeLabel}}"
+      >
+        <slot name="input"></slot>
+      </glass-tool-card>
+
+      <view wx:if="{{error}}" class="tool-shell__alert" aria-live="polite">
+        <text class="tool-shell__alert-dot" aria-hidden="true">!</text>
+        <text class="tool-shell__alert-text">{{error}}</text>
+      </view>
+
+      <view wx:if="{{showRun}}" class="tool-shell__actions">
+        <glass-button
+          variant="primary"
+          size="lg"
+          block
+          loading="{{state === 'running'}}"
+          loading-text="处理中"
+          disabled="{{!canRun}}"
+          bind:tap="onRun"
+        >
+          {{runLabel}}
+        </glass-button>
+        <glass-button variant="ghost" size="md" bind:tap="onReset">
+          重置
+        </glass-button>
+      </view>
+
+      <view id="tbx-result" class="tool-shell__bridge" aria-hidden="true"></view>
+
+      <glass-tool-card
+        variant="result"
+        label="RESULT / 结果"
+        code="{{hasResult ? 'READY' : 'WAITING'}}"
+        has-result="{{hasResult}}"
+        empty-title="{{emptyTitle}}"
+        empty-sub="{{emptySub}}"
+      >
+        <slot name="result"></slot>
+      </glass-tool-card>
+
+      <!-- 结果区下方：一键流转到其他工具（呼吸微光 + 触觉反馈） -->
+      <view wx:if="{{hasResult}}" class="tool-shell__workflow">
+        <view class="tool-shell__workflow-halo" aria-hidden="true"></view>
+        <view class="tool-shell__workflow-btn">
+          <glass-button
+            variant="tint"
+            size="md"
+            block
+            haptic="medium"
+            aria-label="流转到其他工具"
+            bind:tap="onWorkflowTap"
+          >
+            <view class="tool-shell__workflow-inner">
+              <text class="tool-shell__workflow-glyph" aria-hidden="true">⇄</text>
+              <text>流转到其他工具</text>
+            </view>
+          </glass-button>
+        </view>
+      </view>
+
+      <!-- 结果区下方：生成专属极光海报 -->
+      <view wx:if="{{hasResult && posterEnabled}}" class="tool-shell__poster">
+        <glass-button
+          variant="aurora"
+          size="md"
+          block
+          aura
+          loading="{{isGenerating}}"
+          loading-text="极光生成中"
+          bind:tap="onGeneratePoster"
+        >
+          <text class="tool-shell__poster-glyph" aria-hidden="true">✦</text>
+          <text>生成专属海报</text>
+        </glass-button>
+      </view>
+
+      <view wx:if="{{!showRun}}" class="tool-shell__actions tool-shell__actions-solo">
+        <glass-button variant="ghost" block bind:tap="onReset">
+          清空重来
+        </glass-button>
+      </view>
+
+      <slot name="note"></slot>
+
+      <view class="tool-shell__footer">
+        LOCAL ONLY / 本机计算 · 不上传 · 轨迹摘要仅存本机 · {{codeLabel}}
+      </view>
+    </view>
+  </scroll-view>
+
+  <poster-generator id="posterGenerator" />
+  <poster-preview
+    show="{{posterVisible}}"
+    image-path="{{posterPath}}"
+    loading="{{isGenerating}}"
+    error="{{posterError}}"
+    saver="{{posterSaver}}"
+    bind:close="onPosterClose"
+    bind:closed="onPosterClosed"
+  />
+
+  <workflow-receiver tool-id="{{toolId}}" />
+  <workflow-panel
+    show="{{workflowPanelVisible}}"
+    source-tool-id="{{toolId}}"
+    bind:close="onWorkflowPanelClose"
+  />
+  <glass-toast />
+  <privacy-guard />
+  <update-guard
+    blocked="{{state === 'running' || workflowPanelVisible || posterVisible || isGenerating || updateBlocked}}"
+  />
+</view>

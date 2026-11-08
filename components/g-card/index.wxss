@@ -1,0 +1,51 @@
+/* g-card · 液态玻璃材质 */
+.card {
+  position: relative;
+  border-radius: 32rpx;
+  overflow: hidden;
+  /* 本地 hover-class 不经过全局 .press，单独补齐缓动，避免按压瞬跳 */
+  transition:
+    transform 0.18s cubic-bezier(0.2, 0.9, 0.25, 1),
+    opacity 0.18s cubic-bezier(0.2, 0.9, 0.25, 1);
+}
+
+/* 玻璃底：半透明 + 发丝描边 + 玻璃投影 */
+.card_glass {
+  background-color: var(--g-surface);
+  border: 1rpx solid var(--g-stroke);
+  box-shadow: var(--g-shadow-glass);
+}
+
+/* 实底：嵌套层级 */
+.card_solid {
+  background-color: var(--g-solid);
+  border: 1rpx solid var(--g-stroke);
+}
+
+/* 高光扫过（配合 tokens 的 glass-sheen 关键帧） */
+.card_sheen::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 34%;
+  background-image: linear-gradient(
+    100deg,
+    rgba(255, 255, 255, 0) 0%,
+    var(--g-sheen-hi) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  animation: sheen 3.6s cubic-bezier(0.32, 0.72, 0, 1) infinite;
+}
+
+/* 按压态 */
+.card_press {
+  transform: scale(0.98);
+  opacity: 0.92;
+}
+
+/* 内边距档位 */
+.card_pad_none { padding: 0; }
+.card_pad_sm { padding: 20rpx; }
+.card_pad_md { padding: 28rpx; }
+.card_pad_lg { padding: 40rpx; }

@@ -1,0 +1,7 @@
+{
+  "component": true,
+  "usingComponents": {
+    "glass-bottom-sheet": "../../../../components/glass-bottom-sheet/index",
+    "glass-button": "../../../../components/glass-button/index"
+  }
+}

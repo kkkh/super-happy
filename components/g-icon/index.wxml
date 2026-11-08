@@ -1,0 +1,3 @@
+<view class="icon icon_tone_{{tone}} {{flip ? 'icon_flip' : ''}}" aria-hidden="true">
+  <text class="icon_glyph" style="font-size: {{size}}rpx; {{color ? 'color: ' + color + ';' : ''}}">{{glyph}}</text>
+</view>

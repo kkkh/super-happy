@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "crypto-js": "^4.2.0",
+    "diff-match-patch": "^1.0.5"
+  },
+  "devDependencies": {
+    "@types/crypto-js": "^4.2.2",
+    "@types/diff-match-patch": "^1.0.36"
+  }
+}

@@ -1,0 +1,137 @@
+/* g-orbit · 纯 CSS 精密轨道仪（无 Canvas、无运行时依赖） */
+.orbit {
+  position: relative;
+}
+
+.orbit_ring {
+  position: absolute;
+  border-radius: 999rpx;
+}
+
+.orbit_ring_outer {
+  top: 8%;
+  left: 8%;
+  right: 8%;
+  bottom: 8%;
+  border: 1rpx solid var(--g-stroke-strong);
+}
+
+.orbit_ring_inner {
+  top: 18%;
+  left: 18%;
+  right: 18%;
+  bottom: 18%;
+  border: 1rpx solid var(--g-iris-border);
+  opacity: 0.7;
+}
+
+.orbit_ticks {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  animation: orbit-spin-slow 120s linear infinite;
+}
+
+.orbit_tick_wrap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.orbit_tick {
+  position: absolute;
+  top: 4%;
+  left: 50%;
+  width: 2rpx;
+  height: 8rpx;
+  margin-left: -1rpx;
+  border-radius: 999rpx;
+  background-color: var(--g-ink-5);
+  opacity: 0.6;
+}
+
+.orbit_path {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.orbit_path_a {
+  animation: orbit-spin 16s linear infinite;
+}
+
+.orbit_path_b {
+  animation: orbit-spin 11s linear infinite reverse;
+}
+
+.orbit_body {
+  position: absolute;
+  top: 3%;
+  left: 50%;
+  width: 14rpx;
+  height: 14rpx;
+  margin-left: -7rpx;
+  border-radius: 999rpx;
+}
+
+.orbit_body_iris {
+  background-color: var(--g-iris);
+  box-shadow: 0 0 20rpx var(--g-iris-glow);
+}
+
+.orbit_body_aurora {
+  width: 10rpx;
+  height: 10rpx;
+  margin-left: -5rpx;
+  background-color: var(--g-aurora);
+  box-shadow: 0 0 20rpx var(--g-aurora-glow);
+}
+
+.orbit_core {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 30rpx;
+  height: 30rpx;
+  margin: -15rpx 0 0 -15rpx;
+  border-radius: 999rpx;
+  background-image: var(--g-gradient-avatar);
+  box-shadow: 0 0 28rpx var(--g-iris-glow);
+  animation: orbit-breathe 3.2s ease-in-out infinite;
+}
+
+@keyframes orbit-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes orbit-spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes orbit-breathe {
+  0%,
+  100% {
+    transform: scale(0.82);
+    opacity: 0.85;
+  }
+  50% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}

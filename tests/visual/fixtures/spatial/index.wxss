@@ -1,0 +1,138 @@
+/* ==========================================================================
+   spatial-hologram 视觉验收页
+   - 由 tests/visual/spatial-hologram.visual.js 临时注入 pages/__visual_spatial__
+   - 不参与正式页面导航，验收结束后自动移除
+   ========================================================================== */
+
+.visual-page {
+  position: relative;
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding: calc(env(safe-area-inset-top) + 72rpx) 40rpx
+    calc(env(safe-area-inset-bottom) + 48rpx);
+  background-color: var(--glass-canvas);
+  background-image:
+    radial-gradient(
+      90% 50% at 15% 10%,
+      var(--glass-accent-soft) 0%,
+      transparent 62%
+    ),
+    radial-gradient(
+      80% 60% at 90% 88%,
+      var(--glass-accent-warm-soft) 0%,
+      transparent 68%
+    );
+  overflow: hidden;
+  font-family: var(--glass-font-sans);
+}
+
+.visual-head {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.visual-kicker {
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 19rpx;
+  letter-spacing: 0.14em;
+}
+
+.visual-title {
+  margin-top: 18rpx;
+  color: var(--glass-text);
+  font-size: 44rpx;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.visual-meta {
+  margin-top: 14rpx;
+  padding: 8rpx 16rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: 999rpx;
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 18rpx;
+  letter-spacing: 0.06em;
+  background-color: var(--glass-bg-soft);
+}
+
+.visual-stage {
+  position: relative;
+  z-index: 3;
+  margin-top: 64rpx;
+}
+
+.sample-copy {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  padding: 20rpx 8rpx;
+}
+
+.sample-kicker {
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 18rpx;
+  letter-spacing: 0.12em;
+}
+
+.sample-title {
+  margin-top: 22rpx;
+  color: var(--glass-text);
+  font-size: 48rpx;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.sample-desc {
+  margin-top: 18rpx;
+  color: var(--glass-text-2);
+  font-size: 24rpx;
+  line-height: 1.6;
+}
+
+.sample-orb {
+  position: absolute;
+  top: -90rpx;
+  right: -72rpx;
+  width: 380rpx;
+  height: 380rpx;
+  border-radius: 50%;
+  background-image: radial-gradient(
+    circle at 42% 38%,
+    var(--glass-accent-soft) 0%,
+    transparent 68%
+  );
+  filter: blur(18rpx);
+}
+
+.sample-badge {
+  position: absolute;
+  right: 28rpx;
+  bottom: 28rpx;
+  padding: 10rpx 18rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: 999rpx;
+  background-color: var(--glass-bg-strong);
+  box-shadow: var(--glass-shadow-soft);
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 18rpx;
+  letter-spacing: 0.1em;
+}
+
+.visual-foot {
+  position: relative;
+  z-index: 5;
+  margin-top: 48rpx;
+  text-align: center;
+  color: var(--glass-text-3);
+  font-size: 20rpx;
+  line-height: 1.6;
+}

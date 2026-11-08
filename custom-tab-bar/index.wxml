@@ -1,0 +1,26 @@
+<view class="dock {{isDark ? 'dock_dark' : ''}}">
+  <view class="dock__pill">
+    <view
+      wx:for="{{items}}"
+      wx:key="pagePath"
+      class="dock__item {{selected === index ? 'dock__item--active' : ''}}"
+      data-index="{{index}}"
+      hover-class="dock__item--press"
+      hover-stay-time="80"
+      aria-role="button"
+      aria-label="{{item.text}}"
+      aria-selected="{{selected === index}}"
+      bindtap="onTap"
+    >
+      <g-icon
+        class="dock__icon {{selected === index ? 'dock__icon--active' : ''}}"
+        name="{{item.icon}}"
+        size="{{30}}"
+        tone="{{isDark ? 'inverse' : (selected === index ? 'dark' : 'ink3')}}"
+        color="{{isDark ? (selected === index ? '#b9c0ff' : 'rgba(214, 220, 235, 0.66)') : (selected === index ? 'rgba(94, 92, 230, 0.95)' : '')}}"
+      />
+      <text class="dock__text">{{item.text}}</text>
+      <view class="dock__dot"></view>
+    </view>
+  </view>
+</view>

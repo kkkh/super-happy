@@ -1,0 +1,18 @@
+<view
+  class="glass-switch {{checked ? 'glass-switch--on' : ''}} {{disabled ? 'glass-switch--disabled' : ''}}"
+  catchtap="onToggle"
+  aria-role="switch"
+  aria-checked="{{checked}}"
+  aria-label="{{ariaLabel}}"
+  aria-disabled="{{disabled}}"
+>
+  <view class="glass-switch__frame">
+    <view class="glass-switch__track">
+      <view class="glass-switch__glow" aria-hidden="true"></view>
+      <view class="glass-switch__thumb" aria-hidden="true">
+        <view class="glass-switch__thumb-core"></view>
+        <view class="glass-switch__thumb-sheen"></view>
+      </view>
+    </view>
+  </view>
+</view>

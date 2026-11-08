@@ -1,0 +1,133 @@
+<glass-tool-shell
+  tool-id="dedupe"
+  title="{{toolName}}"
+  kicker="{{kicker}}"
+  desc="{{desc}}"
+  poster-data="{{posterData}}"
+  show-run="{{false}}"
+  show-example
+  has-result="{{hasResult}}"
+  empty-title="粘贴多行文本，立即整理"
+  empty-sub="可去空行、去重、排序与按长度排列"
+  bind:example="onExample"
+  bind:reset="onReset"
+>
+  <view slot="input" class="sg-tool-fields">
+    <glass-input
+      label="原始文本"
+      hint="每行一条"
+      multiline
+      auto-height
+      show-count
+      value="{{text}}"
+      maxlength="{{maxText}}"
+      placeholder="每行一条，例如：&#10;苹果&#10;香蕉&#10;苹果"
+      cursor-spacing="{{120}}"
+      aria-label="待去重排序的多行文本"
+      bind:input="onInput"
+    />
+
+    <view class="tool-switch-row">
+      <view class="tool-switch-row__text">
+        <text class="tool-switch-row__title">去除空行</text>
+        <text class="tool-switch-row__sub">忽略只含空白的行</text>
+      </view>
+      <view class="tool-switch">
+        <switch
+          checked="{{dropEmpty}}"
+          color="var(--glass-accent)"
+          aria-label="去除空行"
+          bindchange="onDropEmpty"
+        />
+      </view>
+    </view>
+
+    <view class="tool-switch-row">
+      <view class="tool-switch-row__text">
+        <text class="tool-switch-row__title">去除首尾空格</text>
+        <text class="tool-switch-row__sub">让重复行更容易合并</text>
+      </view>
+      <view class="tool-switch">
+        <switch
+          checked="{{trimLines}}"
+          color="var(--glass-accent)"
+          aria-label="去除首尾空格"
+          bindchange="onTrim"
+        />
+      </view>
+    </view>
+
+    <view class="tool-switch-row">
+      <view class="tool-switch-row__text">
+        <text class="tool-switch-row__title">忽略大小写</text>
+        <text class="tool-switch-row__sub">Banana 与 banana 视为同一行</text>
+      </view>
+      <view class="tool-switch">
+        <switch
+          checked="{{ignoreCase}}"
+          color="var(--glass-accent)"
+          aria-label="忽略大小写"
+          bindchange="onIgnoreCase"
+        />
+      </view>
+    </view>
+
+    <view class="tool-field">
+      <text class="tool-field__label">排序方式</text>
+      <view class="tool-seg">
+        <view
+          wx:for="{{sortModes}}"
+          wx:key="key"
+          class="tool-seg__item {{sortMode === item.key ? 'tool-seg__item--active' : ''}}"
+          hover-class="tool-press"
+          hover-stay-time="80"
+          data-mode="{{item.key}}"
+          aria-role="button"
+          aria-label="{{item.label}}"
+          bindtap="onSortMode"
+        >
+          {{item.label}}
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view slot="result" class="sg-tool-result">
+    <view class="sg-tool-result__head">
+      <text class="sg-tool-result__label">处理结果</text>
+      <view class="tool-result__count">
+        <animated-number value="{{resultLinesValue}}" size="sm" tone="iris" suffix=" 行" />
+      </view>
+    </view>
+
+    <view wx:if="{{outputEmpty}}" class="tool-output tool-output--empty">
+      <text>处理后没有剩余内容</text>
+    </view>
+    <text wx:else class="tool-output" selectable>{{outputText}}</text>
+
+    <view class="tool-stats">
+      <view wx:for="{{stats}}" wx:key="key" class="tool-stat">
+        <text class="tool-stat__k">{{item.label}}</text>
+        <text class="tool-stat__v">{{item.value}}</text>
+      </view>
+    </view>
+
+    <view class="tool-actions">
+      <glass-button variant="ghost" size="md" block bind:tap="onCopy">
+        复制结果
+      </glass-button>
+    </view>
+  </view>
+
+  <view slot="note">
+    <glass-card tone="amber" radius="lg" padding="md" depth="soft">
+      <view class="sg-tool-note">
+        <text class="sg-tool-note__title">排序说明</text>
+        <text class="sg-tool-note__text">
+          升序、降序按字符编码比较，中文不按拼音排序；按长度排序时长度相同的行保持原有相对顺序。
+          所有处理只在本机内存完成，不保存原文与结果。
+        </text>
+      </view>
+    </glass-card>
+  </view>
+</glass-tool-shell>

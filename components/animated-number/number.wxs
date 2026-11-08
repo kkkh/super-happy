@@ -1,0 +1,148 @@
+/**
+ * animated-number 动画内核
+ * - change:prop 监听 animConfig
+ * - ownerInstance.requestAnimationFrame 逐帧计算
+ * - 帧文本通过 callMethod 回传 JS；JS 用 epoch 丢弃过期帧
+ * - 如果运行环境缺少 requestAnimationFrame，直接落定终值
+ */
+var DEFAULT_DURATION = 1000
+
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value))
+}
+
+function normalizeNumber(value) {
+  if (!isFinite(value)) {
+    return 0
+  }
+  return value
+}
+
+/** easeOutQuint：强阻尼，前段快、末段缓慢落定 */
+function easeOutQuint(progress) {
+  return 1 - Math.pow(1 - progress, 5)
+}
+
+function groupInteger(integer, separator) {
+  if (!separator) {
+    return integer
+  }
+
+  var grouped = ''
+  var count = 0
+  var index = integer.length - 1
+
+  while (index >= 0) {
+    grouped = integer.charAt(index) + grouped
+    count += 1
+    if (count % 3 === 0 && index > 0) {
+      grouped = separator + grouped
+    }
+    index -= 1
+  }
+
+  return grouped
+}
+
+function formatNumber(value, decimals, separator, prefix, suffix) {
+  var numberValue = normalizeNumber(value)
+  var places = clamp(Math.floor(decimals), 0, 4)
+  var factor = Math.pow(10, places)
+  var rounded = Math.round(numberValue * factor) / factor
+
+  if (!isFinite(rounded)) {
+    return '—'
+  }
+
+  var negative = rounded < 0
+  var fixed = Math.abs(rounded).toFixed(places)
+  var parts = fixed.split('.')
+  var integer = parts[0] ? parts[0] : '0'
+  var decimal = parts[1] ? parts[1] : ''
+  var grouped = groupInteger(integer, separator)
+  var decimalText = decimal ? '.' + decimal : ''
+  var sign = negative && rounded !== 0 ? '-' : ''
+
+  return sign + (prefix || '') + grouped + decimalText + (suffix || '')
+}
+
+function applyFinal(config, ownerInstance) {
+  if (!ownerInstance || typeof ownerInstance.callMethod !== 'function') {
+    return
+  }
+  ownerInstance.callMethod('applyFrame', {
+    text: formatNumber(
+      config.value,
+      config.decimals,
+      config.separator,
+      config.prefix,
+      config.suffix
+    ),
+    value: config.value,
+    epoch: config.epoch,
+    done: true
+  })
+}
+
+function onChange(newConfig, oldConfig, ownerInstance) {
+  if (!newConfig || !ownerInstance) {
+    return
+  }
+
+  if (newConfig.animated === false || typeof ownerInstance.requestAnimationFrame !== 'function') {
+    applyFinal(newConfig, ownerInstance)
+    return
+  }
+
+  var duration = clamp(newConfig.duration || DEFAULT_DURATION, 0, 3000)
+  if (duration <= 0) {
+    applyFinal(newConfig, ownerInstance)
+    return
+  }
+
+  var from = normalizeNumber(newConfig.from)
+  var to = normalizeNumber(newConfig.value)
+  var startedAt = -1
+
+  function frame(timestamp) {
+    if (startedAt < 0) {
+      startedAt = timestamp
+    }
+
+    var progress = (timestamp - startedAt) / duration
+    if (progress < 0) {
+      progress = 0
+    }
+    if (progress > 1) {
+      progress = 1
+    }
+
+    var eased = easeOutQuint(progress)
+    var current = from + (to - from) * eased
+
+    if (typeof ownerInstance.callMethod === 'function') {
+      ownerInstance.callMethod('applyFrame', {
+        text: formatNumber(
+          current,
+          newConfig.decimals,
+          newConfig.separator,
+          newConfig.prefix,
+          newConfig.suffix
+        ),
+        value: current,
+        epoch: newConfig.epoch,
+        done: progress >= 1
+      })
+    }
+
+    if (progress < 1) {
+      ownerInstance.requestAnimationFrame(frame)
+    }
+  }
+
+  ownerInstance.requestAnimationFrame(frame)
+}
+
+module.exports = {
+  onChange: onChange
+}

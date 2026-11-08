@@ -1,0 +1,214 @@
+<view class="td-page {{themeClass}}">
+<glass-tool-shell
+  tool-id="text-diff"
+  title="{{toolName}}"
+  kicker="{{kicker}}"
+  desc="{{desc}}"
+  state="{{state}}"
+  run-label="开始对比"
+  can-run="{{canRun}}"
+  has-result="{{hasResult}}"
+  error="{{error}}"
+  update-blocked="{{tooLongShow}}"
+  empty-title="填入两段文本，开始专业对比"
+  empty-sub="字符级 + 行级优化 · 本机计算 · 不上传"
+  poster-data="{{posterData}}"
+  poster-enabled="{{true}}"
+  bind:run="onCompare"
+  bind:reset="onReset"
+  bind:example="onExample"
+>
+  <view slot="input" class="td-inputs">
+    <view class="td-editor">
+      <view class="td-editor__head">
+        <text class="td-editor__label">原文本</text>
+        <text class="td-editor__count">{{originalCount}} 字符</text>
+      </view>
+      <textarea
+        class="td-editor__area"
+        value="{{original}}"
+        maxlength="-1"
+        disabled="{{state === 'running'}}"
+        placeholder="粘贴或输入原文本…"
+        placeholder-class="td-placeholder"
+        cursor-spacing="{{120}}"
+        aria-label="原文本"
+        bindinput="onOriginalInput"
+      />
+    </view>
+
+    <view class="td-switch-row">
+      <view class="td-switch-row__text">
+        <text class="td-switch-row__title">忽略大小写</text>
+        <text class="td-switch-row__sub">Banana 与 banana 视为相同</text>
+      </view>
+      <switch
+        checked="{{ignoreCase}}"
+        disabled="{{state === 'running'}}"
+        color="var(--glass-accent)"
+        aria-label="忽略大小写"
+        bindchange="onIgnoreCaseChange"
+      />
+    </view>
+
+    <view class="td-switch-row">
+      <view class="td-switch-row__text">
+        <text class="td-switch-row__title">忽略空格</text>
+        <text class="td-switch-row__sub">忽略半角/全角空格、Tab 与回车，保留换行</text>
+      </view>
+      <switch
+        checked="{{ignoreSpace}}"
+        disabled="{{state === 'running'}}"
+        color="var(--glass-accent)"
+        aria-label="忽略空格"
+        bindchange="onIgnoreSpaceChange"
+      />
+    </view>
+
+    <view class="td-editor">
+      <view class="td-editor__head">
+        <text class="td-editor__label">新文本</text>
+        <text class="td-editor__count">{{modifiedCount}} 字符</text>
+      </view>
+      <textarea
+        class="td-editor__area"
+        value="{{modified}}"
+        maxlength="-1"
+        disabled="{{state === 'running'}}"
+        placeholder="粘贴或输入新文本…"
+        placeholder-class="td-placeholder"
+        cursor-spacing="{{120}}"
+        aria-label="新文本"
+        bindinput="onModifiedInput"
+      />
+    </view>
+
+    <view wx:if="{{state === 'running'}}" class="td-loading" aria-live="polite">
+      <view class="td-loading__spinner" aria-hidden="true"></view>
+      <view class="td-loading__copy">
+        <text class="td-loading__title">正在本机比对</text>
+        <text class="td-loading__sub">字符级算法运行中，长文本会自动限时</text>
+      </view>
+    </view>
+  </view>
+
+  <view slot="result" class="td-result">
+    <view class="td-summary">
+      <text class="td-summary__label">对比统计</text>
+      <text class="td-summary__text">{{summaryText}}</text>
+      <view class="td-stats">
+        <view class="td-stat">
+          <text class="td-stat__k">差异</text>
+          <text class="td-stat__v">{{stats.changeText}}</text>
+        </view>
+        <view class="td-stat td-stat_insert">
+          <text class="td-stat__k">新增</text>
+          <text class="td-stat__v">+{{stats.insertText}}</text>
+        </view>
+        <view class="td-stat td-stat_delete">
+          <text class="td-stat__k">删除</text>
+          <text class="td-stat__v">-{{stats.deleteText}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{timedOut}}" class="td-note">
+      文本较大，算法已按时间预算返回近似最优结果；可复制差异报告查看完整标注。
+    </view>
+    <view wx:if="{{compacted}}" class="td-note">
+      差异块过多，已降级为纯文本显示；完整差异请复制报告。
+    </view>
+
+    <view class="td-diff">
+      <view class="td-diff__card">
+        <view class="td-diff__head">
+          <text class="td-diff__title">原文本</text>
+          <text class="td-diff__legend td-diff__legend_delete">− 删除</text>
+        </view>
+        <scroll-view
+          class="td-diff__scroll"
+          scroll-y
+          enhanced
+          show-scrollbar="{{false}}"
+          bounces="{{false}}"
+          scroll-top="{{originalTop}}"
+          scroll-with-animation="{{false}}"
+          bindscroll="onOriginalDiffScroll"
+        >
+          <rich-text class="td-rich" nodes="{{originalNodes}}" />
+        </scroll-view>
+      </view>
+
+      <view class="td-diff__card">
+        <view class="td-diff__head">
+          <text class="td-diff__title">新文本</text>
+          <text class="td-diff__legend td-diff__legend_insert">+ 新增</text>
+        </view>
+        <scroll-view
+          class="td-diff__scroll"
+          scroll-y
+          enhanced
+          show-scrollbar="{{false}}"
+          bounces="{{false}}"
+          scroll-top="{{modifiedTop}}"
+          scroll-with-animation="{{false}}"
+          bindscroll="onModifiedDiffScroll"
+        >
+          <rich-text class="td-rich" nodes="{{modifiedNodes}}" />
+        </scroll-view>
+      </view>
+    </view>
+
+    <view class="td-result-actions">
+      <view class="td-flow-mode">
+        <view
+          class="td-seg {{flowMode === 'report' ? 'td-seg_active' : ''}}"
+          data-mode="report"
+          hover-class="td-pressed"
+          hover-stay-time="80"
+          aria-role="button"
+          aria-label="流转差异报告"
+          bindtap="onFlowMode"
+        >
+          流转差异报告
+        </view>
+        <view
+          class="td-seg {{flowMode === 'highlight' ? 'td-seg_active' : ''}}"
+          data-mode="highlight"
+          hover-class="td-pressed"
+          hover-stay-time="80"
+          aria-role="button"
+          aria-label="流转高亮标注"
+          bindtap="onFlowMode"
+        >
+          流转高亮标注
+        </view>
+      </view>
+
+      <view class="td-copy-row">
+        <glass-button variant="ghost" size="md" block bind:tap="onCopyReport">
+          复制报告
+        </glass-button>
+        <glass-button variant="tint" size="md" block bind:tap="onCopyHighlight">
+          复制高亮
+        </glass-button>
+      </view>
+
+      <text class="td-flow-hint">
+        顶部「流转」将发送：{{flowMode === 'highlight' ? '高亮标注' : '差异报告'}}
+      </text>
+    </view>
+  </view>
+</glass-tool-shell>
+
+<glass-modal
+  show="{{tooLongShow}}"
+  title="文本超过 50,000 字符"
+  description="{{tooLongText}}"
+  confirm-text="知道了"
+  show-cancel="{{false}}"
+  z-index="{{250}}"
+  bind:confirm="onTooLongConfirm"
+  bind:cancel="onTooLongConfirm"
+/>
+</view>

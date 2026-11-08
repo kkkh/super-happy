@@ -1,0 +1,72 @@
+/* ==========================================================================
+   BMI · 空间玻璃页面样式
+   - 只使用 --glass-* / --sg-* 令牌，无硬编码色值
+   ========================================================================== */
+
+.tool-result__badge {
+  padding: 6rpx 18rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: 999rpx;
+  background-color: var(--glass-bg-strong);
+  color: var(--glass-accent);
+  font-size: 22rpx;
+  font-weight: 600;
+}
+
+.tool-scale {
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+}
+
+.tool-scale__track {
+  position: relative;
+  display: flex;
+  gap: 4rpx;
+  height: 12rpx;
+  border-radius: 999rpx;
+  background-color: var(--glass-bg-soft);
+}
+
+.tool-scale__seg {
+  flex: 1;
+  border-radius: 999rpx;
+  opacity: 0.7;
+}
+
+.tool-scale__seg-1 {
+  background-color: var(--sg-ambient-cold);
+}
+
+.tool-scale__seg-2 {
+  background-color: var(--sg-ambient-mint);
+}
+
+.tool-scale__seg-3 {
+  background-color: var(--sg-ambient-warm);
+}
+
+.tool-scale__seg-4 {
+  background-color: var(--sg-danger);
+}
+
+.tool-scale__marker {
+  position: absolute;
+  top: 50%;
+  width: 6rpx;
+  height: 26rpx;
+  border-radius: 999rpx;
+  background-color: var(--glass-text);
+  box-shadow: var(--glass-shadow-soft);
+  transform: translate(-50%, -50%);
+  transition: left var(--glass-duration-base) var(--glass-ease-out);
+}
+
+.tool-scale__labels {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 4rpx;
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 18rpx;
+}

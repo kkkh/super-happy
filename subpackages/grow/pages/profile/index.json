@@ -1,0 +1,16 @@
+{
+  "navigationBarTitleText": "个人简介",
+  "disableScroll": true,
+  "usingComponents": {
+    "g-navbar": "../../../../components/g-navbar/index",
+    "g-icon": "../../../../components/g-icon/index",
+    "g-card": "../../../../components/g-card/index",
+    "g-tag": "../../../../components/g-tag/index",
+    "g-section": "../../../../components/g-section/index",
+    "g-button": "../../../../components/g-button/index",
+    "g-skeleton": "../../../../components/g-skeleton/index",
+    "g-modal": "../../components/g-modal/index",
+    "g-toast": "../../../../components/g-toast/index",
+    "privacy-guard": "../../../../components/privacy-guard/index"
+  }
+}

@@ -1,0 +1,206 @@
+<glass-bottom-sheet
+  show="{{sheetShow}}"
+  title="流转工作台"
+  description="本机流转 · 不上传 · sessionId 防串台"
+  size="full"
+  z-index="{{210}}"
+  show-footer="{{true}}"
+  bind:close="onSheetClose"
+  bind:closed="onSheetClosed"
+>
+  <view class="wf-panel">
+    <view class="wf-source wf-source_{{sourceType}}">
+      <view class="wf-source__dot" aria-hidden="true"></view>
+      <view class="wf-source__text">
+        <text class="wf-source__label">当前载荷 · {{sourceLabel}}</text>
+        <text class="wf-source__preview">{{sourcePreview}}</text>
+      </view>
+      <text class="wf-source__count">{{sourceCountText}}</text>
+    </view>
+
+    <view wx:if="{{quickPipes.length > 0}}" class="wf-pipes {{fsm === 'computing' ? 'wf-pipes_locked' : ''}}">
+      <view class="wf-section-head">
+        <text class="wf-section-title">快捷管道</text>
+        <text class="wf-section-hint">连续两次成功流转后生成</text>
+      </view>
+      <scroll-view
+        scroll-x
+        enhanced
+        show-scrollbar="{{false}}"
+        class="wf-pipes__scroll"
+      >
+        <view class="wf-pipes__row">
+          <view
+            wx:for="{{quickPipes}}"
+            wx:key="key"
+            class="wf-pipe"
+            hover-class="wf-pressed"
+            hover-stay-time="80"
+            data-key="{{item.key}}"
+            bindtap="onQuickPipeTap"
+            aria-role="button"
+            aria-label="{{item.label}}"
+          >
+            <text class="wf-pipe__glyph" aria-hidden="true">↯</text>
+            <text class="wf-pipe__label">{{item.label}}</text>
+            <text class="wf-pipe__count">×{{item.useCount}}</text>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+
+    <view class="wf-section-head wf-section-head_tools">
+      <text class="wf-section-title">选择目标工具</text>
+      <text class="wf-section-hint">
+        {{fsm === 'computing' ? '计算中 · 已锁定' : '静默类不跳转 · 复杂工具带参跳转'}}
+      </text>
+    </view>
+
+    <view class="wf-tools {{fsm === 'computing' ? 'wf-tools_locked' : ''}}">
+      <view
+        wx:for="{{tools}}"
+        wx:key="id"
+        class="wf-tool {{item.compatible ? '' : 'wf-tool_disabled'}}"
+        hover-class="{{item.compatible && fsm !== 'computing' ? 'wf-pressed' : 'none'}}"
+        hover-stay-time="80"
+        data-id="{{item.id}}"
+        bindtap="onToolTap"
+        aria-role="button"
+        aria-disabled="{{!item.compatible}}"
+        aria-label="{{item.name}}"
+      >
+        <view class="wf-tool__icon" aria-hidden="true">{{item.icon}}</view>
+        <view class="wf-tool__main">
+          <view class="wf-tool__line">
+            <text class="wf-tool__name">{{item.name}}</text>
+            <text class="wf-tool__mode wf-tool__mode_{{item.mode}}">
+              {{item.mode === 'silent' ? '静默' : '跳转'}}
+            </text>
+          </view>
+          <text class="wf-tool__desc">{{item.desc || item.category}}</text>
+        </view>
+        <text class="wf-tool__chev" aria-hidden="true">›</text>
+      </view>
+    </view>
+
+    <text class="wf-foot">50KB 防爆 · 字段级撤销 · 图片用完即焚</text>
+  </view>
+
+  <view slot="footer" class="wf-console-slot">
+    <view wx:if="{{fsm === 'computing'}}" class="wf-console wf-console_computing">
+      <view class="wf-spinner" aria-hidden="true"></view>
+      <view class="wf-console__copy">
+        <text class="wf-console__title">{{computingText}}</text>
+        <text class="wf-console__hint">已锁定全部工具，防止重复触发</text>
+      </view>
+    </view>
+
+    <view wx:elif="{{fsm === 'showing_result'}}" class="wf-console wf-console_result">
+      <view class="wf-console__head">
+        <text class="wf-console__title">流转结果</text>
+        <text class="wf-console__meta">{{resultMeta}}</text>
+      </view>
+
+      <view class="wf-preview {{resultTruncated ? 'wf-preview_truncated' : ''}}">
+        <text class="wf-preview__text">{{resultPreview}}</text>
+        <view wx:if="{{resultTruncated}}" class="wf-preview__fade" aria-hidden="true"></view>
+      </view>
+
+      <view class="wf-actions">
+        <glass-button
+          variant="tint"
+          size="md"
+          disabled="{{copyLocked}}"
+          bind:tap="onCopyResult"
+        >
+          {{copyLabel}}
+        </glass-button>
+        <glass-button variant="aurora" size="md" bind:tap="onChain">
+          以此结果继续流转
+        </glass-button>
+        <glass-button
+          wx:if="{{undoAvailable}}"
+          variant="ghost"
+          size="md"
+          disabled="{{undoLocked}}"
+          bind:tap="onUndoPipeline"
+        >
+          {{undoLabel}}
+        </glass-button>
+      </view>
+
+      <view
+        wx:if="{{resultTruncated}}"
+        class="wf-reader-link"
+        hover-class="wf-reader-link_pressed"
+        hover-stay-time="80"
+        bindtap="onViewFull"
+        aria-role="button"
+      >
+        <text class="wf-reader-link__text">查看完整结果（{{resultChars}} 字符）</text>
+        <text class="wf-reader-link__chev" aria-hidden="true">›</text>
+      </view>
+    </view>
+
+    <view wx:elif="{{fsm === 'error'}}" class="wf-console wf-console_error">
+      <text class="wf-console__title wf-console__title_error">{{errorText}}</text>
+      <text class="wf-console__detail">{{errorDetail}}</text>
+
+      <view
+        wx:if="{{partialText}}"
+        class="wf-preview wf-preview_partial {{partialTruncated ? 'wf-preview_truncated' : ''}}"
+      >
+        <text class="wf-preview__text">{{partialPreview}}</text>
+        <view wx:if="{{partialTruncated}}" class="wf-preview__fade" aria-hidden="true"></view>
+      </view>
+
+      <view class="wf-actions">
+        <glass-button
+          wx:if="{{partialText}}"
+          variant="tint"
+          size="md"
+          disabled="{{partialCopyLocked}}"
+          bind:tap="onCopyPartial"
+        >
+          {{partialCopyLabel}}
+        </glass-button>
+        <glass-button
+          wx:if="{{partialText && partialTruncated}}"
+          variant="ghost"
+          size="md"
+          bind:tap="onViewFull"
+        >
+          查看完整
+        </glass-button>
+        <glass-button variant="ghost" size="md" bind:tap="onBackToTools">
+          返回工具列表
+        </glass-button>
+      </view>
+    </view>
+
+    <view wx:else class="wf-console wf-console_idle">
+      <text class="wf-console__title">选择上方工具开始流转</text>
+      <text class="wf-console__hint">静默工具在面板内直接计算；跳转工具将自动带入结果</text>
+    </view>
+  </view>
+</glass-bottom-sheet>
+
+<glass-modal
+  show="{{oversizeShow}}"
+  title="数据超过 50KB"
+  description="{{oversizeText}}，继续后将占用更多内存。是否仍要流转？"
+  confirm-text="继续流转"
+  cancel-text="取消"
+  z-index="{{250}}"
+  bind:confirm="onOversizeConfirm"
+  bind:cancel="onOversizeCancel"
+/>
+
+<glass-fullscreen-reader
+  show="{{readerShow}}"
+  title="{{readerTitle}}"
+  content="{{readerContent}}"
+  z-index="{{280}}"
+  bind:close="onReaderClose"
+  bind:closed="onReaderClosed"
+/>

@@ -1,0 +1,4 @@
+/* workflow-receiver 本身不渲染可见 UI，确认层由 glass-modal 承担 */
+:host {
+  display: block;
+}

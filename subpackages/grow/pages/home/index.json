@@ -1,0 +1,12 @@
+{
+  "navigationBarTitleText": "净忻 · 曜石画廊",
+  "disableScroll": true,
+  "usingComponents": {
+    "g-aurora": "../../components/g-aurora/index",
+    "g-navbar": "../../../../components/g-navbar/index",
+    "g-icon": "../../../../components/g-icon/index",
+    "g-tag": "../../../../components/g-tag/index",
+    "g-stat": "../../components/g-stat/index",
+    "g-toast": "../../../../components/g-toast/index"
+  }
+}

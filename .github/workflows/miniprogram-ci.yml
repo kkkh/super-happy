@@ -1,0 +1,107 @@
+name: 超欢小程序 CI 上传
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: '上传版本号（留空则使用 APP_VERSION）'
+        required: false
+        type: string
+      desc:
+        description: '项目备注'
+        required: false
+        default: 'GitHub Actions 手动上传'
+        type: string
+
+concurrency:
+  group: miniprogram-ci-upload
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  upload:
+    name: 构建并上传开发版本
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            subpackages/tools-core/package-lock.json
+
+      - name: 安装根包依赖
+        run: npm ci
+
+      - name: 安装 tools-core 依赖
+        working-directory: subpackages/tools-core
+        run: npm ci
+
+      - name: 编译 Tailwind 样式
+        run: npm run build:style
+
+      - name: 类型检查
+        run: npm run typecheck
+
+      - name: 单元 / 集成测试
+        run: npm test
+
+      - name: 校验标签与 APP_VERSION
+        if: github.ref_type == 'tag'
+        shell: bash
+        run: |
+          APP_VERSION=$(grep -oE "APP_VERSION *= *'[^']+'" core/constants/index.ts | head -n 1 | grep -oE "'[^']+'" | tr -d "'")
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          if [ "$TAG_VERSION" != "$APP_VERSION" ]; then
+            echo "::error::标签版本 $TAG_VERSION 与 APP_VERSION $APP_VERSION 不一致，请先同步版本号。"
+            exit 1
+          fi
+          echo "版本校验通过：$APP_VERSION"
+
+      - name: 准备上传密钥
+        env:
+          MP_CI_PRIVATE_KEY_BASE64: ${{ secrets.MP_CI_PRIVATE_KEY_BASE64 }}
+          KEY_PATH: ${{ runner.temp }}/mp-ci/private.key
+        shell: bash
+        run: |
+          mkdir -p "$(dirname "$KEY_PATH")"
+          node -e "const fs=require('fs');const raw=process.env.MP_CI_PRIVATE_KEY_BASE64||'';if(!raw){console.error('缺少 GitHub Secret MP_CI_PRIVATE_KEY_BASE64');process.exit(1)};fs.writeFileSync(process.env.KEY_PATH,Buffer.from(raw,'base64'),{mode:0o600})"
+
+      - name: 上传小程序开发版本
+        env:
+          MP_CI_PRIVATE_KEY_PATH: ${{ runner.temp }}/mp-ci/private.key
+          INPUT_DESC: ${{ inputs.desc }}
+          INPUT_VERSION: ${{ inputs.version }}
+        shell: bash
+        run: |
+          DESC="${INPUT_DESC}"
+          if [ -z "$DESC" ]; then
+            DESC="GitHub Actions ${GITHUB_REF_NAME} ${GITHUB_SHA:0:7}"
+          fi
+
+          ARGS=(--desc "$DESC")
+          if [ -n "${INPUT_VERSION}" ]; then
+            ARGS+=(--version "${INPUT_VERSION}")
+          fi
+          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+            ARGS+=(--version "${GITHUB_REF_NAME#v}")
+          fi
+
+          npm run ci:upload -- "${ARGS[@]}"
+
+      - name: 清理上传密钥
+        if: always()
+        shell: bash
+        run: rm -rf "$RUNNER_TEMP/mp-ci"

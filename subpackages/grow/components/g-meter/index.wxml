@@ -1,0 +1,10 @@
+<!-- 原实现：单格 style="animation-delay: {{animKey * 1000 + item * 60}}ms"
+     现改为父级奇偶动画名 + 固定 stagger，确保每次切换真正重播 -->
+<view class="meter meter_run_{{replayCycle}}">
+  <view
+    wx:for="{{cells}}"
+    wx:key="*this"
+    class="meter_cell {{item <= level ? 'meter_cell_on_' + tone : ''}}"
+    style="animation-delay: {{item * 60}}ms;"
+  ></view>
+</view>

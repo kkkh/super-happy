@@ -1,0 +1,155 @@
+<glass-tool-shell
+  tool-id="qr"
+  title="{{toolName}}"
+  kicker="{{kicker}}"
+  desc="{{desc}}"
+  poster-data="{{posterData}}"
+  sensitive="privacy"
+  state="{{shellState}}"
+  run-label="生成二维码"
+  has-result="{{hasResult}}"
+  error="{{error}}"
+  empty-title="输入文本或链接，生成二维码"
+  empty-sub="纯本机编码，内容不上传"
+  bind:run="onRun"
+  bind:example="onExample"
+  bind:reset="onReset"
+>
+  <view slot="input" class="sg-tool-fields">
+    <glass-input
+      label="二维码内容"
+      hint="支持网址、文本或联系方式"
+      multiline
+      auto-height
+      maxlength="{{500}}"
+      value="{{content}}"
+      placeholder="输入网址、文本或联系方式"
+      show-count
+      clearable
+      size="md"
+      cursor-spacing="{{120}}"
+      aria-label="二维码内容"
+      bind:input="onInput"
+    />
+
+    <view class="tool-field">
+      <text class="tool-field__label">纠错级别</text>
+      <view class="tool-chips">
+        <glass-button
+          wx:for="{{levels}}"
+          wx:key="key"
+          size="sm"
+          shape="rounded"
+          variant="{{level === item.key ? 'primary' : 'ghost'}}"
+          custom-class="tool-chip"
+          data-level="{{item.key}}"
+          aria-label="纠错级别 {{item.key}}，容错 {{item.hint}}"
+          bind:tap="onLevel"
+        >
+          {{item.label}} · {{item.hint}}
+        </glass-button>
+      </view>
+    </view>
+
+    <view class="tool-field">
+      <text class="tool-field__label">输出尺寸</text>
+      <view class="tool-chips">
+        <glass-button
+          wx:for="{{sizes}}"
+          wx:key="key"
+          size="sm"
+          shape="rounded"
+          variant="{{sizeKey === item.key ? 'primary' : 'ghost'}}"
+          custom-class="tool-chip"
+          data-key="{{item.key}}"
+          aria-label="{{item.label}}尺寸二维码"
+          bind:tap="onSize"
+        >
+          {{item.label}}
+        </glass-button>
+      </view>
+    </view>
+  </view>
+
+  <view slot="result" class="sg-tool-result">
+    <view class="sg-tool-result__head">
+      <text class="sg-tool-result__label">二维码</text>
+      <text class="sg-tool-result__meta">{{levelText}} · {{sizeText}}</text>
+    </view>
+
+    <view class="tool-qr">
+      <image
+        wx:if="{{qrImagePath}}"
+        class="tool-qr__img"
+        src="{{qrImagePath}}"
+        mode="aspectFit"
+        style="width: {{canvasCss}}px; height: {{canvasCss}}px;"
+        aria-label="生成的二维码"
+      />
+    </view>
+
+    <view class="tool-metrics">
+      <view class="tool-metric">
+        <text class="tool-metric__k">内容长度</text>
+        <animated-number
+          value="{{contentLength}}"
+          decimals="0"
+          suffix=" 字"
+          size="lg"
+          tone="iris"
+        />
+      </view>
+      <view class="tool-metric">
+        <text class="tool-metric__k">矩阵模块</text>
+        <animated-number
+          value="{{moduleCount}}"
+          decimals="0"
+          suffix=" 格"
+          size="lg"
+          tone="aurora"
+        />
+      </view>
+    </view>
+
+    <view class="sg-tool-rows">
+      <view class="sg-tool-row">
+        <text class="sg-tool-row__k">矩阵 / 版本</text>
+        <text class="sg-tool-row__v">{{moduleText}} · {{versionText}}</text>
+      </view>
+      <view class="sg-tool-row">
+        <text class="sg-tool-row__k">纠错级别</text>
+        <text class="sg-tool-row__v">{{levelText}}</text>
+      </view>
+      <view class="sg-tool-row">
+        <text class="sg-tool-row__k">输出尺寸</text>
+        <text class="sg-tool-row__v">{{sizeText}}</text>
+      </view>
+    </view>
+
+    <view class="sg-tool-result__actions">
+      <glass-button
+        variant="aurora"
+        size="md"
+        block
+        loading="{{saving}}"
+        loading-text="保存中"
+        aria-label="保存二维码到相册"
+        bind:tap="onSave"
+      >
+        保存到相册
+      </glass-button>
+    </view>
+  </view>
+
+  <view slot="note">
+    <glass-card tone="amber" radius="lg" padding="md" depth="soft">
+      <view class="sg-tool-note">
+        <text class="sg-tool-note__title">生成口径</text>
+        <text class="sg-tool-note__text">
+          使用纯 JavaScript 编码器在本机生成二维码矩阵，并直接编码为 1-bit PNG，不调用任何在线接口、不依赖 Canvas。
+          纠错级别越高，二维码越密，可容纳的内容越少。建议保存 PNG 后再分享。
+        </text>
+      </view>
+    </glass-card>
+  </view>
+</glass-tool-shell>

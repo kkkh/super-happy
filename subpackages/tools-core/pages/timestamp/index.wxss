@@ -1,0 +1,95 @@
+/* ==========================================================================
+   时间戳转换 · 空间玻璃页面样式
+   - 只使用 --glass-* / --sg-* 令牌，无硬编码色值
+   ========================================================================== */
+
+.tool-seg {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 12rpx;
+}
+
+.tool-seg__item {
+  flex: 1;
+  min-width: 0;
+}
+
+.tool-field {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+  padding-top: 4rpx;
+  padding-right: 0;
+  padding-bottom: 0;
+  padding-left: 0;
+  box-sizing: border-box;
+}
+
+.tool-field__head {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.tool-field__label {
+  color: var(--glass-text-2);
+  font-size: 24rpx;
+  font-weight: 600;
+}
+
+.tool-picker-row {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 12rpx;
+}
+
+.tool-picker-row__col {
+  flex: 1;
+  min-width: 0;
+}
+
+.tool-picker-row__col_time {
+  flex: 0 0 220rpx;
+}
+
+.tool-picker {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  padding-top: 24rpx;
+  padding-right: 26rpx;
+  padding-bottom: 24rpx;
+  padding-left: 26rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: var(--glass-radius-sm);
+  background-color: var(--glass-bg-soft);
+  box-sizing: border-box;
+  transition: background-color var(--glass-duration-fast) var(--glass-ease-out);
+}
+
+.tool-picker_pressed {
+  background-color: var(--glass-bg-strong);
+}
+
+.tool-picker__text {
+  color: var(--glass-text);
+  font-family: var(--glass-font-mono);
+  font-size: 26rpx;
+  letter-spacing: 1rpx;
+}
+
+.tool-result__hero {
+  color: var(--glass-text);
+  font-family: var(--glass-font-mono);
+  font-size: 44rpx;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: 1rpx;
+  word-break: break-all;
+}

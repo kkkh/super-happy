@@ -1,0 +1,144 @@
+<view class="page_root {{themeClass}}">
+  <g-navbar title="{{project.title || '作品详情'}}" back transparent />
+
+  <scroll-view enhanced show-scrollbar="{{false}}" bounces="{{false}}" scroll-y type="list" class="detail_scroll">
+    <!-- 未命中：优雅空态 -->
+    <view wx:if="{{notFound}}" class="detail_notfound">
+      <g-icon name="spark" size="{{64}}" tone="iris" />
+      <text class="detail_notfound_text">作品不存在或已下线</text>
+    </view>
+
+    <!-- 数据装载中：骨架 -->
+    <view wx:elif="{{!project}}" class="detail_loading">
+      <g-skeleton rows="{{2}}" card avatar />
+      <g-skeleton rows="{{4}}" card />
+    </view>
+
+    <view wx:else class="detail_body">
+      <!-- 英雄区：封面承接列表页飞跃 -->
+      <view class="detail_hero">
+        <share-element key="{{project.shareKey}}" transition="true" class="detail_se">
+          <view class="detail_hero_inner">
+            <image
+              wx:if="{{!coverError}}"
+              src="{{project.cover}}"
+              mode="aspectFill"
+              class="detail_hero_img"
+              aria-label="{{project.title}}封面"
+              binderror="onCoverError"
+            />
+            <g-placeholder wx:else title="{{project.title}}" tone="{{project.accent}}" glyph="grid" />
+          </view>
+        </share-element>
+        <view class="detail_hero_scrim"></view>
+        <view class="detail_hero_meta anim-rise">
+          <text class="detail_title">{{project.title}}</text>
+          <text class="detail_subtitle">{{project.subtitle}}</text>
+        </view>
+      </view>
+
+      <view class="detail_content">
+        <!-- 操作行：收藏 -->
+        <view class="detail_actions anim-rise delay-1">
+          <view
+            class="detail_fav {{isFavorite ? 'detail_fav_on' : ''}}"
+            hover-class="press-soft"
+            hover-stay-time="80"
+            aria-role="button"
+            aria-label="{{isFavorite ? '取消收藏' : '收藏此作品'}}"
+            bindtap="onToggleFavorite"
+          >
+            <g-icon name="{{isFavorite ? 'heart-fill' : 'heart'}}" size="{{32}}" tone="{{isFavorite ? 'amber' : 'ink3'}}" />
+            <text class="detail_fav_text {{isFavorite ? 'detail_fav_text_on' : ''}}">{{isFavorite ? '已收藏' : '收藏'}}</text>
+          </view>
+        </view>
+
+        <!-- 元信息 -->
+        <view class="detail_meta anim-rise delay-1">
+          <view class="detail_meta_cell">
+            <g-icon name="user" size="{{26}}" tone="{{project.accent}}" />
+            <text class="detail_meta_label">角色</text>
+            <text class="detail_meta_value">{{project.role}}</text>
+          </view>
+          <view class="detail_meta_cell">
+            <g-icon name="clock" size="{{26}}" tone="{{project.accent}}" />
+            <text class="detail_meta_label">周期</text>
+            <text class="detail_meta_value">{{project.duration || '—'}}</text>
+          </view>
+          <view class="detail_meta_cell">
+            <g-icon name="image" size="{{26}}" tone="{{project.accent}}" />
+            <text class="detail_meta_label">影像</text>
+            <text class="detail_meta_value">{{shotCount}} 帧</text>
+          </view>
+        </view>
+
+        <!-- 摘要 -->
+        <view class="anim-rise delay-2">
+          <g-card padding="lg" sheen>
+            <view class="detail_summary">
+              <text class="detail_kicker detail_kicker_{{project.accent}}">摘要</text>
+              <text class="detail_summary_text">{{project.summary}}</text>
+            </view>
+          </g-card>
+        </view>
+
+        <!-- 量化指标 -->
+        <view wx:if="{{project.metrics.length}}" class="detail_metrics anim-rise delay-3">
+          <view wx:for="{{project.metrics}}" wx:key="label" class="detail_metric">
+            <text class="detail_metric_value">{{item.value}}</text>
+            <text class="detail_metric_label">{{item.label}}</text>
+          </view>
+        </view>
+
+        <!-- 技术栈 -->
+        <view class="detail_block anim-rise delay-4">
+          <g-section kicker="所用" title="技术栈" />
+          <view class="detail_stack">
+            <view wx:for="{{project.stack}}" wx:key="label" class="detail_stack_group">
+              <text class="detail_stack_label">{{item.label}}</text>
+              <view class="detail_stack_tags">
+                <g-tag wx:for="{{item.items}}" wx:for-item="tech" wx:key="*this" tone="{{project.accent}}">{{tech}}</g-tag>
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <!-- 亮点 -->
+        <view class="detail_block anim-rise delay-5">
+          <g-section kicker="细节" title="功能亮点" />
+          <view class="detail_highlights">
+            <view wx:for="{{project.highlights}}" wx:key="*this" class="detail_hl">
+              <view class="detail_hl_bullet detail_hl_bullet_{{project.accent}}"></view>
+              <text class="detail_hl_text">{{item}}</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 图集 -->
+        <view class="detail_block anim-rise delay-6">
+          <g-section kicker="影像" title="视觉档案" />
+          <g-gallery groups="{{project.gallery}}" tone="{{project.accent}}" dark="{{themeClass === 'theme-dark'}}" />
+        </view>
+
+        <!-- 经验 -->
+        <view class="detail_block anim-rise delay-7">
+          <g-section kicker="心得" title="经验沉淀" />
+          <g-card padding="lg">
+            <view class="detail_exp">
+              <view wx:for="{{project.experiences}}" wx:key="*this" class="detail_exp_row">
+                <view class="detail_exp_mark">
+                  <g-icon name="chevron" size="{{20}}" tone="aurora" />
+                </view>
+                <text class="detail_exp_text">{{item}}</text>
+              </view>
+            </view>
+          </g-card>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+
+  <g-toast />
+  <privacy-guard />
+  <update-guard />
+</view>

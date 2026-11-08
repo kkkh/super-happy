@@ -1,0 +1,13 @@
+{
+  "navigationBarTitleText": "全局设置",
+  "disableScroll": true,
+  "usingComponents": {
+    "glass-card": "../../../../components/glass-card/index",
+    "glass-button": "../../../../components/glass-button/index",
+    "glass-toast": "../../../../components/glass-toast/index",
+    "glass-bottom-sheet": "../../../../components/glass-bottom-sheet/index",
+    "g-icon": "../../../../components/g-icon/index",
+    "glass-switch": "../../components/glass-switch/index",
+    "glass-slider": "../../../../components/glass-slider/index"
+  }
+}

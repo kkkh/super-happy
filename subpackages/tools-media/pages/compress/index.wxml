@@ -1,0 +1,206 @@
+<glass-tool-shell
+  tool-id="compress"
+  title="{{toolName}}"
+  kicker="{{kicker}}"
+  desc="{{desc}}"
+  poster-data="{{posterData}}"
+  sensitive="privacy"
+  state="{{shellState}}"
+  show-run="{{false}}"
+  show-example="{{false}}"
+  has-result="{{hasResult}}"
+  error="{{error}}"
+  empty-title="从相册选择图片开始压缩"
+  empty-sub="图片只在本机处理，不会上传服务器"
+  bind:reset="onReset"
+>
+  <view slot="input" class="sg-tool-fields">
+    <view class="tool-stage" aria-label="{{imagePath ? '已选择图片' : '尚未选择图片'}}">
+      <image
+        wx:if="{{imagePath}}"
+        class="tool-stage__preview"
+        src="{{imagePath}}"
+        mode="aspectFit"
+        aria-label="原图预览"
+      />
+      <view wx:else class="tool-stage__blank">
+        <view class="tool-stage__icon">
+          <g-icon name="image" size="{{44}}" tone="media" />
+        </view>
+        <text class="tool-stage__title">从相册选择图片</text>
+        <text class="tool-stage__sub">支持 JPG / PNG / 系统可解码的 HEIC</text>
+      </view>
+      <view wx:if="{{compressing}}" class="tool-stage__loading">
+        <view class="tool-stage__spinner" aria-hidden="true"></view>
+        <text class="tool-stage__loading-text">本机压缩中</text>
+      </view>
+    </view>
+
+    <view class="tool-meta">
+      <text class="tool-meta__hint">{{imagePath ? originalSizeText + ' · ' + originalSizeNote : '不会读取相册，也不会申请相机'}}</text>
+    </view>
+
+    <glass-button
+      variant="primary"
+      size="md"
+      block
+      loading="{{compressing}}"
+      loading-text="本机压缩中"
+      aria-label="{{imagePath ? '重新选择图片' : '从相册选择图片'}}"
+      bind:tap="onChoose"
+    >
+      {{imagePath ? '重新选择图片' : '从相册选择图片'}}
+    </glass-button>
+
+    <view class="tool-field">
+      <text class="tool-field__label">压缩质量</text>
+      <view class="tool-chips">
+        <glass-button
+          wx:for="{{qualities}}"
+          wx:key="key"
+          size="sm"
+          shape="rounded"
+          variant="{{qualityKey === item.key ? 'primary' : 'ghost'}}"
+          custom-class="tool-chip"
+          data-key="{{item.key}}"
+          aria-label="压缩质量{{item.label}}"
+          bind:tap="onQuality"
+        >
+          {{item.label}}
+        </glass-button>
+      </view>
+    </view>
+
+    <view class="tool-field">
+      <text class="tool-field__label">最大边尺寸</text>
+      <view class="tool-chips">
+        <glass-button
+          wx:for="{{edges}}"
+          wx:key="key"
+          size="sm"
+          shape="rounded"
+          variant="{{edgeKey === item.key ? 'primary' : 'ghost'}}"
+          custom-class="tool-chip"
+          data-key="{{item.key}}"
+          aria-label="最大边{{item.label}}"
+          bind:tap="onEdge"
+        >
+          {{item.label}}
+        </glass-button>
+      </view>
+    </view>
+  </view>
+
+  <view slot="result" class="sg-tool-result">
+    <view class="sg-tool-result__head">
+      <text class="sg-tool-result__label">压缩对比</text>
+      <text class="sg-tool-result__meta">{{imageWidth}} × {{imageHeight}}</text>
+    </view>
+
+    <view class="tool-compare">
+      <view class="tool-compare__item">
+        <image
+          class="tool-compare__img"
+          src="{{imagePath}}"
+          mode="aspectFit"
+          aria-label="原图"
+        />
+        <text class="tool-compare__name">原图 / BEFORE</text>
+        <text class="tool-compare__size">{{originalSizeText}}</text>
+      </view>
+      <view class="tool-compare__item">
+        <image
+          class="tool-compare__img"
+          src="{{compressedPath}}"
+          mode="aspectFit"
+          aria-label="压缩后的图片"
+        />
+        <text class="tool-compare__name">压缩后 / AFTER</text>
+        <text class="tool-compare__size">{{compressedSizeText}}</text>
+      </view>
+    </view>
+
+    <view class="tool-hero">
+      <animated-number
+        value="{{ratioValue}}"
+        decimals="1"
+        suffix="%"
+        size="xl"
+        tone="aurora"
+      />
+      <text class="tool-hero__label">体积缩减 / SAVED</text>
+      <text class="tool-hero__caption">{{savedText}}</text>
+    </view>
+
+    <view class="tool-metrics">
+      <view class="tool-metric">
+        <text class="tool-metric__k">原图体积</text>
+        <animated-number
+          value="{{originalSizeMb}}"
+          decimals="2"
+          suffix=" MB"
+          size="md"
+          tone="neutral"
+        />
+      </view>
+      <view class="tool-metric">
+        <text class="tool-metric__k">压缩后体积</text>
+        <animated-number
+          value="{{compressedSizeMb}}"
+          decimals="2"
+          suffix=" MB"
+          size="md"
+          tone="iris"
+        />
+      </view>
+    </view>
+
+    <view class="sg-tool-rows">
+      <view class="sg-tool-row">
+        <text class="sg-tool-row__k">原图尺寸</text>
+        <text class="sg-tool-row__v">{{imageWidth}} × {{imageHeight}}</text>
+      </view>
+      <view class="sg-tool-row">
+        <text class="sg-tool-row__k">压缩后尺寸</text>
+        <text class="sg-tool-row__v">{{compressedWidth}} × {{compressedHeight}}</text>
+      </view>
+    </view>
+
+    <view wx:if="{{compressedNote}}" class="tool-notice">{{compressedNote}}</view>
+
+    <view class="sg-tool-result__actions">
+      <glass-button
+        variant="aurora"
+        size="md"
+        block
+        loading="{{saving}}"
+        loading-text="保存中"
+        aria-label="保存压缩后的图片到相册"
+        bind:tap="onSave"
+      >
+        保存到相册
+      </glass-button>
+      <glass-button
+        variant="ghost"
+        size="md"
+        block
+        aria-label="复制压缩信息"
+        bind:tap="onCopyInfo"
+      >
+        复制信息
+      </glass-button>
+    </view>
+  </view>
+
+  <view slot="note">
+    <glass-card tone="amber" radius="lg" padding="md" depth="soft">
+      <view class="sg-tool-note">
+        <text class="sg-tool-note__title">本机处理</text>
+        <text class="sg-tool-note__text">
+          使用微信原生压缩能力在本机处理图片，只读取您主动选择的那张图片；不扫描相册列表、不申请相机、不上传服务器。
+          仅在点击「保存到相册」时申请写入权限；关闭页面后临时文件由系统回收。
+        </text>
+      </view>
+    </glass-card>
+  </view>
+</glass-tool-shell>

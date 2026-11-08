@@ -1,0 +1,75 @@
+/* g-button · 三态按钮 + 菊花 */
+.btn {
+  position: relative;
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  min-height: 88rpx;
+  padding: 0 44rpx;
+  border-radius: 999rpx;
+  box-sizing: border-box;
+  font-size: 30rpx;
+  font-weight: 600;
+  letter-spacing: 2rpx;
+  overflow: hidden;
+  transition:
+    transform 0.18s cubic-bezier(0.2, 0.9, 0.25, 1),
+    opacity 0.18s cubic-bezier(0.2, 0.9, 0.25, 1);
+}
+
+.btn_block {
+  display: flex;
+  width: 100%;
+}
+
+/* 主按钮：iris 渐变实底 */
+.btn_primary {
+  background-image: var(--g-gradient-accent);
+  color: #f7f9fc;
+  box-shadow: 0 12rpx 36rpx var(--g-iris-glow);
+}
+
+/* 幽灵：玻璃描边 */
+.btn_ghost {
+  background-color: var(--g-surface);
+  border: 1rpx solid var(--g-stroke-strong);
+  color: var(--g-ink);
+}
+
+/* 警示：amber */
+.btn_danger {
+  background-color: var(--g-amber-soft);
+  border: 1rpx solid var(--g-amber-border);
+  color: var(--g-amber);
+}
+
+/* 禁用 / 加载 */
+.btn_mute {
+  opacity: 0.55;
+}
+
+.btn_press {
+  transform: scale(0.97);
+  opacity: 0.9;
+}
+
+/* 加载菊花 */
+.btn_spinner {
+  width: 28rpx;
+  height: 28rpx;
+  border-radius: 999rpx;
+  border: 3rpx solid rgba(255, 255, 255, 0.35);
+  border-top-color: #f7f9fc;
+  animation: btn-spin 0.8s linear infinite;
+}
+
+@keyframes btn-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

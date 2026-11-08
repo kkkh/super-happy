@@ -1,0 +1,43 @@
+<view class="page_root {{themeClass}}">
+  <g-navbar title="关于我" back />
+
+  <scroll-view enhanced show-scrollbar="{{false}}" bounces="{{false}}" scroll-y type="list" class="about_scroll">
+    <view class="about_body">
+      <!-- 骨架 -->
+      <view wx:if="{{loading}}" class="about_loading">
+        <g-skeleton rows="{{3}}" card />
+        <g-skeleton rows="{{3}}" card />
+      </view>
+
+      <block wx:else>
+        <!-- 叙事块 -->
+        <view class="about_blocks">
+          <view wx:for="{{blocks}}" wx:key="id" class="anim-rise delay-{{index + 1}}">
+            <g-card padding="lg" sheen>
+              <view class="about_block">
+                <view class="about_block_head">
+                  <g-tag tone="{{item.tone}}" solid>{{item.title}}</g-tag>
+                  <text class="about_kicker">{{item.kicker}}</text>
+                </view>
+                <view class="about_block_body">
+                  <text wx:for="{{item.body}}" wx:for-item="line" wx:key="*this" class="about_line">{{line}}</text>
+                </view>
+              </view>
+            </g-card>
+          </view>
+        </view>
+
+        <!-- 成长时间线 -->
+        <view class="about_timeline anim-rise delay-3">
+          <g-section kicker="编年" title="成长纪元" />
+        </view>
+        <view class="about_eras anim-rise delay-4">
+          <g-timeline eras="{{eras}}" />
+        </view>
+      </block>
+    </view>
+  </scroll-view>
+
+  <g-toast />
+  <update-guard />
+</view>

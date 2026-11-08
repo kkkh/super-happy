@@ -1,0 +1,10 @@
+{
+  "light": {
+    "canvas": "#eef1f7",
+    "navText": "black"
+  },
+  "dark": {
+    "canvas": "#070a12",
+    "navText": "white"
+  }
+}

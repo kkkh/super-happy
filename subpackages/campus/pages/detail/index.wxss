@@ -1,0 +1,319 @@
+/* 作品详情 */
+.detail_scroll {
+  flex: 1;
+  width: 100%;
+}
+
+/* ---- 空态 / 装载 ---- */
+.detail_notfound {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24rpx;
+  padding: 200rpx 0;
+}
+
+.detail_notfound_text {
+  font-size: 24rpx;
+  color: var(--g-ink-3);
+  letter-spacing: 3rpx;
+}
+
+.detail_loading {
+  display: flex;
+  flex-direction: column;
+  gap: 28rpx;
+  padding: 24rpx 48rpx;
+}
+
+.detail_body {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: calc(64rpx + env(safe-area-inset-bottom));
+}
+
+/* ---- 英雄区 ---- */
+.detail_hero {
+  position: relative;
+  height: 480rpx;
+}
+
+.detail_se {
+  width: 100%;
+  height: 100%;
+}
+
+.detail_hero_inner {
+  width: 100%;
+  height: 100%;
+}
+
+.detail_hero_img {
+  width: 100%;
+  height: 100%;
+}
+
+/* 夜航：白底业务截图降低亮度，避免大面积刺眼白块 */
+.page_root.theme-dark .detail_hero_img {
+  opacity: 0.82;
+}
+
+.detail_hero_scrim {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: linear-gradient(180deg, var(--g-hero-scrim-0) 40%, var(--g-hero-scrim) 100%);
+}
+
+.detail_hero_meta {
+  position: absolute;
+  left: 48rpx;
+  right: 48rpx;
+  bottom: 36rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+}
+
+.detail_title {
+  font-size: 48rpx;
+  font-weight: 800;
+  color: var(--g-ink);
+  letter-spacing: 3rpx;
+}
+
+.detail_subtitle {
+  font-size: 24rpx;
+  color: var(--g-ink-3);
+  letter-spacing: 2rpx;
+}
+
+/* ---- 内容区 ---- */
+.detail_content {
+  display: flex;
+  flex-direction: column;
+  gap: 44rpx;
+  padding: 32rpx 48rpx 0;
+}
+
+/* 收藏 */
+.detail_actions {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+}
+
+.detail_fav {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10rpx;
+  padding: 14rpx 28rpx;
+  border-radius: 999rpx;
+  background-color: var(--g-surface);
+  border: 1rpx solid var(--g-stroke);
+}
+
+.detail_fav_on {
+  background-color: var(--g-amber-soft);
+  border-color: var(--g-amber-border);
+}
+
+.detail_fav_text {
+  font-size: 22rpx;
+  color: var(--g-ink-3);
+  letter-spacing: 2rpx;
+}
+
+.detail_fav_text_on {
+  color: var(--g-amber);
+  font-weight: 600;
+}
+
+/* 元信息 */
+.detail_meta {
+  display: flex;
+  flex-direction: row;
+  gap: 16rpx;
+}
+
+.detail_meta_cell {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+  padding: 24rpx 12rpx;
+  border-radius: 24rpx;
+  background-color: var(--g-surface);
+  border: 1rpx solid var(--g-stroke);
+}
+
+.detail_meta_label {
+  font-size: 20rpx;
+  color: var(--g-ink-4);
+  letter-spacing: 3rpx;
+}
+
+.detail_meta_value {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: var(--g-ink);
+}
+
+/* 摘要 */
+.detail_summary {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.detail_kicker {
+  font-size: 20rpx;
+  font-weight: 700;
+  letter-spacing: 3rpx;
+}
+
+.detail_kicker_iris { color: var(--g-iris); }
+.detail_kicker_aurora { color: var(--g-aurora); }
+.detail_kicker_amber { color: var(--g-amber); }
+
+.detail_summary_text {
+  font-size: 26rpx;
+  color: var(--g-ink-2);
+  line-height: 1.8;
+}
+
+/* 量化指标 */
+.detail_metrics {
+  display: flex;
+  flex-direction: row;
+  gap: 16rpx;
+}
+
+.detail_metric {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+  padding: 28rpx 12rpx;
+  border-radius: 24rpx;
+  background-color: var(--g-well);
+  border: 1rpx dashed var(--g-stroke-strong);
+}
+
+.detail_metric_value {
+  font-size: 30rpx;
+  font-weight: 800;
+  color: var(--g-iris);
+  letter-spacing: 1rpx;
+}
+
+.detail_metric_label {
+  font-size: 20rpx;
+  color: var(--g-ink-4);
+  letter-spacing: 2rpx;
+}
+
+/* 区块 */
+.detail_block {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+/* 技术栈 */
+.detail_stack {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+.detail_stack_group {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.detail_stack_label {
+  font-size: 20rpx;
+  color: var(--g-ink-4);
+  letter-spacing: 3rpx;
+  font-weight: 600;
+}
+
+.detail_stack_tags {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+/* 亮点 */
+.detail_highlights {
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+}
+
+.detail_hl {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 16rpx;
+}
+
+.detail_hl_bullet {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 999rpx;
+  margin-top: 14rpx;
+  flex-shrink: 0;
+}
+
+.detail_hl_bullet_iris { background-color: var(--g-iris); box-shadow: 0 0 14rpx var(--g-iris-glow); }
+.detail_hl_bullet_aurora { background-color: var(--g-aurora); box-shadow: 0 0 14rpx var(--g-aurora-glow); }
+.detail_hl_bullet_amber { background-color: var(--g-amber); box-shadow: 0 0 14rpx var(--g-amber-glow); }
+
+.detail_hl_text {
+  flex: 1;
+  font-size: 26rpx;
+  color: var(--g-ink-2);
+  line-height: 1.7;
+}
+
+/* 经验 */
+.detail_exp {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.detail_exp_row {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 16rpx;
+}
+
+.detail_exp_mark {
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: 999rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--g-aurora-soft);
+  border: 1rpx solid var(--g-aurora-border);
+  flex-shrink: 0;
+}
+
+.detail_exp_text {
+  flex: 1;
+  font-size: 26rpx;
+  color: var(--g-ink-2);
+  line-height: 1.7;
+}

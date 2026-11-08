@@ -1,0 +1,165 @@
+<view class="lab-page sg-ambient-surface sg-ambient-iris">
+  <view class="lab-aurora" aria-hidden="true">
+    <view class="sg-aurora-a lab-aurora__a"></view>
+    <view class="sg-aurora-b lab-aurora__b"></view>
+    <view class="sg-aurora-c lab-aurora__c"></view>
+  </view>
+
+  <view class="lab-head">
+    <text class="lab-kicker">SPATIAL GLASS 26 / LAB</text>
+    <text class="lab-title">组件样板间</text>
+    <text class="lab-desc">表单、数字、抽屉与 3D 视差的真机试验场。</text>
+  </view>
+
+  <spatial-hologram
+    custom-class="lab-hero"
+    enabled="{{true}}"
+    auto-start="{{true}}"
+    max-tilt="12"
+    sensitivity="0.4"
+    damping="0.1"
+    custom-style="min-height: 520rpx;"
+  >
+    <glass-card
+      tone="iris"
+      radius="xl"
+      padding="lg"
+      depth="deep"
+    >
+      <view class="lab-hero-copy">
+        <text class="lab-kicker">CHAOHUAN / GLASS 3.0</text>
+        <text class="lab-hero-title">空间化主卡</text>
+        <text class="lab-hero-desc">
+          陀螺仪倾斜会带动三层深度、体积光与色散边缘。
+        </text>
+      </view>
+    </glass-card>
+
+    <view slot="back" class="lab-hero-orb"></view>
+    <view slot="front" class="lab-hero-chip">
+      <text>LOCAL ONLY</text>
+    </view>
+  </spatial-hologram>
+
+  <glass-card
+    card-class="lab-section"
+    tone="neutral"
+    radius="lg"
+    padding="lg"
+    depth="soft"
+  >
+    <view class="lab-section-head">
+      <text class="lab-note">01 / FORM</text>
+      <text class="lab-section-title">表单交互</text>
+    </view>
+
+    <glass-input
+      label="沙盒输入"
+      placeholder="输入一段文字"
+      value="{{keyword}}"
+      clearable
+      show-count
+      maxlength="120"
+      bind:input="onInput"
+      bind:confirm="onConfirm"
+    />
+
+    <glass-button
+      custom-style="margin-top: 24rpx;"
+      variant="primary"
+      size="lg"
+      block
+      loading="{{submitting}}"
+      loading-text="演算中"
+      bind:tap="onSubmit"
+    >
+      执行沙盒
+    </glass-button>
+
+    <view wx:if="{{result}}" class="lab-result">
+      <text class="lab-result-label">RESULT</text>
+      <text class="lab-result-text">{{result}}</text>
+    </view>
+  </glass-card>
+
+  <glass-card
+    card-class="lab-section"
+    tone="aurora"
+    radius="lg"
+    padding="lg"
+    depth="deep"
+  >
+    <view class="lab-section-head">
+      <text class="lab-note">02 / NUMBER</text>
+      <text class="lab-section-title">阻尼数字</text>
+    </view>
+
+    <animated-number
+      value="{{amount}}"
+      decimals="2"
+      prefix="¥"
+      size="xl"
+      tone="aurora"
+      duration="{{1200}}"
+    />
+  </glass-card>
+
+  <glass-card
+    card-class="lab-section"
+    tone="amber"
+    radius="lg"
+    padding="lg"
+    depth="soft"
+  >
+    <view class="lab-section-head">
+      <text class="lab-note">03 / SHEET</text>
+      <text class="lab-section-title">WXS 抽屉</text>
+    </view>
+
+    <glass-button
+      variant="warm"
+      size="lg"
+      block
+      bind:tap="onOpenSheet"
+    >
+      打开底部抽屉
+    </glass-button>
+  </glass-card>
+
+  <glass-bottom-sheet
+    show="{{sheetShow}}"
+    title="WXS 抽屉"
+    description="120fps 拖拽、欠阻尼回弹、防穿透"
+    size="half"
+    show-footer
+    bind:close="onSheetClose"
+    bind:closed="onSheetClosed"
+  >
+    <view class="lab-sheet">
+      <glass-input
+        label="抽屉输入"
+        placeholder="在抽屉里继续输入"
+        value="{{sheetKeyword}}"
+        clearable
+        bind:input="onSheetInput"
+      />
+
+      <glass-button
+        custom-style="margin-top: 24rpx;"
+        variant="primary"
+        block
+        bind:tap="onSheetConfirm"
+      >
+        确认抽屉内容
+      </glass-button>
+    </view>
+
+    <view slot="footer" class="lab-sheet-footer">
+      <glass-button variant="ghost" block bind:tap="onCloseSheet">
+        关闭
+      </glass-button>
+    </view>
+  </glass-bottom-sheet>
+
+  <update-guard blocked="{{sheetShow}}" />
+</view>

@@ -1,0 +1,237 @@
+/* ==========================================================================
+   图片取色 · 空间玻璃页面样式
+   - 只使用 --glass-* / --sg-* 令牌；色块本身由数据注入
+   ========================================================================== */
+
+/* ---- 选图舞台 ---- */
+.tool-stage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 360rpx;
+  overflow: hidden;
+  box-sizing: border-box;
+  border: 1rpx solid var(--glass-border);
+  border-radius: var(--glass-radius-md);
+  background-color: var(--glass-bg-soft);
+  box-shadow: inset 0 1rpx 0 var(--glass-inner-glow);
+}
+
+.tool-stage__preview {
+  width: 100%;
+  height: 420rpx;
+  display: block;
+}
+
+.tool-stage__blank {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  box-sizing: border-box;
+  padding: 56rpx 24rpx;
+}
+
+.tool-stage__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 96rpx;
+  height: 96rpx;
+  border: 1rpx solid var(--glass-border-strong);
+  border-radius: 28rpx;
+  background-color: var(--glass-accent-soft);
+  box-shadow: var(--glass-shadow-soft);
+}
+
+.tool-stage__title {
+  color: var(--glass-text);
+  font-size: 27rpx;
+  font-weight: 700;
+}
+
+.tool-stage__sub {
+  color: var(--glass-text-3);
+  font-size: 21rpx;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.tool-stage__loading {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14rpx;
+  background-color: var(--glass-scrim);
+}
+
+.tool-stage__spinner {
+  width: 44rpx;
+  height: 44rpx;
+  box-sizing: border-box;
+  border: 3rpx solid var(--glass-border);
+  border-top-color: var(--glass-accent);
+  border-radius: 999rpx;
+  animation: tool-media-spin 0.8s linear infinite;
+}
+
+.tool-stage__loading-text {
+  color: var(--glass-text);
+  font-size: 23rpx;
+}
+
+@keyframes tool-media-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---- 提示行 ---- */
+.tool-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+  box-sizing: border-box;
+}
+
+.tool-meta__hint {
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 20rpx;
+  line-height: 1.5;
+}
+
+/* ---- 结果 ---- */
+/* ---- 主色 ---- */
+.tool-dominant {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  box-sizing: border-box;
+  padding: 16rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: var(--glass-radius-md);
+  background-color: var(--glass-bg-soft);
+  box-shadow: inset 0 1rpx 0 var(--glass-inner-glow);
+}
+
+.tool-dominant__block {
+  flex: 0 0 auto;
+  width: 112rpx;
+  height: 112rpx;
+  border: 1rpx solid var(--glass-border-strong);
+  border-radius: var(--glass-radius-sm);
+  box-shadow: var(--glass-shadow-soft);
+}
+
+.tool-dominant__info {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 6rpx;
+  min-width: 0;
+}
+
+.tool-dominant__hex {
+  color: var(--glass-text);
+  font-family: var(--glass-font-mono);
+  font-size: 34rpx;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.tool-dominant__rgb {
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 21rpx;
+}
+
+/* ---- 双指标 ---- */
+.tool-metrics {
+  display: flex;
+  flex-direction: row;
+  gap: 14rpx;
+  box-sizing: border-box;
+}
+
+.tool-metric {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 8rpx;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 16rpx 18rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: var(--glass-radius-sm);
+  background-color: var(--glass-bg-soft);
+}
+
+.tool-metric__k {
+  color: var(--glass-text-3);
+  font-size: 19rpx;
+}
+
+/* ---- 色板 ---- */
+.tool-block {
+  display: flex;
+  flex-direction: column;
+  gap: 14rpx;
+  box-sizing: border-box;
+}
+
+.tool-swatches {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  box-sizing: border-box;
+}
+
+.tool-swatch {
+  display: flex;
+  flex: 1 1 28%;
+  flex-direction: column;
+  gap: 8rpx;
+  min-width: 168rpx;
+  box-sizing: border-box;
+  padding: 12rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: var(--glass-radius-sm);
+  background-color: var(--glass-bg-soft);
+}
+
+.tool-swatch__chip {
+  width: 100%;
+  height: 96rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: var(--glass-radius-xs);
+  box-shadow: inset 0 1rpx 0 var(--glass-highlight);
+}
+
+.tool-swatch__hex {
+  color: var(--glass-text);
+  font-family: var(--glass-font-mono);
+  font-size: 22rpx;
+  font-weight: 600;
+}
+
+.tool-swatch__pct {
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 18rpx;
+}
+
+/* ---- 明细 ---- */
+/* ---- 注释 ---- */

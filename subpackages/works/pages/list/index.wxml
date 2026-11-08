@@ -1,0 +1,116 @@
+<view class="page_root {{themeClass}}">
+  <g-navbar title="{{category === 'actual' ? '实际工程' : '个人作品'}}" back />
+
+  <scroll-view enhanced show-scrollbar="{{false}}" bounces="{{false}}" scroll-y type="list" class="list_scroll">
+    <view class="list_body">
+      <!-- 分类头：承接 hub 页 kicker 飞跃 -->
+      <view class="list_head anim-rise">
+        <share-element key="{{category === 'actual' ? 'fly-cat-actual' : 'fly-cat-personal'}}" transition="true">
+          <text class="list_kicker {{category === 'actual' ? 'list_kicker_iris' : 'list_kicker_aurora'}}">
+            {{category === 'actual' ? '公司级交付' : '自驱 · 创作'}}
+          </text>
+        </share-element>
+        <text class="list_count">{{projects.length}} 件作品</text>
+      </view>
+
+      <!-- 搜索栏 -->
+      <view class="list_search anim-rise delay-1">
+        <g-icon name="search" size="{{28}}" tone="ink4" />
+        <input
+          class="list_search_input"
+          maxlength="60"
+          placeholder="搜索作品名 / 角色 / 技术栈"
+          placeholder-class="list_search_ph"
+          value="{{keyword}}"
+          confirm-type="search"
+          cursor-spacing="120"
+          adjust-position
+          aria-label="搜索作品"
+          bindinput="onSearchInput"
+        />
+        <view
+          wx:if="{{keyword}}"
+          class="list_search_clear"
+          hover-class="press-soft"
+          hover-stay-time="80"
+          aria-role="button"
+          aria-label="清空搜索"
+          bindtap="onClearSearch"
+        >
+          <g-icon name="close" size="{{26}}" tone="ink4" />
+        </view>
+      </view>
+
+      <!-- 首帧骨架：避免 Store 绑定完成前误闪空态 -->
+      <view wx:if="{{loading}}" class="list_skeleton">
+        <g-skeleton rows="{{2}}" card />
+        <g-skeleton rows="{{2}}" card />
+      </view>
+
+      <!-- 空态：搜索无命中 / 分类暂无作品 -->
+      <view wx:elif="{{notFound || !projects.length}}" class="list_empty anim-fade">
+        <g-icon name="search" size="{{64}}" tone="ink5" />
+        <text wx:if="{{notFound}}" class="list_empty_text">没有命中「{{keyword}}」的展品</text>
+        <text wx:else class="list_empty_text">该展区暂无作品</text>
+        <text class="list_empty_sub">{{notFound ? '换个关键词试试' : '更多作品正在整理中'}}</text>
+      </view>
+
+      <!-- 作品卡 -->
+      <view wx:else class="list_cards">
+        <view
+          wx:for="{{projects}}"
+          wx:key="id"
+          class="anim-rise delay-{{index + 1}}"
+          data-id="{{item.id}}"
+          aria-role="button"
+          aria-label="{{item.title}}，{{item.subtitle}}"
+          bindtap="onOpen"
+        >
+          <g-card padding="none" hover>
+            <view class="list_card">
+              <!-- 封面：share-element 飞跃至详情英雄区 -->
+              <view class="list_cover">
+                <share-element key="{{item.shareKey}}" transition="true" class="list_se">
+                  <view class="list_cover_inner">
+                    <image
+                      wx:if="{{!item.coverError}}"
+                      src="{{item.cover}}"
+                      mode="aspectFill"
+                      class="list_cover_img"
+                      aria-hidden="true"
+                      lazy-load
+                      data-id="{{item.id}}"
+                      binderror="onCoverError"
+                    />
+                    <g-placeholder wx:else title="{{item.title}}" tone="{{item.accent}}" glyph="grid" />
+                  </view>
+                </share-element>
+                <view class="list_cover_scrim"></view>
+                <view class="list_cover_meta">
+                  <text class="list_cover_role">{{item.role}}</text>
+                </view>
+                <!-- 收藏角标 -->
+                <view wx:if="{{item.isFav}}" class="list_fav_badge" aria-hidden="true">
+                  <g-icon name="heart-fill" size="{{26}}" tone="amber" />
+                </view>
+              </view>
+              <view class="list_card_body">
+                <view class="list_card_head">
+                  <text class="list_card_title">{{item.title}}</text>
+                  <g-icon name="chevron" size="{{26}}" tone="ink5" />
+                </view>
+                <text class="list_card_sub">{{item.subtitle}}</text>
+                <view class="list_card_tags">
+                  <g-tag wx:for="{{item.stack[0].items}}" wx:for-item="tech" wx:key="*this" tone="{{item.accent}}">{{tech}}</g-tag>
+                </view>
+              </view>
+            </view>
+          </g-card>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+
+  <g-toast />
+  <update-guard />
+</view>

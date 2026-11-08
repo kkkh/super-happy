@@ -1,0 +1,40 @@
+/* g-icon · 容器 / 色调 / 镜像（字体本体见同目录 font.wxss） */
+@import "./font.wxss";
+
+.icon {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.icon_glyph {
+  font-family: "gicon";
+  line-height: 1;
+  font-weight: normal;
+  font-style: normal;
+}
+
+.icon_flip {
+  transform: scaleX(-1);
+}
+
+/* ---- 色调映射 ---- */
+.icon_tone_ink { color: var(--g-ink); }
+.icon_tone_ink2 { color: var(--g-ink-2); }
+.icon_tone_ink3 { color: var(--g-ink-3); }
+.icon_tone_ink4 { color: var(--g-ink-4); }
+.icon_tone_ink5 { color: var(--g-ink-5); }
+.icon_tone_iris { color: var(--g-iris); }
+.icon_tone_aurora { color: var(--g-aurora); }
+.icon_tone_amber { color: var(--g-amber); }
+/* 反白：渐变主按钮等深底场景 */
+.icon_tone_inverse { color: #f7f9fc; }
+/* 固定深色：荧光绿 / 浅色块上的图标，日夜都不随主题反转 */
+.icon_tone_dark { color: #0a0a0c; }
+/* 跟随填充按钮反转：浅色墨底用白，夜航浅底用深 */
+.icon_tone_onfill { color: var(--g-on-fill, #ffffff); }
+/* 工具页分类色（组件内无法稳定继承 v3 变量时使用固定分类色） */
+.icon_tone_cat { color: var(--v3-cat, var(--g-ink-3)); }
+.icon_tone_media { color: #f0336b; }

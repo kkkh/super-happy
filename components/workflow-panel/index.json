@@ -1,0 +1,10 @@
+{
+  "component": true,
+  "styleIsolation": "isolated",
+  "usingComponents": {
+    "glass-bottom-sheet": "../glass-bottom-sheet/index",
+    "glass-button": "../glass-button/index",
+    "glass-modal": "../glass-modal/index",
+    "glass-fullscreen-reader": "../glass-fullscreen-reader/index"
+  }
+}

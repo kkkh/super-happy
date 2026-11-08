@@ -1,0 +1,173 @@
+<view class="page_root {{themeClass}}">
+  <g-navbar title="个人简介" back />
+
+  <scroll-view enhanced show-scrollbar="{{false}}" bounces="{{false}}" scroll-y type="list" class="profile_scroll">
+    <view class="profile_body">
+      <!-- 骨架：领域数据装载中 -->
+      <view wx:if="{{!profile}}" class="profile_loading">
+        <g-skeleton rows="{{2}}" card avatar />
+      </view>
+
+      <block wx:else>
+        <!-- 身份英雄 -->
+        <view class="profile_hero anim-rise">
+          <view class="profile_avatar_ring">
+            <image src="{{profile.avatar}}" mode="aspectFill" class="profile_avatar" aria-label="{{profile.name}}的头像" />
+          </view>
+          <view class="profile_identity">
+            <text class="profile_name">{{profile.name}}</text>
+            <text class="profile_alias">{{profile.alias}} · {{profile.intro}}</text>
+          </view>
+          <view class="profile_meta">
+            <g-icon name="pin" size="{{24}}" tone="iris" />
+            <text>{{profile.location[0]}} · {{profile.location[1]}} · {{profile.location[2]}}</text>
+          </view>
+        </view>
+
+        <!-- 信条卡 -->
+        <view class="anim-rise delay-2">
+          <g-card padding="lg" sheen>
+            <view class="profile_motto_wrap">
+              <text class="profile_kicker">信条</text>
+              <text class="profile_motto">「{{profile.motto}}」</text>
+              <view
+                class="profile_email"
+                hover-class="press-soft"
+                hover-stay-time="80"
+                aria-role="button"
+                aria-label="复制邮箱 {{profile.email}}"
+                bindtap="onCopyEmail"
+              >
+                <g-icon name="mail" size="{{26}}" tone="iris" />
+                <text class="profile_email_text">{{profile.email}}</text>
+                <g-icon name="copy" size="{{24}}" tone="ink4" />
+              </view>
+            </view>
+          </g-card>
+        </view>
+
+        <!-- 名片生成 -->
+        <view class="anim-rise delay-3" aria-role="button" aria-label="生成曜石名片">
+          <g-card padding="lg" hover bind:tap="onOpenCard">
+            <view class="profile_card_row">
+              <view class="profile_card_icon">
+                <g-icon name="card" size="{{38}}" tone="aurora" />
+              </view>
+              <view class="profile_card_text">
+                <text class="profile_card_title">曜石名片</text>
+                <text class="profile_card_sub">生成专属身份卡 · 可保存到相册</text>
+              </view>
+              <g-icon name="arrow" size="{{30}}" tone="ink5" />
+            </view>
+          </g-card>
+        </view>
+
+        <!-- 社交坐标 -->
+        <view class="profile_connect anim-rise delay-4">
+          <g-section kicker="联系" title="社交坐标" />
+          <view class="profile_links">
+            <view
+              wx:for="{{links}}"
+              wx:key="id"
+              data-id="{{item.id}}"
+              aria-role="button"
+              aria-label="打开{{item.label}}二维码"
+              bindtap="onOpenQr"
+            >
+              <g-card padding="md" hover>
+                <view class="profile_link_row">
+                  <view class="profile_link_dot profile_link_dot_{{item.tone}}"></view>
+                  <view class="profile_link_text">
+                    <text class="profile_link_title">{{item.label}}</text>
+                    <text class="profile_link_handle">{{item.handle}}</text>
+                  </view>
+                  <g-icon name="qr" size="{{32}}" tone="iris" />
+                </view>
+              </g-card>
+            </view>
+          </view>
+        </view>
+      </block>
+    </view>
+  </scroll-view>
+
+  <!-- 名片预览（页面级弹层：画布节点直查，规避 slot 查询边界） -->
+  <view
+    wx:if="{{cardShow}}"
+    class="pcard_scrim"
+    aria-role="button"
+    aria-label="关闭名片预览"
+    catchtap="onCloseCard"
+    catchtouchmove="noop"
+  >
+    <view class="pcard_sheet" catchtap="noop" aria-role="dialog" aria-label="曜石名片预览">
+      <view class="pcard_grip"></view>
+      <text class="pcard_title">曜石名片</text>
+      <view
+        class="pcard_close"
+        hover-class="press-soft"
+        hover-stay-time="80"
+        aria-role="button"
+        aria-label="关闭名片预览"
+        catchtap="onCloseCard"
+      >
+        <g-icon name="close" size="{{30}}" tone="ink3" />
+      </view>
+      <view class="pcard_canvas_wrap">
+        <!-- 开发者工具不支持 Skyline Canvas：直接不挂载节点，避免控制台报错 -->
+        <canvas
+          wx:if="{{!cardDevtools}}"
+          id="card-canvas"
+          type="2d"
+          class="pcard_canvas"
+          style="width: {{cardCanvasW}}px; height: {{cardCanvasH}}px;"
+        ></canvas>
+        <!-- 开发者工具不支持 Skyline Canvas，给出明确提示而不是空白 -->
+        <view wx:if="{{cardDevtools}}" class="pcard_devtools">
+          <g-icon name="card" size="{{44}}" tone="iris" />
+          <text class="pcard_devtools_text">名片画布需在真机预览</text>
+        </view>
+        <view wx:elif="{{cardRendering}}" class="pcard_loading">
+          <view class="pcard_spinner"></view>
+          <text class="pcard_loading_text">名片生成中</text>
+        </view>
+      </view>
+      <g-button
+        variant="primary"
+        block
+        loading="{{cardSaving}}"
+        disabled="{{cardRendering}}"
+        style="width: 100%; display: block;"
+        bind:tap="onSaveCard"
+      >
+        <g-icon name="save" size="{{28}}" tone="inverse" />
+        <text>保存到相册</text>
+      </g-button>
+    </view>
+  </view>
+
+  <!-- 二维码 -->
+  <g-modal show="{{qrShow}}" title="{{qrTitle}}" bind:close="onCloseQr">
+    <view
+      class="profile_qr_frame"
+      hover-class="press-soft"
+      hover-stay-time="80"
+      aria-role="button"
+      aria-label="预览{{qrTitle}}二维码"
+      bindtap="onPreviewQr"
+    >
+      <image src="{{qrUrl}}" mode="widthFix" class="profile_qr" aria-label="{{qrTitle}}二维码" />
+    </view>
+    <view class="profile_qr_hint">
+      <text>点击图片全屏预览</text>
+    </view>
+    <g-button variant="primary" block loading="{{qrSaving}}" bind:tap="onSaveQr">
+      <g-icon name="save" size="{{28}}" tone="inverse" />
+      <text>保存到相册</text>
+    </g-button>
+  </g-modal>
+
+  <g-toast />
+  <privacy-guard />
+  <update-guard blocked="{{cardShow || qrShow}}" />
+</view>

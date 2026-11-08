@@ -1,0 +1,39 @@
+/* g-placeholder · 渐变占位材质 */
+.ph {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* 细网格纹理（美术馆展墙） */
+.ph_grid {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image:
+    linear-gradient(var(--g-grid) 1rpx, transparent 1rpx),
+    linear-gradient(90deg, var(--g-grid) 1rpx, transparent 1rpx);
+  background-size: 48rpx 48rpx;
+}
+
+.ph_body {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16rpx;
+  opacity: 0.9;
+}
+
+.ph_title {
+  font-size: 24rpx;
+  color: var(--g-ph-glyph);
+  letter-spacing: 4rpx;
+  font-weight: 600;
+}

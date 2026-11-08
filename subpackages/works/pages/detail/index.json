@@ -1,0 +1,16 @@
+{
+  "navigationBarTitleText": "作品详情",
+  "disableScroll": true,
+  "usingComponents": {
+    "g-navbar": "../../../../components/g-navbar/index",
+    "g-icon": "../../../../components/g-icon/index",
+    "g-card": "../../../../components/g-card/index",
+    "g-tag": "../../../../components/g-tag/index",
+    "g-section": "../../../../components/g-section/index",
+    "g-gallery": "../../components/g-gallery/index",
+    "g-placeholder": "../../components/g-placeholder/index",
+    "g-skeleton": "../../../../components/g-skeleton/index",
+    "g-toast": "../../../../components/g-toast/index",
+    "privacy-guard": "../../../../components/privacy-guard/index"
+  }
+}

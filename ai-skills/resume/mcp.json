@@ -1,0 +1,94 @@
+{
+  "name": "resume-gallery-skill",
+  "version": "3.0.0",
+  "description": "曜石画廊 · 个人简历小程序的 AI 原子接口（微信 AI 开发模式 SKILL 单元）",
+  "transport": "miniprogram",
+  "entry": "core/skill/registry.ts",
+  "invoker": "invokeSkill",
+  "tools": [
+    {
+      "name": "get_profile",
+      "description": "获取个人档案：姓名、别名、座右铭、坐标、邮箱、简介",
+      "inputSchema": { "type": "object", "properties": {}, "required": [] }
+    },
+    {
+      "name": "get_contact_links",
+      "description": "获取社交坐标：Gitee / GitHub / 网站 / 掘金",
+      "inputSchema": { "type": "object", "properties": {}, "required": [] }
+    },
+    {
+      "name": "get_skills",
+      "description": "获取技能矩阵：前端 / 后端 / 工具链三组，含掌握度（1-5）",
+      "inputSchema": { "type": "object", "properties": {}, "required": [] }
+    },
+    {
+      "name": "get_timeline",
+      "description": "获取成长时间线：校园 / 工程 / 创作三纪元里程碑",
+      "inputSchema": { "type": "object", "properties": {}, "required": [] }
+    },
+    {
+      "name": "get_about",
+      "description": "获取关于我叙事块：成长与爱好",
+      "inputSchema": { "type": "object", "properties": {}, "required": [] }
+    },
+    {
+      "name": "get_stats",
+      "description": "获取数字速览：作品数 / 技能数 / 公司级交付数",
+      "inputSchema": { "type": "object", "properties": {}, "required": [] }
+    },
+    {
+      "name": "get_categories",
+      "description": "获取作品分类：实际工程 / 个人作品",
+      "inputSchema": { "type": "object", "properties": {}, "required": [] }
+    },
+    {
+      "name": "get_projects",
+      "description": "获取作品列表；可选 category 过滤",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "category": { "type": "string", "enum": ["actual", "personal"], "description": "分类过滤：actual=实际工程 / personal=个人作品；缺省返回全部" }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "get_project_detail",
+      "description": "按 id 获取作品详情：摘要、技术栈、量化指标、亮点、图集、经验",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "description": "作品唯一标识，如 team-work / take-out-food / blog" }
+        },
+        "required": ["id"]
+      }
+    },
+    {
+      "name": "search_projects",
+      "description": "按关键词搜索作品（标题 / 副题 / 角色 / 技术栈全文匹配）",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "keyword": { "type": "string", "description": "搜索关键词，如 Vue / 全栈 / AI" }
+        },
+        "required": ["keyword"]
+      }
+    },
+    {
+      "name": "list_favorites",
+      "description": "获取已收藏的作品列表（持久化于本地）",
+      "inputSchema": { "type": "object", "properties": {}, "required": [] }
+    },
+    {
+      "name": "toggle_favorite",
+      "description": "切换作品收藏态（幂等可逆）",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "description": "作品唯一标识" }
+        },
+        "required": ["id"]
+      }
+    }
+  ]
+}

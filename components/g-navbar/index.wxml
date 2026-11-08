@@ -1,0 +1,39 @@
+<view class="nav {{bare ? 'nav_bare' : (transparent ? 'nav_clear' : 'nav_glass')}}">
+  <view style="height: {{statusBarHeight}}px;"></view>
+  <view wx:if="{{!bare}}" class="nav_bar" style="height: {{navHeight}}px;">
+    <!-- 左槽：返回键（系统级 chevron；长按弹出页面历史菜单） -->
+    <view
+      wx:if="{{back}}"
+      class="nav_back"
+      hover-class="nav_touch"
+      hover-stay-time="80"
+      aria-role="button"
+      aria-label="返回，长按查看页面历史"
+      bindtap="onBack"
+      bindlongpress="onBackLong"
+    >
+      <g-icon name="back" size="{{40}}" tone="ink" />
+    </view>
+    <view wx:else class="nav_back"></view>
+
+    <!-- 题字 -->
+    <view class="nav_title_wrap">
+      <text wx:if="{{title}}" class="nav_title">{{title}}</text>
+    </view>
+
+    <!-- 右槽：主题切换（与胶囊对齐留白） -->
+    <view class="nav_right">
+      <view
+        wx:if="{{theme}}"
+        class="nav_theme"
+        hover-class="nav_touch"
+        hover-stay-time="80"
+        aria-role="button"
+        aria-label="切换外观，当前{{themeLabel}}"
+        bindtap="onTheme"
+      >
+        <g-icon name="{{themeGlyph}}" size="{{36}}" tone="ink2" />
+      </view>
+    </view>
+  </view>
+</view>

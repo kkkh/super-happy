@@ -1,0 +1,251 @@
+/**
+ * glass-bottom-sheet 120fps 拖拽 / 回弹内核
+ * - touchstart 在 WXS 内记录起点，不再 setData
+ * - touchmove 用 requestAnimationFrame 合并，直接 setStyle 到拖拽容器
+ * - 松手按位移 + 速度判定关闭；未关闭则用欠阻尼弹簧回弹
+ * - 不依赖 CSS transition 做拖拽，避免 30/60Hz 跳帧
+ */
+var DRAG_SELECTOR = '.glass-sheet__drag'
+var DEFAULT_THRESHOLD = 120
+var SPRING_STIFFNESS = 0.09
+var SPRING_DAMPING = 0.58
+var VELOCITY_THRESHOLD = 8
+var MIN_DISMISS_DISTANCE = 32
+
+function toNumber(value) {
+  return value ? value - 0 : 0
+}
+
+function getDragNode(ownerInstance) {
+  if (!ownerInstance || typeof ownerInstance.selectComponent !== 'function') {
+    return null
+  }
+  var node = ownerInstance.selectComponent(DRAG_SELECTOR)
+  if (!node || typeof node.setStyle !== 'function') {
+    return null
+  }
+  return node
+}
+
+function getDataset(event) {
+  if (event && event.currentTarget && event.currentTarget.dataset) {
+    return event.currentTarget.dataset
+  }
+  return {}
+}
+
+function getState(ownerInstance) {
+  if (!ownerInstance || typeof ownerInstance.getState !== 'function') {
+    return {}
+  }
+  return ownerInstance.getState() || {}
+}
+
+function setState(ownerInstance, state) {
+  if (ownerInstance && typeof ownerInstance.setState === 'function') {
+    ownerInstance.setState(state)
+  }
+}
+
+function applyOffset(ownerInstance, offset) {
+  var node = getDragNode(ownerInstance)
+  if (!node) {
+    return
+  }
+  node.setStyle({
+    transform: 'translate3d(0,' + offset.toFixed(2) + 'px,0)',
+    transition: 'none'
+  })
+}
+
+function onDragStart(event, ownerInstance) {
+  var touch = event.touches && event.touches[0]
+  if (!touch) {
+    return
+  }
+
+  var state = getState(ownerInstance)
+  state.startY = touch.clientY
+  state.lastY = 0
+  state.y = 0
+  state.velocity = 0
+  state.dragging = true
+  state.springing = false
+  state.scheduled = false
+  state.lastTime = event.timeStamp || 0
+  setState(ownerInstance, state)
+
+  var node = getDragNode(ownerInstance)
+  if (node) {
+    node.setStyle({
+      transform: 'translate3d(0,0,0)',
+      transition: 'none'
+    })
+  }
+}
+
+function onDragMove(event, ownerInstance) {
+  var touch = event.touches && event.touches[0]
+  if (!touch) {
+    return
+  }
+
+  var state = getState(ownerInstance)
+  if (!state.dragging) {
+    return
+  }
+
+  var rawY = touch.clientY - state.startY
+  var y = rawY > 0 ? rawY : 0
+
+  var now = event.timeStamp || 0
+  var lastTime = state.lastTime || 0
+  var dt = now - lastTime
+  if (!dt || dt <= 0 || dt > 80) {
+    dt = 16
+  }
+
+  var velocity = (y - (state.lastY || 0)) / dt * 16
+  state.velocity = Math.min(60, Math.max(-60, velocity))
+  state.lastY = y
+  state.lastTime = now
+  state.y = y
+
+  if (state.scheduled) {
+    setState(ownerInstance, state)
+    return
+  }
+
+  state.scheduled = true
+  setState(ownerInstance, state)
+
+  if (typeof ownerInstance.requestAnimationFrame === 'function') {
+    ownerInstance.requestAnimationFrame(function () {
+      var latest = getState(ownerInstance)
+      latest.scheduled = false
+      setState(ownerInstance, latest)
+      if (latest.dragging) {
+        applyOffset(ownerInstance, latest.y || 0)
+      }
+    })
+  } else {
+    applyOffset(ownerInstance, y)
+  }
+}
+
+function springBack(ownerInstance) {
+  var state = getState(ownerInstance)
+  state.springing = true
+  state.springY = state.y || 0
+  state.springVelocity = state.velocity || 0
+  setState(ownerInstance, state)
+
+  function frame() {
+    var current = getState(ownerInstance)
+    if (!current.springing) {
+      return
+    }
+
+    var y = current.springY || 0
+    var velocity = current.springVelocity || 0
+
+    velocity += -SPRING_STIFFNESS * y - SPRING_DAMPING * velocity
+    y += velocity
+
+    var settled =
+      Math.abs(y) < 0.4 &&
+      Math.abs(velocity) < 0.4
+
+    if (settled) {
+      current.springing = false
+      current.springY = 0
+      current.springVelocity = 0
+      current.y = 0
+      current.velocity = 0
+      setState(ownerInstance, current)
+
+      var node = getDragNode(ownerInstance)
+      if (node) {
+        node.setStyle({
+          transform: 'translate3d(0,0,0)',
+          transition: ''
+        })
+      }
+
+      if (typeof ownerInstance.callMethod === 'function') {
+        ownerInstance.callMethod('onSheetSwipeCancel')
+      }
+      return
+    }
+
+    current.springY = y
+    current.springVelocity = velocity
+    setState(ownerInstance, current)
+    applyOffset(ownerInstance, y)
+
+    if (typeof ownerInstance.requestAnimationFrame === 'function') {
+      ownerInstance.requestAnimationFrame(frame)
+    } else {
+      var fallbackNode = getDragNode(ownerInstance)
+      if (fallbackNode) {
+        fallbackNode.setStyle({
+          transform: 'translate3d(0,0,0)',
+          transition: ''
+        })
+      }
+    }
+  }
+
+  frame()
+}
+
+function onDragEnd(event, ownerInstance) {
+  var state = getState(ownerInstance)
+  if (!state.dragging) {
+    return
+  }
+
+  state.dragging = false
+  var dataset = getDataset(event)
+  var threshold = toNumber(dataset.threshold) || DEFAULT_THRESHOLD
+  var y = state.y || 0
+  var velocity = state.velocity || 0
+  var dismissed =
+    y > threshold ||
+    (velocity > VELOCITY_THRESHOLD && y > MIN_DISMISS_DISTANCE)
+
+  setState(ownerInstance, state)
+
+  if (dismissed) {
+    var node = getDragNode(ownerInstance)
+    if (node) {
+      node.setStyle({
+        transform: 'translate3d(0,100%,0)',
+        transition: 'transform 360ms cubic-bezier(0.16, 1, 0.3, 1)'
+      })
+    }
+    if (typeof ownerInstance.callMethod === 'function') {
+      ownerInstance.callMethod('onSheetSwipeClose')
+    }
+    return
+  }
+
+  springBack(ownerInstance)
+}
+
+function onDragCancel(event, ownerInstance) {
+  var state = getState(ownerInstance)
+  if (!state.dragging) {
+    return
+  }
+  state.dragging = false
+  setState(ownerInstance, state)
+  springBack(ownerInstance)
+}
+
+module.exports = {
+  onDragStart: onDragStart,
+  onDragMove: onDragMove,
+  onDragEnd: onDragEnd,
+  onDragCancel: onDragCancel
+}

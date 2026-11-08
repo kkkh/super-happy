@@ -1,0 +1,49 @@
+<wxs src="./hologram.wxs" module="holo"></wxs>
+
+<view
+  class="custom-class hologram"
+  style="{{customStyle}}"
+  aria-role="group"
+  aria-label="{{ariaLabel}}"
+>
+  <view
+    id="holo-scene"
+    class="hologram__scene"
+    style="{{tiltStyle}}"
+    change:prop="{{holo.onTiltChange}}"
+    prop="{{tiltConfig}}"
+  >
+    <view class="hologram__light" aria-hidden="true"></view>
+    <view class="hologram__chromatic" aria-hidden="true"></view>
+
+    <view
+      wx:if="{{aurora}}"
+      class="hologram__orb hologram__orb_a"
+      aria-hidden="true"
+    ></view>
+    <view
+      wx:if="{{aurora}}"
+      class="hologram__orb hologram__orb_b"
+      aria-hidden="true"
+    ></view>
+    <view
+      wx:if="{{aurora}}"
+      class="hologram__orb hologram__orb_c"
+      aria-hidden="true"
+    ></view>
+
+    <view class="hologram__layer hologram__layer_back">
+      <slot name="back"></slot>
+    </view>
+
+    <view class="hologram__layer hologram__layer_main">
+      <slot></slot>
+    </view>
+
+    <view class="hologram__layer hologram__layer_front">
+      <slot name="front"></slot>
+    </view>
+  </view>
+
+  <view class="hologram__vignette" aria-hidden="true"></view>
+</view>

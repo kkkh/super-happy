@@ -1,0 +1,11 @@
+{
+  "navigationBarTitleText": "我的项目",
+  "disableScroll": true,
+  "usingComponents": {
+    "g-navbar": "../../../../components/g-navbar/index",
+    "g-icon": "../../../../components/g-icon/index",
+    "g-card": "../../../../components/g-card/index",
+    "g-skeleton": "../../../../components/g-skeleton/index",
+    "g-toast": "../../../../components/g-toast/index"
+  }
+}

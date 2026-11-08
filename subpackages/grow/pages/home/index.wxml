@@ -1,0 +1,96 @@
+<view class="page_root {{themeClass}}">
+  <!-- 馆内灯光：粒子极光 -->
+  <g-aurora density="{{40}}" />
+
+  <g-navbar transparent back theme />
+
+  <scroll-view enhanced show-scrollbar="{{false}}" bounces="{{false}}" scroll-y class="home_scroll" type="list">
+    <view class="home_body">
+      <!-- 状态行：可用性脉冲 + 座右铭 -->
+      <view class="home_row anim-rise">
+        <view class="home_status">
+          <view class="home_dot" aria-hidden="true"></view>
+          <text class="home_micro home_micro_aurora">期待新的可能</text>
+        </view>
+        <text class="home_micro home_micro_ink">把日子，过成作品。</text>
+      </view>
+
+      <!-- 英雄层：纪念碑姓名 -->
+      <view class="home_hero anim-rise delay-1">
+        <text class="home_name">{{profileName}}</text>
+        <text class="home_micro home_micro_ink2">{{heroLine}}</text>
+      </view>
+
+      <!-- 身份行 -->
+      <view class="home_identity anim-rise delay-2">
+        <g-tag tone="iris" solid>{{profileAlias}}</g-tag>
+        <view class="home_loc">
+          <g-icon name="pin" size="{{24}}" tone="ink3" />
+          <text class="home_loc_text">{{locationText}}</text>
+        </view>
+      </view>
+
+      <view class="anim-rise delay-3">
+        <text class="home_motto">「{{profileMotto}}」</text>
+      </view>
+
+      <!-- 数字速览带 -->
+      <view wx:if="{{stats.length}}" class="home_stats anim-rise delay-4">
+        <g-stat
+          wx:for="{{stats}}"
+          wx:key="id"
+          value="{{item.value}}"
+          suffix="{{item.suffix}}"
+          label="{{item.label}}"
+          kicker="{{item.kicker}}"
+        />
+      </view>
+
+      <!-- 索引栏 -->
+      <view class="home_index anim-fade delay-4">
+        <text class="home_micro home_micro_iris">索引</text>
+        <view class="home_rule"></view>
+        <text class="home_micro home_micro_ink">{{indexCount}}</text>
+      </view>
+
+      <!-- 入口星表 -->
+      <view class="home_entries">
+        <view
+          wx:for="{{entries}}"
+          wx:key="id"
+          class="home_entry anim-rise delay-{{index + 4}}"
+          hover-class="home_entry_press"
+          hover-stay-time="80"
+          data-route="{{item.route}}"
+          aria-role="button"
+          aria-label="{{item.title}}，{{item.sub}}"
+          bindtap="onEnter"
+        >
+          <text class="home_entry_no">{{item.index}}</text>
+          <share-element wx:if="{{item.id === 'greeting'}}" key="{{item.flyKey}}" transition="true">
+            <view class="home_ring home_ring_{{item.tone}}">
+              <g-icon name="{{item.icon}}" size="{{34}}" tone="{{item.tone}}" />
+            </view>
+          </share-element>
+          <view wx:else class="home_ring home_ring_{{item.tone}}">
+            <g-icon name="{{item.icon}}" size="{{34}}" tone="{{item.tone}}" />
+          </view>
+          <view class="home_entry_text">
+            <text class="home_entry_title">{{item.title}}</text>
+            <text class="home_entry_sub">{{item.sub}}</text>
+          </view>
+          <g-icon name="arrow" size="{{30}}" tone="ink5" />
+        </view>
+      </view>
+
+      <!-- 版记 -->
+      <view class="home_colophon anim-fade delay-9">
+        <view class="home_mark"></view>
+        <text class="home_micro home_micro_ink">秦超 · 以匠心构筑</text>
+      </view>
+    </view>
+  </scroll-view>
+
+  <g-toast />
+  <update-guard />
+</view>

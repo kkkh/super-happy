@@ -1,0 +1,156 @@
+/**
+ * glass-button 物理弹簧内核
+ * - WXS 阻尼弹簧：F = -k(x-target) - c*v
+ * - requestAnimationFrame 逐帧积分，直接 setStyle，不触发 setData
+ * - 按下目标 0.94，松手目标 1.0；运行中只更新 target，不叠加循环
+ * - 组件销毁 / 节点丢失时自动停止
+ */
+var ROOT_SELECTOR = '.glass-button'
+var STIFFNESS = 520
+var DAMPING = 32
+var MASS = 1
+var STEP = 1 / 120
+var PRESS_SCALE = 0.94
+var REST_SCALE = 1
+var MAX_STEPS = 240
+
+function isEnabled(event) {
+  var dataset = (event.currentTarget && event.currentTarget.dataset) || {}
+  var value = dataset.spring
+  return value === true || value === 'true' || value === 1 || value === '1'
+}
+
+function selectRoot(ownerInstance) {
+  if (!ownerInstance || typeof ownerInstance.selectComponent !== 'function') {
+    return null
+  }
+  return ownerInstance.selectComponent(ROOT_SELECTOR)
+}
+
+function applyScale(ownerInstance, scale) {
+  var root = selectRoot(ownerInstance)
+  if (!root || typeof root.setStyle !== 'function') {
+    return false
+  }
+  root.setStyle({
+    transform:
+      'scale(' + scale.toFixed(4) + ') translateZ(0)',
+    transition: 'transform 0ms linear'
+  })
+  return true
+}
+
+function startLoop(ownerInstance) {
+  if (!ownerInstance || typeof ownerInstance.getState !== 'function') {
+    return
+  }
+
+  var state = ownerInstance.getState() || {}
+  state.target = typeof state.target === 'number' ? state.target : REST_SCALE
+  state.scale = typeof state.scale === 'number' ? state.scale : REST_SCALE
+  state.velocity = typeof state.velocity === 'number' ? state.velocity : 0
+  state.running = true
+  state.steps = 0
+  ownerInstance.setState(state)
+
+  if (typeof ownerInstance.requestAnimationFrame !== 'function') {
+    applyScale(ownerInstance, state.target)
+    state.running = false
+    ownerInstance.setState(state)
+    return
+  }
+
+  step(ownerInstance)
+}
+
+function step(ownerInstance) {
+  if (!ownerInstance || typeof ownerInstance.getState !== 'function') {
+    return
+  }
+
+  var state = ownerInstance.getState() || {}
+  if (!state.running) {
+    return
+  }
+
+  var target = typeof state.target === 'number' ? state.target : REST_SCALE
+  var scale = typeof state.scale === 'number' ? state.scale : REST_SCALE
+  var velocity = typeof state.velocity === 'number' ? state.velocity : 0
+
+  var force = (-STIFFNESS * (scale - target) - DAMPING * velocity) / MASS
+  velocity += force * STEP
+  scale += velocity * STEP
+  state.scale = scale
+  state.velocity = velocity
+  state.steps = (state.steps || 0) + 1
+
+  var settled =
+    Math.abs(scale - target) < 0.0015 &&
+    Math.abs(velocity) < 0.01
+
+  if (settled || state.steps > MAX_STEPS) {
+    state.scale = target
+    state.velocity = 0
+    state.running = false
+    ownerInstance.setState(state)
+    if (!applyScale(ownerInstance, target)) {
+      state.running = false
+      ownerInstance.setState(state)
+    }
+    return
+  }
+
+  ownerInstance.setState(state)
+  if (!applyScale(ownerInstance, scale)) {
+    state.running = false
+    ownerInstance.setState(state)
+    return
+  }
+
+  ownerInstance.requestAnimationFrame(function () {
+    step(ownerInstance)
+  })
+}
+
+function setTarget(event, ownerInstance, target) {
+  if (!isEnabled(event) || !ownerInstance) {
+    return
+  }
+
+  var state = ownerInstance.getState() || {}
+  state.target = target
+
+  if (typeof state.scale !== 'number') {
+    state.scale = REST_SCALE
+  }
+  if (typeof state.velocity !== 'number') {
+    state.velocity = 0
+  }
+
+  if (!state.running) {
+    startLoop(ownerInstance)
+  } else {
+    ownerInstance.setState(state)
+  }
+}
+
+function onPressStart(event, ownerInstance) {
+  if (!isEnabled(event)) {
+    return
+  }
+  setTarget(event, ownerInstance, PRESS_SCALE)
+}
+
+function onPressEnd(event, ownerInstance) {
+  setTarget(event, ownerInstance, REST_SCALE)
+}
+
+function onPressCancel(event, ownerInstance) {
+  setTarget(event, ownerInstance, REST_SCALE)
+}
+
+module.exports = {
+  onPressStart: onPressStart,
+  onPressEnd: onPressEnd,
+  onPressCancel: onPressCancel
+}

@@ -1,0 +1,508 @@
+/**
+ * 水印工作台 · 高频手势内核
+ * - 单指拖拽 / 双指捏合缩放 + 旋转，全部在 WXS 内完成，不跨线程 setData
+ * - 双指围绕手指中心点做焦点补偿：缩放与旋转时手指下的像素保持不动
+ * - 拖拽 / 捏合第一次有效位移才通知页面隐藏 Canvas 预览，避免误触闪烁
+ * - 框选打码模式只画选框，松手后把像素矩形回传给页面
+ * - 手势结束统一 callMethod 回传最终参数，页面据此入历史栈并触发 200ms 防抖重绘
+ *
+ * 注意：Skyline 页面级 WXS 实例没有 setState，状态必须放在模块私有变量里，
+ * 否则 change:prop 阶段就会抛 `ownerInstance.setState is not a function`。
+ */
+
+var TEXT_ID = '#wm-layer-text'
+var LOGO_ID = '#wm-layer-logo'
+var MARQUEE_ID = '#wm-marquee'
+
+var MIN_SCALE = 0.2
+var MAX_SCALE = 4
+var MOVE_EPSILON = 2
+var MIN_MASK_SIDE = 8
+
+/** 单页单实例：水印工作台每页只有一个手势层，模块私有状态足够且没有 setState 兼容问题 */
+var runtimeState = {
+  config: {},
+  gesture: '',
+  moved: false,
+  x: 50,
+  y: 50,
+  scale: 1,
+  rotation: 0
+}
+
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value))
+}
+
+function numberOr(value, fallback) {
+  var parsed = typeof value === 'number' ? value : parseFloat(value)
+  return isNaN(parsed) ? fallback : parsed
+}
+
+function selectNode(ownerInstance, selector) {
+  if (!ownerInstance || typeof ownerInstance.selectComponent !== 'function') {
+    return null
+  }
+  return ownerInstance.selectComponent(selector)
+}
+
+function setStyle(node, styles) {
+  if (node && typeof node.setStyle === 'function') {
+    node.setStyle(styles)
+  }
+}
+
+function readBox(event) {
+  var target = event.currentTarget || {}
+  var dataset = target.dataset || {}
+  /* Skyline 的 WXS 事件不保证 currentTarget.offsetWidth，优先读页面量好的数据 */
+  var width = numberOr(dataset.boxW, numberOr(target.offsetWidth, 0))
+  var height = numberOr(dataset.boxH, numberOr(target.offsetHeight, 0))
+  var left = numberOr(dataset.boxLeft, numberOr(target.offsetLeft, 0))
+  var top = numberOr(dataset.boxTop, numberOr(target.offsetTop, 0))
+  return {
+    left: left,
+    top: top,
+    width: width,
+    height: height
+  }
+}
+
+function readPoint(touch, box) {
+  var clientX = numberOr(touch.clientX, numberOr(touch.pageX, 0))
+  var clientY = numberOr(touch.clientY, numberOr(touch.pageY, 0))
+  return {
+    x: clientX - box.left,
+    y: clientY - box.top
+  }
+}
+
+function midpoint(first, second) {
+  return {
+    x: (first.x + second.x) / 2,
+    y: (first.y + second.y) / 2
+  }
+}
+
+function distance(first, second) {
+  var dx = second.x - first.x
+  var dy = second.y - first.y
+  return Math.sqrt(dx * dx + dy * dy)
+}
+
+function angleOf(first, second) {
+  return Math.atan2(second.y - first.y, second.x - first.x) * 180 / Math.PI
+}
+
+function normalizeAngle(value) {
+  var angle = value
+  while (angle > 180) {
+    angle -= 360
+  }
+  while (angle < -180) {
+    angle += 360
+  }
+  return angle
+}
+
+function getConfig() {
+  return runtimeState.config || {}
+}
+
+function notifyStart(ownerInstance) {
+  if (ownerInstance && typeof ownerInstance.callMethod === 'function') {
+    ownerInstance.callMethod('onGestureStart', {})
+  }
+}
+
+function activeSelector(active) {
+  if (active === 'text') {
+    return TEXT_ID
+  }
+  if (active === 'logo') {
+    return LOGO_ID
+  }
+  return ''
+}
+
+function applyLayer(ownerInstance, active, x, y, scale, rotation) {
+  var node = selectNode(ownerInstance, activeSelector(active))
+  if (!node) {
+    return
+  }
+  setStyle(node, {
+    left: x.toFixed(3) + '%',
+    top: y.toFixed(3) + '%',
+    transform:
+      'translate(-50%, -50%) rotate(' + rotation.toFixed(2) + 'deg) scale(' + scale.toFixed(3) + ')',
+    transition: 'none'
+  })
+}
+
+function applyMarquee(ownerInstance, start, current) {
+  var node = selectNode(ownerInstance, MARQUEE_ID)
+  if (!node) {
+    return
+  }
+  var left = Math.min(start.x, current.x)
+  var top = Math.min(start.y, current.y)
+  var width = Math.abs(current.x - start.x)
+  var height = Math.abs(current.y - start.y)
+  setStyle(node, {
+    left: left.toFixed(1) + 'px',
+    top: top.toFixed(1) + 'px',
+    width: width.toFixed(1) + 'px',
+    height: height.toFixed(1) + 'px',
+    opacity: 1
+  })
+}
+
+function hideMarquee(ownerInstance) {
+  var node = selectNode(ownerInstance, MARQUEE_ID)
+  if (!node) {
+    return
+  }
+  setStyle(node, {
+    left: '0px',
+    top: '0px',
+    width: '0px',
+    height: '0px',
+    opacity: 0
+  })
+}
+
+function liveCenter(state, config, box) {
+  if (typeof state.x === 'number' && typeof state.y === 'number') {
+    return {
+      x: (state.x / 100) * box.width,
+      y: (state.y / 100) * box.height
+    }
+  }
+  return {
+    x: (numberOr(config.x, 50) / 100) * box.width,
+    y: (numberOr(config.y, 50) / 100) * box.height
+  }
+}
+
+function beginDrag(ownerInstance, state, config, box, touch) {
+  var center = liveCenter(state, config, box)
+  state.gesture = 'drag'
+  state.moved = false
+  state.startPoint = readPoint(touch, box)
+  state.startCenter = center
+  state.baseScale = typeof state.scale === 'number' ? state.scale : numberOr(config.scale, 1)
+  state.baseRotation =
+    typeof state.rotation === 'number' ? state.rotation : numberOr(config.rotation, 0)
+}
+
+function beginPinch(ownerInstance, state, config, box, touches) {
+  var first = readPoint(touches[0], box)
+  var second = readPoint(touches[1], box)
+  var center = liveCenter(state, config, box)
+  state.gesture = 'pinch'
+  state.moved = false
+  state.startMid = midpoint(first, second)
+  state.startDistance = distance(first, second)
+  state.startAngle = angleOf(first, second)
+  state.startCenter = center
+  state.baseScale = typeof state.scale === 'number' ? state.scale : numberOr(config.scale, 1)
+  state.baseRotation =
+    typeof state.rotation === 'number' ? state.rotation : numberOr(config.rotation, 0)
+}
+
+function beginMask(ownerInstance, state, box, touch) {
+  var point = readPoint(touch, box)
+  state.gesture = 'mask'
+  state.moved = false
+  state.maskStart = point
+  state.maskCurrent = point
+  applyMarquee(ownerInstance, point, point)
+}
+
+function onConfigChange(newConfig, oldConfig, ownerInstance) {
+  var config = newConfig || {}
+  runtimeState.config = config
+  /* 手势进行中不接受外部参数覆盖；空闲时同步最新坐标，避免下一次手势跳位 */
+  if (!runtimeState.gesture) {
+    runtimeState.x = numberOr(config.x, 50)
+    runtimeState.y = numberOr(config.y, 50)
+    runtimeState.scale = numberOr(config.scale, 1)
+    runtimeState.rotation = numberOr(config.rotation, 0)
+  }
+}
+
+function onTouchStart(event, ownerInstance) {
+  var config = getConfig()
+  if (!config || config.enabled === false) {
+    return
+  }
+  var touches = event.touches || []
+  if (!touches.length) {
+    return
+  }
+  var state = runtimeState
+
+  if (touches.length >= 2) {
+    if (config.mode === 'mask' || !config.active) {
+      return
+    }
+    beginPinch(ownerInstance, state, config, readBox(event), touches)
+    return
+  }
+
+  if (config.mode === 'mask') {
+    beginMask(ownerInstance, state, readBox(event), touches[0])
+    return
+  }
+
+  if (!config.active) {
+    return
+  }
+
+  beginDrag(ownerInstance, state, config, readBox(event), touches[0])
+}
+
+function updateDrag(ownerInstance, state, config, box, touch) {
+  var point = readPoint(touch, box)
+  var dx = point.x - state.startPoint.x
+  var dy = point.y - state.startPoint.y
+
+  if (!state.moved && (Math.abs(dx) > MOVE_EPSILON || Math.abs(dy) > MOVE_EPSILON)) {
+    state.moved = true
+    notifyStart(ownerInstance)
+  }
+
+  var nextX = clamp(((state.startCenter.x + dx) / box.width) * 100, 0, 100)
+  var nextY = clamp(((state.startCenter.y + dy) / box.height) * 100, 0, 100)
+
+  state.x = nextX
+  state.y = nextY
+  state.scale = state.baseScale
+  state.rotation = state.baseRotation
+  applyLayer(ownerInstance, config.active, nextX, nextY, state.baseScale, state.baseRotation)
+}
+
+function updatePinch(ownerInstance, state, config, box, touches) {
+  var first = readPoint(touches[0], box)
+  var second = readPoint(touches[1], box)
+  var currentMid = midpoint(first, second)
+  var ratio = state.startDistance > 0 ? distance(first, second) / state.startDistance : 1
+  var scale = clamp(state.baseScale * ratio, MIN_SCALE, MAX_SCALE)
+  var deltaAngle = normalizeAngle(angleOf(first, second) - state.startAngle)
+  var rotation = state.baseRotation + deltaAngle
+
+  /* 焦点补偿：把「起始手指中心 → 图层中心」的向量按新缩放与旋转重新投影 */
+  var factor = scale / (state.baseScale || 1)
+  var radians = deltaAngle * Math.PI / 180
+  var cos = Math.cos(radians)
+  var sin = Math.sin(radians)
+  var offsetX = state.startCenter.x - state.startMid.x
+  var offsetY = state.startCenter.y - state.startMid.y
+  var nextCenterX = currentMid.x + (offsetX * cos - offsetY * sin) * factor
+  var nextCenterY = currentMid.y + (offsetX * sin + offsetY * cos) * factor
+
+  if (
+    !state.moved &&
+    (Math.abs(currentMid.x - state.startMid.x) > MOVE_EPSILON ||
+      Math.abs(currentMid.y - state.startMid.y) > MOVE_EPSILON ||
+      Math.abs(scale - state.baseScale) > 0.002 ||
+      Math.abs(deltaAngle) > 0.4)
+  ) {
+    state.moved = true
+    notifyStart(ownerInstance)
+  }
+
+  var nextX = clamp((nextCenterX / box.width) * 100, 0, 100)
+  var nextY = clamp((nextCenterY / box.height) * 100, 0, 100)
+
+  state.x = nextX
+  state.y = nextY
+  state.scale = scale
+  state.rotation = rotation
+  applyLayer(ownerInstance, config.active, nextX, nextY, scale, rotation)
+}
+
+function updateMask(ownerInstance, state, box, touch) {
+  var point = readPoint(touch, box)
+  var start = state.maskStart
+  if (
+    !state.moved &&
+    (Math.abs(point.x - start.x) > MOVE_EPSILON || Math.abs(point.y - start.y) > MOVE_EPSILON)
+  ) {
+    state.moved = true
+    notifyStart(ownerInstance)
+  }
+  state.maskCurrent = point
+  applyMarquee(ownerInstance, start, point)
+}
+
+function onTouchMove(event, ownerInstance) {
+  var config = getConfig()
+  if (!config || config.enabled === false) {
+    return
+  }
+  var state = runtimeState
+  if (!state.gesture) {
+    return
+  }
+  var box = state.box || readBox(event)
+  state.box = box
+  var touches = event.touches || []
+
+  if (state.gesture === 'mask') {
+    if (touches.length >= 1) {
+      updateMask(ownerInstance, state, box, touches[0])
+    }
+    return
+  }
+
+  if (touches.length >= 2) {
+    if (state.gesture !== 'pinch') {
+      beginPinch(ownerInstance, state, config, box, touches)
+      return
+    }
+    updatePinch(ownerInstance, state, config, box, touches)
+    return
+  }
+
+  if (touches.length === 1) {
+    if (state.gesture !== 'drag') {
+      beginDrag(ownerInstance, state, config, box, touches[0])
+      return
+    }
+    updateDrag(ownerInstance, state, config, box, touches[0])
+  }
+}
+
+function commitGesture(ownerInstance, state) {
+  if (!ownerInstance || typeof ownerInstance.callMethod !== 'function') {
+    return
+  }
+  if (state.gesture === 'mask') {
+    var start = state.maskStart
+    var current = state.maskCurrent
+    if (start && current) {
+      var left = Math.min(start.x, current.x)
+      var top = Math.min(start.y, current.y)
+      var width = Math.abs(current.x - start.x)
+      var height = Math.abs(current.y - start.y)
+      if (width >= MIN_MASK_SIDE && height >= MIN_MASK_SIDE) {
+        ownerInstance.callMethod('onMaskCommit', {
+          x: left,
+          y: top,
+          w: width,
+          h: height
+        })
+      } else if (typeof ownerInstance.callMethod === 'function') {
+        /* 框选过小视为取消，让页面解除手势态并恢复 Canvas 预览 */
+        ownerInstance.callMethod('onGestureCancel', {})
+      }
+    }
+    hideMarquee(ownerInstance)
+    return
+  }
+
+  if (!state.moved) {
+    return
+  }
+
+  ownerInstance.callMethod('onGestureCommit', {
+    type: state.config && state.config.active ? state.config.active : 'text',
+    x: state.x,
+    y: state.y,
+    scale: state.scale,
+    rotation: state.rotation
+  })
+}
+
+function clearGesture(state) {
+  state.gesture = ''
+  state.moved = false
+  state.startPoint = null
+  state.startCenter = null
+  state.startMid = null
+  state.startDistance = 0
+  state.startAngle = 0
+  state.maskStart = null
+  state.maskCurrent = null
+  state.box = null
+}
+
+function onTouchEnd(event, ownerInstance) {
+  var config = getConfig()
+  if (!config || config.enabled === false) {
+    return
+  }
+  var state = runtimeState
+  if (!state.gesture) {
+    return
+  }
+  var box = state.box || readBox(event)
+  var touches = event.touches || []
+
+  if (touches.length >= 1) {
+    /* 双指抬起一指：无缝切换为单指拖拽，不打断当前手势 */
+    if (config.mode === 'mask') {
+      hideMarquee(ownerInstance)
+      clearGesture(state)
+      if (typeof ownerInstance.callMethod === 'function') {
+        ownerInstance.callMethod('onGestureCancel', {})
+      }
+      return
+    }
+    if (!config.active) {
+      clearGesture(state)
+      if (typeof ownerInstance.callMethod === 'function') {
+        ownerInstance.callMethod('onGestureCancel', {})
+      }
+      return
+    }
+    if (touches.length >= 2) {
+      beginPinch(ownerInstance, state, config, box, touches)
+    } else {
+      beginDrag(ownerInstance, state, config, box, touches[0])
+    }
+    return
+  }
+
+  commitGesture(ownerInstance, state)
+  clearGesture(state)
+}
+
+function onTouchCancel(event, ownerInstance) {
+  var state = runtimeState
+  if (!state.gesture) {
+    return
+  }
+  if (state.gesture === 'mask') {
+    hideMarquee(ownerInstance)
+  }
+  var config = getConfig()
+  clearGesture(state)
+  /* 取消必须把 DOM 图层视觉复位，否则下一次手势会从错误中心开始 */
+  state.x = numberOr(config.x, 50)
+  state.y = numberOr(config.y, 50)
+  state.scale = numberOr(config.scale, 1)
+  state.rotation = numberOr(config.rotation, 0)
+  if (config.active) {
+    applyLayer(
+      ownerInstance,
+      config.active,
+      state.x,
+      state.y,
+      state.scale,
+      state.rotation
+    )
+  }
+  if (ownerInstance && typeof ownerInstance.callMethod === 'function') {
+    ownerInstance.callMethod('onGestureCancel', {})
+  }
+}
+
+module.exports = {
+  onConfigChange: onConfigChange,
+  onTouchStart: onTouchStart,
+  onTouchMove: onTouchMove,
+  onTouchEnd: onTouchEnd,
+  onTouchCancel: onTouchCancel
+}

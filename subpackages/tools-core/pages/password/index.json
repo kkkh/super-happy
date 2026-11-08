@@ -1,0 +1,9 @@
+{
+  "navigationBarTitleText": "随机密码",
+  "disableScroll": true,
+  "usingComponents": {
+    "glass-tool-shell": "../../../../components/glass-tool-shell/index",
+    "glass-card": "../../../../components/glass-card/index",
+    "glass-button": "../../../../components/glass-button/index"
+  }
+}

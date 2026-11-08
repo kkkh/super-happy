@@ -1,0 +1,25 @@
+/* ==========================================================================
+   金额大写 · 空间玻璃页面样式
+   - 只使用 --glass-* / --sg-* 令牌，无硬编码色值
+   ========================================================================== */
+
+.tool-chips {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 12rpx;
+}
+
+.tool-chip {
+  flex: 1;
+  min-width: 0;
+}
+
+.tool-result__hero {
+  color: var(--glass-text);
+  font-size: 44rpx;
+  font-weight: 700;
+  line-height: 1.55;
+  letter-spacing: 2rpx;
+  word-break: break-all;
+}

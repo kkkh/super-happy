@@ -1,0 +1,56 @@
+<view
+  wx:if="{{current}}"
+  class="custom-class glass-toast glass-toast_placement_{{current.placement}} {{visible ? 'glass-toast_visible' : 'glass-toast_leaving'}}"
+  style="z-index: {{zIndex}}; {{customStyle}}"
+  aria-live="assertive"
+>
+  <view
+    wx:if="{{current.mask}}"
+    class="glass-toast__mask"
+    catchtouchmove="noop"
+    catchtap="noop"
+    aria-hidden="true"
+  ></view>
+
+  <view
+    class="glass-toast__card glass-toast_type_{{current.type}}"
+    hover-class="{{current.tapToDismiss ? 'glass-toast__card_pressed' : 'none'}}"
+    hover-stay-time="80"
+    catchtap="onToastTap"
+    aria-role="alert"
+    aria-label="{{current.message}}"
+  >
+    <view class="glass-toast__sheen" aria-hidden="true"></view>
+    <view class="glass-toast__noise" aria-hidden="true"></view>
+
+    <view class="glass-toast__content">
+      <view
+        wx:if="{{current.type === 'loading'}}"
+        class="glass-toast__spinner"
+        aria-hidden="true"
+      ></view>
+
+      <view
+        wx:elif="{{current.icon}}"
+        class="glass-toast__badge"
+        aria-hidden="true"
+      >
+        <text class="glass-toast__badge_glyph">{{current.icon}}</text>
+      </view>
+
+      <text class="glass-toast__message">{{current.message}}</text>
+
+      <view
+        wx:if="{{current.actionLabel}}"
+        class="glass-toast__action {{actionBusy ? 'glass-toast__action_busy' : ''}}"
+        hover-class="glass-toast__action_pressed"
+        hover-stay-time="80"
+        catchtap="onActionTap"
+        aria-role="button"
+        aria-label="{{current.actionLabel}}"
+      >
+        <text class="glass-toast__action_text">{{current.actionLabel}}</text>
+      </view>
+    </view>
+  </view>
+</view>

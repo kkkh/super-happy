@@ -1,0 +1,63 @@
+<view class="page_root {{themeClass}}">
+  <g-navbar title="我的技能" back />
+
+  <scroll-view enhanced show-scrollbar="{{false}}" bounces="{{false}}" scroll-y type="list" class="skills_scroll">
+    <view class="skills_body">
+      <!-- 骨架 -->
+      <view wx:if="{{loading}}" class="skills_loading">
+        <g-skeleton rows="{{4}}" card />
+        <g-skeleton rows="{{4}}" card />
+      </view>
+
+      <block wx:else>
+        <view class="anim-rise">
+          <g-section kicker="专长" title="能力矩阵" />
+        </view>
+
+        <!-- 分段控件：滑块指示器随选中位移 -->
+        <view class="seg anim-rise delay-1">
+          <view class="seg_thumb" style="transform: translateX({{activeIndex * 100}}%);"></view>
+          <view
+            wx:for="{{groups}}"
+            wx:key="id"
+            class="seg_item {{activeIndex === index ? 'seg_item_on' : ''}}"
+            data-index="{{index}}"
+            hover-class="press-soft"
+            hover-stay-time="80"
+            aria-role="button"
+            aria-label="切换到{{item.title}}"
+            bindtap="onSwitch"
+          >
+            <text>{{item.title}}</text>
+          </view>
+        </view>
+
+        <!-- 当前分组技能卡 -->
+        <view wx:if="{{activeGroup}}" class="skills_list">
+          <view wx:for="{{activeGroup.items}}" wx:key="name" class="anim-rise delay-{{index + 2}}">
+            <g-card padding="md">
+              <view class="skill_row">
+                <view class="skill_head">
+                  <text class="skill_name">{{item.name}}</text>
+                  <g-meter level="{{item.level}}" tone="{{activeGroup.tone}}" replay="{{activeIndex}}" />
+                </view>
+                <view class="skill_foot">
+                  <text wx:if="{{item.note}}" class="skill_note">{{item.note}}</text>
+                  <text class="skill_level">{{item.level}} / 5</text>
+                </view>
+              </view>
+            </g-card>
+          </view>
+        </view>
+
+        <!-- 分组脚注 -->
+        <view wx:if="{{activeGroup}}" class="skills_foot anim-fade delay-6">
+          <text class="skills_foot_text">{{activeGroup.kicker}} · {{activeGroup.items.length}} 项</text>
+        </view>
+      </block>
+    </view>
+  </scroll-view>
+
+  <g-toast />
+  <update-guard />
+</view>

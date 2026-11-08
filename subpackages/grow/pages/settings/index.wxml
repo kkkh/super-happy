@@ -1,0 +1,1041 @@
+<view
+  class="settings-page sg-ambient-surface sg-ambient-iris {{themeClass}} {{themeSwitching ? 'theme-breathing' : ''}}"
+>
+  <!-- 极光背景：light-off 时由 app.wxss 统一降级 -->
+  <view class="settings-aurora" aria-hidden="true">
+    <view class="sg-aurora-a settings-aurora__a"></view>
+    <view class="sg-aurora-b settings-aurora__b"></view>
+    <view class="sg-aurora-c settings-aurora__c"></view>
+    <view class="settings-orb"></view>
+  </view>
+
+  <!-- 自定义导航：不与胶囊按钮抢位 -->
+  <view
+    class="settings-nav"
+    style="padding-top: {{navTop}}px; padding-right: {{navRight}}px;"
+  >
+    <glass-button
+      variant="ghost"
+      size="sm"
+      shape="rounded"
+      custom-class="settings-nav__back"
+      aria-label="返回"
+      bind:tap="onBack"
+    >
+      <g-icon name="back" size="{{30}}" tone="ink" />
+    </glass-button>
+
+    <view class="settings-nav__copy">
+      <text class="settings-nav__kicker">CONTROL CENTER</text>
+      <text class="settings-nav__title">全局设置</text>
+    </view>
+
+    <view class="settings-nav__badge">
+      <view class="settings-nav__dot"></view>
+      <text>LIVE</text>
+    </view>
+  </view>
+
+  <scroll-view
+    class="settings-scroll"
+    scroll-y
+    enhanced
+    show-scrollbar="{{false}}"
+    bounces="{{false}}"
+    type="list"
+    scroll-into-view="{{scrollTarget}}"
+    scroll-with-animation
+    bindscroll="onScroll"
+  >
+    <view class="settings-inner" style="padding-top: calc({{contentTop || 0}}px + env(safe-area-inset-top, 0px) + 12rpx);">
+      <!-- 3D 视差 Hero：滚动驱动 transform，不抢页面手势 -->
+      <view class="settings-hero" style="{{heroStyle}}">
+        <glass-card
+          tone="iris"
+          radius="xl"
+          padding="lg"
+          depth="deep"
+          card-class="settings-hero__card"
+        >
+          <view class="settings-hero__top">
+            <view class="settings-hero__status">
+              <view class="settings-hero__pulse" aria-hidden="true"></view>
+              <text>SYSTEM READY</text>
+            </view>
+            <text class="settings-hero__code">CTRL / 01</text>
+          </view>
+
+          <text class="settings-hero__title">控制中枢</text>
+          <text class="settings-hero__sub">一次配置，全局生效。所有偏好只留在本机。</text>
+
+          <view class="settings-hero__chips">
+            <view class="settings-chip">
+              <text class="settings-chip__label">运行模式</text>
+              <text class="settings-chip__value">{{motionLabel}}</text>
+            </view>
+            <view class="settings-chip">
+              <text class="settings-chip__label">最近使用</text>
+              <text class="settings-chip__value">{{recentCount}}</text>
+            </view>
+            <view class="settings-chip">
+              <text class="settings-chip__label">本机缓存</text>
+              <text class="settings-chip__value">{{cacheText}}</text>
+            </view>
+          </view>
+
+          <text class="settings-hero__statusline">{{statusText}}</text>
+        </glass-card>
+      </view>
+
+      <!-- 极客实验室 · 默认收起，不干扰基础设置 -->
+      <view class="settings-group geek-lab">
+        <glass-card
+          tone="neutral"
+          radius="xl"
+          padding="none"
+          depth="deep"
+          card-class="geek-lab__card"
+        >
+          <view
+            class="geek-lab__head"
+            hover-class="geek-lab__head_press"
+            hover-start-time="0"
+            hover-stay-time="80"
+            aria-role="button"
+            aria-expanded="{{geekLabOpen}}"
+            aria-label="展开或收起极客实验室"
+            bindtap="onToggleGeekLab"
+          >
+            <view class="geek-lab__icon">
+              <g-icon name="orbit" size="{{34}}" tone="iris" />
+            </view>
+            <view class="geek-lab__copy">
+              <text class="geek-lab__title">极客实验室</text>
+              <text
+                class="geek-lab__sub"
+                style="max-width: 400rpx; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"
+              >GEEK LAB · Cyber Space OS · 6 个高阶模块</text>
+            </view>
+            <view class="geek-lab__meta">
+              <text class="geek-lab__badge">EXPERIMENTAL</text>
+              <text class="geek-lab__chevron {{geekLabOpen ? 'geek-lab__chevron_open' : ''}}">⌄</text>
+            </view>
+          </view>
+
+          <view wx:if="{{!geekLabOpen}}" class="geek-lab__collapsed">
+            <text>数据星系 · Cron 自动备份 · 时间旅行 · 分片传输 · AES 保险箱 · 事件流</text>
+            <text class="geek-lab__collapsed-hint">默认收起；展开后才挂载 Canvas，Cron 配置与热备继续生效</text>
+          </view>
+
+          <view wx:if="{{geekLabOpen}}" class="geek-lab__body">
+            <view class="geek-guide">
+              <view
+                class="geek-guide__head"
+                hover-class="geek-guide__head_press"
+                hover-start-time="0"
+                hover-stay-time="80"
+                aria-role="button"
+                aria-expanded="{{geekGuideOpen}}"
+                aria-label="展开或收起快速上手"
+                bindtap="onToggleGeekGuide"
+              >
+                <view class="geek-guide__icon" aria-hidden="true">?</view>
+                <view class="geek-guide__copy">
+                  <text class="geek-guide__title">快速上手</text>
+                  <text class="geek-guide__sub">6 个模块一句话说明 · 最简备份 / 换机路径</text>
+                </view>
+                <text class="geek-guide__chevron {{geekGuideOpen ? 'geek-guide__chevron_open' : ''}}">⌄</text>
+              </view>
+
+              <view wx:if="{{geekGuideOpen}}" class="geek-guide__body">
+                <view class="geek-guide__item">
+                  <text class="geek-guide__name">数据星系</text>
+                  <text class="geek-guide__desc">收藏 / 历史 / 偏好 / 快照可视化。拖动缩放，点星球看详情；只展示，不改数据。</text>
+                </view>
+                <view class="geek-guide__item">
+                  <text class="geek-guide__name">Auto-Pilot</text>
+                  <text class="geek-guide__desc">按 Cron 定时生成本机快照。选预设或填表达式，开开关即可；也可点“立即执行一次”。</text>
+                </view>
+                <view class="geek-guide__item">
+                  <text class="geek-guide__name">Time Travel</text>
+                  <text class="geek-guide__desc">记录设置变更并提供回滚。滑时间轴选帧，点“穿越到这一帧”恢复主题、偏好、收藏、历史。</text>
+                </view>
+                <view class="geek-guide__item">
+                  <text class="geek-guide__name">Sliced Transport</text>
+                  <text class="geek-guide__desc">把超长备份码切成 [Part i/n]。发送端逐片复制；接收端逐片追加，到齐自动验签重组。</text>
+                </view>
+                <view class="geek-guide__item">
+                  <text class="geek-guide__name">AES Vault</text>
+                  <text class="geek-guide__desc">生成加密备份码。输入口令 → 加密导出 TXT → 复制备份码或分享文件助手；也可解密还原。</text>
+                </view>
+                <view class="geek-guide__item">
+                  <text class="geek-guide__name">Event Stream</text>
+                  <text class="geek-guide__desc">最近 50 条生命周期、Storage、操作与错误日志，只读诊断用。</text>
+                </view>
+
+                <view class="geek-guide__flow">
+                  <text class="geek-guide__flow-title">最简路径</text>
+                  <text class="geek-guide__flow-line">备份：AES Vault → 输入口令 → 加密导出 TXT → 复制备份码</text>
+                  <text class="geek-guide__flow-line">换机：Sliced Transport 切片 → 逐片发送 → 接收端追加 → AES 解密还原</text>
+                </view>
+              </view>
+            </view>
+
+      <!-- 00 · Cyber Space OS -->
+      <view class="settings-group">
+        <view class="settings-group__head">
+          <text class="settings-group__title">Cyber Space OS</text>
+          <text class="settings-group__code">KERNEL / 00</text>
+        </view>
+
+        <glass-card
+          tone="iris"
+          radius="xl"
+          padding="md"
+          depth="deep"
+          card-class="settings-card cyber-card"
+        >
+          <view class="cyber-kernel">
+            <view class="cyber-kernel__status">
+              <view class="cyber-kernel__pulse" aria-hidden="true"></view>
+              <text>{{cyberCanvasReady ? 'CANVAS ONLINE' : cyberFallback ? 'STATIC FALLBACK' : 'BOOTING'}}</text>
+            </view>
+            <text class="cyber-kernel__meta">{{galaxyNodeCount}} NODES · {{galaxyZoomText}}</text>
+          </view>
+
+          <view class="cyber-galaxy">
+            <canvas
+              wx:if="{{!cyberFallback}}"
+              id="galaxyCanvas"
+              type="2d"
+              class="cyber-canvas"
+              disable-scroll
+              aria-label="数据星系图"
+              catchtouchstart="onGalaxyTouchStart"
+              catchtouchmove="onGalaxyTouchMove"
+              catchtouchend="onGalaxyTouchEnd"
+              catchtouchcancel="onGalaxyTouchCancel"
+            ></canvas>
+
+            <view wx:else class="cyber-fallback">
+              <view
+                wx:for="{{galaxyFallbackNodes}}"
+                wx:key="id"
+                class="cyber-fallback__node"
+                style="--node-color: {{item.color}};"
+              >
+                <view class="cyber-fallback__dot"></view>
+                <view class="cyber-fallback__copy">
+                  <text class="cyber-fallback__label">{{item.label}}</text>
+                  <text class="cyber-fallback__value">{{item.value}}</text>
+                </view>
+              </view>
+              <text wx:if="{{!galaxyFallbackNodes.length}}" class="cyber-fallback__empty">暂无数据星球，先收藏或使用一个工具</text>
+            </view>
+
+            <view class="cyber-galaxy__hud galaxy-hud">
+              <text class="cyber-galaxy__hud-label">GRAVITY / {{galaxyDegraded ? 'LOW' : 'ACTIVE'}}</text>
+              <view class="cyber-galaxy__zoom">
+                <view class="cyber-zoom-btn" aria-role="button" aria-label="缩小星系" bindtap="onGalaxyZoomOut">−</view>
+                <text class="cyber-zoom-text">{{galaxyZoomText}}</text>
+                <view class="cyber-zoom-btn" aria-role="button" aria-label="放大星系" bindtap="onGalaxyZoomIn">+</view>
+              </view>
+            </view>
+          </view>
+
+          <view class="cyber-planet galaxy-detail" wx:if="{{galaxySelected}}">
+            <view class="cyber-planet__dot" aria-hidden="true"></view>
+            <view class="cyber-planet__copy">
+              <text class="cyber-planet__kind">{{galaxySelected.kind}}</text>
+              <text class="cyber-planet__label">{{galaxySelected.label}}</text>
+              <text class="cyber-planet__value">{{galaxySelected.value}}</text>
+            </view>
+            <glass-button
+              variant="ghost"
+              size="sm"
+              custom-class="cyber-reset"
+              bind:tap="onGalaxyReset"
+            >重置视角</glass-button>
+          </view>
+        </glass-card>
+      </view>
+
+      <!-- 00.1 · Auto-Pilot -->
+      <view class="settings-group">
+        <view class="settings-group__head">
+          <text class="settings-group__title">Auto-Pilot</text>
+          <text class="settings-group__code">CRON / 00.1</text>
+        </view>
+
+        <glass-card
+          tone="aurora"
+          radius="lg"
+          padding="md"
+          depth="soft"
+          card-class="settings-card cyber-card"
+        >
+          <view class="cyber-row">
+            <view class="cyber-row__copy">
+              <text class="cyber-row__title">本地 Cron 自动备份</text>
+              <text class="cyber-row__sub">应用前台且本页存活时静默执行；最多保留 5 份自动快照</text>
+            </view>
+            <glass-switch
+              checked="{{pilotEnabled}}"
+              aria-label="Auto-Pilot 开关"
+              bind:change="onPilotToggle"
+            />
+          </view>
+
+          <scroll-view class="cyber-presets" scroll-x enhanced show-scrollbar="{{false}}">
+            <view
+              wx:for="{{pilotPresets}}"
+              wx:key="key"
+              class="cyber-chip {{pilotPreset === item.key ? 'cyber-chip--active' : ''}}"
+              data-key="{{item.key}}"
+              hover-class="cyber-chip--press"
+              hover-stay-time="80"
+              aria-role="button"
+              aria-label="{{item.label}}"
+              bindtap="onPilotPresetTap"
+            >
+              {{item.label}}
+            </view>
+          </scroll-view>
+
+          <view class="cyber-input-row">
+            <input
+              class="cyber-input"
+              value="{{pilotExpression}}"
+              placeholder="0 3 * * 1"
+              placeholder-class="cyber-placeholder"
+              aria-label="Cron 表达式"
+              bindinput="onPilotExpressionInput"
+            />
+            <glass-button variant="tint" size="sm" bind:tap="onPilotApply">应用</glass-button>
+          </view>
+
+          <view class="cyber-actions">
+            <glass-button
+              variant="primary"
+              size="md"
+              block
+              loading="{{pilotRunning}}"
+              loading-text="自动快照中"
+              bind:tap="onPilotRunNow"
+            >
+              立即执行一次
+            </glass-button>
+          </view>
+
+          <view class="cyber-progress" aria-hidden="true">
+            <view class="cyber-progress__bar" style="width: {{pilotProgress}}%;"></view>
+          </view>
+
+          <view class="cyber-metrics">
+            <view class="cyber-metric">
+              <text class="cyber-metric__k">状态</text>
+              <text class="cyber-metric__v">{{pilotStatusText}}</text>
+            </view>
+            <view class="cyber-metric">
+              <text class="cyber-metric__k">下一次</text>
+              <text class="cyber-metric__v">{{pilotNextText}}</text>
+            </view>
+            <view class="cyber-metric">
+              <text class="cyber-metric__k">上次</text>
+              <text class="cyber-metric__v">{{pilotLastText}}</text>
+            </view>
+            <view class="cyber-metric">
+              <text class="cyber-metric__k">执行次数</text>
+              <text class="cyber-metric__v">{{pilotRunCount}}</text>
+            </view>
+          </view>
+          <text wx:if="{{pilotError}}" class="cyber-error">{{pilotError}}</text>
+
+          <view class="cyber-slots">
+            <view class="cyber-slots__head">
+              <text class="cyber-slots__title">自动快照 · FIFO 5</text>
+              <text class="cyber-slots__code">{{autoSlots.length}} / 5</text>
+            </view>
+            <view wx:for="{{autoSlots}}" wx:key="id" class="cyber-slot">
+              <view class="cyber-slot__copy">
+                <text class="cyber-slot__label">{{item.label}}</text>
+                <text class="cyber-slot__meta">{{item.time}} · {{item.sizeText}}</text>
+              </view>
+              <glass-button
+                variant="ghost"
+                size="sm"
+                data-id="{{item.id}}"
+                data-kind="auto"
+                bind:tap="onRestoreSlot"
+              >
+                还原
+              </glass-button>
+            </view>
+            <text wx:if="{{!autoSlots.length}}" class="cyber-empty">还没有自动快照，先执行一次或武装 Cron</text>
+          </view>
+        </glass-card>
+      </view>
+
+      <!-- 00.2 · Time Travel -->
+      <view class="settings-group">
+        <view class="settings-group__head">
+          <text class="settings-group__title">Time Travel</text>
+          <text class="settings-group__code">DEVTOOLS / 00.2</text>
+        </view>
+
+        <glass-card
+          tone="neutral"
+          radius="lg"
+          padding="md"
+          depth="soft"
+          card-class="settings-card cyber-card"
+        >
+          <scroll-view
+            class="cyber-timeline"
+            scroll-x
+            enable-flex
+            enhanced
+            show-scrollbar="{{false}}"
+          >
+            <view
+              wx:for="{{timelineFrames}}"
+              wx:key="id"
+              class="tt-card {{item.active ? 'tt-card--active' : ''}}"
+              data-index="{{item.index}}"
+              hover-class="tt-card--press"
+              hover-stay-time="80"
+              aria-role="button"
+              aria-label="预览 {{item.time}} {{item.label}}"
+              bindtap="onTimelineTap"
+            >
+              <view class="tt-dot" aria-hidden="true"></view>
+              <view class="tt-body">
+                <text class="tt-time">{{item.time}}</text>
+                <text class="tt-title">{{item.label}}</text>
+                <text class="tt-detail">{{item.preferenceText}}</text>
+              </view>
+            </view>
+            <text wx:if="{{!timelineFrames.length}}" class="cyber-empty">还没有状态帧</text>
+          </scroll-view>
+
+          <view class="cyber-timeline__slider">
+            <glass-slider
+              value="{{timelineIndex}}"
+              min="0"
+              max="{{timelineMax}}"
+              step="1"
+              disabled="{{timelineFrames.length < 2}}"
+              aria-label="时间旅行轴"
+              bind:input="onTimelineSlide"
+            />
+          </view>
+
+          <view class="cyber-preview">
+            <text class="cyber-preview__label">{{timelinePreviewLabel}}</text>
+            <text class="cyber-preview__text">{{timelinePreviewText}}</text>
+          </view>
+
+          <glass-button
+            variant="aurora"
+            size="md"
+            block
+            loading="{{travelBusy}}"
+            loading-text="正在穿越"
+            bind:tap="onTimeTravel"
+          >
+            穿越到这一帧
+          </glass-button>
+        </glass-card>
+      </view>
+
+      <!-- 00.3 · Sliced Transport -->
+      <view class="settings-group">
+        <view class="settings-group__head">
+          <text class="settings-group__title">Sliced Transport</text>
+          <text class="settings-group__code">CLIPBOARD / 00.3</text>
+        </view>
+
+        <glass-card
+          tone="amber"
+          radius="lg"
+          padding="md"
+          depth="soft"
+          card-class="settings-card cyber-card"
+        >
+          <text class="cyber-row__sub">长备份码自动切成 [Part i/n]，逐片复制；接收端可乱序追加，全部到齐后验签重组。</text>
+
+          <textarea
+            class="cyber-textarea"
+            value="{{transportText}}"
+            maxlength="-1"
+            placeholder="粘贴需要跨端传输的备份码…"
+            placeholder-class="cyber-placeholder"
+            aria-label="待分片文本"
+            bindinput="onTransportTextInput"
+          />
+
+          <view class="cyber-actions">
+            <glass-button
+              variant="primary"
+              size="md"
+              block
+              loading="{{transportBusy}}"
+              loading-text="分片中"
+              bind:tap="onTransportGenerate"
+            >
+              切分并生成分片
+            </glass-button>
+          </view>
+
+          <view class="cyber-transport">
+            <view class="cyber-transport__head">
+              <text class="cyber-transport__title">发送端 · Part {{transportIndex}}/{{transportTotal}}</text>
+              <text class="cyber-transport__sig">{{transportSignature ? 'CRC ' + transportSignature : '—'}}</text>
+            </view>
+            <text class="cyber-code" selectable>{{transportCurrent || '尚未生成分片'}}</text>
+            <view class="cyber-transport__actions">
+              <glass-button variant="ghost" size="sm" bind:tap="onTransportPrev">上一片</glass-button>
+              <glass-button variant="tint" size="sm" bind:tap="onTransportCopy">复制当前片</glass-button>
+              <glass-button variant="ghost" size="sm" bind:tap="onTransportNext">下一片</glass-button>
+            </view>
+            <text class="cyber-progress-text">{{transportProgress}} · {{transportMessage}}</text>
+          </view>
+
+          <textarea
+            class="cyber-textarea cyber-textarea--append"
+            value="{{transportInput}}"
+            maxlength="-1"
+            placeholder="接收端：粘贴任意一片，可乱序追加…"
+            placeholder-class="cyber-placeholder"
+            aria-label="接收端分片输入"
+            bindinput="onTransportInput"
+          />
+
+          <view class="cyber-actions cyber-actions--split">
+            <glass-button variant="tint" size="md" block bind:tap="onTransportAppend">追加一片并验签</glass-button>
+            <glass-button variant="ghost" size="md" block bind:tap="onTransportPaste">从剪贴板追加</glass-button>
+            <glass-button variant="ghost" size="md" block bind:tap="onTransportReset">重置传输</glass-button>
+          </view>
+
+          <text wx:if="{{transportResult}}" class="cyber-code cyber-code--result" selectable>{{transportResult}}</text>
+        </glass-card>
+      </view>
+
+      <!-- 00.4 · AES Vault & Disaster Recovery -->
+      <view class="settings-group">
+        <view class="settings-group__head">
+          <text class="settings-group__title">AES Vault</text>
+          <text class="settings-group__code">RECOVERY / 00.4</text>
+        </view>
+
+        <glass-card
+          tone="iris"
+          radius="lg"
+          padding="md"
+          depth="soft"
+          card-class="settings-card cyber-card"
+        >
+          <view class="cyber-input-row">
+            <input
+              class="cyber-input"
+              value="{{vaultPass}}"
+              password="{{true}}"
+              placeholder="保险箱口令，至少 6 位"
+              placeholder-class="cyber-placeholder"
+              aria-label="保险箱口令"
+              bindinput="onVaultPassInput"
+            />
+          </view>
+          <text class="cyber-row__sub">AES-256-CBC · 口令 SHA-256 派生 · 密文只在本机生成</text>
+
+          <view class="cyber-actions cyber-actions--split">
+            <glass-button
+              variant="primary"
+              size="md"
+              block
+              loading="{{vaultBusy}}"
+              loading-text="加密导出中"
+              bind:tap="onVaultExport"
+            >
+              加密导出 TXT
+            </glass-button>
+            <glass-button variant="tint" size="md" block bind:tap="onVaultShareFile">分享到文件助手</glass-button>
+            <glass-button variant="ghost" size="md" block bind:tap="onVaultCopy">复制备份码</glass-button>
+            <glass-button variant="ghost" size="md" block bind:tap="onWriteHotSlot">写入热备槽</glass-button>
+          </view>
+
+          <text class="cyber-progress-text">{{vaultMessage}}</text>
+          <text wx:if="{{vaultFile}}" class="cyber-file" selectable>{{vaultFile}}</text>
+
+          <textarea
+            class="cyber-textarea"
+            value="{{vaultText}}"
+            maxlength="-1"
+            placeholder="导出后会自动填入；也可粘贴 CYBER-AES1|... 或由分片传输自动填入…"
+            placeholder-class="cyber-placeholder"
+            aria-label="加密备份文本"
+            bindinput="onVaultTextInput"
+          />
+          <glass-button variant="tint" size="md" block bind:tap="onVaultRestore">解密并静默还原</glass-button>
+
+          <view class="cyber-slots">
+            <view class="cyber-slots__head">
+              <text class="cyber-slots__title">热备槽 · 3 槽轮转</text>
+              <text class="cyber-slots__code">{{hotSlots.length}} / 3</text>
+            </view>
+            <view wx:for="{{hotSlots}}" wx:key="id" class="cyber-slot">
+              <view class="cyber-slot__copy">
+                <text class="cyber-slot__label">{{item.label}}</text>
+                <text class="cyber-slot__meta">{{item.time}} · {{item.sizeText}}</text>
+              </view>
+              <glass-button
+                variant="ghost"
+                size="sm"
+                data-id="{{item.id}}"
+                data-kind="hot"
+                bind:tap="onRestoreSlot"
+              >
+                还原
+              </glass-button>
+            </view>
+            <text wx:if="{{!hotSlots.length}}" class="cyber-empty">还没有热备，先写入一槽</text>
+          </view>
+        </glass-card>
+      </view>
+
+      <!-- 00.5 · Event Stream -->
+      <view class="settings-group">
+        <view class="settings-group__head">
+          <text class="settings-group__title">Event Stream</text>
+          <text class="settings-group__code">TRACE / 00.5</text>
+        </view>
+
+        <glass-card
+          tone="neutral"
+          radius="lg"
+          padding="md"
+          depth="soft"
+          card-class="settings-card cyber-card"
+        >
+          <view class="cyber-log-head">
+            <text class="cyber-row__sub">onLaunch / onShow / Storage 读写 · 仅保留最近 50 条</text>
+            <text class="cyber-log-count">{{eventCount}} / 50</text>
+          </view>
+          <scroll-view
+            class="cyber-log"
+            scroll-y
+            enhanced
+            show-scrollbar="{{false}}"
+            bounces="{{false}}"
+            aria-label="事件流日志"
+          >
+            <view class="cyber-log__list">
+              <view wx:for="{{eventLog}}" wx:key="id" class="cyber-log__row">
+                <text class="cyber-log__time">{{item.time}}</text>
+                <text class="cyber-log__kind cyber-log__kind--{{item.kind}}">{{item.kind}}</text>
+                <text class="cyber-log__name">{{item.name}}</text>
+                <text class="cyber-log__detail">{{item.detail}}</text>
+              </view>
+              <text wx:if="{{!eventLog.length}}" class="cyber-empty">等待事件…</text>
+            </view>
+          </scroll-view>
+        </glass-card>
+      </view>
+          </view>
+        </glass-card>
+      </view>
+
+      <!-- 01 感官体验 -->
+      <view class="settings-group">
+        <view class="settings-group__head">
+          <text class="settings-group__title">感官体验</text>
+          <text class="settings-group__code">SENSORY / 01</text>
+        </view>
+
+        <glass-card
+          tone="neutral"
+          radius="lg"
+          padding="none"
+          depth="soft"
+          card-class="settings-card"
+        >
+          <view class="settings-row">
+            <view class="settings-row__icon">
+              <g-icon name="spark" size="{{30}}" tone="iris" />
+            </view>
+            <view class="settings-row__copy">
+              <text class="settings-row__title">系统音效</text>
+              <text class="settings-row__sub">点按、成功与警示音；关闭后完全静音</text>
+            </view>
+            <glass-switch
+              checked="{{sound}}"
+              aria-label="系统音效"
+              bind:change="onSoundChange"
+            />
+          </view>
+
+          <view class="settings-divider"></view>
+
+          <view
+            class="settings-row settings-row--action"
+            hover-class="settings-row--press"
+            hover-start-time="0"
+            hover-stay-time="80"
+            aria-role="button"
+            aria-label="选择物理震动档位"
+            bindtap="onHapticsTap"
+          >
+            <view class="settings-row__icon">
+              <g-icon name="orbit" size="{{30}}" tone="aurora" />
+            </view>
+            <view class="settings-row__copy">
+              <text class="settings-row__title">物理震动</text>
+              <text class="settings-row__sub">关闭 / 轻震 / 重震；静震不影响音效</text>
+            </view>
+            <text class="settings-row__value">{{hapticsLabel}}</text>
+            <g-icon name="chevron" size="{{22}}" tone="ink4" />
+          </view>
+        </glass-card>
+      </view>
+
+      <!-- 02 视觉与性能 -->
+      <view class="settings-group">
+        <view class="settings-group__head">
+          <text class="settings-group__title">视觉与性能</text>
+          <text class="settings-group__code">VISION / 02</text>
+        </view>
+
+        <glass-card
+          tone="neutral"
+          radius="lg"
+          padding="none"
+          depth="soft"
+          card-class="settings-card"
+        >
+          <view class="settings-row">
+            <view class="settings-row__icon">
+              <g-icon name="sun" size="{{30}}" tone="amber" />
+            </view>
+            <view class="settings-row__copy">
+              <text class="settings-row__title">动态光效</text>
+              <text class="settings-row__sub">关闭极光流动与光追，同时降低模糊采样</text>
+            </view>
+            <glass-switch
+              checked="{{lightEffects}}"
+              aria-label="动态光效"
+              bind:change="onLightEffectsChange"
+            />
+          </view>
+
+          <view class="settings-divider"></view>
+
+          <view class="settings-slider">
+            <view class="settings-slider__head">
+              <view class="settings-slider__copy">
+                <text class="settings-slider__title">动画强度</text>
+                <text class="settings-slider__sub">低端机建议「省电」，旗舰机可保持「全效」</text>
+              </view>
+              <text class="settings-slider__value">{{motionPreview}}</text>
+            </view>
+
+            <glass-slider
+              value="{{motionIndex}}"
+              min="0"
+              max="2"
+              step="1"
+              marks="{{motionMarks}}"
+              aria-label="动画强度"
+              bind:input="onMotionInput"
+              bind:change="onMotionChange"
+            />
+
+            <text class="settings-hint">
+              省电模式会关闭陀螺仪视差、动态极光与大部分过渡，仅保留必要状态反馈。
+            </text>
+          </view>
+        </glass-card>
+      </view>
+
+      <!-- 03 存储与数据 -->
+      <view class="settings-group">
+        <view class="settings-group__head">
+          <text class="settings-group__title">存储与数据</text>
+          <text class="settings-group__code">STORAGE / 03</text>
+        </view>
+
+        <glass-card
+          tone="neutral"
+          radius="lg"
+          padding="none"
+          depth="soft"
+          card-class="settings-card"
+        >
+          <view
+            class="settings-row settings-row--action"
+            hover-class="settings-row--press"
+            hover-start-time="0"
+            hover-stay-time="80"
+            aria-role="button"
+            aria-label="打开数据驾驶舱"
+            bindtap="onOpenCockpit"
+          >
+            <view class="settings-row__icon">
+              <g-icon name="history" size="{{30}}" tone="iris" />
+            </view>
+            <view class="settings-row__copy">
+              <text class="settings-row__title">数据驾驶舱</text>
+              <text class="settings-row__sub">效率洞察、分类占比、近 7 日活动与计算轨迹</text>
+            </view>
+            <g-icon name="chevron" size="{{22}}" tone="ink4" />
+          </view>
+
+          <view class="settings-divider"></view>
+
+          <view class="settings-row">
+            <view class="settings-row__icon">
+              <g-icon name="stack" size="{{30}}" tone="iris" />
+            </view>
+            <view class="settings-row__copy">
+              <text class="settings-row__title">本机缓存</text>
+              <text class="settings-row__sub">{{cacheDetail}}</text>
+            </view>
+            <text class="settings-row__value">{{cacheText}}</text>
+          </view>
+
+          <view class="settings-divider"></view>
+
+          <view
+            class="settings-row settings-row--action"
+            hover-class="settings-row--press"
+            hover-start-time="0"
+            hover-stay-time="80"
+            aria-role="button"
+            aria-label="设置自动清理阈值"
+            bindtap="onCleanTap"
+          >
+            <view class="settings-row__icon">
+              <g-icon name="clock" size="{{30}}" tone="aurora" />
+            </view>
+            <view class="settings-row__copy">
+              <text class="settings-row__title">自动清理最近使用</text>
+              <text class="settings-row__sub">只裁剪超过阈值的记录，收藏不受影响</text>
+            </view>
+            <text class="settings-row__value">{{autoCleanLabel}}</text>
+            <g-icon name="chevron" size="{{22}}" tone="ink4" />
+          </view>
+
+          <view class="settings-divider"></view>
+
+          <view
+            class="settings-row settings-row--action settings-row--danger"
+            hover-class="settings-row--press"
+            hover-start-time="0"
+            hover-stay-time="80"
+            aria-role="button"
+            aria-label="仅清空最近使用"
+            bindtap="onClearRecentsTap"
+          >
+            <view class="settings-row__icon">
+              <g-icon name="history" size="{{30}}" tone="ink3" />
+            </view>
+            <view class="settings-row__copy">
+              <text class="settings-row__title">仅清空最近使用</text>
+              <text class="settings-row__sub">当前 {{recentCount}} 条 · 收藏与偏好保留</text>
+            </view>
+            <text class="settings-row__value settings-row__value--danger">清空</text>
+            <g-icon name="chevron" size="{{22}}" tone="ink4" />
+          </view>
+        </glass-card>
+      </view>
+
+      <!-- 04 实验室 -->
+      <view class="settings-group">
+        <view class="settings-group__head">
+          <text class="settings-group__title">实验室</text>
+          <text class="settings-group__code">LAB / 04</text>
+        </view>
+
+        <glass-card
+          tone="amber"
+          radius="lg"
+          padding="md"
+          depth="deep"
+          card-class="settings-card settings-lab"
+        >
+          <view class="settings-lab__orbit" aria-hidden="true">
+            <view class="settings-lab__orbit-core"></view>
+            <view class="settings-lab__orbit-sat"></view>
+          </view>
+
+          <view class="settings-lab__head">
+            <text class="settings-lab__badge">RESERVED</text>
+            <text class="settings-lab__code">MYSTERY / 05</text>
+          </view>
+
+          <view class="settings-row settings-row--lab">
+            <view class="settings-row__icon settings-row__icon--amber">
+              <g-icon name="compass" size="{{30}}" tone="amber" />
+            </view>
+            <view class="settings-row__copy">
+              <text class="settings-row__title">AI 实验席位</text>
+              <text class="settings-row__sub">未来功能，敬请期待；开启仅登记意向</text>
+            </view>
+            <glass-switch
+              checked="{{flagAi}}"
+              aria-label="AI 实验席位"
+              bind:change="onAiFlagChange"
+            />
+          </view>
+
+          <text class="settings-lab__hint">
+            {{flagAi ? '实验席位已预留，功能上线后自动生效。' : '内部实验，未上线；提前预留不会改变当前任何功能。'}}
+          </text>
+        </glass-card>
+      </view>
+
+      <!-- 版本与更新日志 -->
+      <view class="settings-group" id="settings-changelog">
+        <view class="settings-group__head">
+          <text class="settings-group__title">版本与说明</text>
+          <text class="settings-group__code">CHANGELOG</text>
+        </view>
+
+        <glass-card
+          tone="neutral"
+          radius="lg"
+          padding="none"
+          depth="soft"
+          card-class="settings-card"
+        >
+          <view
+            class="settings-row settings-row--action"
+            hover-class="settings-row--press"
+            hover-start-time="0"
+            hover-stay-time="80"
+            aria-role="button"
+            aria-label="展开更新日志"
+            bindtap="onToggleChangelog"
+          >
+            <view class="settings-row__icon">
+              <g-icon name="history" size="{{30}}" tone="iris" />
+            </view>
+            <view class="settings-row__copy">
+              <view class="settings-row__title-wrap">
+                <text class="settings-row__title">版本与更新日志</text>
+                <view wx:if="{{hasPendingUpdate}}" class="settings-update-dot" aria-hidden="true"></view>
+              </view>
+              <text wx:if="{{hasPendingUpdate}}" class="settings-row__sub settings-row__sub--update">新版本已就绪 · 重启小程序后生效</text>
+              <text wx:else class="settings-row__sub">v{{version}} · 23 个本机工具 · 无广告 · 无登录</text>
+            </view>
+            <text class="settings-row__value">{{changelogOpen ? '收起' : '展开'}}</text>
+            <view class="settings-chevron {{changelogOpen ? 'settings-chevron--open' : ''}}">
+              <g-icon name="chevron" size="{{22}}" tone="ink4" />
+            </view>
+          </view>
+
+          <view class="settings-changelog {{changelogOpen ? 'settings-changelog--open' : ''}}">
+            <view
+              wx:for="{{changelog}}"
+              wx:for-item="entry"
+              wx:key="version"
+              class="settings-changelog__item"
+            >
+              <view class="settings-changelog__head">
+                <text class="settings-changelog__version">{{entry.version}}</text>
+                <text class="settings-changelog__date">{{entry.date}}</text>
+              </view>
+              <text class="settings-changelog__title">{{entry.title}}</text>
+              <view class="settings-changelog__notes">
+                <text
+                  wx:for="{{entry.notes}}"
+                  wx:for-item="note"
+                  wx:key="*this"
+                  class="settings-changelog__note"
+                >
+                  · {{note}}
+                </text>
+              </view>
+            </view>
+          </view>
+        </glass-card>
+      </view>
+
+      <view class="settings-colophon">
+        <text>CHAOHUAN · CONTROL CENTER · LOCAL ONLY · V{{version}}</text>
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- 选项抽屉：直接由设置页渲染，size=half 保证滚动区有确定高度 -->
+  <glass-bottom-sheet
+    show="{{pickerShow}}"
+    title="{{pickerTitle}}"
+    description="{{pickerDesc}}"
+    size="half"
+    z-index="{{900}}"
+    bind:close="onPickerClose"
+    bind:closed="onPickerClose"
+  >
+    <!-- 这里是选项列表的渲染 -->
+    <view class="settings-picker" aria-role="listbox">
+      <view
+        wx:for="{{pickerOptions}}"
+        wx:key="value"
+        class="settings-picker__option {{item.active ? 'settings-picker__option--active' : ''}}"
+        hover-class="settings-picker__option--press"
+        hover-start-time="0"
+        hover-stay-time="80"
+        data-value="{{item.value}}"
+        aria-role="option"
+        aria-selected="{{item.active}}"
+        bindtap="onPickerOptionTap"
+      >
+        <view class="settings-picker__radio" aria-hidden="true">
+          <view class="settings-picker__dot"></view>
+        </view>
+
+        <view class="settings-picker__copy">
+          <text class="settings-picker__label">{{item.label}}</text>
+          <text class="settings-picker__desc">{{item.desc}}</text>
+        </view>
+
+        <text wx:if="{{item.active}}" class="settings-picker__check" aria-hidden="true">✓</text>
+      </view>
+    </view>
+  </glass-bottom-sheet>
+
+  <!-- 清空确认：全部内容放在 footer 槽，避免默认滚动区高度塌陷 -->
+  <glass-bottom-sheet
+    show="{{confirmShow}}"
+    title="清空最近使用"
+    size="auto"
+    z-index="{{1000}}"
+    show-footer="{{true}}"
+    bind:close="onConfirmSheetClose"
+    bind:closed="onConfirmSheetClose"
+  >
+    <view slot="footer" class="settings-confirm">
+      <view class="settings-confirm__icon" aria-hidden="true">
+        <g-icon name="history" size="{{40}}" tone="ink3" />
+      </view>
+      <text class="settings-confirm__title">确定清空 {{recentCount}} 条记录？</text>
+      <text class="settings-confirm__desc">此操作不可恢复，但不会触碰你的收藏与全局偏好。</text>
+
+      <view class="settings-confirm__actions">
+        <view class="settings-confirm__action">
+          <glass-button variant="ghost" block bind:tap="onConfirmCancel">取消</glass-button>
+        </view>
+        <view class="settings-confirm__action">
+          <glass-button variant="danger" block bind:tap="onConfirmClear">确认清空</glass-button>
+        </view>
+      </view>
+    </view>
+  </glass-bottom-sheet>
+
+  <glass-toast z-index="{{1200}}" />
+
+  <!-- AES 加密 / 时间旅行 / 分片 / Auto-Pilot / 页面抽屉期间，更新弹窗只排队 -->
+  <update-guard
+    blocked="{{vaultBusy || travelBusy || transportBusy || pilotRunning || pickerShow || confirmShow}}"
+  />
+</view>

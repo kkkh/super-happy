@@ -1,0 +1,16 @@
+<glass-modal
+  show="{{modalShow}}"
+  title="{{modalTitle}}"
+  description="{{modalDesc}}"
+  confirm-text="{{confirmText}}"
+  cancel-text="{{cancelText}}"
+  extra-text="{{extraText}}"
+  mask-closable="{{false}}"
+  z-index="{{modalZIndex}}"
+  aria-label="新版本更新提示"
+  bind:confirm="onConfirm"
+  bind:cancel="onCancel"
+  bind:extra="onExtra"
+  bind:close="onClose"
+  bind:opened="onOpened"
+/>

@@ -1,0 +1,212 @@
+/* 作品列表 */
+.list_scroll {
+  flex: 1;
+  width: 100%;
+}
+
+.list_body {
+  display: flex;
+  flex-direction: column;
+  padding: 8rpx 48rpx calc(56rpx + env(safe-area-inset-bottom));
+  gap: 32rpx;
+}
+
+/* ---- 分类头 ---- */
+.list_head {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 16rpx;
+}
+
+.list_kicker {
+  font-size: 20rpx;
+  font-weight: 700;
+  letter-spacing: 3rpx;
+}
+
+.list_kicker_iris { color: var(--g-iris); }
+.list_kicker_aurora { color: var(--g-aurora); }
+
+.list_count {
+  font-size: 22rpx;
+  color: var(--g-ink-4);
+  letter-spacing: 2rpx;
+}
+
+/* ---- 搜索栏 ---- */
+.list_search {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 16rpx;
+  height: 84rpx;
+  padding: 0 28rpx;
+  border-radius: 999rpx;
+  background-color: var(--g-well);
+  border: 1rpx solid var(--g-stroke);
+}
+
+.list_search_input {
+  flex: 1;
+  height: 100%;
+  font-size: 26rpx;
+  color: var(--g-ink);
+  letter-spacing: 1rpx;
+}
+
+.list_search_ph {
+  color: var(--g-ink-4);
+}
+
+.list_search_clear {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 999rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--g-surface);
+}
+
+/* ---- 空态 ---- */
+.list_skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+  margin-top: 24rpx;
+}
+
+.list_empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16rpx;
+  padding: 96rpx 0;
+}
+
+.list_empty_text {
+  font-size: 28rpx;
+  color: var(--g-ink-3);
+}
+
+.list_empty_sub {
+  font-size: 22rpx;
+  color: var(--g-ink-4);
+}
+
+/* ---- 作品卡 ---- */
+.list_cards {
+  display: flex;
+  flex-direction: column;
+  gap: 32rpx;
+}
+
+.list_card {
+  display: flex;
+  flex-direction: column;
+}
+
+.list_se {
+  width: 100%;
+  height: 100%;
+}
+
+.list_cover {
+  position: relative;
+  height: 340rpx;
+}
+
+.list_cover_inner {
+  width: 100%;
+  height: 100%;
+}
+
+.list_cover_img {
+  width: 100%;
+  height: 100%;
+}
+
+/* 夜航：封面白底截图降低亮度 */
+.page_root.theme-dark .list_cover_img {
+  opacity: 0.82;
+}
+
+.list_cover_scrim {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: linear-gradient(180deg, var(--g-cover-scrim-0) 55%, var(--g-cover-scrim) 100%);
+}
+
+.list_cover_meta {
+  position: absolute;
+  left: 24rpx;
+  bottom: 20rpx;
+}
+
+.list_cover_role {
+  font-size: 20rpx;
+  color: var(--g-ink-2);
+  letter-spacing: 3rpx;
+  font-weight: 600;
+}
+
+.list_fav_badge {
+  position: absolute;
+  right: 20rpx;
+  top: 20rpx;
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 999rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(4, 6, 11, 0.55);
+  border: 1rpx solid rgba(232, 197, 138, 0.4);
+}
+
+.list_card_body {
+  display: flex;
+  flex-direction: column;
+  gap: 14rpx;
+  padding: 28rpx;
+}
+
+.list_card_head {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.list_card_title {
+  flex: 1;
+  min-width: 0;
+  font-size: 34rpx;
+  font-weight: 700;
+  color: var(--g-ink);
+  letter-spacing: 2rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.list_card_sub {
+  font-size: 22rpx;
+  color: var(--g-ink-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.list_card_tags {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-top: 4rpx;
+}

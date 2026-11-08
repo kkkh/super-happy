@@ -1,0 +1,243 @@
+view,text,::after,::before {
+      --tw-rotate-x: initial;
+      --tw-rotate-y: initial;
+      --tw-rotate-z: initial;
+      --tw-skew-x: initial;
+      --tw-skew-y: initial;
+      --tw-border-style: solid;
+      --tw-ease: initial;
+      --tw-content: "";
+    }
+  page,.tw-root,wx-root-portal-content,:host {
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', 'Noto Sans', Arial,
+    sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
+    monospace;
+    --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+    --default-transition-duration: 150ms;
+    --default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    --default-font-family: var(--font-sans);
+    --default-mono-font-family: var(--font-mono);
+  }
+  view,text,::after,::before {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    border: 0 solid;
+    --tw-duration: initial;
+  }
+  .block {
+    display: block;
+  }
+  .flex {
+    display: flex;
+  }
+  .grid {
+    display: grid;
+  }
+  .hidden {
+    display: none;
+  }
+  .inline {
+    display: inline;
+  }
+  .flex-shrink {
+    flex-shrink: 1;
+  }
+  .transform {
+            transform: var(--tw-rotate-x, ) var(--tw-rotate-y, ) var(--tw-rotate-z, ) var(--tw-skew-x, ) var(--tw-skew-y, );
+  }
+  .flex-wrap {
+    flex-wrap: wrap;
+  }
+  .border {
+    border-style: var(--tw-border-style);
+    border-width: 1px;
+  }
+  .font-display {
+    font-family: "PingFang SC", "SF Pro Display", -apple-system, sans-serif;
+  }
+  .lowercase {
+    text-transform: lowercase;
+  }
+  .uppercase {
+    text-transform: uppercase;
+  }
+  .transition {
+    transition-property: color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to, opacity, box-shadow, transform, translate, scale, rotate, filter, backdrop-filter, display, content-visibility, overlay, pointer-events;
+    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
+    transition-duration: var(--tw-duration, var(--default-transition-duration));
+  }
+  .delay-1 {
+    transition-delay: 1ms;
+  }
+  .delay-2 {
+    transition-delay: 2ms;
+  }
+  .delay-3 {
+    transition-delay: 3ms;
+  }
+  .delay-4 {
+    transition-delay: 4ms;
+  }
+  .delay-5 {
+    transition-delay: 5ms;
+  }
+  .delay-6 {
+    transition-delay: 6ms;
+  }
+  .delay-7 {
+    transition-delay: 7ms;
+  }
+  .delay-8 {
+    transition-delay: 8ms;
+  }
+  .delay-9 {
+    transition-delay: 9ms;
+  }
+  .ease-in-out {
+    --tw-ease: var(--ease-in-out);
+    transition-timing-function: var(--ease-in-out);
+  }
+@keyframes rise {
+  from {
+    opacity: 0;
+            transform: translateY(48rpx);
+  }
+  to {
+    opacity: 1;
+            transform: translateY(0);
+  }
+}
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes scale-in {
+  from {
+    opacity: 0;
+            transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+            transform: scale(1);
+  }
+}
+@keyframes shimmer {
+  from {
+    background-position: -400rpx 0;
+  }
+  to {
+    background-position: 400rpx 0;
+  }
+}
+@keyframes sheen {
+  from {
+            transform: translateX(-120%) rotate(8deg);
+  }
+  to {
+            transform: translateX(220%) rotate(8deg);
+  }
+}
+@keyframes float-soft {
+  0%,100% {
+            transform: translateY(0);
+  }
+  50% {
+            transform: translateY(-12rpx);
+  }
+}
+@keyframes pulse-soft {
+  0%,100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@keyframes orbit-spin {
+  from {
+            transform: rotate(0deg);
+  }
+  to {
+            transform: rotate(360deg);
+  }
+}
+@keyframes glow-breathe {
+  0%,100% {
+    opacity: 0.5;
+            transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+            transform: scale(1.06);
+  }
+}
+.anim-rise {
+          animation: rise 0.64s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+.anim-fade {
+          animation: fade 0.48s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+.anim-scale-in {
+          animation: scale-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.anim-float {
+          animation: float-soft 4.2s ease-in-out infinite;
+}
+.anim-pulse-soft {
+          animation: pulse-soft 2.4s ease-in-out infinite;
+}
+.anim-orbit {
+          animation: orbit-spin 9s linear infinite;
+}
+.anim-breathe {
+          animation: glow-breathe 3.2s ease-in-out infinite;
+}
+.delay-1 {
+          animation-delay: 60ms;
+}
+.delay-2 {
+          animation-delay: 120ms;
+}
+.delay-3 {
+          animation-delay: 180ms;
+}
+.delay-4 {
+          animation-delay: 240ms;
+}
+.delay-5 {
+          animation-delay: 300ms;
+}
+.delay-6 {
+          animation-delay: 360ms;
+}
+.delay-7 {
+          animation-delay: 420ms;
+}
+.delay-8 {
+          animation-delay: 480ms;
+}
+.delay-9 {
+          animation-delay: 540ms;
+}
+.skeleton-sheen {
+  background-color: var(--g-skeleton);
+  background-image: linear-gradient( 90deg, var(--g-skeleton) 0%, var(--g-skeleton-hi) 50%, var(--g-skeleton) 100% );
+  background-size: 400rpx 100%;
+  background-repeat: no-repeat;
+          animation: shimmer 1.4s ease-in-out infinite;
+}
+.glass-sheen::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 34%;
+  background-image: linear-gradient( 100deg, rgba(255, 255, 255, 0) 0%, var(--g-sheen-hi) 50%, rgba(255, 255, 255, 0) 100% );
+          animation: sheen 3.6s cubic-bezier(0.32, 0.72, 0, 1) infinite;
+}

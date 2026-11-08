@@ -1,0 +1,27 @@
+<glass-card
+  tone="{{cardTone}}"
+  radius="lg"
+  padding="md"
+  depth="{{cardDepth}}"
+  card-class="tool-card"
+>
+  <view wx:if="{{label}}" class="tool-card__head">
+    <text class="tool-card__label">{{label}}</text>
+    <text wx:if="{{code}}" class="tool-card__code">{{code}}</text>
+  </view>
+
+  <view class="tool-card__body">
+    <view wx:if="{{!isResult || hasResult}}">
+      <slot></slot>
+    </view>
+    <view wx:else class="tool-card__empty">
+      <text class="tool-card__empty-mark" aria-hidden="true">—</text>
+      <text class="tool-card__empty-title">{{emptyTitle}}</text>
+      <text class="tool-card__empty-sub">{{emptySub}}</text>
+    </view>
+  </view>
+
+  <view wx:if="{{showActions}}" class="tool-card__actions">
+    <slot name="actions"></slot>
+  </view>
+</glass-card>

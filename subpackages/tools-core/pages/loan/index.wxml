@@ -1,0 +1,172 @@
+<glass-tool-shell
+  tool-id="loan"
+  title="{{toolName}}"
+  kicker="{{kicker}}"
+  desc="{{desc}}"
+  poster-data="{{posterData}}"
+  sensitive="finance"
+  state="{{shellState}}"
+  run-label="计算月供"
+  has-result="{{hasResult}}"
+  error="{{error}}"
+  empty-title="填入贷款信息，试算月供"
+  empty-sub="支持等额本息与等额本金"
+  bind:run="onRun"
+  bind:example="onExample"
+  bind:reset="onReset"
+>
+  <view slot="input" class="sg-tool-fields">
+    <view class="tool-seg">
+      <glass-button
+        variant="{{mode === 'equal-payment' ? 'primary' : 'ghost'}}"
+        size="sm"
+        haptic="none"
+        data-mode="equal-payment"
+        aria-label="等额本息"
+        bind:tap="onMode"
+      >
+        等额本息
+      </glass-button>
+      <glass-button
+        variant="{{mode === 'equal-principal' ? 'primary' : 'ghost'}}"
+        size="sm"
+        haptic="none"
+        data-mode="equal-principal"
+        aria-label="等额本金"
+        bind:tap="onMode"
+      >
+        等额本金
+      </glass-button>
+    </view>
+
+    <glass-input
+      label="贷款金额"
+      hint="0.01–10,000 万元"
+      type="digit"
+      maxlength="{{16}}"
+      value="{{principal}}"
+      placeholder="例如 100"
+      data-field="principal"
+      aria-label="贷款金额，单位万元"
+      bind:input="onInput"
+      bind:confirm="onInput"
+    >
+      <text slot="suffix" class="sg-tool-unit">万元</text>
+    </glass-input>
+
+    <glass-input
+      label="年利率"
+      hint="0–24%，最多两位小数"
+      type="digit"
+      maxlength="{{6}}"
+      value="{{rate}}"
+      placeholder="例如 3.5"
+      data-field="rate"
+      aria-label="年利率百分比"
+      bind:input="onInput"
+      bind:confirm="onInput"
+    >
+      <text slot="suffix" class="sg-tool-unit">%</text>
+    </glass-input>
+
+    <glass-input
+      label="贷款年限"
+      hint="1–50 年"
+      type="number"
+      maxlength="{{4}}"
+      value="{{years}}"
+      placeholder="例如 30"
+      data-field="years"
+      aria-label="贷款年限"
+      bind:input="onInput"
+      bind:confirm="onInput"
+    >
+      <text slot="suffix" class="sg-tool-unit">年</text>
+    </glass-input>
+  </view>
+
+  <view slot="result" class="sg-tool-result">
+    <view class="sg-tool-result__head">
+      <text class="sg-tool-result__label">{{mode === 'equal-payment' ? '每月月供' : '首月月供'}}</text>
+      <text class="sg-tool-result__meta">{{mode === 'equal-payment' ? 'EQUAL PAYMENT' : 'EQUAL PRINCIPAL'}}</text>
+    </view>
+
+    <view class="sg-tool-result__main">
+      <animated-number
+        value="{{monthlyValue}}"
+        decimals="2"
+        prefix="¥"
+        size="xl"
+        tone="aurora"
+      />
+    </view>
+
+    <text class="sg-tool-result__caption">{{mode === 'equal-payment' ? '等额本息' : '等额本金'}} · 年利率 {{rate}}%</text>
+
+    <view class="sg-tool-rows">
+      <view class="sg-tool-row">
+        <text class="sg-tool-row__k">总利息</text>
+        <text class="sg-tool-row__v">{{interestText}}</text>
+      </view>
+      <view class="sg-tool-row">
+        <text class="sg-tool-row__k">总还款</text>
+        <text class="sg-tool-row__v">{{totalText}}</text>
+      </view>
+      <view class="sg-tool-row">
+        <text class="sg-tool-row__k">还款期数</text>
+        <text class="sg-tool-row__v">{{periodsText}}</text>
+      </view>
+      <view wx:if="{{mode === 'equal-principal'}}" class="sg-tool-row">
+        <text class="sg-tool-row__k">末月月供</text>
+        <text class="sg-tool-row__v">{{lastText}}</text>
+      </view>
+    </view>
+
+    <view class="sg-tool-result__actions">
+      <glass-button variant="ghost" size="md" block bind:tap="onCopy">
+        复制结果
+      </glass-button>
+      <glass-button
+        variant="{{scheduleShow ? 'aurora' : 'ghost'}}"
+        size="md"
+        block
+        aria-label="{{scheduleShow ? '收起' : '展开'}}还款明细"
+        bind:tap="onToggleSchedule"
+      >
+        {{scheduleShow ? '收起明细' : '还款明细'}}
+      </glass-button>
+    </view>
+
+    <view wx:if="{{scheduleShow && schedule.length}}" class="tool-block">
+      <view class="sg-tool-result__head">
+        <text class="sg-tool-result__label">还款明细</text>
+        <text class="sg-tool-result__meta">前 {{schedule.length}} 期 · 元</text>
+      </view>
+      <view class="sg-tool-rows">
+        <view wx:for="{{schedule}}" wx:key="index" class="tool-period">
+          <view class="tool-period__top">
+            <text class="tool-period__index">第 {{item.index}} 期</text>
+            <text class="tool-period__pay">{{item.payment}}</text>
+          </view>
+          <view class="tool-period__sub">
+            <text>本金 {{item.principal}}</text>
+            <text>利息 {{item.interest}}</text>
+            <text>剩余 {{item.balance}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view slot="note">
+    <glass-card tone="amber" radius="lg" padding="md" depth="soft">
+      <view class="sg-tool-note">
+        <text class="sg-tool-note__title">试算说明</text>
+        <text class="sg-tool-note__text">
+          结果按固定年利率与整数期数估算，不含手续费、提前还款、利率浮动与银行计息日差异。
+          仅供购房预算参考，不构成贷款或投资建议。
+        </text>
+      </view>
+    </glass-card>
+  </view>
+</glass-tool-shell>

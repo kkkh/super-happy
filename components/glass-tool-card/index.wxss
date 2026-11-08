@@ -1,0 +1,64 @@
+/* ==========================================================================
+   glass-tool-card · 统一玻璃卡片外观
+   - 只使用 --glass-* / --sg-* 令牌，无硬编码色值
+   ========================================================================== */
+
+.tool-card {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.tool-card__head {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  margin-bottom: 18rpx;
+}
+
+.tool-card__label,
+.tool-card__code {
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 18rpx;
+  letter-spacing: 0.1em;
+}
+
+.tool-card__body {
+  display: flex;
+  flex-direction: column;
+}
+
+.tool-card__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  padding: 48rpx 24rpx;
+  text-align: center;
+}
+
+.tool-card__empty-mark {
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 44rpx;
+}
+
+.tool-card__empty-title {
+  color: var(--glass-text-2);
+  font-size: 26rpx;
+  font-weight: 600;
+}
+
+.tool-card__empty-sub {
+  color: var(--glass-text-3);
+  font-size: 20rpx;
+  line-height: 1.6;
+}
+
+.tool-card__actions {
+  padding-top: 20rpx;
+}

@@ -1,0 +1,60 @@
+<view class="tl">
+  <!-- 原实现：wx:for="{{eras}}" + wx:if="{{openMap[era.id]}}" 动态键取值
+       现改为组件预计算的 viewEras 与 era.open -->
+  <view wx:for="{{viewEras}}" wx:for-item="era" wx:key="id" class="tl_era">
+    <!-- 轨道节点 -->
+    <view class="tl_rail">
+      <view class="tl_node tl_node_{{era.tone}}"></view>
+      <view class="tl_line"></view>
+    </view>
+
+    <!-- 纪元体 -->
+    <view class="tl_body">
+      <view
+        class="tl_card"
+        hover-class="tl_card_press"
+        hover-stay-time="80"
+        data-id="{{era.id}}"
+        aria-role="button"
+        aria-label="{{era.title}}，{{era.open ? '收起里程碑' : '展开里程碑'}}"
+        bindtap="onEraTap"
+      >
+        <view class="tl_head">
+          <text class="tl_era_no tl_era_no_{{era.tone}}">{{era.era}}</text>
+          <text class="tl_kicker">{{era.kicker}}</text>
+        </view>
+        <text class="tl_title">{{era.title}}</text>
+        <text class="tl_note">{{era.note}}</text>
+
+        <view wx:if="{{era.open}}" class="tl_items">
+          <view wx:for="{{era.items}}" wx:for-item="ms" wx:key="title" class="tl_ms">
+            <view class="tl_ms_dot tl_ms_dot_{{era.tone}}"></view>
+            <view class="tl_ms_text">
+              <text class="tl_ms_title">{{ms.title}}</text>
+              <text class="tl_ms_note">{{ms.note}}</text>
+            </view>
+          </view>
+        </view>
+        <view wx:else class="tl_more">
+          <text class="tl_more_text">展开 {{era.items.length}} 个里程碑</text>
+          <g-icon name="chevron" size="{{22}}" tone="ink4" />
+        </view>
+      </view>
+
+      <!-- 已展开态的收起提示 -->
+      <view
+        wx:if="{{era.open}}"
+        class="tl_fold"
+        hover-class="tl_fold_press"
+        hover-stay-time="80"
+        data-id="{{era.id}}"
+        aria-role="button"
+        aria-label="收起{{era.title}}纪元"
+        catchtap="onEraTap"
+      >
+        <text class="tl_fold_text">收起纪元</text>
+        <g-icon name="chevron" size="{{22}}" tone="ink4" flip />
+      </view>
+    </view>
+  </view>
+</view>

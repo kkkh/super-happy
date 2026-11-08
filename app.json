@@ -1,0 +1,118 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/lab/index",
+    "pages/favorites/index",
+    "pages/mine/index",
+    "pages/legal/index"
+  ],
+  "subpackages": [
+    {
+      "root": "subpackages/tools-core",
+      "pages": [
+        "pages/unit/index",
+        "pages/tax/index",
+        "pages/loan/index",
+        "pages/deposit/index",
+        "pages/span/index",
+        "pages/age/index",
+        "pages/countdown/index",
+        "pages/timestamp/index",
+        "pages/rmb/index",
+        "pages/wordcount/index",
+        "pages/text-diff/index",
+        "pages/hash/index",
+        "pages/dedupe/index",
+        "pages/json/index",
+        "pages/url/index",
+        "pages/base64/index",
+        "pages/password/index",
+        "pages/bmi/index"
+      ]
+    },
+    {
+      "root": "subpackages/tools-media",
+      "pages": [
+        "pages/compress/index",
+        "pages/palette/index",
+        "pages/nine-grid/index",
+        "pages/qr/index",
+        "pages/watermark/index"
+      ]
+    },
+    {
+      "root": "subpackages/grow",
+      "pages": [
+        "pages/home/index",
+        "pages/greeting/index",
+        "pages/profile/index",
+        "pages/about/index",
+        "pages/skills/index",
+        "pages/settings/index",
+        "pages/cockpit/index"
+      ]
+    },
+    {
+      "root": "subpackages/works",
+      "pages": [
+        "pages/hub/index",
+        "pages/list/index",
+        "pages/detail/index"
+      ]
+    },
+    {
+      "root": "subpackages/campus",
+      "pages": [
+        "pages/detail/index"
+      ]
+    }
+  ],
+  "tabBar": {
+    "custom": true,
+    "color": "#6F6F76",
+    "selectedColor": "#0D0D0F",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "工具"
+      },
+      {
+        "pagePath": "pages/favorites/index",
+        "text": "收藏"
+      },
+      {
+        "pagePath": "pages/mine/index",
+        "text": "我的"
+      }
+    ]
+  },
+  "usingComponents": {
+    "update-guard": "/components/update-guard/index"
+  },
+  "window": {
+    "navigationStyle": "custom",
+    "pageOrientation": "portrait",
+    "backgroundColor": "@canvas",
+    "backgroundColorTop": "@canvas",
+    "backgroundColorBottom": "@canvas",
+    "backgroundTextStyle": "dark",
+    "navigationBarTextStyle": "@navText"
+  },
+  "darkmode": true,
+  "__usePrivacyCheck__": true,
+  "themeLocation": "theme.json",
+  "renderer": "skyline",
+  "componentFramework": "glass-easel",
+  "lazyCodeLoading": "requiredComponents",
+  "rendererOptions": {
+    "skyline": {
+      "defaultDisplayBlock": true,
+      "defaultContentBox": true,
+      "disableABTest": true
+    }
+  },
+  "workers": "workers",
+  "sitemapLocation": "sitemap.json"
+}

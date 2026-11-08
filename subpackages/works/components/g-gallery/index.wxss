@@ -1,0 +1,261 @@
+/* g-gallery · 缩略墙 + 全屏查看器 */
+.gallery {
+  display: flex;
+  flex-direction: column;
+  gap: 36rpx;
+}
+
+/* ---- 分组 ---- */
+.gallery_group {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.gallery_group_head {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.gallery_group_title {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: var(--g-ink-2);
+  letter-spacing: 2rpx;
+}
+
+.gallery_group_count {
+  font-size: 20rpx;
+  color: var(--g-ink-4);
+  letter-spacing: 2rpx;
+}
+
+/* ---- 缩略墙：两列（padding 百分比实现 16:10，规避 Skyline aspect-ratio） ---- */
+/* 夜航：白底业务截图降低亮度，避免刺眼白块；全屏查看器保留原亮度 */
+.gallery_dark .gallery_wall image {
+  opacity: 0.82;
+}
+
+.gallery_wall {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.gallery_cell {
+  width: calc(50% - 8rpx);
+  /* 原实现：height:0 + padding-bottom 百分比，Skyline 下百分比内边距按父高解析，导致格子过高
+     现改为 750 设计稿下的固定 16:10 高度（319rpx 宽 → 200rpx 高） */
+  height: 200rpx;
+  border-radius: 20rpx;
+  overflow: hidden;
+  border: 1rpx solid var(--g-stroke);
+  background-color: var(--g-well);
+  position: relative;
+  box-sizing: border-box;
+  /* 组件样式隔离：全局 .press 缓动进不来，本地 hover 态需自带缓动 */
+  transition:
+    transform 0.18s cubic-bezier(0.2, 0.9, 0.25, 1),
+    opacity 0.18s cubic-bezier(0.2, 0.9, 0.25, 1);
+}
+
+/* 竖版手机截图：与 1284×2778 比例接近（319rpx 宽 → 690rpx 高） */
+.gallery_cell_portrait {
+  height: 690rpx;
+}
+
+.gallery_cell_press {
+  transform: scale(0.97);
+  opacity: 0.9;
+}
+
+.gallery_thumb {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.gallery_fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--g-well);
+}
+
+.gallery_fallback_iris { background-image: linear-gradient(160deg, var(--g-iris-soft), transparent 68%); }
+.gallery_fallback_aurora { background-image: linear-gradient(160deg, var(--g-aurora-soft), transparent 68%); }
+.gallery_fallback_amber { background-image: linear-gradient(160deg, var(--g-amber-soft), transparent 68%); }
+
+.gallery_fallback_grid {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image:
+    linear-gradient(var(--g-grid) 1rpx, transparent 1rpx),
+    linear-gradient(90deg, var(--g-grid) 1rpx, transparent 1rpx);
+  background-size: 48rpx 48rpx;
+}
+
+.gallery_fallback_mark {
+  position: relative;
+  opacity: 0.62;
+}
+
+/* 待补帧号：让占位墙保持编目感，而非重复色块 */
+.gallery_fallback_no {
+  position: absolute;
+  right: 16rpx;
+  bottom: 12rpx;
+  font-size: 18rpx;
+  font-weight: 600;
+  color: var(--g-ph-glyph);
+  letter-spacing: 2rpx;
+  opacity: 0.72;
+}
+
+/* ---- 全屏查看器 ---- */
+.viewer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 950;
+  background-color: #04060b;
+  display: flex;
+  flex-direction: column;
+  animation: viewer-fade 0.28s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+@keyframes viewer-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.viewer_bar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  /* 顶部起点由 barTop 动态注入，避开胶囊 */
+  padding: 0 32rpx 20rpx;
+}
+
+.viewer_caption {
+  flex: 1;
+  min-width: 0;
+  font-size: 24rpx;
+  color: rgba(244, 246, 251, 0.82);
+  letter-spacing: 2rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.viewer_close {
+  flex-shrink: 0;
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 999rpx;
+  background-color: rgba(255, 255, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    transform 0.18s cubic-bezier(0.2, 0.9, 0.25, 1),
+    opacity 0.18s cubic-bezier(0.2, 0.9, 0.25, 1);
+}
+
+.viewer_close_press {
+  transform: scale(0.92);
+  opacity: 0.8;
+}
+
+.viewer_swiper {
+  flex: 1;
+}
+
+.viewer_stage {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 大图素材缺失：明确的空态说明 */
+.viewer_blank {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12rpx;
+  padding: 48rpx 64rpx;
+  border-radius: 32rpx;
+  background-color: rgba(255, 255, 255, 0.06);
+  border: 1rpx solid rgba(255, 255, 255, 0.14);
+}
+
+.viewer_blank_text {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: rgba(244, 246, 251, 0.9);
+  letter-spacing: 3rpx;
+}
+
+.viewer_blank_sub {
+  font-size: 20rpx;
+  color: rgba(244, 246, 251, 0.5);
+  letter-spacing: 2rpx;
+}
+
+.viewer_img {
+  width: 100%;
+  height: 100%;
+  transition: transform 0.36s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.viewer_img_zoom {
+  transform: scale(2.5);
+}
+
+.viewer_img_move {
+  transform: scale(2.5) translate(var(--vx), var(--vy));
+}
+
+.viewer_pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20rpx 0 8rpx;
+}
+
+.viewer_pager_text {
+  font-size: 24rpx;
+  color: rgba(244, 246, 251, 0.7);
+  letter-spacing: 4rpx;
+  font-weight: 600;
+}
+
+.viewer_hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: calc(env(safe-area-inset-bottom) + 24rpx);
+}
+
+.viewer_hint_text {
+  font-size: 20rpx;
+  color: rgba(244, 246, 251, 0.42);
+  letter-spacing: 3rpx;
+}

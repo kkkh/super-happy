@@ -1,0 +1,12 @@
+{
+  "navigationBarTitleText": "您好 · 序厅",
+  "disableScroll": true,
+  "usingComponents": {
+    "g-navbar": "../../../../components/g-navbar/index",
+    "g-icon": "../../../../components/g-icon/index",
+    "g-card": "../../../../components/g-card/index",
+    "g-tag": "../../../../components/g-tag/index",
+    "g-orbit": "../../components/g-orbit/index",
+    "g-toast": "../../../../components/g-toast/index"
+  }
+}

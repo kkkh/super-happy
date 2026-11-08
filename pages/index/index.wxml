@@ -1,0 +1,328 @@
+<view
+  class="home-page sg-ambient-surface {{ambientClass}} {{themeClass}} {{themeSwitching ? 'theme-breathing' : ''}}"
+  style="{{ambientStyle}}"
+>
+  <view class="home-aurora" aria-hidden="true">
+    <view class="sg-aurora-a home-aurora__a"></view>
+    <view class="sg-aurora-b home-aurora__b"></view>
+    <view class="sg-aurora-c home-aurora__c"></view>
+  </view>
+
+  <scroll-view
+    class="home-scroll"
+    scroll-y
+    enhanced
+    show-scrollbar="{{false}}"
+    bounces="{{false}}"
+    type="list"
+  >
+    <view class="home-scroll__inner">
+      <view class="home-top">
+        <text class="home-title">工具箱</text>
+        <text class="home-desc">{{toolTotal}} 个本机工具，搜索、收藏、最近使用。</text>
+      </view>
+
+      <view class="home-hero-card">
+        <view class="home-hero-glow" aria-hidden="true"></view>
+
+        <view class="home-hero-copy">
+          <text class="home-hero-title">把注意力留给重要的事</text>
+
+          <view class="home-hero-bento">
+            <view class="home-hero-primary">
+              <text class="home-hero-primary__value">{{toolTotal}}</text>
+              <text class="home-hero-primary__label">可用工具</text>
+            </view>
+
+            <view class="home-hero-secondary">
+              <view class="home-hero-mini">
+                <text class="home-hero-mini__value">{{favoriteCount}}</text>
+                <text class="home-hero-mini__label">我的收藏</text>
+              </view>
+
+              <view class="home-hero-mini">
+                <view
+                  class="home-hero-mini__value home-hero-mini__value_roll{{usageRolling ? ' home-hero-mini__value_bounce' : ''}}"
+                  aria-role="status"
+                  aria-label="{{usageCount}}"
+                >
+                  <view class="home-roll-stage" aria-hidden="true">
+                    <view
+                      wx:for="{{usageDigits}}"
+                      wx:for-item="cell"
+                      wx:key="key"
+                      class="home-roll-digit"
+                    >
+                      <view
+                        class="home-roll-digit__track"
+                        style="transform: translateY(-{{cell.digit * 10}}%);"
+                      >
+                        <text
+                          wx:for="{{rollDigits}}"
+                          wx:for-item="num"
+                          wx:key="*this"
+                          class="home-roll-digit__num"
+                        >{{num}}</text>
+                      </view>
+                    </view>
+                  </view>
+                </view>
+                <text class="home-hero-mini__label">累计打开</text>
+              </view>
+            </view>
+          </view>
+
+          <view class="home-hero-actions">
+            <view class="home-hero-action">
+              <glass-button
+                variant="ghost"
+                size="sm"
+                block
+                bind:tap="onOpenFavorites"
+              >
+                收藏
+              </glass-button>
+            </view>
+            <view class="home-hero-action">
+              <glass-button
+                variant="ghost"
+                size="sm"
+                block
+                bind:tap="onAuthor"
+              >
+                关于作者
+              </glass-button>
+            </view>
+          </view>
+        </view>
+      </view>
+
+  <view wx:if="{{!keyword}}" class="home-recent">
+    <view class="home-recent__head">
+      <text class="home-recent__kicker">RECENT / 最近</text>
+      <text class="home-recent__count">{{recents.length}} 个</text>
+    </view>
+
+    <scroll-view
+      wx:if="{{recents.length}}"
+      class="home-recent__scroll"
+      scroll-x
+      enhanced
+      enable-flex
+      show-scrollbar="{{false}}"
+    >
+      <view class="home-recent__track">
+        <view
+          wx:for="{{recents}}"
+          wx:key="id"
+          class="recent-pill"
+          hover-class="recent-pill--press"
+          hover-start-time="0"
+          hover-stay-time="120"
+          data-id="{{item.id}}"
+          aria-role="button"
+          aria-label="打开{{item.name}}"
+          bindtap="onOpenTool"
+        >
+          <view class="recent-pill__icon" aria-hidden="true">
+            <text class="recent-pill__glyph">{{item.icon}}</text>
+          </view>
+          <text class="recent-pill__name">{{item.name}}</text>
+        </view>
+      </view>
+    </scroll-view>
+
+    <glass-card
+      wx:else
+      tone="neutral"
+      radius="lg"
+      padding="md"
+      depth="soft"
+      card-class="recent-empty-card"
+    >
+      <view class="recent-empty">
+        <view class="recent-empty__icon" aria-hidden="true">
+          <text class="recent-empty__glyph">↺</text>
+        </view>
+        <view class="recent-empty__copy">
+          <text class="recent-empty__title">还没有最近使用</text>
+          <text class="recent-empty__desc">打开任意工具后，它会出现在这里。</text>
+        </view>
+      </view>
+    </glass-card>
+  </view>
+
+  <view
+    class="home-search {{searchFocused ? 'home-search_focused' : ''}}"
+    hover-class="home-search_pressed"
+    hover-start-time="0"
+    hover-stay-time="120"
+  >
+    <icon
+      class="home-search__icon"
+      type="search"
+      size="18"
+      color="{{themeClass === 'theme-dark' ? 'rgba(255, 255, 255, 0.55)' : 'rgba(0, 0, 0, 0.45)'}}"
+    />
+    <input
+      class="home-search__input"
+      value="{{keyword}}"
+      placeholder="搜索名称、关键词"
+      placeholder-class="home-search__placeholder"
+      confirm-type="search"
+      maxlength="24"
+      bindinput="onSearchInput"
+      bindconfirm="onSearchConfirm"
+      bindfocus="onSearchFocus"
+      bindblur="onSearchBlur"
+    />
+  </view>
+
+  <view wx:if="{{keyword}}" class="home-section">
+    <view class="home-section-head">
+      <text class="home-section-title">搜索结果</text>
+      <text class="home-section-count">{{results.length}}</text>
+    </view>
+
+    <view class="home-tool-list">
+      <view
+        wx:for="{{results}}"
+        wx:key="id"
+        class="tool-item"
+        hover-class="tool-item_pressed"
+        hover-start-time="0"
+        hover-stay-time="120"
+        data-route="{{item.route}}"
+        data-id="{{item.id}}"
+        bindtap="onOpenTool"
+        aria-role="button"
+        aria-label="打开{{item.name}}"
+      >
+        <view class="tool-icon" aria-hidden="true">
+          <text class="tool-icon-text">{{item.icon}}</text>
+        </view>
+
+        <view class="tool-copy">
+          <text class="tool-name">{{item.name}}</text>
+          <text class="tool-desc">{{item.desc}}</text>
+        </view>
+
+        <view
+          class="tool-fav {{item.favorite ? 'tool-fav_on' : ''}}"
+          data-id="{{item.id}}"
+          catchtap="onToggleFavorite"
+          aria-role="button"
+          aria-label="{{item.favorite ? '取消收藏' : '收藏'}}{{item.name}}"
+        >
+          <text class="tool-fav-glyph">{{item.favorite ? '★' : '☆'}}</text>
+        </view>
+      </view>
+    </view>
+
+    <glass-card
+      wx:if="{{!results.length}}"
+      tone="neutral"
+      radius="lg"
+      padding="lg"
+      depth="soft"
+    >
+      <text class="home-empty">没有匹配的工具，换个关键词试试。</text>
+    </glass-card>
+  </view>
+
+  <view wx:else class="home-sections">
+    <view
+      wx:for="{{sections}}"
+      wx:key="key"
+      wx:for-item="section"
+      class="home-section"
+    >
+      <view class="home-section-head">
+        <view class="home-section-title-wrap">
+          <text class="home-section-title">{{section.title}}</text>
+          <text class="home-section-hint">{{section.hint}}</text>
+        </view>
+        <text class="home-section-count">{{section.tools.length}}</text>
+      </view>
+
+      <view class="home-tool-list">
+        <view
+          wx:for="{{section.tools}}"
+          wx:key="id"
+          wx:for-item="tool"
+          class="tool-item"
+          hover-class="tool-item_pressed"
+          hover-start-time="0"
+          hover-stay-time="120"
+          data-route="{{tool.route}}"
+          data-id="{{tool.id}}"
+          bindtap="onOpenTool"
+          aria-role="button"
+          aria-label="打开{{tool.name}}"
+        >
+          <view class="tool-icon" aria-hidden="true">
+            <text class="tool-icon-text">{{tool.icon}}</text>
+          </view>
+
+          <view class="tool-copy">
+            <text class="tool-name">{{tool.name}}</text>
+            <text class="tool-desc">{{tool.desc}}</text>
+          </view>
+
+          <view
+            class="tool-fav {{tool.favorite ? 'tool-fav_on' : ''}}"
+            data-id="{{tool.id}}"
+            catchtap="onToggleFavorite"
+            aria-role="button"
+            aria-label="{{tool.favorite ? '取消收藏' : '收藏'}}{{tool.name}}"
+          >
+            <text class="tool-fav-glyph">{{tool.favorite ? '★' : '☆'}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+      <view class="home-foot">
+        <text>{{toolTotal}} 个工具 · 全部本机计算</text>
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- 原有搜索逻辑未变，此处为新增的魔法棒代码 -->
+  <view
+    class="magic-wand"
+    hover-class="magic-wand--pressed"
+    hover-start-time="0"
+    hover-stay-time="120"
+    catchtap="openPalette"
+    aria-role="button"
+    aria-label="呼出全局指令面板"
+  >
+    <view class="magic-wand__glass">
+      <view class="magic-wand__surface">
+        <view class="magic-wand__aura" aria-hidden="true"></view>
+        <image
+          class="magic-wand__icon"
+          src="{{magicWandSvg}}"
+          mode="aspectFit"
+          aria-hidden="true"
+        />
+        <view class="magic-wand__glint" aria-hidden="true"></view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 全局指令面板：query 在组件内部，与首页 keyword 搜索状态完全隔离 -->
+  <command-palette
+    show="{{showPalette}}"
+    z-index="{{1100}}"
+    bind:close="closePalette"
+    bind:closed="closePalette"
+  />
+
+  <!-- 版本更新：全局守门组件；深链跳转与指令面板打开期间自动排队 -->
+  <update-guard blocked="{{updateNavHold || showPalette}}" />
+
+  <glass-toast z-index="{{1001}}" />
+</view>

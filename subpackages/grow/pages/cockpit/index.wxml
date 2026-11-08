@@ -1,0 +1,468 @@
+<view
+  class="cockpit-page sg-ambient-surface sg-ambient-iris {{themeClass}} {{themeSwitching ? 'theme-breathing' : ''}}"
+>
+  <!-- 极光背景：light-off 时由 app.wxss 统一降级 -->
+  <view class="cockpit-aurora" aria-hidden="true">
+    <view class="sg-aurora-a cockpit-aurora__a"></view>
+    <view class="sg-aurora-b cockpit-aurora__b"></view>
+    <view class="sg-aurora-c cockpit-aurora__c"></view>
+  </view>
+
+  <!-- 自定义导航：右侧眼睛是隐私盾，默认脱敏 -->
+  <view
+    class="cockpit-nav"
+    style="padding-top: {{navTop}}px; padding-right: {{navRight}}px;"
+  >
+    <glass-button
+      variant="ghost"
+      size="sm"
+      shape="rounded"
+      custom-class="cockpit-nav__back"
+      aria-label="返回"
+      custom-style="min-width: 88rpx; height: 88rpx;"
+      bind:tap="onBack"
+    >
+      <g-icon name="back" size="{{30}}" tone="ink" />
+    </glass-button>
+
+    <view class="cockpit-nav__copy">
+      <text class="cockpit-nav__kicker">DATA COCKPIT</text>
+      <text class="cockpit-nav__title">数据驾驶舱</text>
+    </view>
+
+    <glass-button
+      variant="ghost"
+      size="sm"
+      shape="rounded"
+      custom-class="cockpit-eye {{masked ? 'cockpit-eye--masked' : 'cockpit-eye--open'}}"
+      aria-role="switch"
+      aria-checked="{{!masked}}"
+      aria-label="{{masked ? '隐私脱敏已开启，点击显示真实数据' : '真实数据已显示，点击开启隐私脱敏'}}"
+      custom-style="min-width: 88rpx; height: 88rpx;"
+      bind:tap="onTogglePrivacy"
+    >
+      <view class="cockpit-eye__glyph {{masked ? 'cockpit-eye__glyph--masked' : 'cockpit-eye__glyph--open'}}">
+        <g-icon name="eye" size="{{26}}" tone="{{masked ? 'ink3' : 'iris'}}" />
+        <view wx:if="{{masked}}" class="cockpit-eye__slash" aria-hidden="true"></view>
+      </view>
+    </glass-button>
+  </view>
+
+  <scroll-view
+    class="cockpit-scroll"
+    scroll-y
+    enhanced
+    show-scrollbar="{{false}}"
+    bounces="{{false}}"
+    type="list"
+  >
+    <view class="cockpit-inner" style="padding-top: {{contentTop}}px;">
+      <!-- Hero：全局效率总览 -->
+      <glass-card
+        tone="iris"
+        radius="xl"
+        padding="lg"
+        depth="deep"
+        card-class="cockpit-hero"
+      >
+        <view class="cockpit-hero__top">
+          <view class="cockpit-hero__status">
+            <view class="cockpit-hero__pulse" aria-hidden="true"></view>
+            <text>LOCAL ONLY</text>
+          </view>
+          <text class="cockpit-hero__code">{{themeLabel}} / LIVE</text>
+        </view>
+
+        <text class="cockpit-hero__title">数据驾驶舱</text>
+        <text class="cockpit-hero__sub">
+          记录每一次计算，把效率变成可读的轨迹。全部数据只留在你的设备。
+        </text>
+
+        <view class="cockpit-kpis">
+          <view class="cockpit-kpi">
+            <text class="cockpit-kpi__num">{{usageCount}}</text>
+            <text class="cockpit-kpi__label">工具打开</text>
+          </view>
+          <view class="cockpit-kpi">
+            <text class="cockpit-kpi__num">{{insight.total}}</text>
+            <text class="cockpit-kpi__label">有效计算</text>
+          </view>
+          <view class="cockpit-kpi">
+            <text class="cockpit-kpi__num">{{insight.weekTotal}}</text>
+            <text class="cockpit-kpi__label">近 7 日</text>
+          </view>
+          <view class="cockpit-kpi">
+            <text class="cockpit-kpi__num">{{insight.streak}}</text>
+            <text class="cockpit-kpi__label">连续天数</text>
+          </view>
+        </view>
+
+        <text class="cockpit-kpi__hint">打开工具即计数 · 产生结果才记轨迹</text>
+
+        <view class="cockpit-hero__foot">
+          <text class="cockpit-hero__mode">当前 · {{themeLabel}}模式</text>
+          <text class="cockpit-hero__privacy">{{masked ? '隐私盾已开启' : '真实摘要已显示'}}</text>
+        </view>
+      </glass-card>
+
+      <view wx:if="{{storageWarning}}" class="cockpit-warning" aria-role="alert">
+        本机存储空间不足，部分轨迹可能未保存；建议先清理旧数据。
+      </view>
+
+      <!-- 效率洞察：纯前端生成的个性化周报 -->
+      <view class="cockpit-group">
+        <view class="cockpit-group__head">
+          <text class="cockpit-group__title">效率洞察</text>
+          <text class="cockpit-group__code">INSIGHT / 01</text>
+        </view>
+
+        <glass-card
+          tone="aurora"
+          radius="lg"
+          padding="lg"
+          depth="deep"
+          card-class="cockpit-insight"
+        >
+          <view class="cockpit-insight__head">
+            <view class="cockpit-insight__badge">
+              <g-icon name="spark" size="{{26}}" tone="aurora" />
+            </view>
+            <view class="cockpit-insight__copy">
+              <text class="cockpit-insight__title">{{insight.title}}</text>
+              <text class="cockpit-insight__label">{{insight.topToolName ? '最常用 · ' + insight.topToolName : '等待你的第一条轨迹'}}</text>
+            </view>
+            <text class="cockpit-insight__code">WEEKLY</text>
+          </view>
+
+          <text class="cockpit-insight__body">{{insight.body}}</text>
+
+          <view wx:if="{{insight.tags.length}}" class="cockpit-insight__tags">
+            <text
+              wx:for="{{insight.tags}}"
+              wx:for-item="tag"
+              wx:key="*this"
+              class="cockpit-insight__tag"
+            >{{tag}}</text>
+          </view>
+
+          <view wx:if="{{!hasHistory}}" class="cockpit-insight__cta">
+            <glass-button variant="aurora" size="sm" bind:tap="onGoHome">
+              去首页完成第一次计算
+            </glass-button>
+          </view>
+        </glass-card>
+      </view>
+
+      <!-- 数据透视：Canvas 环形图 + 折线图 -->
+      <view wx:if="{{hasHistory}}" class="cockpit-group">
+        <view class="cockpit-group__head">
+          <text class="cockpit-group__title">数据透视</text>
+          <text class="cockpit-group__code">CANVAS / 02</text>
+        </view>
+
+        <glass-card
+          tone="neutral"
+          radius="lg"
+          padding="lg"
+          depth="deep"
+          card-class="cockpit-charts"
+        >
+          <view class="cockpit-chart-head">
+            <view class="cockpit-chart-head__copy">
+              <text class="cockpit-chart-head__title">分类占比</text>
+              <text class="cockpit-chart-head__sub">按工具分类统计本机轨迹</text>
+            </view>
+            <text class="cockpit-chart-head__code">RING / 01</text>
+          </view>
+
+          <view
+            id="cockpitDonutWrap"
+            class="cockpit-chart-wrap cockpit-chart-wrap--donut"
+            aria-role="img"
+            aria-label="{{donutAria}}"
+          >
+            <canvas
+              wx:if="{{!imageCharts && !chartError}}"
+              type="2d"
+              id="cockpitDonut"
+              class="cockpit-canvas"
+              aria-hidden="true"
+            ></canvas>
+            <image
+              wx:elif="{{imageCharts && donutImage && !chartError}}"
+              class="cockpit-canvas cockpit-canvas--image"
+              src="{{donutImage}}"
+              mode="aspectFit"
+              aria-hidden="true"
+            ></image>
+            <view wx:else class="cockpit-chart-fallback">
+              <text class="cockpit-chart-fallback__title">
+                {{chartError ? '图表暂不可用' : '正在绘制分类占比'}}
+              </text>
+              <text class="cockpit-chart-fallback__sub">
+                {{chartError ? '请在真机或更新基础库后重试' : '首次绘制会自动生长'}}
+              </text>
+            </view>
+          </view>
+
+          <view class="cockpit-legend" aria-role="list">
+            <view
+              wx:for="{{legend}}"
+              wx:key="code"
+              class="cockpit-legend__item"
+              aria-role="listitem"
+            >
+              <view class="cockpit-dot cockpit-dot--{{item.code}}" aria-hidden="true"></view>
+              <view class="cockpit-legend__copy">
+                <text class="cockpit-legend__label">{{item.label}}</text>
+                <text class="cockpit-legend__count">{{item.value}} 次</text>
+              </view>
+              <text class="cockpit-legend__percent">{{item.percentText}}</text>
+            </view>
+          </view>
+
+          <view class="cockpit-divider" aria-hidden="true"></view>
+
+          <view class="cockpit-chart-head">
+            <view class="cockpit-chart-head__copy">
+              <text class="cockpit-chart-head__title">近 7 日活动</text>
+              <text class="cockpit-chart-head__sub">每天完成的计算次数</text>
+            </view>
+            <text class="cockpit-chart-head__code">TRACE / 02</text>
+          </view>
+
+          <view
+            id="cockpitLineWrap"
+            class="cockpit-chart-wrap cockpit-chart-wrap--line"
+            aria-role="img"
+            aria-label="{{dailyAria}}"
+          >
+            <canvas
+              wx:if="{{!imageCharts && !chartError}}"
+              type="2d"
+              id="cockpitLine"
+              class="cockpit-canvas"
+              aria-hidden="true"
+            ></canvas>
+            <image
+              wx:elif="{{imageCharts && lineImage && !chartError}}"
+              class="cockpit-canvas cockpit-canvas--image"
+              src="{{lineImage}}"
+              mode="aspectFit"
+              aria-hidden="true"
+            ></image>
+            <view wx:else class="cockpit-chart-fallback">
+              <text class="cockpit-chart-fallback__title">
+                {{chartError ? '图表暂不可用' : '正在绘制 7 日活动'}}
+              </text>
+              <text class="cockpit-chart-fallback__sub">
+                {{chartError ? '请稍后重试或前往真机查看' : '折线会像流星一样生长'}}
+              </text>
+            </view>
+          </view>
+
+          <view wx:if="{{chartError}}" class="cockpit-chart-retry">
+            <glass-button variant="ghost" size="sm" bind:tap="onRetryCharts">
+              重新绘制图表
+            </glass-button>
+          </view>
+
+          <view class="cockpit-chart-foot">
+            <view class="cockpit-chart-foot__dot" aria-hidden="true"></view>
+            <text>主题切换会立即重绘 · 数据不上传</text>
+          </view>
+        </glass-card>
+      </view>
+
+      <!-- 计算轨迹：卡片与文字全部消费 CSS 变量 -->
+      <view wx:if="{{hasHistory}}" class="cockpit-group">
+        <view class="cockpit-group__head">
+          <text class="cockpit-group__title">计算轨迹</text>
+          <text class="cockpit-group__code">TIMELINE / 03</text>
+        </view>
+
+        <view class="cockpit-timeline__toolbar">
+          <view class="cockpit-timeline__privacy">
+            <g-icon name="eye" size="{{22}}" tone="ink3" />
+            <text>{{masked ? '已脱敏 · 隐藏金额 / 密码等敏感值' : '真实摘要 · 仅本机可见'}}</text>
+          </view>
+          <text class="cockpit-timeline__count">共 {{insight.total}} 条</text>
+        </view>
+
+        <view class="cockpit-timeline" aria-role="list">
+          <view
+            wx:for="{{timeline}}"
+            wx:key="id"
+            class="cockpit-timeline__item"
+            aria-role="listitem"
+          >
+            <view class="cockpit-timeline__rail" aria-hidden="true">
+              <view
+                class="cockpit-timeline__dot {{item.night ? 'cockpit-timeline__dot--night' : 'cockpit-timeline__dot--day'}}"
+              ></view>
+              <view class="cockpit-timeline__spine"></view>
+            </view>
+
+            <view class="cockpit-timeline__card">
+              <view class="cockpit-timeline__head">
+                <view class="cockpit-timeline__tool">
+                  <text class="cockpit-timeline__icon">{{item.icon}}</text>
+                  <text class="cockpit-timeline__name">{{item.toolName}}</text>
+                </view>
+                <view class="cockpit-timeline__meta">
+                  <text class="cockpit-timeline__time">{{item.timeLabel}}</text>
+                  <text
+                    class="cockpit-timeline__delete"
+                    aria-role="button"
+                    aria-label="删除这条轨迹"
+                    data-id="{{item.id}}"
+                    data-name="{{item.toolName}}"
+                    catchtap="onAskDelete"
+                  >删除</text>
+                </view>
+              </view>
+
+              <view class="cockpit-timeline__chips">
+                <text class="cockpit-timeline__chip">{{item.categoryLabel}}</text>
+                <text
+                  class="cockpit-timeline__chip {{item.night ? 'cockpit-timeline__chip--night' : 'cockpit-timeline__chip--day'}}"
+                >{{item.themeLabel}}</text>
+              </view>
+
+              <view class="cockpit-timeline__rows">
+                <view class="cockpit-timeline__row">
+                  <text class="cockpit-timeline__row-label">输入</text>
+                  <text class="cockpit-timeline__row-value">{{item.inputText}}</text>
+                </view>
+                <view class="cockpit-timeline__row">
+                  <text class="cockpit-timeline__row-label">结果</text>
+                  <text class="cockpit-timeline__row-value cockpit-timeline__row-value--result">
+                    {{item.outputText}}
+                  </text>
+                </view>
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <view wx:if="{{insight.total > 12}}" class="cockpit-timeline__more">
+          <glass-button variant="ghost" size="sm" block bind:tap="onToggleTimeline">
+            {{timelineExpanded ? (timeline.length < insight.total ? '加载更多（' + timeline.length + '/' + insight.total + '）' : '收起轨迹') : (insight.total > 24 ? '展开前 24 条' : '展开全部 ' + insight.total + ' 条')}}
+          </glass-button>
+        </view>
+      </view>
+
+      <!-- 本机隐私说明 -->
+      <glass-card
+        tone="neutral"
+        radius="lg"
+        padding="md"
+        depth="soft"
+        card-class="cockpit-privacy"
+      >
+        <view class="cockpit-privacy__head">
+          <g-icon name="eye" size="{{26}}" tone="iris" />
+          <text class="cockpit-privacy__title">本机隐私盾</text>
+        </view>
+        <text class="cockpit-privacy__body">
+          轨迹摘要只保存在本机，最多 100 条；默认隐藏金额 / 密码 / 健康等敏感值，单位与分类保持可读。隐私盾只影响显示，原始摘要仍在本机，可逐条删除或彻底清空。
+        </text>
+
+        <view class="cockpit-tracking">
+          <view class="cockpit-tracking__copy">
+            <text class="cockpit-tracking__title">记录计算轨迹</text>
+            <text class="cockpit-tracking__sub">
+              {{trackingEnabled ? '新计算会写入本机轨迹，供驾驶舱统计' : '已暂停记录，新计算不再写入；已有轨迹保留'}}
+            </text>
+          </view>
+          <glass-switch
+            checked="{{trackingEnabled}}"
+            aria-label="记录计算轨迹开关"
+            bind:change="onToggleTracking"
+          />
+        </view>
+
+        <view class="cockpit-clear">
+          <view class="cockpit-clear__head">
+            <text class="cockpit-clear__title">数据清除</text>
+            <text class="cockpit-clear__meta">
+              {{hasHistory ? '当前 ' + insight.total + ' 条' : '当前无轨迹'}} · 快照 {{snapshotHistoryCount}} 条
+            </text>
+          </view>
+          <view class="cockpit-clear__actions">
+            <glass-button
+              variant="danger"
+              size="sm"
+              block
+              disabled="{{!hasHistory}}"
+              bind:tap="onOpenClear"
+            >
+              清空当前轨迹
+            </glass-button>
+            <glass-button
+              variant="ghost"
+              size="sm"
+              block
+              disabled="{{snapshotHistoryCount === 0}}"
+              bind:tap="onOpenSnapshotClear"
+            >
+              清除快照轨迹
+            </glass-button>
+          </view>
+        </view>
+      </glass-card>
+
+      <view class="cockpit-colophon">
+        <text>CHAOHUAN · DATA COCKPIT · LOCAL ONLY · V{{appVersion}}</text>
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- 清空确认：全部内容放在 footer 槽，避免滚动区高度塌陷 -->
+  <glass-bottom-sheet
+    show="{{confirmShow}}"
+    title="{{confirmTitle}}"
+    size="auto"
+    z-index="{{1000}}"
+    show-footer="{{true}}"
+    bind:close="onConfirmClose"
+    bind:closed="onConfirmClose"
+  >
+    <view slot="footer" class="cockpit-confirm">
+      <view class="cockpit-confirm__icon" aria-hidden="true">
+        <g-icon name="history" size="{{40}}" tone="ink3" />
+      </view>
+      <text class="cockpit-confirm__title">{{confirmCountText}}</text>
+      <text class="cockpit-confirm__desc">
+        {{confirmDesc}}
+      </text>
+
+      <view class="cockpit-confirm__actions">
+        <view class="cockpit-confirm__action">
+          <glass-button variant="ghost" block bind:tap="onConfirmClose">取消</glass-button>
+        </view>
+        <view class="cockpit-confirm__action">
+          <glass-button variant="danger" block bind:tap="onConfirmClear">{{confirmActionText}}</glass-button>
+        </view>
+      </view>
+    </view>
+  </glass-bottom-sheet>
+
+  <glass-modal
+    show="{{deleteShow}}"
+    title="删除这条轨迹"
+    description="将删除「{{deleteName}}」这条本机计算摘要，并从自动快照和热备中同步移除；操作不可恢复。"
+    confirm-text="删除"
+    cancel-text="取消"
+    danger
+    z-index="{{1100}}"
+    bind:confirm="onConfirmDelete"
+    bind:cancel="onDeleteClose"
+    bind:close="onDeleteClose"
+  />
+
+  <glass-toast z-index="{{1200}}" />
+
+  <!-- 清空 / 删除确认打开期间，更新弹窗不得叠上来 -->
+  <update-guard blocked="{{confirmShow || deleteShow}}" />
+</view>

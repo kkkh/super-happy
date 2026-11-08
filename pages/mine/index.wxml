@@ -1,0 +1,276 @@
+<view class="mine-page sg-ambient-surface sg-ambient-iris {{themeClass}} {{themeSwitching ? 'theme-breathing' : ''}}">
+  <view class="mine-aurora" aria-hidden="true">
+    <view class="sg-aurora-a mine-aurora__a"></view>
+    <view class="sg-aurora-b mine-aurora__b"></view>
+    <view class="sg-aurora-c mine-aurora__c"></view>
+  </view>
+
+  <scroll-view
+    class="mine-scroll"
+    scroll-y
+    enhanced
+    show-scrollbar="{{false}}"
+    bounces="{{false}}"
+    type="list"
+  >
+    <view class="mine-inner">
+      <view class="mine-head">
+        <text class="mine-kicker">PROFILE / 2026</text>
+        <text class="mine-title">我的</text>
+        <text class="mine-sub">关于作者、外观与本机数据。</text>
+      </view>
+
+      <glass-card
+        tone="iris"
+        radius="xl"
+        padding="lg"
+        depth="deep"
+        card-class="mine-profile"
+      >
+        <view class="mine-profile__row">
+          <view class="mine-avatar" aria-hidden="true">
+            <text class="mine-avatar__text">秦</text>
+          </view>
+
+          <view class="mine-profile__copy">
+            <text class="mine-profile__name">秦超</text>
+            <text class="mine-profile__role">INDEPENDENT / TOOL MAKER</text>
+          </view>
+
+          <glass-button
+            variant="ghost"
+            size="sm"
+            bind:tap="onOpenAuthor"
+          >
+            简历与作品
+          </glass-button>
+        </view>
+      </glass-card>
+
+      <view class="mine-group-head">
+        <text class="mine-group-head__title">外观</text>
+        <text class="mine-group-head__spec">APPEARANCE / 03</text>
+      </view>
+
+      <view class="mine-seg" aria-role="group" aria-label="外观模式">
+        <view
+          class="mine-seg__thumb"
+          style="transform: translateX({{themeIndex * 100}}%);"
+          aria-hidden="true"
+        ></view>
+
+        <view
+          wx:for="{{themes}}"
+          wx:key="key"
+          class="mine-seg__item {{themeMode === item.key ? 'mine-seg__item--active' : ''}}"
+          hover-class="mine-seg__item--press"
+          hover-stay-time="80"
+          data-mode="{{item.key}}"
+          aria-role="button"
+          aria-label="外观{{item.label}}"
+          aria-selected="{{themeMode === item.key}}"
+          bindtap="onTheme"
+        >
+          <view class="mine-seg__dot"></view>
+          <text class="mine-seg__label">{{item.label}}</text>
+        </view>
+      </view>
+
+      <text class="mine-seg__hint">{{themeHint}}</text>
+
+      <glass-card
+        tone="neutral"
+        radius="lg"
+        padding="md"
+        depth="soft"
+        card-class="mine-stats"
+      >
+        <view class="mine-stats__row">
+          <view class="mine-stat">
+            <text class="mine-stat__num">{{favoriteCount}}</text>
+            <text class="mine-stat__label">收藏工具</text>
+          </view>
+          <view class="mine-stat">
+            <text class="mine-stat__num">21</text>
+            <text class="mine-stat__label">可用工具</text>
+          </view>
+          <view class="mine-stat">
+            <text class="mine-stat__num">0</text>
+            <text class="mine-stat__label">云端上传</text>
+          </view>
+        </view>
+      </glass-card>
+
+      <view class="mine-group-head">
+        <text class="mine-group-head__title">偏好</text>
+        <text class="mine-group-head__spec">CONTROL / 01</text>
+      </view>
+
+      <glass-card
+        tone="neutral"
+        radius="lg"
+        padding="none"
+        depth="soft"
+        card-class="mine-panel"
+      >
+        <view
+          class="mine-row"
+          hover-class="mine-row--press"
+          hover-start-time="0"
+          hover-stay-time="80"
+          aria-role="button"
+          aria-label="打开设置中心"
+          bindtap="onOpenSettings"
+        >
+          <view class="mine-row__copy">
+            <text class="mine-row__title">设置中心</text>
+            <text class="mine-row__sub">震动、音效、光效、动画与自动清理</text>
+          </view>
+          <g-icon name="sliders" size="{{24}}" tone="ink3" />
+        </view>
+      </glass-card>
+
+      <view class="mine-group-head">
+        <text class="mine-group-head__title">数据与隐私</text>
+        <text class="mine-group-head__spec">LOCAL ONLY</text>
+      </view>
+
+      <glass-card
+        tone="neutral"
+        radius="lg"
+        padding="none"
+        depth="soft"
+        card-class="mine-panel"
+      >
+        <view
+          class="mine-row"
+          hover-class="mine-row--press"
+          hover-start-time="0"
+          hover-stay-time="80"
+          aria-role="button"
+          aria-label="打开数据驾驶舱"
+          bindtap="onOpenCockpit"
+        >
+          <view class="mine-row__copy">
+            <text class="mine-row__title">数据驾驶舱</text>
+            <text class="mine-row__sub">效率周报、分类占比、7 日活动与计算轨迹</text>
+          </view>
+          <text class="mine-row__tag">NEW</text>
+          <g-icon name="history" size="{{24}}" tone="ink3" />
+        </view>
+
+        <view
+          class="mine-row"
+          hover-class="mine-row--press"
+          hover-start-time="0"
+          hover-stay-time="80"
+          data-section="data"
+          aria-role="button"
+          aria-label="本机数据说明"
+          bindtap="onOpenLegal"
+        >
+          <view class="mine-row__copy">
+            <text class="mine-row__title">本机数据说明</text>
+            <text class="mine-row__sub">只存收藏、最近使用与最多 100 条轨迹摘要</text>
+          </view>
+          <g-icon name="arrow" size="{{24}}" tone="ink3" />
+        </view>
+
+        <view
+          class="mine-row"
+          hover-class="mine-row--press"
+          hover-start-time="0"
+          hover-stay-time="80"
+          data-section="privacy"
+          aria-role="button"
+          aria-label="用户隐私保护指引"
+          bindtap="onOpenLegal"
+        >
+          <view class="mine-row__copy">
+            <text class="mine-row__title">用户隐私保护指引</text>
+            <text class="mine-row__sub">不登录、不上传、不联网请求</text>
+          </view>
+          <g-icon name="arrow" size="{{24}}" tone="ink3" />
+        </view>
+
+        <view
+          class="mine-row mine-row--danger"
+          hover-class="mine-row--press"
+          hover-start-time="0"
+          hover-stay-time="80"
+          aria-role="button"
+          aria-label="清空工具数据"
+          bindtap="onClearData"
+        >
+          <view class="mine-row__copy">
+            <text class="mine-row__title">清空工具数据</text>
+            <text class="mine-row__sub">只清除本机工具数据，不影响简历与作品收藏</text>
+          </view>
+          <g-icon name="close" size="{{22}}" tone="ink3" />
+        </view>
+      </glass-card>
+
+      <view class="mine-group-head">
+        <text class="mine-group-head__title">关于</text>
+        <text class="mine-group-head__spec">ABOUT</text>
+      </view>
+
+      <glass-card
+        tone="neutral"
+        radius="lg"
+        padding="none"
+        depth="soft"
+        card-class="mine-panel"
+      >
+        <view
+          class="mine-row"
+          hover-class="mine-row--press"
+          hover-start-time="0"
+          hover-stay-time="80"
+          aria-role="button"
+          aria-label="复制反馈邮箱"
+          bindtap="onCopyEmail"
+        >
+          <view class="mine-row__copy">
+            <text class="mine-row__title">反馈与联系</text>
+            <text class="mine-row__sub">{{email}} · 点击复制</text>
+          </view>
+          <g-icon name="copy" size="{{24}}" tone="ink3" />
+        </view>
+
+        <view
+          class="mine-row"
+          hover-class="mine-row--press"
+          hover-start-time="0"
+          hover-stay-time="80"
+          data-section="license"
+          aria-role="button"
+          aria-label="开源许可"
+          bindtap="onOpenLegal"
+        >
+          <view class="mine-row__copy">
+            <text class="mine-row__title">开源许可</text>
+            <text class="mine-row__sub">图标、字体与第三方库说明</text>
+          </view>
+          <g-icon name="arrow" size="{{24}}" tone="ink3" />
+        </view>
+
+        <view class="mine-row">
+          <view class="mine-row__copy">
+            <text class="mine-row__title">版本</text>
+            <text class="mine-row__sub">v{{version}} · 23 个本机工具 · 无广告 · 无登录</text>
+          </view>
+          <text class="mine-row__tag">LOCAL</text>
+        </view>
+      </glass-card>
+
+      <view class="mine-colophon">
+        <text class="mine-colophon__meta">CHAOHUAN · MADE LOCAL · NO CLOUD / NO LOGIN · V1.0.0</text>
+      </view>
+    </view>
+  </scroll-view>
+
+  <glass-toast z-index="{{1001}}" />
+  <privacy-guard />
+  <update-guard />
+</view>

@@ -1,0 +1,108 @@
+<view
+  wx:if="{{mounted}}"
+  class="poster-preview {{active ? 'poster-preview_active' : ''}} {{closing ? 'poster-preview_closing' : ''}} {{saver ? 'poster-preview_saver' : ''}}"
+  style="z-index: {{zIndex}};"
+  catchtouchmove="noop"
+  aria-role="dialog"
+  aria-modal="true"
+  aria-label="{{ariaLabel}}"
+>
+  <view class="poster-preview__mask" bindtap="onMaskTap" catchtouchmove="noop" aria-hidden="true"></view>
+
+  <view class="poster-preview__panel">
+    <view class="poster-preview__sheen" aria-hidden="true"></view>
+
+    <view class="poster-preview__head">
+      <view class="poster-preview__head-copy">
+        <text class="poster-preview__kicker">AURORA POSTER / LOCAL</text>
+        <text class="poster-preview__title">专属极光海报</text>
+      </view>
+      <view class="poster-preview__badge poster-preview__badge_{{saved ? 'saved' : (loading ? 'busy' : 'ready')}}">
+        <view class="poster-preview__badge-dot"></view>
+        <text>{{saved ? 'SAVED' : (loading ? 'DRAWING' : 'READY')}}</text>
+      </view>
+    </view>
+
+    <view class="poster-preview__image-wrap">
+      <image
+        wx:if="{{imagePath}}"
+        class="poster-preview__image {{imageReady ? 'poster-preview__image_ready' : ''}}"
+        src="{{imagePath}}"
+        mode="aspectFit"
+        bindload="onImageLoad"
+        bindlongpress="onLongPress"
+        aria-label="长按保存极光海报"
+      />
+
+      <!-- 绘制 / 解码骨架：常驻交叉淡出，避免硬切换造成闪黑 -->
+      <view
+        class="poster-preview__skeleton{{imageReady || (!loading && !imagePath) ? ' poster-preview__skeleton_out' : ''}}"
+        aria-hidden="true"
+      >
+        <view class="poster-preview__skeleton_card">
+          <view class="poster-preview__skeleton_line poster-preview__skeleton_line_title"></view>
+          <view class="poster-preview__skeleton_line poster-preview__skeleton_line_value"></view>
+          <view class="poster-preview__skeleton_line poster-preview__skeleton_line_sub"></view>
+          <view class="poster-preview__skeleton_line poster-preview__skeleton_line_sub short"></view>
+          <view class="poster-preview__skeleton_qr"></view>
+        </view>
+        <view class="poster-preview__skeleton_shimmer"></view>
+        <text class="poster-preview__skeleton_text">
+          {{loading ? '正在绘制极光海报' : '正在载入海报'}}
+        </text>
+      </view>
+
+      <view wx:if="{{!loading && !imagePath}}" class="poster-preview__image-empty">
+        <view class="poster-preview__empty_mark"></view>
+        <text>{{error || '海报生成失败，请关闭后重试'}}</text>
+      </view>
+
+      <view wx:if="{{saved}}" class="poster-preview__saved" aria-live="polite">
+        <view class="poster-preview__saved_check">
+          <view class="poster-preview__saved_check_bar short"></view>
+          <view class="poster-preview__saved_check_bar long"></view>
+        </view>
+        <text class="poster-preview__saved_text">已保存到相册</text>
+      </view>
+    </view>
+
+    <text class="poster-preview__hint">长按海报图片可直接保存到相册</text>
+
+    <view class="poster-preview__actions">
+      <glass-button
+        variant="primary"
+        size="lg"
+        block
+        aura
+        loading="{{saving}}"
+        loading-text="保存中"
+        success="{{saved}}"
+        success-text="已保存"
+        disabled="{{!imagePath || saved}}"
+        bind:tap="onSaveTap"
+      >
+        保存到相册
+      </glass-button>
+      <view class="poster-preview__actions-secondary">
+        <view class="poster-preview__action-cell">
+          <glass-button
+            variant="aurora"
+            size="md"
+            block
+            disabled="{{!imagePath || saving || saved}}"
+            bind:tap="onShareTap"
+          >
+            分享海报
+          </glass-button>
+        </view>
+        <view class="poster-preview__action-cell">
+          <glass-button variant="ghost" size="md" block bind:tap="onCloseTap">
+            关闭
+          </glass-button>
+        </view>
+      </view>
+    </view>
+
+    <view class="poster-preview__safe"></view>
+  </view>
+</view>

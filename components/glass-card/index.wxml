@@ -1,0 +1,74 @@
+<wxs src="./light.wxs" module="light"></wxs>
+
+<view
+  class="card-class glass-card glass-card_tone_{{tone}} glass-card_radius_{{radius}} glass-card_padding_{{padding}} glass-card_depth_{{depth}}{{bordered ? ' glass-card_bordered' : ''}}{{interactive ? ' glass-card_interactive' : ''}}"
+  style="{{customStyle}}; --card-light-opacity: {{lightOpacity}};"
+  hover-class="{{interactive ? 'glass-card_pressed' : 'none'}}"
+  hover-start-time="40"
+  hover-stay-time="120"
+  data-light-tracking="{{lightTracking}}"
+  data-card-w="{{cardW}}"
+  data-card-h="{{cardH}}"
+  aria-role="{{interactive ? 'button' : 'group'}}"
+  aria-label="{{ariaLabel}}"
+  bindtap="onTap"
+  bindlongpress="onLongPress"
+  bindtouchstart="light.onTouchStart"
+  bindtouchmove="light.onTouchMove"
+  bindtouchend="light.onTouchEnd"
+  bindtouchcancel="light.onTouchCancel"
+>
+  <view class="glass-card__surface">
+    <view
+      wx:if="{{tone !== 'neutral'}}"
+      class="glass-card__aura"
+      aria-hidden="true"
+    ></view>
+
+    <view
+      wx:if="{{lightTracking}}"
+      class="glass-card__light"
+      aria-hidden="true"
+    ></view>
+
+    <view
+      wx:if="{{noise}}"
+      class="glass-card__noise"
+      aria-hidden="true"
+    ></view>
+
+    <view
+      wx:if="{{sheen}}"
+      class="glass-card__sheen"
+      aria-hidden="true"
+    ></view>
+
+    <view
+      wx:if="{{sss}}"
+      class="glass-card__sss"
+      aria-hidden="true"
+    ></view>
+
+    <view
+      wx:if="{{dispersion}}"
+      class="glass-card__dispersion"
+      aria-hidden="true"
+    ></view>
+
+    <view class="glass-card__edge" aria-hidden="true"></view>
+
+    <view class="glass-card__content">
+      <view wx:if="{{showHeader}}" class="glass-card__header">
+        <slot name="header"></slot>
+      </view>
+
+      <view class="glass-card__body">
+        <slot></slot>
+      </view>
+
+      <view wx:if="{{showFooter}}" class="glass-card__footer">
+        <slot name="footer"></slot>
+      </view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,11 @@
+{
+  "navigationBarTitleText": "我的",
+  "disableScroll": true,
+  "usingComponents": {
+    "glass-card": "../../components/glass-card/index",
+    "glass-button": "../../components/glass-button/index",
+    "glass-toast": "../../components/glass-toast/index",
+    "privacy-guard": "../../components/privacy-guard/index",
+    "g-icon": "../../components/g-icon/index"
+  }
+}

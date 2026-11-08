@@ -1,0 +1,61 @@
+<view class="visual-page {{themeClass}}">
+  <view class="visual-head">
+    <text class="visual-kicker">SPATIAL HOLOGRAM</text>
+    <text class="visual-title">空间视差视觉验收</text>
+    <text class="visual-meta">{{caseId}}</text>
+  </view>
+
+  <view class="visual-stage">
+    <spatial-hologram
+      id="holoA"
+      enabled="{{false}}"
+      auto-start="{{false}}"
+      aurora="{{aurora}}"
+      max-tilt="12"
+      aria-label="空间视差视觉验收卡片"
+      custom-style="min-height: 560rpx;"
+    >
+      <glass-card
+        tone="iris"
+        radius="xl"
+        padding="lg"
+        depth="deep"
+      >
+        <view class="sample-copy">
+          <text class="sample-kicker">CHAOHUAN / GLASS 3.0</text>
+          <text class="sample-title">空间化主卡</text>
+          <text class="sample-desc">
+            三层深度、极光球、噪点玻璃与等宽数字滚动。
+          </text>
+
+          <animated-number
+            value="{{amount}}"
+            decimals="2"
+            prefix="¥"
+            size="lg"
+            tone="iris"
+            duration="{{1000}}"
+          />
+        </view>
+      </glass-card>
+
+      <view
+        wx:if="{{showDecor}}"
+        slot="back"
+        class="sample-orb"
+      ></view>
+
+      <view
+        wx:if="{{showDecor}}"
+        slot="front"
+        class="sample-badge"
+      >
+        <text>LOCAL ONLY</text>
+      </view>
+    </spatial-hologram>
+  </view>
+
+  <view class="visual-foot">
+    <text>静态截图验收层叠与配色；陀螺仪阻尼需真机转动验证。</text>
+  </view>
+</view>

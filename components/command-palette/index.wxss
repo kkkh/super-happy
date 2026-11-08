@@ -1,0 +1,431 @@
+/* ==========================================================================
+   command-palette · 全局毛玻璃命令面板
+   - 顶部下压式入场，面板内结果滚动
+   - 遮罩 + 根节点 catchtouchmove 防滚动穿透
+   - 顶部按「状态栏安全区 + 72px」下移，彻底避开状态栏与微信胶囊
+   - 结果区显式高度 + 底部安全 padding，键盘弹起后仍可向下滚动
+   ========================================================================== */
+
+.glass-palette {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  box-sizing: border-box;
+  /* 兜底：无法识别 env 的旧基础库仍落在状态栏下方 */
+  padding: 92px 16px 24px;
+  padding-top: calc(env(safe-area-inset-top, 0px) + 72px);
+  padding-right: 16px;
+  padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  padding-left: 16px;
+  pointer-events: none;
+  font-family: var(--glass-font-sans);
+}
+
+/* ---- 遮罩 ---- */
+.glass-palette__mask {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1;
+  background-color: var(--glass-scrim);
+  opacity: 0;
+  pointer-events: auto;
+  transition: opacity 260ms var(--glass-ease-out);
+}
+
+.glass-palette_active .glass-palette__mask {
+  opacity: 1;
+}
+
+/* ---- 面板 ---- */
+.glass-palette__panel {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 680rpx;
+  /* 显式高度：保证内部 scroll-view 有确定的可滚动区域 */
+  height: 62vh;
+  max-height: 72vh;
+  box-sizing: border-box;
+  overflow: hidden;
+  border: 1rpx solid var(--glass-border);
+  border-radius: 40rpx;
+  /* 模态面板使用更强的玻璃背板，避免浅色主题下文字发虚 */
+  background-color: var(--sg-glass-bg-strong, var(--glass-bg-strong));
+  box-shadow:
+    var(--glass-shadow),
+    inset 0 1rpx 0 var(--glass-highlight);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  pointer-events: auto;
+  opacity: 0;
+  transform: translate3d(0, -16rpx, 0) scale(0.97);
+  transition:
+    opacity 260ms var(--glass-ease-out),
+    transform 420ms var(--glass-ease-spring);
+  will-change: transform, opacity;
+}
+
+.glass-palette_active .glass-palette__panel {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+}
+
+/* ---- 材质层 ---- */
+.glass-palette__sheen {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background-image: var(--glass-sheen);
+  opacity: 0.3;
+}
+
+.glass-palette__noise {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background-image: var(--glass-noise-image);
+  background-size: var(--glass-noise-size);
+  opacity: var(--glass-noise-opacity);
+  mix-blend-mode: soft-light;
+}
+
+/* ---- 搜索头 ---- */
+.glass-palette__header {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding: 20rpx 20rpx 20rpx 28rpx;
+  box-sizing: border-box;
+  border-bottom: 1rpx solid var(--glass-border);
+}
+
+.glass-palette__search_icon {
+  flex-shrink: 0;
+  color: var(--glass-text-3);
+  font-size: 34rpx;
+  line-height: 1;
+  margin-right: 14rpx;
+}
+
+.glass-palette__input {
+  flex: 1;
+  min-width: 0;
+  height: 52rpx;
+  padding: 0;
+  color: var(--glass-text);
+  font-family: var(--glass-font-sans);
+  font-size: 30rpx;
+  font-weight: 500;
+  line-height: 1.4;
+  background-color: transparent;
+  border: none;
+  outline: none;
+}
+
+/* 消灭原生 input 自带清除按钮：全平台只保留一个毛玻璃 X */
+.glass-palette__input::-webkit-search-cancel-button,
+.glass-palette__input::-webkit-clear-button,
+.glass-palette__input::-webkit-search-decoration {
+  display: none;
+  -webkit-appearance: none;
+}
+
+.glass-palette__placeholder {
+  color: var(--glass-text-3);
+  font-weight: 400;
+}
+
+/* 单一清除 X：毛玻璃圆形，垂直居中 */
+.glass-palette__clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 48rpx;
+  height: 48rpx;
+  margin-left: 8rpx;
+  box-sizing: border-box;
+  border-radius: 50%;
+  background-color: var(--glass-bg);
+  border: 1rpx solid var(--glass-border);
+  box-shadow: inset 0 1rpx 0 var(--glass-highlight);
+  transition:
+    transform var(--glass-duration-fast) var(--glass-ease-out),
+    opacity var(--glass-duration-fast) var(--glass-ease-out);
+}
+
+.glass-palette__clear_pressed {
+  transform: scale(0.9);
+  opacity: 0.72;
+}
+
+.glass-palette__clear_glyph {
+  color: var(--glass-text-2);
+  font-size: 26rpx;
+  line-height: 1;
+  transform: translateY(-1rpx);
+}
+
+/* 关闭按钮：文字胶囊，不再使用第二个 X */
+.glass-palette__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  height: 48rpx;
+  margin-left: 10rpx;
+  padding: 0 18rpx;
+  box-sizing: border-box;
+  border-radius: 999rpx;
+  background-color: var(--glass-bg);
+  border: 1rpx solid var(--glass-border);
+  box-shadow: inset 0 1rpx 0 var(--glass-highlight);
+  transition:
+    transform var(--glass-duration-fast) var(--glass-ease-out),
+    opacity var(--glass-duration-fast) var(--glass-ease-out);
+}
+
+.glass-palette__close_pressed {
+  transform: scale(0.92);
+  opacity: 0.72;
+}
+
+.glass-palette__close_text {
+  color: var(--glass-text-2);
+  font-size: 20rpx;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+
+/* ---- 结果区：显式高度 + 键盘安全 padding ---- */
+.glass-palette__results {
+  position: relative;
+  z-index: 3;
+  flex: 1;
+  min-height: 0;
+  max-height: 44vh;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.glass-palette__results_inner {
+  display: flex;
+  flex-direction: column;
+  padding: 10rpx 10rpx calc(48rpx + env(safe-area-inset-bottom, 0px));
+  box-sizing: border-box;
+}
+
+.glass-palette__item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 96rpx;
+  margin-bottom: 6rpx;
+  padding: 16rpx 18rpx;
+  box-sizing: border-box;
+  border: 1rpx solid transparent;
+  border-radius: 24rpx;
+  transition:
+    background-color var(--glass-duration-fast) var(--glass-ease-out),
+    transform var(--glass-duration-fast) var(--glass-ease-out);
+}
+
+.glass-palette__item_active {
+  background-color: var(--glass-accent-soft);
+  border-color: var(--glass-border);
+}
+
+.glass-palette__item_pressed {
+  background-color: var(--glass-bg-soft);
+  transform: scale(0.985);
+}
+
+.glass-palette__item_icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 64rpx;
+  height: 64rpx;
+  box-sizing: border-box;
+  border: 1rpx solid var(--glass-border);
+  border-radius: 20rpx;
+  background-color: var(--glass-bg-strong);
+  box-shadow: inset 0 1rpx 0 var(--glass-highlight);
+}
+
+.glass-palette__item_icon_glyph {
+  color: var(--glass-text);
+  font-size: 26rpx;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.glass-palette__item_text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  margin-left: 18rpx;
+}
+
+.glass-palette__item_title {
+  color: var(--glass-text);
+  font-size: 27rpx;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.glass-palette__item_subtitle {
+  margin-top: 4rpx;
+  color: var(--glass-text-3);
+  font-size: 20rpx;
+  line-height: 1.4;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.glass-palette__item_category {
+  flex-shrink: 0;
+  margin-left: 10rpx;
+  padding: 4rpx 12rpx;
+  box-sizing: border-box;
+  border: 1rpx solid var(--glass-border);
+  border-radius: 12rpx;
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 16rpx;
+}
+
+.glass-palette__item_arrow {
+  flex-shrink: 0;
+  margin-left: 8rpx;
+  color: var(--glass-text-4);
+  font-size: 28rpx;
+  line-height: 1;
+}
+
+/* ---- 空状态：玻璃卡 + 线框搜索图标 ---- */
+.glass-palette__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 340rpx;
+  margin: 8rpx 4rpx 0;
+  padding: 48rpx 28rpx;
+  box-sizing: border-box;
+  border: 1rpx solid var(--glass-border);
+  border-radius: 28rpx;
+  background-color: var(--glass-bg-soft);
+  box-shadow:
+    inset 0 1rpx 0 var(--glass-highlight),
+    0 0 28rpx rgba(159, 124, 255, 0.08);
+}
+
+.glass-palette__empty_icon {
+  position: relative;
+  width: 72rpx;
+  height: 72rpx;
+  margin-bottom: 24rpx;
+}
+
+.glass-palette__empty_lens {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50rpx;
+  height: 50rpx;
+  box-sizing: border-box;
+  border: 2rpx solid var(--glass-text-3);
+  border-radius: 50%;
+  opacity: 0.72;
+}
+
+.glass-palette__empty_handle {
+  position: absolute;
+  right: 2rpx;
+  bottom: 8rpx;
+  width: 28rpx;
+  height: 2rpx;
+  background-color: var(--glass-text-3);
+  opacity: 0.72;
+  transform: rotate(45deg);
+  transform-origin: right center;
+  border-radius: 2rpx;
+}
+
+.glass-palette__empty_title {
+  color: var(--glass-text);
+  font-size: 27rpx;
+  font-weight: 600;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.glass-palette__empty_hint {
+  margin-top: 10rpx;
+  color: var(--glass-text-3);
+  font-size: 20rpx;
+  line-height: 1.5;
+  text-align: center;
+}
+
+/* ---- 底部 ---- */
+.glass-palette__footer {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  padding: 14rpx 28rpx 18rpx;
+  box-sizing: border-box;
+  border-top: 1rpx solid var(--glass-border);
+}
+
+.glass-palette__footer_text {
+  color: var(--glass-text-3);
+  font-size: 18rpx;
+}
+
+.glass-palette__footer_code {
+  color: var(--glass-text-4);
+  font-family: var(--glass-font-mono);
+  font-size: 16rpx;
+  letter-spacing: 0.12em;
+}
+
+/* ---- 减少动态 ---- */
+@media (prefers-reduced-motion: reduce) {
+  .glass-palette__mask,
+  .glass-palette__panel,
+  .glass-palette__clear,
+  .glass-palette__close,
+  .glass-palette__item {
+    transition-duration: 1ms;
+  }
+}

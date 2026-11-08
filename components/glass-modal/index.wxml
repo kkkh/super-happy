@@ -1,0 +1,64 @@
+<view
+  wx:if="{{visible}}"
+  class="custom-class glass-modal {{active ? 'glass-modal_active' : ''}}"
+  style="z-index: {{zIndex}}; {{customStyle}}"
+>
+  <view
+    class="glass-modal__mask"
+    catchtouchmove="noop"
+    bindtap="onMaskTap"
+    aria-hidden="true"
+  ></view>
+
+  <view
+    class="glass-modal__panel"
+    aria-role="alertdialog"
+    aria-modal="true"
+    aria-label="{{ariaLabel}}"
+    catchtouchmove="noop"
+  >
+    <view class="glass-modal__sheen" aria-hidden="true"></view>
+    <view class="glass-modal__noise" aria-hidden="true"></view>
+
+    <view class="glass-modal__body">
+      <text wx:if="{{title}}" class="glass-modal__title">{{title}}</text>
+      <text wx:if="{{description}}" class="glass-modal__desc">{{description}}</text>
+    </view>
+
+    <view
+      wx:if="{{extraText}}"
+      class="glass-modal__extra"
+      hover-class="glass-modal__extra_press"
+      hover-start-time="0"
+      hover-stay-time="80"
+      aria-role="button"
+      aria-label="{{extraText}}"
+      bindtap="onExtraTap"
+    >
+      <text class="glass-modal__extra-text">{{extraText}}</text>
+      <text class="glass-modal__extra-arrow" aria-hidden="true">›</text>
+    </view>
+
+    <view class="glass-modal__actions">
+      <glass-button
+        wx:if="{{showCancel}}"
+        variant="ghost"
+        size="md"
+        block
+        disabled="{{busy}}"
+        bind:tap="onCancelTap"
+      >
+        {{cancelText}}
+      </glass-button>
+      <glass-button
+        variant="{{danger ? 'danger' : 'primary'}}"
+        size="md"
+        block
+        disabled="{{busy}}"
+        bind:tap="onConfirmTap"
+      >
+        {{confirmText}}
+      </glass-button>
+    </view>
+  </view>
+</view>

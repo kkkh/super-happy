@@ -1,0 +1,388 @@
+/* ==========================================================================
+   pages/legal · 隐私与说明（液态玻璃版）
+   - 页面根节点挂 themeClass，昼夜材质只在 .theme-light / .theme-dark 上覆盖
+   - 正文全部由 glass-card 承托，无纯黑分割线、无死白纸面
+   - 顶部章节切换为悬浮玻璃胶囊，选中态使用极光渐变切片
+   ========================================================================== */
+
+.legal-page {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  box-sizing: border-box;
+  background-color: var(--glass-canvas);
+  color: var(--glass-text);
+  font-family: var(--glass-font-sans);
+}
+
+/* ---- 页面级材质：白昼轻玻璃 / 夜航吸光黑曜玻璃 ---- */
+.legal-page.theme-light {
+  --glass-bg: rgba(255, 255, 255, 0.18);
+  --glass-bg-soft: rgba(255, 255, 255, 0.12);
+  --glass-bg-strong: rgba(255, 255, 255, 0.26);
+  --glass-border: rgba(255, 255, 255, 0.42);
+  --glass-blur: 24px;
+  --glass-saturate: 200%;
+  --glass-shadow-soft: inset 0 1px 2px rgba(255, 255, 255, 0.8),
+    0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.legal-page.theme-dark {
+  --glass-bg: rgba(13, 17, 26, 0.56);
+  --glass-bg-soft: rgba(13, 17, 26, 0.36);
+  --glass-bg-strong: rgba(20, 25, 38, 0.76);
+  --glass-border: rgba(255, 255, 255, 0.14);
+  --glass-highlight: rgba(255, 255, 255, 0.2);
+  --glass-blur: 28px;
+  --glass-saturate: 180%;
+  --glass-shadow-soft: inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 16px 40px rgba(0, 0, 0, 0.42);
+}
+
+/* ---- 极光背景 ---- */
+.legal-aurora {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.legal-aurora__a {
+  position: absolute;
+  top: -22%;
+  left: -30%;
+  width: 104%;
+  height: 62%;
+}
+
+.legal-aurora__b {
+  position: absolute;
+  top: 16%;
+  right: -34%;
+  width: 96%;
+  height: 58%;
+}
+
+.legal-aurora__c {
+  position: absolute;
+  bottom: -24%;
+  left: -12%;
+  width: 110%;
+  height: 64%;
+}
+
+/* ---- 滚动与内容 ---- */
+.legal-scroll {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  width: 100%;
+  height: 0;
+}
+
+.legal-inner {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding-top: 24rpx;
+  padding-right: 32rpx;
+  padding-left: 32rpx;
+  padding-bottom: calc(56rpx + env(safe-area-inset-bottom));
+}
+
+.legal-head {
+  display: flex;
+  flex-direction: column;
+  padding-top: 6rpx;
+}
+
+.legal-kicker {
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 19rpx;
+  letter-spacing: 0.16em;
+}
+
+.legal-title {
+  margin-top: 14rpx;
+  color: var(--glass-text);
+  font-size: 56rpx;
+  font-weight: 700;
+  line-height: 1.12;
+}
+
+.legal-desc {
+  margin-top: 14rpx;
+  color: var(--glass-text-2);
+  font-size: 24rpx;
+  line-height: 1.65;
+}
+
+/* ---- 悬浮玻璃胶囊切换器 ---- */
+.legal-seg {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  box-sizing: border-box;
+  margin-top: 30rpx;
+  margin-bottom: 24rpx;
+  padding: 6rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: 999rpx;
+  background-color: var(--glass-bg-soft);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  box-shadow:
+    inset 0 1rpx 0 var(--glass-highlight),
+    var(--glass-shadow-soft);
+}
+
+.legal-seg__item {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 64rpx;
+  box-sizing: border-box;
+  border: 1rpx solid transparent;
+  border-radius: 999rpx;
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease,
+    opacity 180ms ease;
+}
+
+.legal-seg__item--press {
+  transform: scale(0.96);
+  opacity: 0.88;
+}
+
+.legal-seg__item--active {
+  border-color: var(--glass-border-strong);
+  background-color: var(--glass-accent-soft);
+  background-image: linear-gradient(
+    135deg,
+    var(--glass-accent-soft),
+    var(--glass-accent-2-soft) 52%,
+    var(--glass-accent-warm-soft)
+  );
+  box-shadow:
+    inset 0 1rpx 0 var(--glass-highlight),
+    0 8rpx 22rpx var(--glass-accent-soft);
+}
+
+.legal-seg__label {
+  color: var(--glass-text-3);
+  font-size: 23rpx;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.legal-seg__item--active .legal-seg__label {
+  color: var(--glass-text);
+  font-weight: 600;
+}
+
+/* ---- 章节卡片 ---- */
+.legal-anchor {
+  display: block;
+  padding-top: 4rpx;
+}
+
+.legal-card {
+  display: block;
+  box-sizing: border-box;
+  margin-bottom: 24rpx;
+}
+
+.legal-card__head {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 18rpx;
+}
+
+.legal-card__index {
+  flex: 0 0 auto;
+  width: 54rpx;
+  height: 54rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  border: 1rpx solid var(--glass-border);
+  border-radius: 999rpx;
+  background-color: var(--glass-bg-soft);
+  box-shadow: inset 0 1rpx 0 var(--glass-highlight);
+}
+
+.legal-card__index-text {
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 19rpx;
+  letter-spacing: 0.08em;
+}
+
+.legal-card__head-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.legal-card__title {
+  color: var(--glass-text);
+  font-size: 34rpx;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.legal-card__kicker {
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 17rpx;
+  letter-spacing: 0.1em;
+}
+
+.legal-body {
+  display: block;
+  margin-top: 18rpx;
+  color: var(--glass-text-2);
+  font-size: 26rpx;
+  line-height: 1.85;
+}
+
+.legal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14rpx;
+  margin-top: 18rpx;
+}
+
+.legal-list__item {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 14rpx;
+}
+
+.legal-list__dot {
+  flex: 0 0 auto;
+  width: 10rpx;
+  height: 10rpx;
+  margin-top: 16rpx;
+  border-radius: 999rpx;
+  background-color: var(--glass-accent);
+  box-shadow: 0 0 14rpx var(--glass-accent-soft);
+}
+
+.legal-list__text {
+  flex: 1;
+  min-width: 0;
+  color: var(--glass-text-2);
+  font-size: 25rpx;
+  line-height: 1.78;
+}
+
+/* ---- 邮箱玻璃盒 ---- */
+.legal-contact-card {
+  display: block;
+  margin-top: 6rpx;
+  margin-bottom: 22rpx;
+}
+
+.legal-contact {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 20rpx;
+  box-sizing: border-box;
+  padding: 24rpx 26rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: 24rpx;
+  background-color: var(--glass-bg-soft);
+  box-shadow: inset 0 1rpx 0 var(--glass-highlight);
+  transition:
+    transform 180ms ease,
+    background-color 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    opacity 180ms ease;
+}
+
+.legal-contact__copy {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.legal-contact__label {
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 18rpx;
+  letter-spacing: 0.1em;
+}
+
+.legal-contact__value {
+  color: var(--glass-text);
+  font-family: var(--glass-font-mono);
+  font-size: 28rpx;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.legal-contact__icon {
+  flex: 0 0 auto;
+  width: 62rpx;
+  height: 62rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  border: 1rpx solid var(--glass-border);
+  border-radius: 999rpx;
+  background-color: var(--glass-bg-soft);
+  box-shadow: inset 0 1rpx 0 var(--glass-highlight);
+}
+
+/* ---- 页脚 ---- */
+.legal-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+  margin-top: 10rpx;
+  padding-top: 4rpx;
+  color: var(--glass-text-3);
+  font-size: 20rpx;
+  line-height: 1.6;
+}
+
+.legal-footer__meta {
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 17rpx;
+  letter-spacing: 0.08em;
+}
+
+/* ---- 低端机 / 不支持背景模糊时的兜底 ---- */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .legal-seg {
+    background-color: var(--glass-bg-strong);
+  }
+}

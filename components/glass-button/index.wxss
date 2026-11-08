@@ -1,0 +1,582 @@
+/* ==========================================================================
+   glass-button · 极光毛玻璃按钮
+   - 全部颜色 / 阴影 / 动效消费 app.wxss 的 --glass-* 令牌
+   - spring=true 时由 WXS 阻尼弹簧逐帧 setStyle；关闭后回退 CSS transition
+   ========================================================================== */
+
+.glass-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  overflow: hidden;
+  border: 1rpx solid transparent;
+  border-radius: 999rpx;
+  font-family: var(--glass-font-sans);
+  font-size: 28rpx;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform 320ms var(--glass-ease-spring),
+    box-shadow var(--glass-duration-base) var(--glass-ease-out),
+    opacity var(--glass-duration-fast) var(--glass-ease-out),
+    background-color var(--glass-duration-base) var(--glass-ease-out);
+  will-change: transform;
+}
+
+/* ---- 尺寸 ---- */
+.glass-button_size_sm {
+  height: 64rpx;
+  min-width: 120rpx;
+  padding: 0 28rpx;
+  font-size: 24rpx;
+}
+
+.glass-button_size_md {
+  height: 84rpx;
+  min-width: 160rpx;
+  padding: 0 36rpx;
+  font-size: 28rpx;
+}
+
+.glass-button_size_lg {
+  height: 104rpx;
+  min-width: 200rpx;
+  padding: 0 48rpx;
+  font-size: 32rpx;
+}
+
+/* ---- 形态 ---- */
+.glass-button_shape_capsule {
+  border-radius: 999rpx;
+}
+
+.glass-button_shape_rounded {
+  border-radius: var(--glass-radius-md);
+}
+
+.glass-button_block {
+  display: flex;
+  width: 100%;
+}
+
+/* ---- 变体 ---- */
+.glass-button_variant_primary {
+  color: var(--glass-on-accent);
+  border-color: var(--glass-border-strong);
+  background-color: var(--glass-accent);
+  background-image: linear-gradient(135deg, var(--glass-accent) 0%, var(--glass-accent-2) 100%);
+  box-shadow:
+    0 18rpx 44rpx var(--glass-accent-soft),
+    inset 0 1rpx 0 var(--glass-highlight);
+}
+
+.glass-button_variant_aurora {
+  color: var(--glass-on-accent);
+  border-color: var(--glass-border-strong);
+  background-color: var(--glass-accent-2);
+  background-image: linear-gradient(135deg, var(--glass-accent-2) 0%, var(--glass-accent) 100%);
+  box-shadow:
+    0 18rpx 44rpx var(--glass-accent-2-soft),
+    inset 0 1rpx 0 var(--glass-highlight);
+}
+
+.glass-button_variant_warm {
+  color: var(--glass-on-warm);
+  border-color: var(--glass-border-strong);
+  background-color: var(--glass-accent-warm);
+  background-image: linear-gradient(135deg, var(--glass-accent-warm) 0%, var(--glass-accent) 100%);
+  box-shadow:
+    0 18rpx 44rpx var(--glass-accent-warm-soft),
+    inset 0 1rpx 0 var(--glass-highlight);
+}
+
+/* 霜白玻璃 CTA：不使用任何饱和色填充
+   - 面：高亮白霜 + 30px 折射，吃进卡片的极光底色
+   - 光：左上镜面，右下只留一层强调色折射，外沿极淡色光
+   - 字：恒为墨色。霜面在任何主题下都是高亮面，反白会直接丢对比 */
+.glass-button_variant_tint {
+  color: #14161d;
+  border-color: rgba(255, 255, 255, 0.64);
+  background-color: rgba(255, 255, 255, 0.3);
+  background-image:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.66) 0%, rgba(255, 255, 255, 0.12) 56%),
+    linear-gradient(315deg, var(--glass-accent-soft) 0%, transparent 60%);
+  -webkit-backdrop-filter: blur(30px) saturate(200%);
+  backdrop-filter: blur(30px) saturate(200%);
+  box-shadow:
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.92),
+    inset 0 0 0 1rpx rgba(255, 255, 255, 0.36),
+    var(--glass-shadow-soft),
+    0 12rpx 28rpx var(--glass-accent-soft);
+}
+
+.glass-button_variant_ghost {
+  color: var(--glass-text);
+  border-color: var(--glass-border);
+  background-color: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  box-shadow:
+    inset 0 1rpx 0 var(--glass-highlight),
+    var(--glass-shadow-soft);
+}
+
+.glass-button_variant_danger {
+  color: var(--glass-on-accent);
+  border-color: var(--glass-border-strong);
+  background-color: var(--glass-danger);
+  background-image: linear-gradient(135deg, var(--glass-danger) 0%, var(--glass-accent-warm) 100%);
+  box-shadow:
+    0 18rpx 44rpx var(--glass-accent-warm-soft),
+    inset 0 1rpx 0 var(--glass-highlight);
+}
+
+/* ---- 材质层 ---- */
+.glass-button__sheen {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  border-radius: inherit;
+  background-image: var(--glass-sheen);
+  opacity: 0.38;
+}
+
+.glass-button__glow {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  border-radius: inherit;
+  background-image: radial-gradient(
+    80% 140% at 50% -20%,
+    var(--glass-highlight) 0%,
+    transparent 70%
+  );
+  opacity: 0;
+  transition: opacity var(--glass-duration-fast) var(--glass-ease-out);
+}
+
+.glass-button__content {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.glass-button__label {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+/* 常态标签：进入加载态时向上淡出并轻微收束 */
+.glass-button__label-idle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    opacity 200ms var(--glass-ease-out),
+    transform 300ms var(--glass-ease-out);
+}
+
+.glass-button__label-idle_out {
+  opacity: 0;
+  transform: translateY(-6rpx) scale(0.97);
+}
+
+/* 加载标签：绝对叠放，双向交叉淡入，按钮宽度保持不变 */
+.glass-button__label-loading {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transform: translateY(6rpx) scale(0.97);
+  pointer-events: none;
+  transition:
+    opacity 220ms var(--glass-ease-out),
+    transform 320ms var(--glass-ease-out);
+}
+
+.glass-button__label-loading_in {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+/* 加载文案带一层柔光，配合扫光更像极光在字上流动 */
+.glass-button__label-loading_in .glass-button__text {
+  text-shadow: 0 0 14rpx rgba(255, 255, 255, 0.3);
+}
+
+/* 成功标签：勾选弹入 + 文案上浮 */
+.glass-button__label-success {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transform: translateY(6rpx) scale(0.94);
+  pointer-events: none;
+  transition:
+    opacity 220ms var(--glass-ease-out),
+    transform 320ms var(--glass-ease-out);
+}
+
+.glass-button__label-success_in {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.glass-button__check {
+  display: inline-block;
+  margin-right: 8rpx;
+  color: #ffffff;
+  font-size: 24rpx;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.glass-button__label-success_in .glass-button__check {
+  animation:
+    glass-button-check-in 420ms var(--glass-ease-spring) both,
+    glass-button-check-glow 1400ms ease-in-out 420ms infinite;
+}
+
+@keyframes glass-button-check-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes glass-button-check-glow {
+  0%,
+  100% {
+    text-shadow: 0 0 6rpx rgba(255, 255, 255, 0.35);
+  }
+
+  50% {
+    text-shadow: 0 0 20rpx rgba(255, 255, 255, 0.9);
+  }
+}
+
+.glass-button__text {
+  display: inline-block;
+}
+
+/* ---- loading 指示：三颗节奏脉冲圆点，避免 Skyline 边框旋转小方块 ---- */
+.glass-button__dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 2rpx;
+  flex-shrink: 0;
+  margin-right: 10rpx;
+  color: currentColor;
+  font-family: var(--glass-font-mono);
+  font-size: 16rpx;
+  line-height: 1;
+}
+
+.glass-button__dot {
+  display: inline-block;
+  opacity: 0.3;
+  animation: glass-button-dot-pulse 900ms ease-in-out infinite;
+}
+
+.glass-button__dot_2 {
+  animation-delay: 140ms;
+}
+
+.glass-button__dot_3 {
+  animation-delay: 280ms;
+}
+
+@keyframes glass-button-dot-pulse {
+  0%,
+  100% {
+    opacity: 0.25;
+    transform: translateY(0);
+  }
+
+  50% {
+    opacity: 1;
+    transform: translateY(-2rpx);
+  }
+}
+
+/* ---- loading 流光：只动 transform，贴合玻璃高光 ---- */
+.glass-button__loading-sheen {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 2;
+  width: 42%;
+  pointer-events: none;
+  background-image: linear-gradient(
+    100deg,
+    transparent 0%,
+    var(--glass-highlight) 50%,
+    transparent 100%
+  );
+  opacity: 0;
+  transform: translateX(380%);
+  transition: opacity 200ms var(--glass-ease-out);
+  animation: none;
+}
+
+/* 主扫光：持续循环，加载期间保持极光流动 */
+.glass-button__loading-sheen_on {
+  opacity: 0.55;
+  will-change: transform;
+  animation: glass-button-loading-sheen 1100ms ease-in-out infinite;
+}
+
+@keyframes glass-button-loading-sheen {
+  0% {
+    transform: translateX(-160%);
+  }
+
+  100% {
+    transform: translateX(380%);
+  }
+}
+
+/* 副扫光：薄荷色从右向左慢扫，和主扫光形成交叉层次 */
+.glass-button__loading-sheen_soft {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 2;
+  width: 24%;
+  pointer-events: none;
+  background-image: linear-gradient(
+    100deg,
+    transparent 0%,
+    rgba(95, 220, 199, 0.4) 50%,
+    transparent 100%
+  );
+  opacity: 0;
+  transform: translateX(420%);
+  transition: opacity 240ms var(--glass-ease-out);
+  animation: none;
+}
+
+.glass-button__loading-sheen_soft_on {
+  opacity: 0.35;
+  will-change: transform;
+  animation: glass-button-loading-sheen-soft 2200ms ease-in-out infinite;
+}
+
+@keyframes glass-button-loading-sheen-soft {
+  0% {
+    transform: translateX(420%);
+  }
+
+  100% {
+    transform: translateX(-160%);
+  }
+}
+
+/* 呼吸光晕：整颗按钮在加载期间缓慢明暗呼吸 */
+.glass-button__aura {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 2;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow:
+    inset 0 0 0 1rpx rgba(255, 255, 255, 0.2),
+    inset 0 0 36rpx rgba(159, 124, 255, 0.42);
+  opacity: 0;
+}
+
+.glass-button__aura_on {
+  animation: glass-button-aura 1600ms ease-in-out infinite;
+}
+
+@keyframes glass-button-aura {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+
+  50% {
+    opacity: 0.9;
+  }
+}
+
+/* ---- 交互态 ---- */
+.glass-button_pressed {
+  transform: scale(0.955) translateY(1rpx);
+}
+
+.glass-button_pressed .glass-button__glow {
+  opacity: 0.46;
+}
+
+/* 淡彩 CTA 按压：霜面被点亮，只加白光与色光，不加深颜色 */
+.glass-button_pressed.glass-button_variant_tint {
+  background-color: rgba(255, 255, 255, 0.42);
+  box-shadow:
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.98),
+    inset 0 0 0 1rpx rgba(255, 255, 255, 0.5),
+    var(--glass-shadow-soft),
+    0 16rpx 34rpx var(--glass-accent-soft);
+}
+
+.glass-button_disabled {
+  opacity: 0.42;
+  box-shadow: none;
+}
+
+.glass-button_loading {
+  opacity: 0.92;
+}
+
+/* 成功态：保持全亮，并叠加一圈薄荷外发光 */
+.glass-button_success,
+.glass-button_success.glass-button_disabled {
+  opacity: 1;
+  box-shadow:
+    0 0 0 1rpx rgba(95, 220, 199, 0.5),
+    0 18rpx 44rpx rgba(95, 220, 199, 0.36),
+    inset 0 1rpx 0 var(--glass-highlight);
+}
+
+/* 成功光晕层：只淡入 opacity，内部渐变与内描边一次性栅格化 */
+.glass-button__success-tint {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 2;
+  border-radius: inherit;
+  pointer-events: none;
+  background-image: linear-gradient(
+    135deg,
+    rgba(95, 220, 199, 0.22) 0%,
+    rgba(56, 189, 248, 0.14) 100%
+  );
+  box-shadow: inset 0 0 0 1rpx rgba(95, 220, 199, 0.65);
+  opacity: 0;
+  transition: opacity 260ms var(--glass-ease-out);
+}
+
+.glass-button__success-tint_on {
+  opacity: 1;
+  will-change: opacity;
+}
+
+/* 成功涟漪：两圈光环从中心扩散，被按钮胶囊裁成流线光波 */
+.glass-button__success-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 2;
+  width: 180rpx;
+  height: 180rpx;
+  margin: -90rpx 0 0 -90rpx;
+  border: 2rpx solid rgba(255, 255, 255, 0.72);
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.glass-button__success-ring_1 {
+  animation: glass-button-success-ring 1000ms var(--glass-ease-out) both;
+}
+
+.glass-button__success-ring_2 {
+  border-color: rgba(95, 220, 199, 0.72);
+  animation: glass-button-success-ring 1200ms var(--glass-ease-out) 140ms both;
+}
+
+@keyframes glass-button-success-ring {
+  0% {
+    opacity: 0.85;
+    transform: scale(0.3);
+  }
+
+  70% {
+    opacity: 0.35;
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(4.2);
+  }
+}
+
+/* ---- 低端机降级 ---- */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass-button_variant_ghost {
+    background-color: var(--glass-bg-strong);
+    box-shadow:
+      inset 0 1rpx 0 var(--glass-highlight),
+      0 2rpx 0 rgba(0, 0, 0, 0.08);
+  }
+
+  /* 没有折射能力时，霜白 CTA 退回实底白玻璃，保证仍可辨认 */
+  .glass-button_variant_tint {
+    background-color: rgba(248, 249, 252, 0.94);
+    background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, transparent 60%);
+  }
+}
+
+/* ---- 减少动态偏好 ---- */
+@media (prefers-reduced-motion: reduce) {
+  .glass-button__dot,
+  .glass-button__label-success_in .glass-button__check {
+    animation: none;
+  }
+
+  .glass-button__loading-sheen,
+  .glass-button__loading-sheen_on,
+  .glass-button__loading-sheen_soft,
+  .glass-button__loading-sheen_soft_on,
+  .glass-button__aura_on,
+  .glass-button__success-ring_1,
+  .glass-button__success-ring_2 {
+    animation: none;
+    opacity: 0;
+  }
+
+  .glass-button__label-idle,
+  .glass-button__label-loading,
+  .glass-button__label-success {
+    transition-duration: 1ms;
+    transform: none;
+  }
+}

@@ -1,0 +1,190 @@
+/* ==========================================================================
+   日期间隔 · 空间玻璃页面样式
+   - 只使用 --glass-* / --sg-* 令牌，无硬编码色值
+   ========================================================================== */
+
+/* ---- 起止日期 ---- */
+.tool-dates {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  gap: 12rpx;
+}
+
+.tool-date {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+}
+
+.tool-date__label {
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 19rpx;
+  letter-spacing: 0.08em;
+}
+
+.tool-date__trigger {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8rpx;
+  box-sizing: border-box;
+  padding: 20rpx 18rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: var(--glass-radius-md);
+  background-color: var(--glass-bg-soft);
+  box-shadow: inset 0 1rpx 0 var(--glass-highlight);
+  transition:
+    border-color var(--glass-duration-fast) var(--glass-ease-out),
+    background-color var(--glass-duration-fast) var(--glass-ease-out);
+}
+
+.tool-date__trigger_pressed {
+  border-color: var(--glass-border-strong);
+  background-color: var(--glass-bg-strong);
+}
+
+.tool-date__text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--glass-text);
+  font-family: var(--glass-font-mono);
+  font-size: 24rpx;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tool-date__hint {
+  color: var(--glass-text-3);
+  font-size: 19rpx;
+}
+
+.tool-dates__arrow {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 92rpx;
+  box-sizing: border-box;
+  padding-left: 2rpx;
+  padding-right: 2rpx;
+  color: var(--glass-text-3);
+  font-size: 26rpx;
+}
+
+/* ---- 快捷天数 ---- */
+.tool-seg {
+  display: flex;
+  flex-direction: row;
+  gap: 12rpx;
+}
+
+/* ---- 开关 ---- */
+.tool-switch {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+  box-sizing: border-box;
+  padding: 18rpx 4rpx;
+  border-top: 1rpx solid var(--glass-border);
+}
+
+.tool-switch__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.tool-switch__title {
+  color: var(--glass-text);
+  font-size: 24rpx;
+  font-weight: 600;
+}
+
+.tool-switch__sub {
+  color: var(--glass-text-3);
+  font-size: 19rpx;
+  line-height: 1.5;
+}
+
+/* ---- 结果 ---- */
+/* ---- 起止时间轴 ---- */
+.tool-span {
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+  box-sizing: border-box;
+  padding: 18rpx 20rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: var(--glass-radius-md);
+  background-color: var(--glass-bg-soft);
+}
+
+.tool-span__dates {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20rpx;
+}
+
+.tool-span__point {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+  min-width: 0;
+}
+
+.tool-span__point_right {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.tool-span__k {
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 17rpx;
+  letter-spacing: 0.1em;
+}
+
+.tool-span__v {
+  color: var(--glass-text);
+  font-family: var(--glass-font-mono);
+  font-size: 22rpx;
+}
+
+.tool-span__track {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.tool-span__dot {
+  flex: 0 0 auto;
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  background-color: var(--glass-accent);
+  box-shadow: var(--glass-shadow-soft);
+}
+
+.tool-span__line {
+  flex: 1;
+  height: 2rpx;
+  background-color: var(--glass-accent);
+  background-image: linear-gradient(90deg, var(--glass-accent), var(--glass-accent-2));
+  opacity: 0.8;
+}
+
+/* ---- 明细行 ---- */
+/* ---- 注释 ---- */

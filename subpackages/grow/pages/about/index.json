@@ -1,0 +1,13 @@
+{
+  "navigationBarTitleText": "关于我",
+  "disableScroll": true,
+  "usingComponents": {
+    "g-navbar": "../../../../components/g-navbar/index",
+    "g-card": "../../../../components/g-card/index",
+    "g-section": "../../../../components/g-section/index",
+    "g-tag": "../../../../components/g-tag/index",
+    "g-timeline": "../../components/g-timeline/index",
+    "g-skeleton": "../../../../components/g-skeleton/index",
+    "g-toast": "../../../../components/g-toast/index"
+  }
+}

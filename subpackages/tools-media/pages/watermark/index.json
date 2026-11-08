@@ -1,0 +1,14 @@
+{
+  "navigationBarTitleText": "水印工作台",
+  "disableScroll": true,
+  "usingComponents": {
+    "glass-button": "../../../../components/glass-button/index",
+    "glass-card": "../../../../components/glass-card/index",
+    "glass-slider": "../../../../components/glass-slider/index",
+    "glass-toast": "../../../../components/glass-toast/index",
+    "workflow-receiver": "../../../../components/workflow-receiver/index",
+    "workflow-panel": "../../../../components/workflow-panel/index",
+    "g-icon": "../../../../components/g-icon/index",
+    "privacy-guard": "../../../../components/privacy-guard/index"
+  }
+}

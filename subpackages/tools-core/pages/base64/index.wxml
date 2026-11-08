@@ -1,0 +1,83 @@
+<glass-tool-shell
+  tool-id="base64"
+  title="{{toolName}}"
+  kicker="{{kicker}}"
+  desc="{{desc}}"
+  poster-data="{{posterData}}"
+  show-run="{{false}}"
+  show-example
+  has-result="{{hasResult}}"
+  error="{{error}}"
+  empty-title="输入文本，立即编解码"
+  empty-sub="支持中文、Emoji 与 URL-safe Base64"
+  bind:example="onExample"
+  bind:reset="onReset"
+>
+  <view slot="input" class="sg-tool-fields">
+    <view class="tool-seg">
+      <view
+        class="tool-seg__item {{mode === 'encode' ? 'tool-seg__item--active' : ''}}"
+        hover-class="tool-press"
+        hover-stay-time="80"
+        data-mode="encode"
+        aria-role="button"
+        aria-label="文本转 Base64"
+        bindtap="onMode"
+      >
+        编码
+      </view>
+      <view
+        class="tool-seg__item {{mode === 'decode' ? 'tool-seg__item--active' : ''}}"
+        hover-class="tool-press"
+        hover-stay-time="80"
+        data-mode="decode"
+        aria-role="button"
+        aria-label="Base64 转文本"
+        bindtap="onMode"
+      >
+        解码
+      </view>
+    </view>
+
+    <glass-input
+      label="{{mode === 'encode' ? '原始文本' : 'Base64 内容'}}"
+      multiline
+      auto-height
+      show-count
+      value="{{input}}"
+      maxlength="{{maxText}}"
+      placeholder="{{mode === 'encode' ? '输入需要编码的文本' : '粘贴需要解码的 Base64'}}"
+      cursor-spacing="{{120}}"
+      aria-label="{{mode === 'encode' ? '原始文本' : 'Base64 内容'}}"
+      bind:input="onInput"
+    />
+  </view>
+
+  <view slot="result" class="sg-tool-result">
+    <view class="sg-tool-result__head">
+      <text class="sg-tool-result__label">{{mode === 'encode' ? 'Base64 结果' : '解码文本'}}</text>
+      <text class="sg-tool-result__meta">{{inputSizeText}} → {{outputSizeText}}</text>
+    </view>
+
+    <text class="tool-output" selectable>{{outputText}}</text>
+    <text class="tool-result__note">UTF-8 / {{mode === 'encode' ? 'ENCODE' : 'DECODE'}}</text>
+
+    <view class="tool-actions">
+      <glass-button variant="ghost" size="md" block bind:tap="onCopy">
+        复制结果
+      </glass-button>
+    </view>
+  </view>
+
+  <view slot="note">
+    <glass-card tone="amber" radius="lg" padding="md" depth="soft">
+      <view class="sg-tool-note">
+        <text class="sg-tool-note__title">文本编码</text>
+        <text class="sg-tool-note__text">
+          采用 UTF-8 + 标准 Base64，兼容 URL-safe 的 - 与 _ 字符。Base64 只是编码，不是加密，不能保护敏感内容。
+          不支持二进制文件与图片。
+        </text>
+      </view>
+    </glass-card>
+  </view>
+</glass-tool-shell>

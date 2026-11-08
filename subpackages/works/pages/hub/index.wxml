@@ -1,0 +1,63 @@
+<view class="page_root {{themeClass}}">
+  <g-navbar title="我的项目" back />
+
+  <scroll-view enhanced show-scrollbar="{{false}}" bounces="{{false}}" scroll-y type="list" class="hub_scroll">
+    <view class="hub_body">
+      <!-- 骨架 -->
+      <view wx:if="{{loading}}" class="hub_loading">
+        <g-skeleton rows="{{3}}" card />
+        <g-skeleton rows="{{3}}" card />
+      </view>
+
+      <block wx:else>
+        <view class="anim-rise">
+          <view class="hub_head">
+            <text class="hub_title">作品展区</text>
+            <text class="hub_sub">工程与创作 · 两个展区</text>
+          </view>
+        </view>
+
+        <!-- 收藏速览 -->
+        <view wx:if="{{favoriteCount > 0}}" class="hub_fav anim-fade delay-1">
+          <g-icon name="heart-fill" size="{{24}}" tone="amber" />
+          <text class="hub_fav_text">已收藏 {{favoriteCount}} 件展品</text>
+        </view>
+
+        <!-- 分类卡 -->
+        <view class="hub_cats">
+          <view
+            wx:for="{{metas}}"
+            wx:key="category"
+            class="anim-rise delay-{{index + 1}}"
+            data-category="{{item.category}}"
+            aria-role="button"
+            aria-label="{{item.title}}，{{item.description}}"
+            bindtap="onEnter"
+          >
+            <g-card padding="lg" hover sheen>
+              <view class="hub_cat">
+                <view class="hub_cat_head">
+                  <share-element key="{{item.shareKey}}" transition="true">
+                    <text class="hub_kicker hub_kicker_{{item.tone}}">{{item.kicker}}</text>
+                  </share-element>
+                  <view class="hub_count" aria-hidden="true">
+                    <text>{{item.category === 'actual' ? counts.actual : counts.personal}}</text>
+                  </view>
+                </view>
+                <text class="hub_cat_title">{{item.title}}</text>
+                <text class="hub_cat_desc">{{item.description}}</text>
+                <view class="hub_cat_cta">
+                  <text class="hub_cta_text hub_cta_text_{{item.tone}}">进入展区</text>
+                  <g-icon name="chevron" size="{{24}}" tone="{{item.tone}}" />
+                </view>
+              </view>
+            </g-card>
+          </view>
+        </view>
+      </block>
+    </view>
+  </scroll-view>
+
+  <g-toast />
+  <update-guard />
+</view>

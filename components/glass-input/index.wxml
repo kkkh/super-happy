@@ -1,0 +1,101 @@
+<view
+  class="custom-class glass-input glass-input_tone_{{tone}} glass-input_size_{{size}}{{focused ? ' glass-input_focused' : ''}}{{error ? ' glass-input_error' : ''}}{{disabled ? ' glass-input_disabled' : ''}}"
+  style="{{customStyle}}"
+>
+  <view
+    wx:if="{{label || showCount}}"
+    class="glass-input__meta"
+  >
+    <text wx:if="{{label}}" class="glass-input__label">{{label}}</text>
+    <text wx:if="{{showCount}}" class="glass-input__count">
+      {{currentLength}}<text wx:if="{{maxlength >= 0}}"> / {{maxlength}}</text>
+    </text>
+  </view>
+
+  <view class="glass-input__field">
+    <view
+      wx:if="{{focused && !error}}"
+      class="glass-input__halo"
+      aria-hidden="true"
+    ></view>
+
+    <view class="glass-input__surface">
+      <view
+        wx:if="{{sheen}}"
+        class="glass-input__sheen"
+        aria-hidden="true"
+      ></view>
+
+      <view
+        wx:if="{{noise}}"
+        class="glass-input__noise"
+        aria-hidden="true"
+      ></view>
+
+      <view class="glass-input__row {{multiline ? 'glass-input__row_multiline' : ''}}">
+        <slot name="prefix"></slot>
+
+        <textarea
+          wx:if="{{multiline}}"
+          class="glass-input__control glass-input__textarea"
+          value="{{innerValue}}"
+          placeholder="{{placeholder}}"
+          placeholder-class="glass-input__placeholder"
+          maxlength="{{maxlength}}"
+          focus="{{focus}}"
+          disabled="{{disabled}}"
+          confirm-type="{{confirmType}}"
+          cursor-spacing="{{cursorSpacing}}"
+          auto-height="{{autoHeight}}"
+          show-confirm-bar="{{showConfirmBar}}"
+          disable-default-padding="{{true}}"
+          adjust-position="{{true}}"
+          bindinput="onInput"
+          bindfocus="onFocus"
+          bindblur="onBlur"
+          bindconfirm="onConfirm"
+          bindkeyboardheightchange="onKeyboardHeightChange"
+        ></textarea>
+
+        <input
+          wx:else
+          class="glass-input__control"
+          value="{{innerValue}}"
+          type="{{type}}"
+          password="{{password}}"
+          placeholder="{{placeholder}}"
+          placeholder-class="glass-input__placeholder"
+          maxlength="{{maxlength}}"
+          focus="{{focus}}"
+          disabled="{{disabled}}"
+          readonly="{{readonly}}"
+          confirm-type="{{confirmType}}"
+          cursor-spacing="{{cursorSpacing}}"
+          adjust-position="{{true}}"
+          bindinput="onInput"
+          bindfocus="onFocus"
+          bindblur="onBlur"
+          bindconfirm="onConfirm"
+          bindkeyboardheightchange="onKeyboardHeightChange"
+        />
+
+        <view
+          wx:if="{{clearable && innerValue && !disabled && !readonly}}"
+          class="glass-input__clear"
+          hover-class="glass-input__clear_pressed"
+          hover-stay-time="80"
+          aria-role="button"
+          aria-label="清空输入"
+          catchtap="onClear"
+        >
+          <text class="glass-input__clear_glyph">×</text>
+        </view>
+
+        <slot name="suffix"></slot>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{error}}" class="glass-input__error">{{error}}</view>
+  <view wx:elif="{{hint}}" class="glass-input__hint">{{hint}}</view>
+</view>

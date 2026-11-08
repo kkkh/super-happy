@@ -1,0 +1,11 @@
+{
+  "navigationBarTitleText": "单位换算",
+  "disableScroll": true,
+  "usingComponents": {
+    "glass-tool-shell": "../../../../components/glass-tool-shell/index",
+    "glass-card": "../../../../components/glass-card/index",
+    "glass-input": "../../../../components/glass-input/index",
+    "glass-button": "../../../../components/glass-button/index",
+    "g-icon": "../../../../components/g-icon/index"
+  }
+}

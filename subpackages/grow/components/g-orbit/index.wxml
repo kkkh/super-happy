@@ -1,0 +1,21 @@
+<view class="orbit" style="width: {{size}}rpx; height: {{size}}rpx;" aria-hidden="true">
+  <view class="orbit_ring orbit_ring_outer"></view>
+  <view class="orbit_ring orbit_ring_inner"></view>
+  <view class="orbit_ticks">
+    <view
+      wx:for="{{ticks}}"
+      wx:key="*this"
+      class="orbit_tick_wrap"
+      style="transform: rotate({{item}}deg);"
+    >
+      <view class="orbit_tick"></view>
+    </view>
+  </view>
+  <view class="orbit_path orbit_path_a">
+    <view class="orbit_body orbit_body_iris"></view>
+  </view>
+  <view class="orbit_path orbit_path_b">
+    <view class="orbit_body orbit_body_aurora"></view>
+  </view>
+  <view class="orbit_core"></view>
+</view>

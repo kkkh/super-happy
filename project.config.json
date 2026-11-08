@@ -1,0 +1,197 @@
+{
+  "compileType": "miniprogram",
+  "appid": "wx0f5c60d97c1ce6e2",
+  "projectname": "chaohuan-toolbox",
+  "libVersion": "3.17.6",
+  "setting": {
+    "es6": true,
+    "postcss": true,
+    "minified": true,
+    "enhance": true,
+    "useCompilerPlugins": [
+      "typescript"
+    ],
+    "ignoreUploadUnusedFiles": true,
+    "uploadWithSourceMap": true,
+    "minifyWXSS": true,
+    "minifyWXML": true,
+    "showShadowRootInWxmlPanel": true,
+    "packNpmManually": true,
+    "packNpmRelationList": [
+      {
+        "packageJsonPath": "./package.json",
+        "miniprogramNpmDistDir": "./"
+      },
+      {
+        "packageJsonPath": "./subpackages/tools-core/package.json",
+        "miniprogramNpmDistDir": "./subpackages/tools-core/"
+      }
+    ],
+    "coverView": true,
+    "babelSetting": {
+      "ignore": [],
+      "disablePlugins": [],
+      "outputPath": ""
+    },
+    "compileWorklet": false,
+    "uglifyFileName": false,
+    "localPlugins": false,
+    "disableUseStrict": false,
+    "condition": false
+  },
+  "editorSetting": {
+    "tabIndent": "insertSpaces",
+    "tabSize": 2
+  },
+  "condition": {},
+  "simulatorPluginLibVersion": {},
+  "packOptions": {
+    "ignore": [
+      {
+        "value": "node_modules",
+        "type": "folder"
+      },
+      {
+        "value": "subpackages/tools-core/node_modules",
+        "type": "folder"
+      },
+      {
+        "value": "subpackages/tools-core/package-lock.json",
+        "type": "file"
+      },
+      {
+        "value": ".git",
+        "type": "folder"
+      },
+      {
+        "value": ".gitignore",
+        "type": "file"
+      },
+      {
+        "value": ".github",
+        "type": "folder"
+      },
+      {
+        "value": "scripts",
+        "type": "folder"
+      },
+      {
+        "value": "private",
+        "type": "folder"
+      },
+      {
+        "value": ".trae",
+        "type": "folder"
+      },
+      {
+        "value": ".trae-html-share-packages",
+        "type": "folder"
+      },
+      {
+        "value": ".vscode",
+        "type": "folder"
+      },
+      {
+        "value": ".DS_Store",
+        "type": "suffix"
+      },
+      {
+        "value": ".key",
+        "type": "suffix"
+      },
+      {
+        "value": ".md",
+        "type": "suffix"
+      },
+      {
+        "value": "未命名.png",
+        "type": "file"
+      },
+      {
+        "value": ".legacy",
+        "type": "folder"
+      },
+      {
+        "value": ".icon-src",
+        "type": "folder"
+      },
+      {
+        "value": ".icon-dist",
+        "type": "folder"
+      },
+      {
+        "value": ".screenshots",
+        "type": "folder"
+      },
+      {
+        "value": "补充文档",
+        "type": "folder"
+      },
+      {
+        "value": "视觉提案",
+        "type": "folder"
+      },
+      {
+        "value": "视觉提案-v2",
+        "type": "folder"
+      },
+      {
+        "value": "视觉提案-v3",
+        "type": "folder"
+      },
+      {
+        "value": "山西晋中理工学院-园枢",
+        "type": "folder"
+      },
+      {
+        "value": "ai-skills",
+        "type": "folder"
+      },
+      {
+        "value": "tests",
+        "type": "folder"
+      },
+      {
+        "value": "docs",
+        "type": "folder"
+      },
+      {
+        "value": "preview-qr.png",
+        "type": "file"
+      },
+      {
+        "value": "百宝箱升级执行方案.md",
+        "type": "file"
+      },
+      {
+        "value": "CODE_WIKI.md",
+        "type": "file"
+      },
+      {
+        "value": "真机验收清单.md",
+        "type": "file"
+      },
+      {
+        "value": "package.json",
+        "type": "file"
+      },
+      {
+        "value": "tsconfig.json",
+        "type": "file"
+      },
+      {
+        "value": "postcss.config.js",
+        "type": "file"
+      },
+      {
+        "value": "package-lock.json",
+        "type": "file"
+      },
+      {
+        "value": "project.private.config.json",
+        "type": "file"
+      }
+    ],
+    "include": []
+  }
+}

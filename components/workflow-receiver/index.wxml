@@ -1,0 +1,11 @@
+<glass-modal
+  show="{{confirmShow}}"
+  title="{{confirmTitle}}"
+  description="{{confirmDesc}}"
+  confirm-text="覆盖内容"
+  cancel-text="保留原内容"
+  danger
+  z-index="{{250}}"
+  bind:confirm="onConfirmOverwrite"
+  bind:cancel="onCancelOverwrite"
+/>

@@ -1,0 +1,1101 @@
+/* ==========================================================================
+   Data Cockpit · 数据驾驶舱
+   - 材质全部消费 --glass-* / --text-* 令牌；时间线不写死任何颜色
+   - 白昼：玻璃轻盈透亮、图表深实色零发光
+   - 夜航：深空玻璃、极光霓虹、图表亮青 / 亮紫
+   - 图例圆点变量与 cockpit-chart.ts 的 Canvas 调色板逐一同源
+   ========================================================================== */
+
+.cockpit-page {
+  /* 语义别名：页面正文一律消费 --text-*，不直接写死颜色 */
+  --text-primary: var(--glass-text);
+  --text-secondary: var(--glass-text-2);
+  --text-tertiary: var(--glass-text-3);
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  box-sizing: border-box;
+  overflow: hidden;
+  color: var(--text-primary);
+  font-family: var(--glass-font-sans);
+}
+
+/* ---- 白昼：轻盈透亮的玻璃 ---- */
+.cockpit-page.theme-light {
+  --glass-bg: rgba(255, 255, 255, 0.2);
+  --glass-bg-soft: rgba(255, 255, 255, 0.12);
+  --glass-bg-strong: rgba(255, 255, 255, 0.32);
+  --glass-border: rgba(255, 255, 255, 0.44);
+  --glass-blur: 24px;
+  --glass-saturate: 190%;
+  --cockpit-danger: #b42335;
+
+  /* 与 DAY_PALETTE 同源：深实色，保证白底锐利 */
+  --chart-calc-a: #2f4fd8;
+  --chart-calc-b: #4453b8;
+  --chart-date-a: #0e7a66;
+  --chart-date-b: #0f6fa8;
+  --chart-text-a: #6a3fb8;
+  --chart-text-b: #4453b8;
+  --chart-media-a: #b03a8c;
+  --chart-media-b: #6a3fb8;
+  --chart-life-a: #8e6a24;
+  --chart-life-b: #b8863b;
+  --chart-work-a: #0f6fa8;
+  --chart-work-b: #2f4fd8;
+}
+
+/* ---- 夜航：深空玻璃 + 霓虹极光 ---- */
+.cockpit-page.theme-dark {
+  --glass-bg: rgba(13, 17, 26, 0.54);
+  --glass-bg-soft: rgba(13, 17, 26, 0.36);
+  --glass-bg-strong: rgba(20, 25, 38, 0.74);
+  --glass-border: rgba(255, 255, 255, 0.14);
+  --glass-highlight: rgba(255, 255, 255, 0.22);
+  --glass-blur: 28px;
+  --glass-saturate: 180%;
+  --cockpit-danger: #ff7a88;
+
+  /* 与 NIGHT_PALETTE 同源：亮青 / 亮紫 */
+  --chart-calc-a: #5b7bff;
+  --chart-calc-b: #8a93ec;
+  --chart-date-a: #54cfb2;
+  --chart-date-b: #5fd0ff;
+  --chart-text-a: #a97bff;
+  --chart-text-b: #6b76dc;
+  --chart-media-a: #ff8fd0;
+  --chart-media-b: #a97bff;
+  --chart-life-a: #e9c68d;
+  --chart-life-b: #ffcf8a;
+  --chart-work-a: #5fd0ff;
+  --chart-work-b: #7fa6ff;
+}
+
+/* ---- 极光背景 ---- */
+.cockpit-aurora {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.cockpit-aurora__a {
+  position: absolute;
+  top: -24%;
+  left: -30%;
+  width: 108%;
+  height: 62%;
+}
+
+.cockpit-aurora__b {
+  position: absolute;
+  top: 26%;
+  right: -34%;
+  width: 96%;
+  height: 54%;
+}
+
+.cockpit-aurora__c {
+  position: absolute;
+  bottom: -26%;
+  left: -16%;
+  width: 114%;
+  height: 60%;
+}
+
+/* ---- 自定义导航 ---- */
+.cockpit-nav {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 12;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 16rpx;
+  box-sizing: border-box;
+  padding-left: 28rpx;
+  padding-bottom: 14rpx;
+  background-image: linear-gradient(
+    180deg,
+    var(--glass-canvas, rgba(6, 8, 15, 0.92)) 0%,
+    rgba(6, 8, 15, 0) 100%
+  );
+  pointer-events: none;
+}
+
+/* virtualHost 组件没有宿主节点，必须给实际根节点单独打开点击 */
+.cockpit-nav__back,
+.cockpit-eye {
+  pointer-events: auto;
+}
+
+.cockpit-nav__copy {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.cockpit-nav__kicker {
+  color: var(--text-secondary);
+  font-family: var(--glass-font-mono);
+  font-size: 18rpx;
+  letter-spacing: 0.16em;
+}
+
+.cockpit-nav__title {
+  margin-top: 4rpx;
+  color: var(--text-primary);
+  font-size: 30rpx;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+/* 隐私盾：眼睛按钮 + 斜线遮罩 */
+.cockpit-eye__glyph {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44rpx;
+  height: 44rpx;
+}
+
+.cockpit-eye__slash {
+  position: absolute;
+  top: 50%;
+  left: 4rpx;
+  width: 38rpx;
+  height: 3rpx;
+  border-radius: 2rpx;
+  background-color: var(--glass-text-3);
+  transform: rotate(-38deg) translateY(-50%);
+  transform-origin: center;
+}
+
+.cockpit-eye__glyph--masked {
+  opacity: 0.72;
+}
+
+.cockpit-eye__glyph--open {
+  border-radius: 50%;
+  background-color: var(--glass-accent-soft);
+  box-shadow: 0 0 18rpx var(--glass-accent-glow);
+  opacity: 1;
+}
+
+/* 开眼：玻璃小胶囊高亮，表示当前显示真实数据 */
+.cockpit-eye--open {
+  background-color: var(--glass-accent-soft);
+  box-shadow:
+    inset 0 0 0 1rpx var(--glass-accent-border),
+    0 0 20rpx var(--glass-accent-glow);
+}
+
+/* 闭眼：整体压暗，斜线提示已脱敏 */
+.cockpit-eye--masked {
+  opacity: 0.82;
+}
+
+/* ---- 滚动容器 ---- */
+.cockpit-scroll {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  width: 100%;
+  height: 100vh;
+  min-height: 0;
+}
+
+.cockpit-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 28rpx;
+  box-sizing: border-box;
+  padding-left: 32rpx;
+  padding-right: 32rpx;
+  padding-bottom: calc(48rpx + env(safe-area-inset-bottom));
+}
+
+/* ---- Hero ---- */
+.cockpit-hero {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.cockpit-hero__top {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 22rpx;
+}
+
+.cockpit-hero__status {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10rpx;
+  color: var(--text-secondary);
+  font-family: var(--glass-font-mono);
+  font-size: 17rpx;
+  letter-spacing: 0.12em;
+}
+
+.cockpit-hero__pulse {
+  width: 10rpx;
+  height: 10rpx;
+  border-radius: 50%;
+  background-color: var(--glass-accent-2);
+  box-shadow: 0 0 12rpx var(--glass-accent-2);
+  animation: cockpit-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes cockpit-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(0.86);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+}
+
+.cockpit-hero__code {
+  color: var(--text-tertiary);
+  font-family: var(--glass-font-mono);
+  font-size: 17rpx;
+  letter-spacing: 0.1em;
+}
+
+.cockpit-hero__title {
+  display: block;
+  color: var(--text-primary);
+  font-size: 50rpx;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.16;
+}
+
+.cockpit-hero__sub {
+  display: block;
+  margin-top: 12rpx;
+  color: var(--text-secondary);
+  font-size: 24rpx;
+  line-height: 1.62;
+}
+
+.cockpit-kpis {
+  display: flex;
+  flex-direction: row;
+  margin-top: 28rpx;
+  padding: 20rpx 0;
+  border-top: 1rpx solid var(--glass-border);
+  border-bottom: 1rpx solid var(--glass-border);
+}
+
+.cockpit-kpi {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  gap: 6rpx;
+}
+
+.cockpit-kpi__num {
+  color: var(--text-primary);
+  font-family: var(--glass-font-mono);
+  font-size: 40rpx;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.cockpit-kpi__label {
+  color: var(--text-secondary);
+  font-size: 21rpx;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+
+.cockpit-kpi__hint {
+  display: block;
+  margin-top: 10rpx;
+  color: var(--text-secondary);
+  font-size: 18rpx;
+  line-height: 1.5;
+  text-align: center;
+  letter-spacing: 0.04em;
+}
+
+.cockpit-hero__foot {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 20rpx;
+}
+
+.cockpit-hero__mode,
+.cockpit-hero__privacy {
+  color: var(--text-secondary);
+  font-family: var(--glass-font-mono);
+  font-size: 18rpx;
+  letter-spacing: 0.06em;
+}
+
+.cockpit-warning {
+  padding: 16rpx 20rpx;
+  box-sizing: border-box;
+  border: 1rpx solid var(--glass-border);
+  border-radius: 18rpx;
+  background-color: var(--glass-bg-soft);
+  color: var(--text-secondary);
+  font-size: 20rpx;
+  line-height: 1.55;
+}
+
+/* ---- 分组标题 ---- */
+.cockpit-group {
+  display: flex;
+  flex-direction: column;
+  gap: 14rpx;
+}
+
+.cockpit-group__head {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 0 6rpx;
+}
+
+.cockpit-group__title {
+  color: var(--text-primary);
+  font-size: 27rpx;
+  font-weight: 700;
+}
+
+.cockpit-group__code {
+  color: var(--text-secondary);
+  font-family: var(--glass-font-mono);
+  font-size: 17rpx;
+  letter-spacing: 0.14em;
+}
+
+/* ---- 效率洞察 ---- */
+.cockpit-insight {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.cockpit-insight__head {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 16rpx;
+  margin-bottom: 18rpx;
+}
+
+.cockpit-insight__badge {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 56rpx;
+  height: 56rpx;
+  border: 1rpx solid var(--glass-accent-2-soft);
+  border-radius: 18rpx;
+  background-color: var(--glass-accent-2-soft);
+}
+
+.cockpit-insight__copy {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.cockpit-insight__title {
+  color: var(--text-primary);
+  font-size: 28rpx;
+  font-weight: 700;
+}
+
+.cockpit-insight__label {
+  margin-top: 4rpx;
+  overflow: hidden;
+  color: var(--text-secondary);
+  font-size: 21rpx;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cockpit-insight__code {
+  flex-shrink: 0;
+  color: var(--text-secondary);
+  font-family: var(--glass-font-mono);
+  font-size: 17rpx;
+  letter-spacing: 0.12em;
+}
+
+.cockpit-insight__body {
+  display: block;
+  color: var(--text-secondary);
+  font-size: 25rpx;
+  line-height: 1.72;
+}
+
+.cockpit-insight__tags {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10rpx;
+  margin-top: 18rpx;
+}
+
+.cockpit-insight__tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 8rpx 16rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: 999rpx;
+  background-color: var(--glass-bg-soft);
+  color: var(--text-secondary);
+  font-family: var(--glass-font-mono);
+  font-size: 18rpx;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.cockpit-insight__cta {
+  margin-top: 22rpx;
+}
+
+/* ---- Canvas 图表 ---- */
+.cockpit-charts {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.cockpit-chart-head {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 12rpx;
+}
+
+.cockpit-chart-head__copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.cockpit-chart-head__title {
+  color: var(--text-primary);
+  font-size: 27rpx;
+  font-weight: 700;
+}
+
+.cockpit-chart-head__sub {
+  margin-top: 4rpx;
+  color: var(--text-secondary);
+  font-size: 21rpx;
+}
+
+.cockpit-chart-head__code {
+  flex-shrink: 0;
+  padding-top: 4rpx;
+  color: var(--text-secondary);
+  font-family: var(--glass-font-mono);
+  font-size: 17rpx;
+  letter-spacing: 0.12em;
+}
+
+.cockpit-chart-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.cockpit-chart-wrap--donut {
+  height: 372rpx;
+}
+
+.cockpit-chart-wrap--line {
+  height: 420rpx;
+}
+
+.cockpit-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.cockpit-canvas--image {
+  object-fit: contain;
+}
+
+.cockpit-chart-fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  width: 100%;
+  height: 100%;
+  border: 1rpx dashed var(--glass-border);
+  border-radius: 22rpx;
+  background-color: var(--glass-bg-soft);
+}
+
+.cockpit-chart-fallback__title {
+  color: var(--text-secondary);
+  font-size: 24rpx;
+  font-weight: 600;
+}
+
+.cockpit-chart-fallback__sub {
+  color: var(--text-secondary);
+  font-size: 21rpx;
+}
+
+.cockpit-legend {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-top: 8rpx;
+}
+
+.cockpit-legend__item {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12rpx;
+  width: calc(50% - 6rpx);
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 14rpx 16rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: 18rpx;
+  background-color: var(--glass-bg-soft);
+}
+
+.cockpit-dot {
+  flex-shrink: 0;
+  width: 18rpx;
+  height: 18rpx;
+  border-radius: 50%;
+}
+
+.cockpit-dot--calc {
+  background-image: linear-gradient(135deg, var(--chart-calc-a), var(--chart-calc-b));
+}
+
+.cockpit-dot--date {
+  background-image: linear-gradient(135deg, var(--chart-date-a), var(--chart-date-b));
+}
+
+.cockpit-dot--text {
+  background-image: linear-gradient(135deg, var(--chart-text-a), var(--chart-text-b));
+}
+
+.cockpit-dot--media {
+  background-image: linear-gradient(135deg, var(--chart-media-a), var(--chart-media-b));
+}
+
+.cockpit-dot--life {
+  background-image: linear-gradient(135deg, var(--chart-life-a), var(--chart-life-b));
+}
+
+.cockpit-dot--work {
+  background-image: linear-gradient(135deg, var(--chart-work-a), var(--chart-work-b));
+}
+
+.cockpit-legend__copy {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.cockpit-legend__label {
+  overflow: hidden;
+  color: var(--text-primary);
+  font-size: 21rpx;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cockpit-legend__count {
+  margin-top: 2rpx;
+  color: var(--text-secondary);
+  font-family: var(--glass-font-mono);
+  font-size: 18rpx;
+}
+
+.cockpit-legend__percent {
+  flex-shrink: 0;
+  color: var(--text-secondary);
+  font-family: var(--glass-font-mono);
+  font-size: 22rpx;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.cockpit-divider {
+  height: 1rpx;
+  margin: 26rpx 0;
+  background-color: var(--glass-border);
+}
+
+.cockpit-chart-foot {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  margin-top: 14rpx;
+  color: var(--text-secondary);
+  font-family: var(--glass-font-mono);
+  font-size: 18rpx;
+  letter-spacing: 0.06em;
+}
+
+.cockpit-chart-retry {
+  display: flex;
+  justify-content: center;
+  margin-top: 14rpx;
+}
+
+.cockpit-chart-foot__dot {
+  width: 8rpx;
+  height: 8rpx;
+  border-radius: 50%;
+  background-color: var(--glass-accent-2);
+  box-shadow: 0 0 8rpx var(--glass-accent-2);
+}
+
+/* ---- 时间线 ---- */
+.cockpit-timeline__toolbar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 6rpx;
+}
+
+.cockpit-timeline__privacy {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8rpx;
+  color: var(--text-secondary);
+  font-size: 20rpx;
+}
+
+.cockpit-timeline__count {
+  color: var(--text-secondary);
+  font-family: var(--glass-font-mono);
+  font-size: 18rpx;
+  letter-spacing: 0.06em;
+}
+
+.cockpit-timeline {
+  display: flex;
+  flex-direction: column;
+  margin-top: 4rpx;
+}
+
+.cockpit-timeline__item {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+}
+
+.cockpit-timeline__rail {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 34rpx;
+  flex-shrink: 0;
+  padding-top: 28rpx;
+}
+
+.cockpit-timeline__dot {
+  position: relative;
+  z-index: 1;
+  width: 14rpx;
+  height: 14rpx;
+  border-radius: 50%;
+  background-color: var(--glass-accent);
+}
+
+.cockpit-timeline__dot--night {
+  background-color: var(--glass-accent);
+  box-shadow: 0 0 12rpx var(--glass-accent-glow);
+}
+
+.cockpit-timeline__dot--day {
+  background-color: var(--glass-accent-2);
+  box-shadow: 0 0 10rpx var(--glass-accent-2-soft);
+}
+
+.cockpit-timeline__spine {
+  position: absolute;
+  top: 42rpx;
+  bottom: -18rpx;
+  left: 50%;
+  width: 2rpx;
+  background-color: var(--glass-border);
+  transform: translateX(-50%);
+}
+
+.cockpit-timeline__item:last-child .cockpit-timeline__spine {
+  display: none;
+}
+
+.cockpit-timeline__card {
+  flex: 1;
+  min-width: 0;
+  margin: 6rpx 0 14rpx 18rpx;
+  padding: 20rpx 22rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: 22rpx;
+  background-color: var(--glass-bg-soft);
+  box-shadow: var(--glass-shadow-soft);
+}
+
+.cockpit-timeline__head {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12rpx;
+}
+
+.cockpit-timeline__tool {
+  display: flex;
+  flex: 1;
+  flex-direction: row;
+  align-items: center;
+  gap: 10rpx;
+  min-width: 0;
+}
+
+.cockpit-timeline__icon {
+  flex-shrink: 0;
+  width: 40rpx;
+  height: 40rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: 12rpx;
+  background-color: var(--glass-bg);
+  color: var(--text-secondary);
+  font-size: 20rpx;
+  font-weight: 600;
+  line-height: 40rpx;
+  text-align: center;
+}
+
+.cockpit-timeline__name {
+  overflow: hidden;
+  color: var(--text-primary);
+  font-size: 24rpx;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cockpit-timeline__time {
+  flex-shrink: 0;
+  color: var(--text-secondary);
+  font-family: var(--glass-font-mono);
+  font-size: 18rpx;
+}
+
+.cockpit-timeline__meta {
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: row;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.cockpit-timeline__delete {
+  display: flex;
+  align-items: center;
+  min-width: 64rpx;
+  min-height: 44rpx;
+  padding: 0 8rpx;
+  border-radius: 12rpx;
+  color: var(--cockpit-danger);
+  font-size: 17rpx;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.cockpit-timeline__chips {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8rpx;
+  margin-top: 12rpx;
+}
+
+.cockpit-timeline__chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 6rpx 14rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: 999rpx;
+  background-color: var(--glass-bg);
+  color: var(--text-secondary);
+  font-family: var(--glass-font-mono);
+  font-size: 17rpx;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.cockpit-timeline__chip--night {
+  border-color: var(--glass-accent-glow);
+  color: var(--text-secondary);
+}
+
+.cockpit-timeline__chip--day {
+  border-color: var(--glass-accent-2-soft);
+  color: var(--text-secondary);
+}
+
+.cockpit-timeline__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+  margin-top: 14rpx;
+}
+
+.cockpit-timeline__row {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 12rpx;
+}
+
+.cockpit-timeline__row-label {
+  flex-shrink: 0;
+  width: 48rpx;
+  padding-top: 2rpx;
+  color: var(--text-secondary);
+  font-family: var(--glass-font-mono);
+  font-size: 18rpx;
+}
+
+.cockpit-timeline__row-value {
+  flex: 1;
+  min-width: 0;
+  color: var(--text-secondary);
+  font-size: 21rpx;
+  line-height: 1.5;
+  word-break: break-all;
+}
+
+.cockpit-timeline__row-value--result {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.cockpit-timeline__more {
+  margin-top: 6rpx;
+}
+
+.cockpit-timeline__actions {
+  margin-top: 18rpx;
+}
+
+/* ---- 隐私说明 ---- */
+.cockpit-privacy {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.cockpit-privacy__head {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.cockpit-privacy__title {
+  color: var(--text-primary);
+  font-size: 24rpx;
+  font-weight: 700;
+}
+
+.cockpit-privacy__body {
+  display: block;
+  margin-top: 10rpx;
+  color: var(--text-secondary);
+  font-size: 21rpx;
+  line-height: 1.68;
+}
+
+.cockpit-tracking {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+  margin-top: 24rpx;
+  padding-top: 20rpx;
+  border-top: 1rpx solid var(--glass-border);
+}
+
+.cockpit-tracking__copy {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.cockpit-tracking__title {
+  color: var(--text-primary);
+  font-size: 24rpx;
+  font-weight: 600;
+}
+
+.cockpit-tracking__sub {
+  margin-top: 6rpx;
+  color: var(--text-secondary);
+  font-size: 19rpx;
+  line-height: 1.5;
+}
+
+.cockpit-clear {
+  margin-top: 24rpx;
+  padding-top: 20rpx;
+  border-top: 1rpx solid var(--glass-border);
+}
+
+.cockpit-clear__head {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.cockpit-clear__title {
+  color: var(--text-primary);
+  font-size: 24rpx;
+  font-weight: 600;
+}
+
+.cockpit-clear__meta {
+  flex-shrink: 0;
+  color: var(--text-secondary);
+  font-family: var(--glass-font-mono);
+  font-size: 18rpx;
+}
+
+.cockpit-clear__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+  margin-top: 16rpx;
+}
+
+/* ---- 页脚 ---- */
+.cockpit-colophon {
+  padding: 16rpx 0 8rpx;
+  text-align: center;
+}
+
+.cockpit-colophon text {
+  color: var(--text-secondary);
+  font-family: var(--glass-font-mono);
+  font-size: 17rpx;
+  letter-spacing: 0.12em;
+  opacity: 0.8;
+}
+
+/* ---- 清空确认 ---- */
+.cockpit-confirm {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.cockpit-confirm__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 88rpx;
+  height: 88rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: 28rpx;
+  background-color: var(--glass-bg-soft);
+}
+
+.cockpit-confirm__title {
+  margin-top: 4rpx;
+  color: var(--text-primary);
+  font-size: 28rpx;
+  font-weight: 700;
+}
+
+.cockpit-confirm__desc {
+  color: var(--text-tertiary);
+  font-size: 21rpx;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.cockpit-confirm__actions {
+  display: flex;
+  flex-direction: row;
+  gap: 16rpx;
+  width: 100%;
+  margin-top: 16rpx;
+}
+
+.cockpit-confirm__action {
+  flex: 1;
+}
+
+/* ---- 动效降级：省电模式停掉呼吸与脉冲，保留静态可读性 ---- */
+.motion-saver .cockpit-hero__pulse {
+  animation: none;
+  opacity: 0.7;
+  box-shadow: none;
+}
+
+.light-off .cockpit-hero__pulse,
+.light-off .cockpit-chart-foot__dot {
+  box-shadow: none;
+}

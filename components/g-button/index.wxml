@@ -1,0 +1,11 @@
+<view
+  class="btn btn_{{variant}} {{block ? 'btn_block' : ''}} {{disabled || loading ? 'btn_mute' : ''}}"
+  hover-class="{{disabled || loading ? '' : 'btn_press'}}"
+  hover-stay-time="80"
+  aria-role="button"
+  aria-disabled="{{disabled || loading}}"
+  bindtap="onTap"
+>
+  <view wx:if="{{loading}}" class="btn_spinner" aria-hidden="true"></view>
+  <slot></slot>
+</view>

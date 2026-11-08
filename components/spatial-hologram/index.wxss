@@ -1,0 +1,213 @@
+/* ==========================================================================
+   spatial-hologram · 极光空间视差容器
+   - perspective + preserve-3d，三层深度由 translateZ 决定
+   - WXS 只改 scene transform，不逐帧 setData
+   - 低端机 / 不支持 preserve-3d 时退化为平面层叠
+   ========================================================================== */
+
+.hologram {
+  position: relative;
+  width: 100%;
+  min-height: 420rpx;
+  box-sizing: border-box;
+  perspective: 1200rpx;
+  perspective-origin: 50% 50%;
+  overflow: visible;
+  font-family: var(--glass-font-sans);
+}
+
+.hologram__scene {
+  position: relative;
+  width: 100%;
+  min-height: inherit;
+  box-sizing: border-box;
+  transform-style: preserve-3d;
+  transform: rotateX(0deg) rotateY(0deg);
+  will-change: transform;
+  transition: transform 80ms linear;
+}
+
+.hologram__layer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  box-sizing: border-box;
+  border-radius: var(--glass-radius-lg);
+}
+
+.hologram__layer_back {
+  z-index: 0;
+  transform: translateZ(-140rpx) scale(1.04);
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+.hologram__layer_main {
+  position: relative;
+  z-index: 2;
+  transform: translateZ(0);
+}
+
+.hologram__layer_front {
+  z-index: 3;
+  transform: translateZ(110rpx);
+  pointer-events: none;
+}
+
+/* ---- 场景动态光 ---- */
+.hologram__light {
+  position: absolute;
+  top: -10%;
+  left: 50%;
+  z-index: 1;
+  width: 78%;
+  height: 58%;
+  pointer-events: none;
+  border-radius: 50%;
+  background-image: radial-gradient(
+    ellipse at 50% 40%,
+    var(--sg-light-strong, rgba(255, 255, 255, 0.62)) 0%,
+    var(--sg-ambient-a-soft, rgba(124, 140, 255, 0.18)) 34%,
+    transparent 72%
+  );
+  opacity: 0.36;
+  transform: translate3d(-50%, 0, 40rpx);
+  mix-blend-mode: screen;
+}
+
+/* ---- 空间色散边缘 ---- */
+.hologram__chromatic {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  border-radius: var(--glass-radius-lg);
+  box-shadow:
+    1rpx 0 0 var(--sg-chromatic-red, rgba(255, 58, 96, 0.22)),
+    -1rpx 0 0 var(--sg-chromatic-blue, rgba(54, 110, 255, 0.22)),
+    0 0 40rpx var(--sg-chromatic-glow, rgba(120, 136, 255, 0.18));
+  opacity: var(--sg-chromatic-opacity, 0.76);
+  mix-blend-mode: screen;
+}
+
+/* ---- 内置极光球 ---- */
+.hologram__orb {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0.8;
+  filter: blur(10rpx);
+}
+
+.hologram__orb_a {
+  top: -12%;
+  left: -8%;
+  width: 280rpx;
+  height: 280rpx;
+  background-image: radial-gradient(
+    circle at 40% 35%,
+    var(--glass-accent-soft) 0%,
+    transparent 68%
+  );
+  transform: translateZ(-90rpx);
+}
+
+.hologram__orb_b {
+  top: 28%;
+  right: -10%;
+  width: 220rpx;
+  height: 220rpx;
+  background-image: radial-gradient(
+    circle at 45% 40%,
+    var(--glass-accent-2-soft) 0%,
+    transparent 70%
+  );
+  transform: translateZ(40rpx);
+}
+
+.hologram__orb_c {
+  bottom: -14%;
+  left: 18%;
+  width: 180rpx;
+  height: 180rpx;
+  background-image: radial-gradient(
+    circle at 50% 50%,
+    var(--glass-accent-warm-soft) 0%,
+    transparent 72%
+  );
+  transform: translateZ(80rpx);
+}
+
+/* ---- 暗角 ---- */
+.hologram__vignette {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 4;
+  pointer-events: none;
+  border-radius: inherit;
+  background-image: radial-gradient(
+    100% 80% at 50% 50%,
+    transparent 55%,
+    var(--glass-canvas) 100%
+  );
+  opacity: 0.22;
+}
+
+/* ---- 不支持 preserve-3d：平面层叠 ---- */
+@supports not (transform-style: preserve-3d) {
+  .hologram {
+    perspective: none;
+  }
+
+  .hologram__scene {
+    transform-style: flat;
+    transform: none;
+  }
+
+  .hologram__layer_back {
+    transform: none;
+    opacity: 0.6;
+  }
+
+  .hologram__layer_front {
+    transform: none;
+  }
+
+  .hologram__orb {
+    transform: none;
+    filter: none;
+    opacity: 0.35;
+  }
+}
+
+/* ---- 低端机降级 ---- */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .hologram__orb {
+    filter: none;
+    opacity: 0.4;
+  }
+
+  .hologram__chromatic {
+    display: none;
+  }
+
+  .hologram__vignette {
+    opacity: 0.12;
+  }
+}
+
+/* ---- 减少动态偏好 ---- */
+@media (prefers-reduced-motion: reduce) {
+  .hologram__scene {
+    transition: none;
+  }
+
+  .hologram__orb {
+    filter: none;
+  }
+}

@@ -1,0 +1,84 @@
+/* g-modal · 半屏玻璃抽屉 */
+.modal_scrim {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 900;
+  background-color: var(--g-scrim);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  animation: modal-fade 0.32s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+.modal_sheet {
+  position: relative;
+  border-radius: 44rpx 44rpx 0 0;
+  background-color: var(--g-solid);
+  border-top: 1rpx solid var(--g-stroke-strong);
+  padding: 20rpx 40rpx calc(40rpx + env(safe-area-inset-bottom));
+  box-shadow: var(--g-shadow-lift);
+  animation: modal-rise 0.44s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+/* 明确关闭按钮：与标题同一行右侧，读屏可聚焦 */
+.modal_close {
+  position: absolute;
+  top: 20rpx;
+  right: 24rpx;
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 999rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--g-well);
+  border: 1rpx solid var(--g-stroke);
+  transition:
+    transform 0.18s cubic-bezier(0.2, 0.9, 0.25, 1),
+    opacity 0.18s cubic-bezier(0.2, 0.9, 0.25, 1);
+}
+
+.modal_close_press {
+  transform: scale(0.9);
+  opacity: 0.8;
+}
+
+.modal_grip {
+  width: 72rpx;
+  height: 8rpx;
+  margin: 0 auto 24rpx;
+  border-radius: 999rpx;
+  background-color: var(--g-stroke-strong);
+}
+
+.modal_title {
+  display: block;
+  text-align: center;
+  padding: 0 96rpx;
+  font-size: 34rpx;
+  font-weight: 700;
+  color: var(--g-ink);
+  letter-spacing: 2rpx;
+  margin-bottom: 32rpx;
+}
+
+@keyframes modal-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modal-rise {
+  from {
+    transform: translateY(48%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}

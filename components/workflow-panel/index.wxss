@@ -1,0 +1,523 @@
+/* ==========================================================================
+   workflow-panel · 流转工作台
+   - 全部使用 --glass-* 令牌，白昼 / 夜航自动切换
+   - 不做第二层 backdrop-filter：抽屉已有 blur，内容层只用半透明材质
+   - 卡片最小触控高度 96rpx，快捷管道 88rpx
+   - 所有按压统一 scale(0.96)，只动 transform / opacity
+   ========================================================================== */
+
+.wf-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+  padding-bottom: 8rpx;
+  font-family: var(--glass-font-sans);
+}
+
+/* ---- 当前载荷 ---- */
+.wf-source {
+  --wf-accent: var(--glass-accent);
+
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+  min-height: 96rpx;
+  padding: 20rpx 24rpx;
+  box-sizing: border-box;
+  overflow: hidden;
+  border: 1rpx solid var(--glass-border);
+  border-radius: var(--glass-radius-md);
+  background-color: var(--glass-bg);
+  box-shadow: inset 0 1rpx 0 var(--glass-highlight);
+}
+
+.wf-source_image {
+  --wf-accent: var(--glass-accent-2);
+}
+
+.wf-source_json {
+  --wf-accent: var(--glass-accent-warm);
+}
+
+.wf-source__dot {
+  flex-shrink: 0;
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  background-color: var(--wf-accent);
+  box-shadow: 0 0 18rpx var(--wf-accent);
+}
+
+.wf-source__text {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.wf-source__label {
+  color: var(--glass-text);
+  font-size: 24rpx;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.wf-source__preview {
+  overflow: hidden;
+  color: var(--glass-text-2);
+  font-size: 22rpx;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wf-source__count {
+  flex-shrink: 0;
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 20rpx;
+  letter-spacing: 0.04em;
+}
+
+/* ---- 区块标题 ---- */
+.wf-section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16rpx;
+  padding: 0 4rpx;
+}
+
+.wf-section-head_tools {
+  margin-top: 4rpx;
+}
+
+.wf-section-title {
+  color: var(--glass-text);
+  font-size: 26rpx;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.wf-section-hint {
+  color: var(--glass-text-3);
+  font-size: 20rpx;
+  line-height: 1.3;
+  text-align: right;
+}
+
+/* ---- 快捷管道 ---- */
+.wf-pipes {
+  display: flex;
+  flex-direction: column;
+  gap: 14rpx;
+}
+
+.wf-pipes_locked {
+  pointer-events: none;
+  opacity: 0.55;
+}
+
+.wf-pipes__scroll {
+  width: 100%;
+}
+
+.wf-pipes__row {
+  display: inline-flex;
+  align-items: center;
+  gap: 14rpx;
+  padding: 2rpx 4rpx 6rpx;
+  box-sizing: border-box;
+}
+
+.wf-pipe {
+  display: inline-flex;
+  align-items: center;
+  gap: 10rpx;
+  min-height: 88rpx;
+  padding: 0 26rpx;
+  box-sizing: border-box;
+  border: 1rpx solid var(--glass-border-strong);
+  border-radius: 999rpx;
+  background-image: var(--glass-sheen);
+  background-color: var(--glass-bg-strong);
+  box-shadow:
+    0 10rpx 30rpx var(--glass-accent-soft),
+    inset 0 1rpx 0 var(--glass-highlight);
+  transition: transform 220ms var(--glass-ease-spring), opacity 160ms var(--glass-ease-out);
+  will-change: transform;
+}
+
+.wf-pipe:active {
+  transform: scale(0.96);
+}
+
+.wf-pipe__glyph {
+  color: var(--glass-accent);
+  font-size: 28rpx;
+  line-height: 1;
+  text-shadow: 0 0 14rpx var(--glass-accent-soft);
+}
+
+.wf-pipe__label {
+  color: var(--glass-text);
+  font-size: 24rpx;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.wf-pipe__count {
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 18rpx;
+}
+
+/* ---- 工具列表 ---- */
+.wf-tools {
+  display: flex;
+  flex-direction: column;
+  gap: 14rpx;
+  transition: opacity 180ms var(--glass-ease-out);
+}
+
+/* 防并发：computing 期间整个列表禁点，JS 层仍有 fsm 守卫 */
+.wf-tools_locked {
+  pointer-events: none;
+  opacity: 0.55;
+}
+
+.wf-tool {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+  min-height: 96rpx;
+  padding: 18rpx 20rpx;
+  box-sizing: border-box;
+  overflow: hidden;
+  border: 1rpx solid var(--glass-border);
+  border-radius: calc(var(--glass-radius-md) - 4rpx);
+  background-color: var(--glass-bg);
+  box-shadow: inset 0 1rpx 0 var(--glass-highlight);
+  transition:
+    transform 220ms var(--glass-ease-spring),
+    opacity 160ms var(--glass-ease-out),
+    background-color 160ms var(--glass-ease-out);
+  will-change: transform;
+}
+
+.wf-tool:active {
+  transform: scale(0.96);
+}
+
+.wf-tool_disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.wf-tool__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 20rpx;
+  background-color: var(--glass-accent-soft);
+  color: var(--glass-accent);
+  font-size: 26rpx;
+  font-weight: 700;
+}
+
+.wf-tool__main {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.wf-tool__line {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  min-width: 0;
+}
+
+.wf-tool__name {
+  overflow: hidden;
+  color: var(--glass-text);
+  font-size: 28rpx;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wf-tool__mode {
+  flex-shrink: 0;
+  padding: 4rpx 10rpx;
+  border-radius: 999rpx;
+  font-size: 18rpx;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+}
+
+.wf-tool__mode_silent {
+  background-color: var(--glass-accent-2-soft);
+  color: var(--glass-accent-2);
+}
+
+.wf-tool__mode_jump {
+  background-color: var(--glass-accent-warm-soft);
+  color: var(--glass-accent-warm);
+}
+
+.wf-tool__desc {
+  overflow: hidden;
+  color: var(--glass-text-2);
+  font-size: 22rpx;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wf-tool__chev {
+  flex-shrink: 0;
+  color: var(--glass-text-3);
+  font-size: 30rpx;
+  line-height: 1;
+}
+
+.wf-foot {
+  padding: 4rpx 0 10rpx;
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 18rpx;
+  letter-spacing: 0.04em;
+  text-align: center;
+}
+
+/* ---- 底部结果控制台（sheet footer 固定区） ---- */
+.wf-console-slot {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 8rpx;
+}
+
+.wf-console {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  padding: 24rpx;
+  box-sizing: border-box;
+  overflow: hidden;
+  border: 1rpx solid var(--glass-border);
+  border-radius: var(--glass-radius-md);
+  background-color: var(--glass-bg-strong);
+  box-shadow:
+    var(--glass-shadow-soft),
+    inset 0 1rpx 0 var(--glass-highlight);
+  animation: wf-console-in 320ms var(--glass-ease-spring);
+}
+
+.wf-console_computing {
+  flex-direction: row;
+  align-items: center;
+  gap: 18rpx;
+  border-color: var(--glass-border-strong);
+  background-color: var(--glass-accent-soft);
+}
+
+.wf-console_result {
+  border-color: var(--glass-border-strong);
+}
+
+.wf-console_error {
+  border-color: var(--glass-danger);
+  background-color: var(--glass-danger-soft, var(--glass-bg-strong));
+}
+
+.wf-console_idle {
+  gap: 8rpx;
+  padding: 22rpx 24rpx;
+  border-style: dashed;
+}
+
+.wf-console__copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.wf-console__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.wf-console__title {
+  color: var(--glass-text);
+  font-size: 28rpx;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.wf-console__title_error {
+  color: var(--glass-danger);
+}
+
+.wf-console__meta {
+  flex-shrink: 0;
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 20rpx;
+  text-align: right;
+}
+
+.wf-console__hint {
+  color: var(--glass-text-3);
+  font-size: 21rpx;
+  line-height: 1.35;
+}
+
+.wf-console__detail {
+  color: var(--glass-text-2);
+  font-size: 23rpx;
+  line-height: 1.5;
+  word-break: break-all;
+}
+
+/* ---- 结果预览 ---- */
+.wf-preview {
+  position: relative;
+  padding: 18rpx 20rpx;
+  box-sizing: border-box;
+  overflow: hidden;
+  border-radius: 20rpx;
+  background-color: var(--glass-bg);
+}
+
+.wf-preview_truncated {
+  padding-bottom: 40rpx;
+}
+
+.wf-preview_partial {
+  border: 1rpx solid var(--glass-border);
+}
+
+.wf-preview__text {
+  display: block;
+  color: var(--glass-text);
+  font-size: 24rpx;
+  line-height: 1.65;
+  word-break: break-all;
+  white-space: pre-wrap;
+}
+
+.wf-preview__fade {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 56rpx;
+  background-image: linear-gradient(180deg, rgba(0, 0, 0, 0), var(--glass-bg-strong));
+  pointer-events: none;
+}
+
+/* ---- 动作区 ---- */
+.wf-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14rpx;
+  padding-top: 2rpx;
+}
+
+.wf-reader-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 88rpx;
+  padding: 0 8rpx;
+  box-sizing: border-box;
+  border-top: 1rpx solid var(--glass-border);
+  transition: opacity 160ms var(--glass-ease-out);
+}
+
+.wf-reader-link_pressed {
+  opacity: 0.6;
+}
+
+.wf-reader-link__text {
+  color: var(--glass-accent);
+  font-size: 23rpx;
+  font-weight: 500;
+}
+
+.wf-reader-link__chev {
+  color: var(--glass-accent);
+  font-size: 28rpx;
+  line-height: 1;
+}
+
+/* ---- Loading ---- */
+.wf-spinner {
+  flex-shrink: 0;
+  width: 40rpx;
+  height: 40rpx;
+  box-sizing: border-box;
+  border: 2rpx solid var(--glass-accent);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: wf-spin 720ms linear infinite;
+}
+
+/* ---- 通用按压 ----
+   同时提供 hover-class 与 :active：WXSS 两端一致，触控反馈不依赖 JS */
+.wf-pressed {
+  transform: scale(0.96);
+}
+
+/* ---- 动画 ---- */
+@keyframes wf-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes wf-console-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14rpx, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* ---- 减少动态偏好 ---- */
+@media (prefers-reduced-motion: reduce) {
+  .wf-console {
+    animation-duration: 1ms;
+  }
+
+  .wf-spinner {
+    animation: none;
+  }
+
+  .wf-tool,
+  .wf-pipe {
+    transition-duration: 1ms;
+  }
+}

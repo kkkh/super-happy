@@ -1,0 +1,105 @@
+<view class="fav-page sg-ambient-surface sg-ambient-iris {{themeClass}} {{themeSwitching ? 'theme-breathing' : ''}}">
+  <view class="fav-aurora" aria-hidden="true">
+    <view class="sg-aurora-a fav-aurora__a"></view>
+    <view class="sg-aurora-b fav-aurora__b"></view>
+    <view class="sg-aurora-c fav-aurora__c"></view>
+  </view>
+
+  <scroll-view
+    class="fav-scroll"
+    scroll-y
+    enhanced
+    show-scrollbar="{{false}}"
+    bounces="{{false}}"
+    type="list"
+  >
+    <view class="fav-inner">
+      <view class="fav-head">
+        <text class="fav-kicker">COLLECTION / 本机</text>
+        <view class="fav-title-line">
+          <text class="fav-title">收藏</text>
+          <text class="fav-count">{{tools.length}} SAVED</text>
+        </view>
+        <text wx:if="{{tools.length}}" class="fav-sub">只收藏工具本身，不保存任何输入与结果。当前 {{tools.length}} 个常用工具。</text>
+        <text wx:else class="fav-sub">还没有收藏，先把顺手的那个工具留下。</text>
+      </view>
+
+      <block wx:if="{{tools.length}}">
+        <view class="fav-list">
+          <view
+            wx:for="{{tools}}"
+            wx:key="id"
+            class="fav-item"
+            hover-class="fav-item--press"
+            hover-start-time="0"
+            hover-stay-time="120"
+            data-route="{{item.route}}"
+            data-id="{{item.id}}"
+            aria-role="button"
+            aria-label="{{item.name}}，{{item.desc}}"
+            bindtap="onOpenTool"
+          >
+            <text class="fav-index">{{index + 1 < 10 ? '0' + (index + 1) : index + 1}}</text>
+
+            <view class="fav-icon" aria-hidden="true">
+              <text class="fav-icon__text">{{item.icon}}</text>
+            </view>
+
+            <view class="fav-copy">
+              <text class="fav-name">{{item.name}}</text>
+              <text class="fav-meta">{{item.desc}}</text>
+            </view>
+
+            <view
+              class="fav-mark"
+              hover-class="fav-mark--press"
+              hover-stay-time="80"
+              aria-role="button"
+              aria-label="取消收藏{{item.name}}"
+              data-id="{{item.id}}"
+              catchtap="onUnfavorite"
+            >
+              <text class="fav-mark__glyph">★</text>
+            </view>
+          </view>
+        </view>
+        <view class="fav-hint">
+          <text>点击行进入工具，点击右侧星标取消收藏</text>
+        </view>
+      </block>
+
+      <glass-card
+        wx:else
+        tone="iris"
+        radius="xl"
+        padding="lg"
+        depth="deep"
+        card-class="fav-empty"
+      >
+        <view class="fav-empty__inner">
+          <text class="fav-empty__glyph" aria-hidden="true">☆</text>
+          <text class="fav-empty__title">还没有收藏。</text>
+          <text class="fav-empty__copy">在工具页右上角点一下星标，<br />它会像一张胶片一样留在这里。</text>
+
+          <view class="fav-empty__cta">
+            <glass-button
+              variant="tint"
+              size="md"
+              block
+              bind:tap="onGoHome"
+            >
+              去工具台
+            </glass-button>
+          </view>
+
+          <text class="fav-empty__note">COLLECTED LOCALLY / 不上传</text>
+        </view>
+      </glass-card>
+
+      <view class="fav-foot">收藏只存本机 · 最多 100 个</view>
+    </view>
+  </scroll-view>
+
+  <glass-toast />
+  <update-guard />
+</view>

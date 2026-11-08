@@ -1,0 +1,110 @@
+<glass-tool-shell
+  tool-id="json"
+  title="{{toolName}}"
+  kicker="{{kicker}}"
+  desc="{{desc}}"
+  poster-data="{{posterData}}"
+  state="{{shellState}}"
+  run-label="处理 JSON"
+  has-result="{{hasResult}}"
+  error="{{error}}"
+  empty-title="粘贴 JSON，格式化或压缩"
+  empty-sub="解析失败会给出原始错误与行列位置"
+  bind:run="onRun"
+  bind:example="onExample"
+  bind:reset="onReset"
+>
+  <view slot="input" class="sg-tool-fields">
+    <view class="tool-seg">
+      <view
+        class="tool-seg__item {{mode === 'format' ? 'tool-seg__item--active' : ''}}"
+        hover-class="tool-press"
+        hover-stay-time="80"
+        data-mode="format"
+        aria-role="button"
+        aria-label="格式化 JSON"
+        bindtap="onMode"
+      >
+        格式化
+      </view>
+      <view
+        class="tool-seg__item {{mode === 'minify' ? 'tool-seg__item--active' : ''}}"
+        hover-class="tool-press"
+        hover-stay-time="80"
+        data-mode="minify"
+        aria-role="button"
+        aria-label="压缩 JSON"
+        bindtap="onMode"
+      >
+        压缩
+      </view>
+    </view>
+
+    <view wx:if="{{mode === 'format'}}" class="tool-seg tool-seg--sub">
+      <view
+        class="tool-seg__item {{indent === 2 ? 'tool-seg__item--active' : ''}}"
+        hover-class="tool-press"
+        hover-stay-time="80"
+        data-indent="2"
+        aria-role="button"
+        aria-label="缩进两个空格"
+        bindtap="onIndent"
+      >
+        2 空格
+      </view>
+      <view
+        class="tool-seg__item {{indent === 4 ? 'tool-seg__item--active' : ''}}"
+        hover-class="tool-press"
+        hover-stay-time="80"
+        data-indent="4"
+        aria-role="button"
+        aria-label="缩进四个空格"
+        bindtap="onIndent"
+      >
+        4 空格
+      </view>
+    </view>
+
+    <glass-input
+      label="原始 JSON"
+      hint="最多 20,000 字符"
+      multiline
+      auto-height
+      show-count
+      value="{{input}}"
+      maxlength="{{maxText}}"
+      placeholder="粘贴 JSON，例如 {'name':'超欢'}"
+      cursor-spacing="{{120}}"
+      aria-label="原始 JSON 内容"
+      bind:input="onInput"
+    />
+  </view>
+
+  <view slot="result" class="sg-tool-result">
+    <view class="sg-tool-result__head">
+      <text class="sg-tool-result__label">处理结果</text>
+      <text class="sg-tool-result__meta">{{resultTypeText}} · {{resultSizeText}}</text>
+    </view>
+
+    <text class="tool-output" selectable>{{outputText}}</text>
+    <text class="tool-result__note">{{resultLinesText}}</text>
+
+    <view class="tool-actions">
+      <glass-button variant="ghost" size="md" block bind:tap="onCopy">
+        复制结果
+      </glass-button>
+    </view>
+  </view>
+
+  <view slot="note">
+    <glass-card tone="amber" radius="lg" padding="md" depth="soft">
+      <view class="sg-tool-note">
+        <text class="sg-tool-note__title">解析说明</text>
+        <text class="sg-tool-note__text">
+          使用微信内置的 JSON.parse 与 JSON.stringify，不联网、不上传。
+          超出 JavaScript 安全整数范围的大数字可能损失精度，请以原始数据为准。
+        </text>
+      </view>
+    </glass-card>
+  </view>
+</glass-tool-shell>

@@ -1,0 +1,7 @@
+<canvas
+  wx:if="{{canvasMounted}}"
+  id="posterCanvas"
+  type="2d"
+  class="poster-canvas"
+  aria-hidden="true"
+></canvas>

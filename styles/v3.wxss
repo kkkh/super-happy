@@ -1,0 +1,146 @@
+/* ==========================================================================
+   超欢 V3 · 纸面优先 / 光谱索引
+   - 只作用于挂载 .v3_page / .v3_shell 的页面，旧简历模块不受影响
+   - 浅色默认纸面；夜航用 .theme-dark 反转令牌
+   - 字体：Instrument Serif 数字子集（base64 内嵌，避免网络请求）
+   ========================================================================== */
+@font-face {
+  font-family: "V3 Serif";
+  src: url("data:font/truetype;base64,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") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+.v3_page,
+.v3_shell {
+  --v3-bg: #f4f5f1;
+  --v3-surface: #ffffff;
+  --v3-surface-2: #e8e9e3;
+  --v3-void: #0a0a0c;
+  --v3-ink: #0d0d0f;
+  --v3-ink-2: #58585f;
+  --v3-ink-3: #6f6f76;
+  --v3-line: rgba(13, 13, 15, 0.12);
+  --v3-line-2: rgba(13, 13, 15, 0.24);
+  --v3-orange: #ff4d24;
+  /* 浅色纸面上用于小字的深阶橙，保证 4.5:1 对比度 */
+  --v3-orange-ink: #c93a14;
+  --v3-amber: #ffb400;
+  --v3-lime: #d8ff3e;
+  --v3-mint: #00c2a8;
+  --v3-cobalt: #2f4bff;
+  --v3-magenta: #f0336b;
+  --v3-mono: "SF Mono", "Menlo", "Roboto Mono", "Courier New", monospace;
+  --v3-sans: -apple-system, "PingFang SC", "Source Han Sans SC", "Noto Sans CJK SC", "Microsoft YaHei", "SF Pro Text", "Helvetica Neue", sans-serif;
+  --v3-spring: cubic-bezier(0.2, 0.9, 0.25, 1);
+
+  /* g-* 兼容层：让 g-navbar / g-icon / g-toast 跟随 V3 */
+  --g-canvas: #f4f5f1;
+  --g-well: #e8e9e3;
+  --g-surface: rgba(255, 255, 255, 0.8);
+  --g-surface-strong: #ffffff;
+  --g-solid: #ffffff;
+  --g-elevated: rgba(255, 255, 255, 0.96);
+  --g-scrim: rgba(10, 10, 12, 0.42);
+  --g-stroke: rgba(13, 13, 15, 0.12);
+  --g-stroke-strong: rgba(13, 13, 15, 0.24);
+  --g-ink: #0d0d0f;
+  --g-ink-2: #58585f;
+  --g-ink-3: #6f6f76;
+  --g-ink-4: #6f6f76;
+  --g-ink-5: #c2c2c6;
+  --g-iris: #2f4bff;
+  --g-aurora: #00c2a8;
+  --g-amber: #ff4d24;
+}
+
+.v3_page.theme-dark,
+.v3_shell.theme-dark {
+  --v3-bg: #0a0a0c;
+  /* 夜航下深阶橙退回品牌亮橙，对深底仍有 5.9:1 */
+  --v3-orange-ink: var(--v3-orange);
+  --v3-surface: #151518;
+  --v3-surface-2: #1d1d21;
+  --v3-ink: #f4f5f1;
+  --v3-ink-2: #b8b8bf;
+  --v3-ink-3: #8a8a92;
+  --v3-line: rgba(255, 255, 255, 0.12);
+  --v3-line-2: rgba(255, 255, 255, 0.24);
+
+  --g-canvas: #0a0a0c;
+  --g-well: #151518;
+  --g-surface: rgba(255, 255, 255, 0.06);
+  --g-surface-strong: rgba(255, 255, 255, 0.09);
+  --g-solid: #151518;
+  --g-elevated: rgba(10, 10, 12, 0.94);
+  --g-scrim: rgba(0, 0, 0, 0.55);
+  --g-stroke: rgba(255, 255, 255, 0.12);
+  --g-stroke-strong: rgba(255, 255, 255, 0.24);
+  --g-ink: #f4f5f1;
+  --g-ink-2: #b8b8bf;
+  --g-ink-3: #8a8a92;
+  --g-ink-4: #8a8a92;
+  --g-ink-5: #4c4c52;
+  --g-iris: #7d8dff;
+  --g-aurora: #2fd6b8;
+  --g-amber: #ff6a44;
+}
+
+.v3_page {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  background-color: var(--v3-bg);
+  color: var(--v3-ink);
+  font-family: var(--v3-sans);
+  /* 显式基线行高，抹平 iOS PingFang 与 Android 思源/雅黑的默认行盒差异 */
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+.v3_scroll {
+  flex: 1;
+  width: 100%;
+  height: 0;
+}
+
+/* ---- 分类色 ---- */
+.v3_cat_calc {
+  --v3-cat: #ff4d24;
+  --v3-cat-ink: #c93a14;
+  --v3-cat-soft: #ffe2d9;
+  --v3-cat-on: #0a0a0c;
+}
+
+.v3_cat_date {
+  --v3-cat: #2f4bff;
+  --v3-cat-ink: #2438cc;
+  --v3-cat-soft: #dfe3ff;
+  --v3-cat-on: #ffffff;
+}
+
+.v3_cat_text {
+  --v3-cat: #d8ff3e;
+  --v3-cat-ink: #5f7a00;
+  --v3-cat-soft: #efffc0;
+  --v3-cat-on: #0a0a0c;
+}
+
+.v3_cat_media {
+  --v3-cat: #f0336b;
+  --v3-cat-ink: #c1225a;
+  --v3-cat-soft: #ffe0e9;
+  --v3-cat-on: #ffffff;
+}
+
+.v3_cat_life,
+.v3_cat_work {
+  --v3-cat: #00c2a8;
+  --v3-cat-ink: #00806f;
+  --v3-cat-soft: #d6f7f1;
+  --v3-cat-on: #0a0a0c;
+}

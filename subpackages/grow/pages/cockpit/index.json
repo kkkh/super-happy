@@ -1,0 +1,13 @@
+{
+  "navigationBarTitleText": "数据驾驶舱",
+  "disableScroll": true,
+  "usingComponents": {
+    "glass-card": "../../../../components/glass-card/index",
+    "glass-button": "../../../../components/glass-button/index",
+    "glass-toast": "../../../../components/glass-toast/index",
+    "glass-bottom-sheet": "../../../../components/glass-bottom-sheet/index",
+    "glass-modal": "../../../../components/glass-modal/index",
+    "glass-switch": "../../components/glass-switch/index",
+    "g-icon": "../../../../components/g-icon/index"
+  }
+}

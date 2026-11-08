@@ -1,0 +1,70 @@
+<glass-tool-shell
+  tool-id="wordcount"
+  title="{{toolName}}"
+  kicker="{{kicker}}"
+  desc="{{desc}}"
+  poster-data="{{posterData}}"
+  show-run="{{false}}"
+  show-example
+  has-result="{{hasResult}}"
+  error="{{error}}"
+  empty-title="粘贴或输入文本，实时统计"
+  empty-sub="Emoji 与生僻字按 Unicode 码点计数"
+  bind:example="onExample"
+  bind:reset="onReset"
+>
+  <view slot="input" class="sg-tool-fields">
+    <glass-input
+      label="文本"
+      multiline
+      auto-height
+      show-count
+      clearable="{{false}}"
+      maxlength="{{maxText}}"
+      value="{{text}}"
+      placeholder="在这里粘贴或输入文本，结果会实时更新"
+      cursor-spacing="{{120}}"
+      aria-label="待统计文本"
+      bind:input="onInput"
+    />
+  </view>
+
+  <view slot="result" class="sg-tool-result">
+    <view class="sg-tool-result__head">
+      <text class="sg-tool-result__label">字符总数（含空格）</text>
+      <text class="sg-tool-result__meta">TEXT / COUNT</text>
+    </view>
+
+    <view class="sg-tool-result__main">
+      <animated-number value="{{totalValue}}" duration="220" size="xl" tone="aurora" />
+      <text class="sg-tool-result__unit">字符</text>
+    </view>
+
+    <text class="sg-tool-result__caption">含空格与标点 / RAW COUNT</text>
+
+    <view class="tool-stats">
+      <view wx:for="{{stats}}" wx:key="key" class="tool-stat">
+        <text class="tool-stat__k">{{item.label}}</text>
+        <text class="tool-stat__v">{{item.value}}</text>
+      </view>
+    </view>
+
+    <view class="sg-tool-result__actions">
+      <glass-button variant="ghost" size="md" block aria-label="复制字数统计结果" bind:tap="onCopy">
+        复制结果
+      </glass-button>
+    </view>
+  </view>
+
+  <view slot="note">
+    <glass-card tone="amber" radius="lg" padding="md" depth="soft">
+      <view class="sg-tool-note">
+        <text class="sg-tool-note__title">统计口径</text>
+        <text class="sg-tool-note__text">
+          Emoji、组合字符与生僻字按 Unicode 码点计数；英文单词按连续字母片段统计；
+          中文不含标点。阅读时长按每分钟约 300 字估算，仅供参考。
+        </text>
+      </view>
+    </glass-card>
+  </view>
+</glass-tool-shell>

@@ -1,0 +1,336 @@
+/* ==========================================================================
+   glass-input · 极光毛玻璃输入框
+   - 外层渐变边框 + 内层模糊背板，复用 glass-card 的材质思路
+   - 聚焦 / 错误态只改变边框与光圈，不改变布局尺寸
+   ========================================================================== */
+
+.glass-input {
+  --field-height: 88rpx;
+  --field-radius: var(--glass-radius-md);
+  --field-pad-x: 28rpx;
+  --field-font: 28rpx;
+  --field-accent: var(--glass-accent);
+  --field-soft: var(--glass-accent-soft);
+
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: var(--glass-font-sans);
+}
+
+/* ---- 顶部标签 / 字数 ---- */
+.glass-input__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 4rpx 12rpx;
+  box-sizing: border-box;
+}
+
+.glass-input__label {
+  color: var(--glass-text-2);
+  font-size: 24rpx;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1.4;
+}
+
+.glass-input__count {
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 20rpx;
+  line-height: 1.4;
+}
+
+/* ---- 外层渐变边框 ---- */
+.glass-input__field {
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 1rpx;
+  border-radius: var(--field-radius);
+  background-color: var(--glass-border);
+  background-image: var(--glass-border-gradient);
+  box-shadow: var(--glass-shadow-soft);
+  transition:
+    background-image var(--glass-duration-base) var(--glass-ease-out),
+    box-shadow var(--glass-duration-base) var(--glass-ease-out);
+}
+
+/* ---- 内层玻璃背板 ---- */
+.glass-input__surface {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  border-radius: calc(var(--field-radius) - 1rpx);
+  background-color: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  box-shadow: inset 0 1rpx 0 var(--glass-highlight);
+  transition: background-color var(--glass-duration-base) var(--glass-ease-out);
+}
+
+/* ---- 聚焦呼吸光晕：绝对定位，不参与布局 ---- */
+.glass-input__halo {
+  position: absolute;
+  inset: -14rpx;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: calc(var(--field-radius) + 14rpx);
+  background-image: radial-gradient(
+    ellipse 72% 82% at 50% 50%,
+    var(--field-soft) 0%,
+    transparent 72%
+  );
+  box-shadow:
+    0 0 0 2rpx var(--field-soft),
+    0 0 32rpx var(--field-soft);
+  opacity: 0;
+  transform: scale(0.98);
+  animation: glass-input-breathe 2400ms ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+@keyframes glass-input-breathe {
+  0%,
+  100% {
+    opacity: 0.36;
+    transform: scale(0.975);
+  }
+  50% {
+    opacity: 0.86;
+    transform: scale(1.018);
+  }
+}
+
+/* ---- 材质层 ---- */
+.glass-input__sheen {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  border-radius: inherit;
+  background-image: var(--glass-sheen);
+  opacity: 0.28;
+}
+
+.glass-input__noise {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  border-radius: inherit;
+  background-image: var(--glass-noise-image);
+  background-size: var(--glass-noise-size);
+  opacity: var(--glass-noise-opacity);
+  mix-blend-mode: soft-light;
+}
+
+/* ---- 输入行 ---- */
+.glass-input__row {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: var(--field-height);
+  padding: 0 var(--field-pad-x);
+  box-sizing: border-box;
+}
+
+.glass-input__row_multiline {
+  align-items: flex-start;
+  padding-top: 20rpx;
+  padding-bottom: 20rpx;
+}
+
+.glass-input__control {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  height: var(--field-height);
+  padding: 0;
+  box-sizing: border-box;
+  color: var(--glass-text);
+  font-family: var(--glass-font-sans);
+  font-size: var(--field-font);
+  font-weight: 500;
+  line-height: 1.5;
+  background-color: transparent;
+  border: none;
+  outline: none;
+}
+
+.glass-input__textarea {
+  height: auto;
+  min-height: 160rpx;
+  line-height: 1.55;
+  resize: none;
+}
+
+.glass-input__placeholder {
+  color: var(--glass-text-3);
+  font-weight: 400;
+}
+
+/* ---- 清空按钮 ---- */
+.glass-input__clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 40rpx;
+  height: 40rpx;
+  margin-left: 8rpx;
+  box-sizing: border-box;
+  border-radius: 50%;
+  background-color: var(--glass-bg-strong);
+  color: var(--glass-text-2);
+  font-size: 26rpx;
+  line-height: 1;
+  transition:
+    transform var(--glass-duration-fast) var(--glass-ease-out),
+    opacity var(--glass-duration-fast) var(--glass-ease-out);
+}
+
+.glass-input__clear_pressed {
+  transform: scale(0.9);
+  opacity: 0.72;
+}
+
+.glass-input__clear_glyph {
+  display: block;
+  line-height: 1;
+  transform: translateY(-1rpx);
+}
+
+/* ---- 错误 / 提示 ---- */
+.glass-input__error {
+  margin: 10rpx 4rpx 0;
+  color: var(--glass-danger);
+  font-size: 22rpx;
+  line-height: 1.4;
+}
+
+.glass-input__hint {
+  margin: 10rpx 4rpx 0;
+  color: var(--glass-text-3);
+  font-size: 22rpx;
+  line-height: 1.4;
+}
+
+/* ---- 聚焦态 ---- */
+.glass-input_focused .glass-input__field {
+  background-image: linear-gradient(
+    135deg,
+    var(--field-accent) 0%,
+    var(--glass-border-strong) 55%,
+    var(--field-accent) 100%
+  );
+  box-shadow:
+    0 0 0 2rpx var(--field-soft),
+    0 18rpx 48rpx var(--field-soft),
+    var(--glass-shadow-soft);
+}
+
+.glass-input_focused .glass-input__surface {
+  background-color: var(--glass-bg-strong);
+}
+
+/* ---- 错误态 ---- */
+.glass-input_error .glass-input__field {
+  background-image: linear-gradient(
+    135deg,
+    var(--glass-danger) 0%,
+    var(--glass-accent-warm) 100%
+  );
+  box-shadow:
+    0 0 0 2rpx var(--glass-accent-warm-soft),
+    var(--glass-shadow-soft);
+}
+
+/* ---- 尺寸 ---- */
+.glass-input_size_sm {
+  --field-height: 72rpx;
+  --field-radius: var(--glass-radius-sm);
+  --field-pad-x: 20rpx;
+  --field-font: 24rpx;
+}
+
+.glass-input_size_md {
+  --field-height: 88rpx;
+  --field-radius: var(--glass-radius-md);
+  --field-pad-x: 28rpx;
+  --field-font: 28rpx;
+}
+
+.glass-input_size_lg {
+  --field-height: 104rpx;
+  --field-radius: var(--glass-radius-md);
+  --field-pad-x: 36rpx;
+  --field-font: 32rpx;
+}
+
+/* ---- 语义色调 ---- */
+.glass-input_tone_neutral {
+  --field-accent: var(--glass-accent);
+  --field-soft: var(--glass-accent-soft);
+}
+
+.glass-input_tone_iris {
+  --field-accent: var(--glass-accent);
+  --field-soft: var(--glass-accent-soft);
+}
+
+.glass-input_tone_aurora {
+  --field-accent: var(--glass-accent-2);
+  --field-soft: var(--glass-accent-2-soft);
+}
+
+.glass-input_tone_amber {
+  --field-accent: var(--glass-accent-warm);
+  --field-soft: var(--glass-accent-warm-soft);
+}
+
+.glass-input_tone_danger {
+  --field-accent: var(--glass-danger);
+  --field-soft: var(--glass-accent-warm-soft);
+}
+
+/* ---- 禁用态 ---- */
+.glass-input_disabled {
+  opacity: 0.48;
+}
+
+.glass-input_disabled .glass-input__field {
+  box-shadow: none;
+}
+
+/* ---- 低端机降级 ---- */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass-input__surface {
+    background-color: var(--glass-bg-strong);
+  }
+
+  .glass-input_focused .glass-input__surface {
+    background-color: var(--glass-bg-strong);
+  }
+}
+
+/* ---- 减少动态偏好 ---- */
+@media (prefers-reduced-motion: reduce) {
+  .glass-input__field,
+  .glass-input__surface,
+  .glass-input__clear {
+    transition: none;
+  }
+
+  .glass-input__halo {
+    animation: none;
+    opacity: 0.55;
+    transform: none;
+  }
+}

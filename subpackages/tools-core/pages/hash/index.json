@@ -1,0 +1,8 @@
+{
+  "usingComponents": {
+    "glass-tool-shell": "../../../../components/glass-tool-shell/index",
+    "glass-modal": "../../../../components/glass-modal/index",
+    "glass-button": "../../../../components/glass-button/index",
+    "glass-card": "../../../../components/glass-card/index"
+  }
+}

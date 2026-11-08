@@ -1,0 +1,9 @@
+{
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "glass-card": "../../components/glass-card/index",
+    "glass-button": "../../components/glass-button/index",
+    "glass-toast": "../../components/glass-toast/index",
+    "command-palette": "../../components/command-palette/index"
+  }
+}

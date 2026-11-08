@@ -1,0 +1,8 @@
+<view
+  class="card card_pad_{{padding}} {{solid ? 'card_solid' : 'card_glass'}} {{sheen ? 'card_sheen' : ''}}"
+  hover-class="{{hover ? 'card_press' : ''}}"
+  hover-stay-time="80"
+  bindtap="onTap"
+>
+  <slot></slot>
+</view>

@@ -1,0 +1,281 @@
+/* ==========================================================================
+   glass-toast · 全局毛玻璃轻提示
+   - 固定全屏层，pointer-events: none；仅卡片与遮罩接收事件
+   - bottom / top 位置自动叠加安全区
+   ========================================================================== */
+
+.glass-toast {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+  font-family: var(--glass-font-sans);
+}
+
+/* ---- 位置 ---- */
+.glass-toast_placement_bottom {
+  justify-content: flex-end;
+  padding: 0 32rpx calc(56rpx + var(--glass-safe-bottom));
+  box-sizing: border-box;
+}
+
+.glass-toast_placement_top {
+  justify-content: flex-start;
+  padding: calc(128rpx + var(--glass-safe-top)) 32rpx 0;
+  box-sizing: border-box;
+}
+
+.glass-toast_placement_center {
+  justify-content: center;
+  padding: 32rpx;
+  box-sizing: border-box;
+}
+
+/* 下三分之一屏：避开系统居中提示、顶部胶囊菜单与底部导航 */
+.glass-toast_placement_lower-center {
+  justify-content: flex-start;
+  padding: 62vh 32rpx 0;
+  box-sizing: border-box;
+}
+
+/* ---- 遮罩 ---- */
+.glass-toast__mask {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 0;
+  background-color: var(--glass-scrim);
+  pointer-events: auto;
+}
+
+/* ---- 卡片 ---- */
+.glass-toast__card {
+  --toast-accent: var(--glass-accent);
+  --toast-soft: var(--glass-accent-soft);
+
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  width: auto;
+  max-width: 620rpx;
+  min-height: 88rpx;
+  padding: 22rpx 32rpx;
+  box-sizing: border-box;
+  overflow: hidden;
+  border: 1rpx solid var(--glass-border);
+  border-radius: 48rpx;
+  background-color: var(--glass-bg-strong);
+  box-shadow:
+    var(--glass-shadow),
+    inset 0 1rpx 0 var(--glass-highlight);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  pointer-events: auto;
+  opacity: 0;
+  transform: translate3d(0, 16rpx, 0) scale(0.96);
+  transition:
+    opacity 260ms var(--glass-ease-out),
+    transform 320ms var(--glass-ease-spring);
+  will-change: transform, opacity;
+}
+
+.glass-toast_visible .glass-toast__card {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+}
+
+.glass-toast_leaving .glass-toast__card {
+  opacity: 0;
+  transform: translate3d(0, 12rpx, 0) scale(0.98);
+}
+
+.glass-toast__card_pressed {
+  transform: scale(0.97);
+}
+
+/* ---- 类型色 ---- */
+.glass-toast_type_info,
+.glass-toast_type_loading {
+  --toast-accent: var(--glass-accent);
+  --toast-soft: var(--glass-accent-soft);
+}
+
+.glass-toast_type_success {
+  --toast-accent: var(--glass-accent-2);
+  --toast-soft: var(--glass-accent-2-soft);
+}
+
+.glass-toast_type_warning {
+  --toast-accent: var(--glass-accent-warm);
+  --toast-soft: var(--glass-accent-warm-soft);
+}
+
+.glass-toast_type_error {
+  --toast-accent: var(--glass-danger);
+  --toast-soft: var(--glass-accent-warm-soft);
+}
+
+/* ---- 材质层 ---- */
+.glass-toast__sheen {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1;
+  pointer-events: none;
+  border-radius: inherit;
+  background-image: var(--glass-sheen);
+  opacity: 0.3;
+}
+
+.glass-toast__noise {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 2;
+  pointer-events: none;
+  border-radius: inherit;
+  background-image: var(--glass-noise-image);
+  background-size: var(--glass-noise-size);
+  opacity: var(--glass-noise-opacity);
+  mix-blend-mode: soft-light;
+}
+
+/* ---- 内容 ---- */
+.glass-toast__content {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.glass-toast__badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 44rpx;
+  height: 44rpx;
+  margin-right: 16rpx;
+  box-sizing: border-box;
+  border: 1rpx solid var(--toast-accent);
+  border-radius: 50%;
+  background-color: var(--toast-soft);
+  color: var(--toast-accent);
+}
+
+.glass-toast__badge_glyph {
+  color: var(--toast-accent);
+  font-size: 24rpx;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.glass-toast__message {
+  flex: 1;
+  min-width: 0;
+  color: var(--glass-text);
+  font-size: 26rpx;
+  font-weight: 500;
+  line-height: 1.45;
+  word-break: break-all;
+}
+
+/* ---- 动作按钮：撤销等一击操作 ---- */
+.glass-toast__action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  min-width: 72rpx;
+  height: 52rpx;
+  margin-left: 18rpx;
+  padding: 0 20rpx;
+  box-sizing: border-box;
+  border-left: 1rpx solid var(--glass-border);
+  color: var(--toast-accent);
+  font-size: 24rpx;
+  font-weight: 600;
+  letter-spacing: 0.5rpx;
+  opacity: 1;
+  transition: opacity 180ms var(--glass-ease-out), transform 180ms var(--glass-ease-out);
+}
+
+.glass-toast__action_text {
+  color: var(--toast-accent);
+  font-size: 24rpx;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.glass-toast__action_pressed {
+  opacity: 0.6;
+  transform: scale(0.94);
+}
+
+.glass-toast__action_busy {
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+/* ---- loading 菊花 ---- */
+.glass-toast__spinner {
+  flex-shrink: 0;
+  width: 30rpx;
+  height: 30rpx;
+  margin-right: 16rpx;
+  box-sizing: border-box;
+  border: 2rpx solid var(--toast-accent);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: glass-toast-spin 720ms linear infinite;
+}
+
+@keyframes glass-toast-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---- 低端机降级 ---- */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass-toast__card {
+    background-color: var(--glass-bg-strong);
+    box-shadow:
+      var(--glass-shadow-soft),
+      inset 0 1rpx 0 var(--glass-highlight);
+  }
+}
+
+/* ---- 减少动态偏好 ---- */
+@media (prefers-reduced-motion: reduce) {
+  .glass-toast__card {
+    transition-duration: 1ms;
+  }
+
+  .glass-toast__spinner {
+    animation: none;
+  }
+
+  .glass-toast__action {
+    transition-duration: 1ms;
+  }
+}

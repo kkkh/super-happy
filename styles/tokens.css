@@ -1,0 +1,248 @@
+/* ==========================================================================
+   Design Tokens v2 · 曜石画廊（Obsidian Gallery）
+   唯一样式真相源（Tailwind CSS v4 · CSS-first）
+   - 运行时真值由 app.wxss 的 .theme-light / .theme-dark 注入（--g-* 命名空间）
+   - @theme inline 将工具类映射为 var(--g-*)：深浅模式零分支代码
+   - 页面层 / 组件层禁止出现任何裸色值，一律消费语义工具类
+   ========================================================================== */
+@import "tailwindcss";
+
+/* 显式声明扫描源：wxml 中的原子类候选 */
+@source "../components/**/*.wxml";
+@source "../pages/**/*.wxml";
+@source "../subpackages/**/*.wxml";
+
+@theme inline {
+  /* ---- 单位制归一：rem 系令牌改写为 rpx（750 基准） ---- */
+  --spacing: 8rpx;
+  --text-micro: 20rpx;
+  --text-xs: 24rpx;
+  --text-sm: 28rpx;
+  --text-base: 32rpx;
+  --text-lg: 36rpx;
+  --text-xl: 40rpx;
+  --text-2xl: 48rpx;
+  --text-3xl: 60rpx;
+  --text-4xl: 72rpx;
+  --text-display: 104rpx;
+
+  /* ---- 表面材质（语义层，随主题翻转） ---- */
+  --color-canvas: var(--g-canvas);
+  --color-well: var(--g-well);
+  --color-surface: var(--g-surface);
+  --color-surface-strong: var(--g-surface-strong);
+  --color-solid: var(--g-solid);
+  --color-elevated: var(--g-elevated);
+  --color-scrim: var(--g-scrim);
+
+  /* ---- 描边 ---- */
+  --color-stroke: var(--g-stroke);
+  --color-stroke-strong: var(--g-stroke-strong);
+
+  /* ---- 墨色五阶 + 画布 + 描边 = 7 档中性体系 ---- */
+  --color-ink: var(--g-ink);
+  --color-ink-2: var(--g-ink-2);
+  --color-ink-3: var(--g-ink-3);
+  --color-ink-4: var(--g-ink-4);
+  --color-ink-5: var(--g-ink-5);
+
+  /* ---- 主色 1 · iris 铟蓝（理性） ---- */
+  --color-iris: var(--g-iris);
+  --color-iris-2: var(--g-iris-2);
+  --color-iris-soft: var(--g-iris-soft);
+  --color-iris-border: var(--g-iris-border);
+
+  /* ---- 主色 2 · aurora 薄荷（生命力） ---- */
+  --color-aurora: var(--g-aurora);
+  --color-aurora-2: var(--g-aurora-2);
+  --color-aurora-soft: var(--g-aurora-soft);
+  --color-aurora-border: var(--g-aurora-border);
+
+  /* ---- 点缀 · amber 暖金（高光时刻，克制使用） ---- */
+  --color-amber: var(--g-amber);
+  --color-amber-soft: var(--g-amber-soft);
+  --color-amber-border: var(--g-amber-border);
+
+  /* ---- 圆角 ---- */
+  --radius-tile: 24rpx;
+  --radius-glass: 32rpx;
+  --radius-sheet: 44rpx;
+  --radius-pill: 999rpx;
+
+  /* ---- 阴影 / 辉光 ---- */
+  --shadow-glass: var(--g-shadow-glass);
+  --shadow-lift: var(--g-shadow-lift);
+  --shadow-glow-iris: 0 0 44rpx var(--g-iris-glow);
+  --shadow-glow-aurora: 0 0 44rpx var(--g-aurora-glow);
+
+  /* ---- 动效曲线（奢华减速 / 弹性 / 滑翔） ---- */
+  --ease-lux: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-glide: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* ---- 字体 ---- */
+  --font-display: "PingFang SC", "SF Pro Display", -apple-system, sans-serif;
+}
+
+/* ==========================================================================
+   关键帧家族 · 入场编排 / 材质微光 / 悬浮呼吸 / 轨道 / 数字弹跳
+   ========================================================================== */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(48rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes shimmer {
+  from {
+    background-position: -400rpx 0;
+  }
+  to {
+    background-position: 400rpx 0;
+  }
+}
+
+@keyframes sheen {
+  from {
+    transform: translateX(-120%) rotate(8deg);
+  }
+  to {
+    transform: translateX(220%) rotate(8deg);
+  }
+}
+
+@keyframes float-soft {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-12rpx);
+  }
+}
+
+@keyframes pulse-soft {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes orbit-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes glow-breathe {
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+}
+
+/* ---- 动效工具类（命名即语义，页面层禁止手写 animation） ---- */
+.anim-rise {
+  animation: rise 0.64s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+.anim-fade {
+  animation: fade 0.48s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+.anim-scale-in {
+  animation: scale-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.anim-float {
+  animation: float-soft 4.2s ease-in-out infinite;
+}
+
+.anim-pulse-soft {
+  animation: pulse-soft 2.4s ease-in-out infinite;
+}
+
+.anim-orbit {
+  animation: orbit-spin 9s linear infinite;
+}
+
+.anim-breathe {
+  animation: glow-breathe 3.2s ease-in-out infinite;
+}
+
+/* ---- 进入编排延迟档位（stagger 60ms） ---- */
+.delay-1 { animation-delay: 60ms; }
+.delay-2 { animation-delay: 120ms; }
+.delay-3 { animation-delay: 180ms; }
+.delay-4 { animation-delay: 240ms; }
+.delay-5 { animation-delay: 300ms; }
+.delay-6 { animation-delay: 360ms; }
+.delay-7 { animation-delay: 420ms; }
+.delay-8 { animation-delay: 480ms; }
+.delay-9 { animation-delay: 540ms; }
+
+/* ---- 骨架屏微光材质 ---- */
+.skeleton-sheen {
+  background-color: var(--g-skeleton);
+  background-image: linear-gradient(
+    90deg,
+    var(--g-skeleton) 0%,
+    var(--g-skeleton-hi) 50%,
+    var(--g-skeleton) 100%
+  );
+  background-size: 400rpx 100%;
+  background-repeat: no-repeat;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+/* ---- 玻璃卡高光扫过 ---- */
+.glass-sheen::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 34%;
+  background-image: linear-gradient(
+    100deg,
+    rgba(255, 255, 255, 0) 0%,
+    var(--g-sheen-hi) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  animation: sheen 3.6s cubic-bezier(0.32, 0.72, 0, 1) infinite;
+}

@@ -1,0 +1,16 @@
+{
+  "component": true,
+  "styleIsolation": "apply-shared",
+  "usingComponents": {
+    "glass-tool-card": "../glass-tool-card/index",
+    "glass-button": "../glass-button/index",
+    "glass-toast": "../glass-toast/index",
+    "workflow-receiver": "../workflow-receiver/index",
+    "workflow-panel": "../workflow-panel/index",
+    "privacy-guard": "../privacy-guard/index",
+    "g-icon": "../g-icon/index",
+    "poster-generator": "../poster-generator/index",
+    "poster-preview": "../poster-preview/index",
+    "update-guard": "../update-guard/index"
+  }
+}

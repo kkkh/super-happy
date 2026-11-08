@@ -1,0 +1,104 @@
+<view class="gallery {{dark ? 'gallery_dark' : ''}}">
+  <!-- 分组缩略墙 -->
+  <view wx:for="{{groups}}" wx:for-item="group" wx:for-index="gi" wx:key="title" class="gallery_group">
+    <view class="gallery_group_head">
+      <text class="gallery_group_title">{{group.title}}</text>
+      <text class="gallery_group_count">{{group.shots.length}} 帧</text>
+    </view>
+    <view class="gallery_wall">
+      <view
+        wx:for="{{group.shots}}"
+        wx:for-item="shot"
+        wx:for-index="si"
+        wx:key="img"
+        class="gallery_cell gallery_cell_{{group.layout || 'landscape'}}"
+        hover-class="gallery_cell_press"
+        hover-stay-time="80"
+        data-group="{{gi}}"
+        data-shot="{{si}}"
+        aria-role="button"
+        aria-label="{{group.title}}，第{{si + 1}}帧"
+        bindtap="onThumbTap"
+      >
+        <image
+          wx:if="{{!shot.error}}"
+          src="{{shot.img}}"
+          mode="aspectFill"
+          class="gallery_thumb"
+          aria-hidden="true"
+          lazy-load
+          data-gi="{{gi}}"
+          data-si="{{si}}"
+          binderror="onShotError"
+        />
+        <view wx:else class="gallery_thumb gallery_fallback gallery_fallback_{{tone}}" aria-label="素材待补">
+          <view class="gallery_fallback_grid"></view>
+          <view class="gallery_fallback_mark">
+            <g-icon name="image" size="{{32}}" tone="{{tone}}" />
+          </view>
+          <text class="gallery_fallback_no">{{gi + 1}}.{{si + 1}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 全屏查看器：root-portal 脱离 scroll-view 裁剪与层级，Skyline 下保证全屏覆盖 -->
+  <root-portal wx:if="{{viewer.open}}">
+    <view class="viewer">
+      <view class="viewer_bar" style="padding-top: {{barTop}}px;">
+        <text class="viewer_caption">{{viewerCaption}}</text>
+        <view
+          class="viewer_close"
+          hover-class="viewer_close_press"
+          hover-stay-time="80"
+          aria-role="button"
+          aria-label="关闭查看器"
+          bindtap="closeViewer"
+        >
+          <g-icon name="close" size="{{36}}" tone="inverse" />
+        </view>
+      </view>
+
+      <swiper
+        class="viewer_swiper"
+        current="{{viewer.index}}"
+        bindchange="onSwiperChange"
+      >
+        <swiper-item wx:for="{{flatUrls}}" wx:key="*this">
+          <view
+            class="viewer_stage"
+            data-url="{{item}}"
+            aria-label="查看大图，双击缩放，长按保存"
+            bindtap="onImageTap"
+            bindlongpress="onLongPress"
+            bindtouchstart="onDragStart"
+            bindtouchmove="onDragMove"
+            bindtouchend="onDragEnd"
+          >
+            <image
+              wx:if="{{!viewerError}}"
+              src="{{item}}"
+              mode="aspectFit"
+              class="viewer_img {{viewer.zoomed ? 'viewer_img_zoom' : ''}} {{viewer.zoomed ? 'viewer_img_move' : ''}}"
+              aria-hidden="true"
+              style="--vx: {{viewer.offsetX}}px; --vy: {{viewer.offsetY}}px;"
+              binderror="onViewerImageError"
+            />
+            <view wx:else class="viewer_blank">
+              <g-icon name="image" size="{{56}}" tone="inverse" />
+              <text class="viewer_blank_text">素材待补</text>
+              <text class="viewer_blank_sub">本地素材暂未收录</text>
+            </view>
+          </view>
+        </swiper-item>
+      </swiper>
+
+      <view class="viewer_pager">
+        <text class="viewer_pager_text">{{viewer.index + 1}} / {{flatUrls.length}}</text>
+      </view>
+      <view class="viewer_hint">
+        <text class="viewer_hint_text">双击缩放 · 左右滑动 · 长按保存</text>
+      </view>
+    </view>
+  </root-portal>
+</view>

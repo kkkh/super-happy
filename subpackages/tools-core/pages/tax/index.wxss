@@ -1,0 +1,43 @@
+/* ==========================================================================
+   个税计算 · 空间玻璃页面样式
+   - 只使用 --glass-* / --sg-* 令牌，无硬编码色值
+   ========================================================================== */
+
+/* ---- 月度 / 年度切换 ---- */
+.tool-seg {
+  display: flex;
+  flex-direction: row;
+  gap: 12rpx;
+  box-sizing: border-box;
+  padding-bottom: 2rpx;
+}
+
+/* ---- 结果 ---- */
+/* ---- 级距刻度 ---- */
+.tool-scale {
+  display: flex;
+  flex-direction: row;
+  gap: 6rpx;
+  box-sizing: border-box;
+  padding: 4rpx 0;
+}
+
+.tool-scale__step {
+  flex: 1;
+  height: 10rpx;
+  border-radius: 999rpx;
+  background-color: var(--glass-bg-soft);
+  border: 1rpx solid var(--glass-border);
+  box-sizing: border-box;
+  opacity: 0.72;
+}
+
+.tool-scale__step_on {
+  border-color: var(--glass-border-strong);
+  background-color: var(--glass-accent);
+  background-image: linear-gradient(90deg, var(--glass-accent), var(--glass-accent-2));
+  opacity: 1;
+}
+
+/* ---- 明细行 ---- */
+/* ---- 注释 ---- */

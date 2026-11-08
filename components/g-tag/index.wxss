@@ -1,0 +1,33 @@
+/* g-tag · 胶囊标签 */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 8rpx 22rpx;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+  letter-spacing: 2rpx;
+  border: 1rpx solid transparent;
+}
+
+.tag_iris {
+  background-color: var(--g-iris-soft);
+  border-color: var(--g-iris-border);
+  color: var(--g-iris);
+}
+
+.tag_aurora {
+  background-color: var(--g-aurora-soft);
+  border-color: var(--g-aurora-border);
+  color: var(--g-aurora);
+}
+
+.tag_amber {
+  background-color: var(--g-amber-soft);
+  border-color: var(--g-amber-border);
+  color: var(--g-amber);
+}
+
+/* 实底：白字强调 */
+.tag_solid.tag_iris { background-color: var(--g-iris); color: #f7f9fc; }
+.tag_solid.tag_aurora { background-color: var(--g-aurora); color: #f7f9fc; }
+.tag_solid.tag_amber { background-color: var(--g-amber); color: #f7f9fc; }

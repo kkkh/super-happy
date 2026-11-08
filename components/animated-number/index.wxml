@@ -1,0 +1,13 @@
+<wxs src="./number.wxs" module="anim"></wxs>
+
+<view
+  class="custom-class animated-number animated-number_size_{{size}} animated-number_tone_{{tone}}{{animating ? ' animated-number_animating' : ''}}"
+  style="{{customStyle}}"
+  change:prop="{{anim.onChange}}"
+  prop="{{animConfig}}"
+  aria-role="status"
+  aria-label="{{finalText}}"
+>
+  <text class="animated-number__value" aria-hidden="true">{{displayText}}</text>
+  <view class="animated-number__shimmer" aria-hidden="true"></view>
+</view>

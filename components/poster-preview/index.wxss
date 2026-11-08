@@ -1,0 +1,561 @@
+/* ==========================================================================
+   poster-preview · 极光海报全屏预览
+   - 弹簧位移 cubic-bezier(0.25, 0.8, 0.25, 1)，0.9 → 1.0 呼吸
+   - 省电模式禁用位移/缩放，只保留透明度渐变
+   - 全屏遮罩 catchtouchmove，底部安全区完整
+   ========================================================================== */
+
+.poster-preview {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  pointer-events: none;
+  font-family: var(--glass-font-sans);
+}
+
+.poster-preview__mask {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1;
+  background-color: var(--glass-scrim);
+  opacity: 0;
+  pointer-events: auto;
+  transition: opacity 300ms var(--glass-ease-out);
+}
+
+.poster-preview_active .poster-preview__mask {
+  opacity: 1;
+}
+
+.poster-preview__panel {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 720rpx;
+  max-height: 92vh;
+  box-sizing: border-box;
+  overflow: hidden;
+  padding: 32rpx 32rpx 0;
+  border: 1rpx solid var(--glass-border);
+  border-bottom: none;
+  border-radius: 44rpx 44rpx 0 0;
+  background-color: var(--sg-glass-bg-strong, var(--glass-bg-strong));
+  box-shadow:
+    0 -24rpx 80rpx rgba(0, 0, 0, 0.32),
+    inset 0 1rpx 0 var(--glass-highlight);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  pointer-events: auto;
+  opacity: 0;
+  transform: translate3d(0, 100%, 0) scale(0.9);
+  transform-origin: 50% 100%;
+  transition:
+    opacity 300ms var(--glass-ease-out),
+    transform 520ms cubic-bezier(0.25, 0.8, 0.25, 1);
+  will-change: transform, opacity;
+}
+
+.poster-preview_active .poster-preview__panel {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+}
+
+/* 省电模式：只做透明度渐变 */
+.poster-preview_saver .poster-preview__panel {
+  transform: none;
+  transition: opacity 220ms linear;
+}
+
+.poster-preview_saver .poster-preview__mask {
+  transition: opacity 220ms linear;
+}
+
+.poster-preview__sheen {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 0;
+  height: 1rpx;
+  background-image: linear-gradient(
+    90deg,
+    transparent,
+    var(--glass-highlight) 24%,
+    var(--glass-highlight) 76%,
+    transparent
+  );
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.poster-preview__head {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20rpx;
+  flex-shrink: 0;
+  padding: 4rpx 4rpx 20rpx;
+}
+
+.poster-preview__head-copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.poster-preview__kicker {
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 17rpx;
+  letter-spacing: 0.14em;
+}
+
+.poster-preview__title {
+  margin-top: 8rpx;
+  color: var(--glass-text);
+  font-size: 34rpx;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.poster-preview__badge {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  flex-shrink: 0;
+  height: 42rpx;
+  padding: 0 16rpx;
+  box-sizing: border-box;
+  border: 1rpx solid var(--glass-border);
+  border-radius: 21rpx;
+  background-color: var(--glass-bg-soft);
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 16rpx;
+  letter-spacing: 0.12em;
+  transition:
+    border-color var(--glass-duration-base) var(--glass-ease-out),
+    background-color var(--glass-duration-base) var(--glass-ease-out),
+    color var(--glass-duration-base) var(--glass-ease-out);
+}
+
+.poster-preview__badge-dot {
+  width: 9rpx;
+  height: 9rpx;
+  border-radius: 50%;
+  background-color: var(--sg-mint);
+  box-shadow: 0 0 12rpx rgba(95, 220, 199, 0.8);
+  transition:
+    background-color var(--glass-duration-base) var(--glass-ease-out),
+    box-shadow var(--glass-duration-base) var(--glass-ease-out);
+}
+
+/* DRAWING：呼吸点提示后台正在绘制，纯透明度动画不触发重排 */
+.poster-preview__badge_busy .poster-preview__badge-dot {
+  animation: poster-badge-pulse 1200ms ease-in-out infinite;
+}
+
+.poster-preview__badge_saved {
+  border-color: rgba(95, 220, 199, 0.42);
+  background-color: rgba(95, 220, 199, 0.12);
+  color: var(--sg-mint);
+}
+
+@keyframes poster-badge-pulse {
+  0%,
+  100% {
+    opacity: 0.4;
+    box-shadow: 0 0 4rpx rgba(95, 220, 199, 0.36);
+  }
+
+  50% {
+    opacity: 1;
+    box-shadow: 0 0 16rpx rgba(95, 220, 199, 0.9);
+  }
+}
+
+.poster-preview__image-wrap {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 52vh;
+  min-height: 300rpx;
+  overflow: hidden;
+  border: 1rpx solid var(--glass-border);
+  border-radius: 28rpx;
+  background-color: rgba(8, 11, 20, 0.18);
+  box-shadow: inset 0 1rpx 0 var(--glass-highlight);
+}
+
+/* 只动 opacity / transform：不跑 filter blur，避免大图逐帧重算模糊导致掉帧 */
+.poster-preview__image {
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transform: scale(1.025);
+  transition:
+    opacity 520ms var(--glass-ease-out),
+    transform 680ms var(--glass-ease-out);
+}
+
+.poster-preview__image_ready {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.poster-preview_saver .poster-preview__image {
+  transform: none;
+  transition: opacity 200ms linear;
+}
+
+/* 省电模式：骨架只淡出、不跑扫光；成功覆盖层只做透明度 */
+.poster-preview_saver .poster-preview__skeleton {
+  transition: opacity 200ms linear;
+}
+
+.poster-preview_saver .poster-preview__skeleton_shimmer {
+  animation: none;
+}
+
+.poster-preview_saver .poster-preview__saved,
+.poster-preview_saver .poster-preview__saved_check,
+.poster-preview_saver .poster-preview__saved_text,
+.poster-preview_saver .poster-preview__image-empty {
+  animation: none;
+}
+
+.poster-preview_saver .poster-preview__badge_busy .poster-preview__badge-dot {
+  animation: none;
+}
+
+/* ---- 绘制 / 解码骨架 ---- */
+.poster-preview__skeleton {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 28rpx;
+  background:
+    radial-gradient(circle at 20% 10%, rgba(159, 124, 255, 0.18), transparent 46%),
+    radial-gradient(circle at 84% 76%, rgba(56, 189, 248, 0.14), transparent 42%),
+    rgba(8, 11, 20, 0.28);
+  opacity: 1;
+  transition: opacity 420ms var(--glass-ease-out);
+}
+
+/* 海报解码完成：骨架原地淡出，与图片淡入形成交叉过渡，不闪黑 */
+.poster-preview__skeleton_out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.poster-preview__skeleton_out .poster-preview__skeleton_shimmer {
+  animation: none;
+}
+
+.poster-preview__skeleton_card {
+  position: relative;
+  width: 70%;
+  height: 68%;
+  padding: 8% 8%;
+  box-sizing: border-box;
+  border: 1rpx solid rgba(255, 255, 255, 0.18);
+  border-radius: 24rpx;
+  background-color: rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 1rpx 0 rgba(255, 255, 255, 0.24);
+}
+
+.poster-preview__skeleton_line {
+  height: 8rpx;
+  margin-bottom: 7%;
+  border-radius: 999rpx;
+  background-color: rgba(255, 255, 255, 0.22);
+}
+
+.poster-preview__skeleton_line_title {
+  width: 42%;
+  height: 12rpx;
+}
+
+.poster-preview__skeleton_line_value {
+  width: 76%;
+  height: 22rpx;
+  margin-top: 12%;
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.poster-preview__skeleton_line_sub {
+  width: 88%;
+}
+
+.poster-preview__skeleton_line_sub.short {
+  width: 56%;
+}
+
+.poster-preview__skeleton_qr {
+  position: absolute;
+  right: 8%;
+  bottom: 8%;
+  width: 22%;
+  height: 22%;
+  box-sizing: border-box;
+  border: 1rpx solid rgba(255, 255, 255, 0.2);
+  border-radius: 12rpx;
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.poster-preview__skeleton_shimmer {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 58%;
+  background-image: linear-gradient(
+    100deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.02) 30%,
+    rgba(255, 255, 255, 0.16) 50%,
+    rgba(255, 255, 255, 0.02) 70%,
+    transparent 100%
+  );
+  animation: poster-skeleton-sweep 1500ms ease-in-out infinite;
+  pointer-events: none;
+}
+
+.poster-preview__skeleton_text {
+  position: relative;
+  z-index: 2;
+  margin-top: 22rpx;
+  color: var(--glass-text-3);
+  font-size: 19rpx;
+  letter-spacing: 0.08em;
+}
+
+@keyframes poster-skeleton-sweep {
+  0% {
+    transform: translateX(-120%);
+  }
+
+  100% {
+    transform: translateX(220%);
+  }
+}
+
+/* ---- 保存成功覆盖层 ---- */
+.poster-preview__saved {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 28rpx;
+  /* 用深色薄幕代替实时 backdrop-filter：大区域模糊在保存瞬间最吃帧 */
+  background-color: rgba(8, 11, 20, 0.72);
+  animation: poster-saved-in 420ms var(--glass-ease-out) both;
+}
+
+@keyframes poster-saved-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.poster-preview__saved_check {
+  position: relative;
+  width: 76rpx;
+  height: 76rpx;
+  border: 1rpx solid rgba(255, 255, 255, 0.32);
+  border-radius: 50%;
+  background-color: rgba(95, 220, 199, 0.18);
+  box-shadow:
+    0 0 28rpx rgba(95, 220, 199, 0.4),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.4);
+  animation: poster-check-pop 460ms var(--glass-ease-spring) 80ms both;
+}
+
+@keyframes poster-check-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.72);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.poster-preview__saved_check_bar {
+  position: absolute;
+  height: 7rpx;
+  border-radius: 7rpx;
+  background-color: #ffffff;
+}
+
+.poster-preview__saved_check_bar.short {
+  top: 42rpx;
+  left: 20rpx;
+  width: 20rpx;
+  transform: rotate(45deg);
+  transform-origin: left center;
+}
+
+.poster-preview__saved_check_bar.long {
+  top: 46rpx;
+  left: 32rpx;
+  width: 30rpx;
+  transform: rotate(-48deg);
+  transform-origin: left center;
+}
+
+.poster-preview__saved_text {
+  margin-top: 18rpx;
+  color: #ffffff;
+  font-size: 22rpx;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  animation: poster-saved-text-in 360ms var(--glass-ease-out) 180ms both;
+}
+
+@keyframes poster-saved-text-in {
+  0% {
+    opacity: 0;
+    transform: translateY(8rpx);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.poster-preview__image-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16rpx;
+  width: 100%;
+  height: 100%;
+  padding: 0 40rpx;
+  box-sizing: border-box;
+  color: var(--glass-text-3);
+  font-size: 24rpx;
+  line-height: 1.5;
+  text-align: center;
+  animation: poster-empty-in 260ms var(--glass-ease-out) both;
+}
+
+@keyframes poster-empty-in {
+  0% {
+    opacity: 0;
+    transform: translateY(8rpx);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.poster-preview__empty_mark {
+  width: 42rpx;
+  height: 42rpx;
+  box-sizing: border-box;
+  border: 1rpx solid var(--glass-text-4);
+  border-radius: 50%;
+  opacity: 0.7;
+}
+
+.poster-preview__hint {
+  position: relative;
+  z-index: 3;
+  margin-top: 14rpx;
+  color: var(--glass-text-3);
+  font-size: 19rpx;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.poster-preview__actions {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 14rpx;
+  flex-shrink: 0;
+  padding-top: 18rpx;
+}
+
+.poster-preview__actions-secondary {
+  display: flex;
+  gap: 14rpx;
+}
+
+.poster-preview__action-cell {
+  flex: 1;
+  min-width: 0;
+}
+
+.poster-preview__safe {
+  flex-shrink: 0;
+  height: calc(20rpx + env(safe-area-inset-bottom, 0px));
+}
+
+/* 减少动态偏好：只保留必要的透明度变化 */
+@media (prefers-reduced-motion: reduce) {
+  .poster-preview__mask {
+    transition-duration: 1ms;
+  }
+
+  .poster-preview__panel {
+    transition-duration: 1ms;
+    transform: none;
+  }
+
+  .poster-preview__image,
+  .poster-preview__skeleton {
+    transition: opacity 1ms linear;
+    transform: none;
+  }
+
+  .poster-preview__skeleton_shimmer,
+  .poster-preview__badge_busy .poster-preview__badge-dot,
+  .poster-preview__saved,
+  .poster-preview__saved_check,
+  .poster-preview__saved_text,
+  .poster-preview__image-empty {
+    animation: none;
+  }
+}

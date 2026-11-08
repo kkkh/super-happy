@@ -1,0 +1,133 @@
+/* ==========================================================================
+   glass-picker · 选择抽屉内容
+   - 抽屉本体材质由 glass-bottom-sheet 提供，这里只做列表排版
+   - 选中项使用极光渐变描边 + 内部柔光，不改变文字可读性
+   ========================================================================== */
+
+.glass-picker {
+  display: flex;
+  flex-direction: column;
+  padding: 4rpx 0 10rpx;
+  box-sizing: border-box;
+}
+
+.glass-picker__empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 180rpx;
+  color: var(--glass-text-3, rgba(255, 255, 255, 0.5));
+  font-size: 24rpx;
+}
+
+.glass-picker__option {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 20rpx;
+  min-height: 104rpx;
+  padding: 20rpx 24rpx;
+  margin-bottom: 14rpx;
+  box-sizing: border-box;
+  border: 1rpx solid var(--glass-border, rgba(255, 255, 255, 0.12));
+  border-radius: 28rpx;
+  background-color: var(--glass-bg-soft, rgba(255, 255, 255, 0.06));
+  transition:
+    background-color var(--glass-duration-fast, 180ms) var(--glass-ease-out, ease),
+    border-color var(--glass-duration-fast, 180ms) var(--glass-ease-out, ease),
+    transform var(--glass-duration-fast, 180ms) var(--glass-ease-out, ease);
+}
+
+.glass-picker__option:last-child {
+  margin-bottom: 0;
+}
+
+.glass-picker__option--press {
+  transform: scale(0.986);
+}
+
+.glass-picker__option--active {
+  border-color: rgba(159, 124, 255, 0.58);
+  background-color: rgba(159, 124, 255, 0.12);
+  box-shadow:
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.22),
+    0 0 28rpx rgba(159, 124, 255, 0.22);
+}
+
+.glass-picker__mark {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 40rpx;
+  height: 40rpx;
+  box-sizing: border-box;
+  border: 1rpx solid var(--glass-border, rgba(255, 255, 255, 0.16));
+  border-radius: 50%;
+  background-color: var(--glass-bg, rgba(255, 255, 255, 0.08));
+}
+
+.glass-picker__mark-dot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  background-color: transparent;
+  transition:
+    background-color var(--glass-duration-fast, 180ms) var(--glass-ease-out, ease),
+    box-shadow var(--glass-duration-fast, 180ms) var(--glass-ease-out, ease);
+}
+
+.glass-picker__option--active .glass-picker__mark {
+  border-color: rgba(159, 124, 255, 0.6);
+  background-color: rgba(159, 124, 255, 0.2);
+}
+
+.glass-picker__option--active .glass-picker__mark-dot {
+  background-color: var(--sg-mint, #5fdcc7);
+  box-shadow: 0 0 14rpx rgba(95, 220, 199, 0.8);
+}
+
+.glass-picker__copy {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.glass-picker__label {
+  color: var(--glass-text, #ffffff);
+  font-size: 28rpx;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.glass-picker__desc {
+  margin-top: 6rpx;
+  color: var(--glass-text-3, rgba(255, 255, 255, 0.52));
+  font-size: 21rpx;
+  line-height: 1.45;
+}
+
+.glass-picker__check {
+  flex-shrink: 0;
+  color: var(--sg-mint, #5fdcc7);
+  font-size: 28rpx;
+  font-weight: 700;
+  text-shadow: 0 0 12rpx rgba(95, 220, 199, 0.6);
+}
+
+.glass-picker__footer {
+  display: flex;
+  flex-direction: column;
+  padding-top: 4rpx;
+}
+
+/* ---- 系统减少动态偏好 ---- */
+@media (prefers-reduced-motion: reduce) {
+  .glass-picker__option,
+  .glass-picker__mark-dot {
+    transition-duration: 1ms;
+  }
+}

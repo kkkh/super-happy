@@ -1,0 +1,10 @@
+{
+  "navigationStyle": "custom",
+  "backgroundColor": "#0a0a0c",
+  "disableScroll": true,
+  "usingComponents": {
+    "spatial-hologram": "../../components/spatial-hologram/index",
+    "glass-card": "../../components/glass-card/index",
+    "animated-number": "../../components/animated-number/index"
+  }
+}

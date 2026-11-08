@@ -1,0 +1,63 @@
+/* 关于我 · 纪元编年史 */
+.about_scroll {
+  flex: 1;
+  width: 100%;
+}
+
+.about_body {
+  display: flex;
+  flex-direction: column;
+  padding: 8rpx 56rpx calc(56rpx + env(safe-area-inset-bottom));
+  gap: 44rpx;
+}
+
+.about_loading {
+  display: flex;
+  flex-direction: column;
+  gap: 28rpx;
+  padding-top: 16rpx;
+}
+
+/* ---- 叙事块 ---- */
+.about_blocks {
+  display: flex;
+  flex-direction: column;
+  gap: 28rpx;
+}
+
+.about_block {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+.about_block_head {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.about_kicker {
+  font-size: 20rpx;
+  color: var(--g-ink-4);
+  letter-spacing: 3rpx;
+  font-weight: 600;
+}
+
+.about_block_body {
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+}
+
+.about_line {
+  font-size: 26rpx;
+  color: var(--g-ink-2);
+  line-height: 1.8;
+}
+
+/* ---- 时间线 ---- */
+.about_timeline {
+  margin-top: 8rpx;
+}

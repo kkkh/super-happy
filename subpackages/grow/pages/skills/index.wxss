@@ -1,0 +1,125 @@
+/* 技能矩阵 */
+.skills_scroll {
+  flex: 1;
+  width: 100%;
+}
+
+.skills_body {
+  display: flex;
+  flex-direction: column;
+  padding: 8rpx 56rpx calc(56rpx + env(safe-area-inset-bottom));
+  gap: 32rpx;
+}
+
+.skills_loading {
+  display: flex;
+  flex-direction: column;
+  gap: 28rpx;
+  padding-top: 16rpx;
+}
+
+/* ---- 分段控件 ---- */
+.seg {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  padding: 8rpx;
+  border-radius: 999rpx;
+  background-color: var(--g-well);
+  border: 1rpx solid var(--g-stroke);
+}
+
+.seg_thumb {
+  position: absolute;
+  top: 8rpx;
+  bottom: 8rpx;
+  left: 8rpx;
+  width: calc((100% - 16rpx) / 3);
+  border-radius: 999rpx;
+  background-color: var(--g-solid);
+  box-shadow: var(--g-shadow-glass);
+  border: 1rpx solid var(--g-stroke-strong);
+  transition: transform 0.36s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.seg_item {
+  position: relative;
+  flex: 1;
+  height: 80rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.seg_item text {
+  font-size: 26rpx;
+  color: var(--g-ink-3);
+  letter-spacing: 2rpx;
+  transition: color 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.seg_item_on text {
+  color: var(--g-ink);
+  font-weight: 700;
+}
+
+/* ---- 技能卡 ---- */
+.skills_list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.skill_row {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.skill_head {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.skill_name {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: var(--g-ink);
+  letter-spacing: 1rpx;
+}
+
+.skill_foot {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.skill_note {
+  font-size: 22rpx;
+  color: var(--g-ink-3);
+}
+
+.skill_level {
+  font-size: 20rpx;
+  color: var(--g-ink-4);
+  letter-spacing: 2rpx;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- 脚注 ---- */
+.skills_foot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 8rpx;
+}
+
+.skills_foot_text {
+  font-size: 20rpx;
+  color: var(--g-ink-4);
+  letter-spacing: 3rpx;
+  font-weight: 600;
+}

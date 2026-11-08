@@ -1,0 +1,47 @@
+<glass-bottom-sheet
+  show="{{show}}"
+  title="{{title}}"
+  description="{{description}}"
+  size="half"
+  z-index="{{zIndex}}"
+  show-footer="{{multiple}}"
+  aria-label="{{ariaLabel}}"
+  bind:close="onSheetClose"
+  bind:closed="onSheetClosed"
+>
+  <view class="glass-picker" aria-role="listbox" aria-multiselectable="{{multiple}}">
+    <view wx:if="{{!displayOptions.length}}" class="glass-picker__empty">
+      <text>{{emptyText}}</text>
+    </view>
+
+    <view
+      wx:for="{{displayOptions}}"
+      wx:key="value"
+      class="glass-picker__option {{item.active ? 'glass-picker__option--active' : ''}}"
+      hover-class="glass-picker__option--press"
+      hover-start-time="0"
+      hover-stay-time="80"
+      data-index="{{index}}"
+      aria-role="option"
+      aria-selected="{{item.active}}"
+      bindtap="onOptionTap"
+    >
+      <view class="glass-picker__mark" aria-hidden="true">
+        <view class="glass-picker__mark-dot"></view>
+      </view>
+
+      <view class="glass-picker__copy">
+        <text class="glass-picker__label">{{item.label}}</text>
+        <text wx:if="{{item.desc}}" class="glass-picker__desc">{{item.desc}}</text>
+      </view>
+
+      <text wx:if="{{item.active}}" class="glass-picker__check" aria-hidden="true">✓</text>
+    </view>
+  </view>
+
+  <view slot="footer" class="glass-picker__footer">
+    <glass-button variant="primary" size="lg" block bind:tap="onConfirm">
+      {{confirmText}}
+    </glass-button>
+  </view>
+</glass-bottom-sheet>

@@ -1,0 +1,115 @@
+<view
+  wx:if="{{mounted}}"
+  class="custom-class glass-palette {{active ? 'glass-palette_active' : ''}}"
+  style="z-index: {{zIndex}}; {{customStyle}}"
+  catchtouchmove="noop"
+>
+  <view
+    class="glass-palette__mask"
+    bindtap="onMaskTap"
+    aria-hidden="true"
+  ></view>
+
+  <view
+    class="glass-palette__panel"
+    aria-role="dialog"
+    aria-modal="true"
+    aria-label="{{ariaLabel}}"
+  >
+    <view class="glass-palette__sheen" aria-hidden="true"></view>
+    <view class="glass-palette__noise" aria-hidden="true"></view>
+
+    <view class="glass-palette__header">
+      <text class="glass-palette__search_icon" aria-hidden="true">⌕</text>
+
+      <input
+        class="glass-palette__input"
+        type="text"
+        value="{{query}}"
+        placeholder="{{placeholder}}"
+        placeholder-class="glass-palette__placeholder"
+        focus="{{focusInput}}"
+        confirm-type="search"
+        adjust-position="{{true}}"
+        cursor-spacing="24"
+        bindinput="onInput"
+        bindconfirm="onConfirm"
+      />
+
+      <!-- 只保留一个清除 X，原生清除按钮由 CSS 隐藏 -->
+      <view
+        wx:if="{{query}}"
+        class="glass-palette__clear"
+        hover-class="glass-palette__clear_pressed"
+        hover-stay-time="80"
+        aria-role="button"
+        aria-label="清空搜索"
+        catchtap="onClear"
+      >
+        <text class="glass-palette__clear_glyph">×</text>
+      </view>
+
+      <!-- 关闭按钮改为文字胶囊，彻底消灭双 X -->
+      <view
+        class="glass-palette__close"
+        hover-class="glass-palette__close_pressed"
+        hover-stay-time="80"
+        aria-role="button"
+        aria-label="关闭命令面板"
+        catchtap="onCloseTap"
+      >
+        <text class="glass-palette__close_text">关闭</text>
+      </view>
+    </view>
+
+    <scroll-view
+      scroll-y
+      enhanced
+      show-scrollbar="{{false}}"
+      class="glass-palette__results"
+    >
+      <view class="glass-palette__results_inner">
+        <view
+          wx:for="{{searchResults}}"
+          wx:key="id"
+          class="glass-palette__item {{index === activeIndex ? 'glass-palette__item_active' : ''}}"
+          data-index="{{index}}"
+          hover-class="glass-palette__item_pressed"
+          hover-stay-time="80"
+          bindtap="onResultTap"
+        >
+          <view class="glass-palette__item_icon">
+            <text class="glass-palette__item_icon_glyph">{{item.icon}}</text>
+          </view>
+
+          <view class="glass-palette__item_text">
+            <text class="glass-palette__item_title">{{item.title}}</text>
+            <text class="glass-palette__item_subtitle">{{item.subtitle}}</text>
+          </view>
+
+          <text
+            wx:if="{{item.category}}"
+            class="glass-palette__item_category"
+          >{{item.category}}</text>
+
+          <text class="glass-palette__item_arrow" aria-hidden="true">›</text>
+        </view>
+
+        <!-- 空状态：半透明玻璃卡片 + 线框搜索图标，绝不死黑 -->
+        <view wx:if="{{searchResults.length === 0}}" class="glass-palette__empty">
+          <view class="glass-palette__empty_icon" aria-hidden="true">
+            <view class="glass-palette__empty_lens"></view>
+            <view class="glass-palette__empty_handle"></view>
+          </view>
+          <text class="glass-palette__empty_title">{{emptyText}}</text>
+          <text class="glass-palette__empty_hint">试试“二维码”“个税”“图片”或拼音首字母</text>
+        </view>
+      </view>
+    </scroll-view>
+
+    <view class="glass-palette__footer">
+      <text class="glass-palette__footer_text">确认键选择 · 点击遮罩关闭</text>
+      <text class="glass-palette__footer_code">COMMAND PALETTE</text>
+    </view>
+  </view>
+</view>

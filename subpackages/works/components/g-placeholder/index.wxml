@@ -1,0 +1,11 @@
+<view
+  class="ph"
+  style="background: radial-gradient(120% 100% at 18% 8%, {{phA}} 0%, {{phB}} 58%, var(--g-well) 100%);"
+  aria-label="{{title || '图片占位'}}"
+>
+  <view class="ph_grid"></view>
+  <view class="ph_body">
+    <g-icon name="{{glyph}}" size="{{56}}" tone="inverse" />
+    <text wx:if="{{title}}" class="ph_title">{{title}}</text>
+  </view>
+</view>

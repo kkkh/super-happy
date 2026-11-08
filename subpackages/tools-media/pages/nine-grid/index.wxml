@@ -1,0 +1,141 @@
+<glass-tool-shell
+  tool-id="nine-grid"
+  title="{{toolName}}"
+  kicker="{{kicker}}"
+  desc="{{desc}}"
+  poster-data="{{posterData}}"
+  sensitive="privacy"
+  state="{{generating ? 'running' : 'idle'}}"
+  show-run="{{false}}"
+  show-example="{{false}}"
+  has-result="{{hasResult}}"
+  error="{{error}}"
+  empty-title="从相册选择图片，生成九宫格"
+  empty-sub="居中裁成正方形，再按 3×3 切分"
+  bind:reset="onReset"
+>
+  <view slot="input" class="sg-tool-fields">
+    <view wx:if="{{devtools}}" class="tool-notice">
+      <text class="tool-notice__text">开发者工具暂不支持 Skyline Canvas，请扫码在真机预览中使用九宫格。</text>
+    </view>
+
+    <view class="tool-stage" aria-label="{{imagePath ? '已选择图片' : '尚未选择图片'}}">
+      <image
+        wx:if="{{imagePath}}"
+        class="tool-stage__preview"
+        src="{{imagePath}}"
+        mode="aspectFit"
+        aria-label="原图预览"
+      />
+      <view wx:else class="tool-stage__blank">
+        <view class="tool-stage__icon">
+          <g-icon name="grid" size="{{44}}" tone="media" />
+        </view>
+        <text class="tool-stage__title">从相册选择图片</text>
+        <text class="tool-stage__sub">自动居中裁成正方形并切成 9 张</text>
+      </view>
+      <view wx:if="{{generating}}" class="tool-stage__loading">
+        <view class="tool-stage__spinner" aria-hidden="true"></view>
+        <text class="tool-stage__loading-text">本机切图中</text>
+      </view>
+    </view>
+
+    <view class="tool-meta">
+      <text class="tool-meta__hint">{{imagePath ? imageMeta : '不读取相册列表，不上传图片'}}</text>
+    </view>
+
+    <glass-button
+      variant="primary"
+      size="md"
+      block
+      loading="{{generating}}"
+      loading-text="本机切图中"
+      aria-label="{{imagePath ? '重新选择图片' : '从相册选择图片'}}"
+      bind:tap="onChoose"
+    >
+      {{imagePath ? '重新选择图片' : '从相册选择图片'}}
+    </glass-button>
+  </view>
+
+  <view slot="result" class="sg-tool-result">
+    <view class="sg-tool-result__head">
+      <text class="sg-tool-result__label">九宫格预览</text>
+      <text class="sg-tool-result__meta">点击任意一张预览</text>
+    </view>
+
+    <view class="tool-metrics">
+      <view class="tool-metric">
+        <text class="tool-metric__k">已生成切图</text>
+        <animated-number
+          value="{{tileCount}}"
+          decimals="0"
+          suffix=" 张"
+          size="lg"
+          tone="aurora"
+        />
+      </view>
+      <view class="tool-metric">
+        <text class="tool-metric__k">网格布局</text>
+        <text class="tool-metric__v">3 × 3</text>
+      </view>
+    </view>
+
+    <view class="tool-grid">
+      <view
+        wx:for="{{tiles}}"
+        wx:key="index"
+        class="tool-grid__cell"
+        hover-class="tool-grid__cell_pressed"
+        hover-stay-time="80"
+        data-path="{{item.path}}"
+        aria-role="button"
+        aria-label="预览第 {{item.index}} 张切图"
+        bindtap="onPreviewTile"
+      >
+        <image
+          class="tool-grid__img"
+          src="{{item.path}}"
+          mode="aspectFill"
+          aria-label="第 {{item.index}} 张切图"
+        />
+        <text class="tool-grid__index">{{item.index}}</text>
+      </view>
+    </view>
+
+    <text class="tool-hint">点击任意一张可预览；保存时会逐张写入相册。</text>
+
+    <view class="sg-tool-result__actions">
+      <glass-button
+        variant="aurora"
+        size="md"
+        block
+        loading="{{savingAll}}"
+        loading-text="保存中"
+        aria-label="保存九张切图到相册"
+        bind:tap="onSaveAll"
+      >
+        保存全部 9 张
+      </glass-button>
+    </view>
+  </view>
+
+  <view slot="note">
+    <glass-card tone="amber" radius="lg" padding="md" depth="soft">
+      <view class="sg-tool-note">
+        <text class="sg-tool-note__title">切图口径</text>
+        <text class="sg-tool-note__text">
+          取图片较短的边作为正方形边长，居中裁切后分成 3×3 九格，每格独立导出。
+          全程在本机 Canvas 完成，不上传、不保存原图；关闭页面后临时文件由系统回收。
+        </text>
+      </view>
+    </glass-card>
+  </view>
+</glass-tool-shell>
+
+<canvas
+  wx:if="{{!devtools}}"
+  id="nine-canvas"
+  type="2d"
+  class="tool-canvas"
+  style="width: {{canvasCss}}px; height: {{canvasCss}}px;"
+></canvas>

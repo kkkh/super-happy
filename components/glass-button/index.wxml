@@ -1,0 +1,106 @@
+<wxs src="./spring.wxs" module="spring"></wxs>
+
+<view
+  class="custom-class glass-button glass-button_variant_{{variant}} glass-button_size_{{size}} glass-button_shape_{{shape}}{{block ? ' glass-button_block' : ''}}{{disabled ? ' glass-button_disabled' : ''}}{{loading ? ' glass-button_loading' : ''}}{{success ? ' glass-button_success' : ''}}"
+  style="{{customStyle}}"
+  hover-class="{{disabled || loading || success || spring ? 'none' : 'glass-button_pressed'}}"
+  hover-start-time="40"
+  hover-stay-time="120"
+  data-spring="{{spring && !disabled && !loading && !success}}"
+  aria-role="{{ariaRole}}"
+  aria-label="{{ariaLabel}}"
+  aria-checked="{{ariaChecked}}"
+  aria-disabled="{{disabled}}"
+  aria-busy="{{loading && !success}}"
+  catchtap="onTap"
+  catchlongpress="onLongPress"
+  bindtouchstart="spring.onPressStart"
+  bindtouchend="spring.onPressEnd"
+  bindtouchcancel="spring.onPressCancel"
+>
+  <view
+    wx:if="{{sheen}}"
+    class="glass-button__sheen"
+    aria-hidden="true"
+  ></view>
+
+  <view class="glass-button__glow" aria-hidden="true"></view>
+
+  <view class="glass-button__content">
+    <view
+      wx:if="{{loading && !loadingText && !success}}"
+      class="glass-button__dots"
+      aria-hidden="true"
+    >
+      <text class="glass-button__dot glass-button__dot_1">•</text>
+      <text class="glass-button__dot glass-button__dot_2">•</text>
+      <text class="glass-button__dot glass-button__dot_3">•</text>
+    </view>
+
+    <slot wx:if="{{!loading}}" name="prefix"></slot>
+
+    <view class="glass-button__label">
+      <!-- 常态标签：进入加载 / 成功态时向上淡出，保留占位，按钮尺寸不跳 -->
+      <view
+        class="glass-button__label-idle {{(loading && loadingText) || success ? 'glass-button__label-idle_out' : ''}}"
+      >
+        <slot></slot>
+      </view>
+
+      <!-- 加载标签：绝对定位叠在常态标签上，双向交叉淡入淡出 -->
+      <view
+        class="glass-button__label-loading {{loading && loadingText && !success ? 'glass-button__label-loading_in' : ''}}"
+        aria-hidden="{{!(loading && loadingText && !success)}}"
+      >
+        <view class="glass-button__dots" aria-hidden="true">
+          <text class="glass-button__dot glass-button__dot_1">•</text>
+          <text class="glass-button__dot glass-button__dot_2">•</text>
+          <text class="glass-button__dot glass-button__dot_3">•</text>
+        </view>
+        <text class="glass-button__text">{{loadingText}}</text>
+      </view>
+
+      <!-- 成功标签：勾选弹入 + 文案上浮，不会把按钮灰掉 -->
+      <view
+        class="glass-button__label-success {{success ? 'glass-button__label-success_in' : ''}}"
+        aria-hidden="{{!success}}"
+      >
+        <text class="glass-button__check" aria-hidden="true">✓</text>
+        <text wx:if="{{successText}}" class="glass-button__text">{{successText}}</text>
+      </view>
+    </view>
+
+    <slot name="suffix"></slot>
+  </view>
+
+  <!-- 主扫光：白色高光横向掠过 -->
+  <view
+    class="glass-button__loading-sheen {{loading ? 'glass-button__loading-sheen_on' : ''}}"
+    aria-hidden="true"
+  ></view>
+
+  <!-- 副扫光：薄荷色反向慢扫，增加极光层次 -->
+  <view
+    class="glass-button__loading-sheen_soft {{loading ? 'glass-button__loading-sheen_soft_on' : ''}}"
+    aria-hidden="true"
+  ></view>
+
+  <!-- 呼吸光晕：加载期间整颗按钮轻微明暗起伏 -->
+  <view
+    wx:if="{{aura}}"
+    class="glass-button__aura {{loading ? 'glass-button__aura_on' : ''}}"
+    aria-hidden="true"
+  ></view>
+
+  <!-- 成功光晕：内部渐变 + 1px 内描边，只动 opacity，不触碰 box-shadow -->
+  <view
+    class="glass-button__success-tint {{success ? 'glass-button__success-tint_on' : ''}}"
+    aria-hidden="true"
+  ></view>
+
+  <!-- 成功涟漪：两圈扩散光环，从勾选位置向外荡开 -->
+  <block wx:if="{{success}}">
+    <view class="glass-button__success-ring glass-button__success-ring_1" aria-hidden="true"></view>
+    <view class="glass-button__success-ring glass-button__success-ring_2" aria-hidden="true"></view>
+  </block>
+</view>

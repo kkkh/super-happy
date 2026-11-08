@@ -1,0 +1,56 @@
+/* g-skeleton · 微光骨架 */
+.sk {
+  display: flex;
+  flex-direction: row;
+  gap: 20rpx;
+  align-items: flex-start;
+}
+
+.sk_card {
+  padding: 32rpx;
+  border-radius: 32rpx;
+  background-color: var(--g-surface);
+  border: 1rpx solid var(--g-stroke);
+}
+
+.sk_avatar {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 999rpx;
+  flex-shrink: 0;
+}
+
+.sk_col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.sk_row {
+  height: 28rpx;
+  border-radius: 8rpx;
+}
+
+/* 微光扫过（色彩随主题变量翻转） */
+.sk_shine {
+  background-color: var(--g-skeleton);
+  background-image: linear-gradient(
+    90deg,
+    var(--g-skeleton) 0%,
+    var(--g-skeleton-hi) 50%,
+    var(--g-skeleton) 100%
+  );
+  background-size: 400rpx 100%;
+  background-repeat: no-repeat;
+  animation: sk-shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes sk-shimmer {
+  from {
+    background-position: -400rpx 0;
+  }
+  to {
+    background-position: 400rpx 0;
+  }
+}

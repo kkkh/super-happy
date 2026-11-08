@@ -1,0 +1,11 @@
+{
+  "navigationBarTitleText": "九宫格切图",
+  "disableScroll": true,
+  "usingComponents": {
+    "glass-tool-shell": "../../../../components/glass-tool-shell/index",
+    "glass-card": "../../../../components/glass-card/index",
+    "glass-button": "../../../../components/glass-button/index",
+    "animated-number": "../../../../components/animated-number/index",
+    "g-icon": "../../../../components/g-icon/index"
+  }
+}
