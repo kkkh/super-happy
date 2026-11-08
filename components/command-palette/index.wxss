@@ -80,6 +80,14 @@
   transform: translate3d(0, 0, 0) scale(1);
 }
 
+/* 关闭首帧剥离模糊背板：Skyline 会把 backdrop-filter 提升为独立图层，
+   面板 opacity 退场时内容淡出、模糊背板却冻结在原位，形成巨型残影。
+   只在非 active 状态移除，打开态与搜索态保持原有毛玻璃质感。 */
+.glass-palette:not(.glass-palette_active) .glass-palette__panel {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
 /* ---- 材质层 ---- */
 .glass-palette__sheen {
   position: absolute;
