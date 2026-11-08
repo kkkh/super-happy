@@ -62,6 +62,11 @@
   max-height: 54vh;
 }
 
+.glass-sheet_size_tall {
+  height: 72vh;
+  max-height: 72vh;
+}
+
 .glass-sheet_size_full {
   height: 92vh;
   max-height: 92vh;

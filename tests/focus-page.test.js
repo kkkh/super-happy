@@ -71,6 +71,22 @@ test('WXML 事件绑定：全部存在对应的页面方法', () => {
   }
 })
 
+test('Page 不使用 observers：主题 / 低内存改用 reaction 并在卸载释放', () => {
+  const ts = read(`${PAGE}.ts`)
+  assert.equal(ts.includes('observers: {'), false, 'Page 不支持 observers')
+  assert.match(ts, /from 'mobx-miniprogram'/)
+  assert.match(ts, /reaction\(/)
+  assert.match(ts, /uiReactions/)
+  assert.match(ts, /for \(const dispose of runtime\.uiReactions\)/)
+})
+
+test('战报 / 抽屉：隐藏底层重影并使用 tall 抽屉', () => {
+  const wxml = read(`${PAGE}.wxml`)
+  assert.match(wxml, /wx:if="\{\{!reportOpen\}\}" class="focus-nav"/)
+  assert.match(wxml, /is-report-hidden/)
+  assert.match(wxml, /<glass-bottom-sheet[\s\S]*?size="tall"/)
+})
+
 test('update-guard：专注 / 抽屉 / 战报 / 海报期间 blocked', () => {
   const ts = read(`${PAGE}.ts`)
   const wxml = read(`${PAGE}.wxml`)

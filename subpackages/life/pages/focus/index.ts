@@ -6,6 +6,7 @@
    - update-guard 在专注 / 抽屉 / 战报 / 海报期间 blocked
    ========================================================================== */
 import { createStoreBindings } from 'mobx-miniprogram-bindings'
+import { reaction } from 'mobx-miniprogram'
 import { uiStore } from '../../../../core/stores/ui'
 import { preferenceStore } from '../../../../core/stores/preference'
 import { historyStore } from '../../../../core/stores/history'
@@ -142,6 +143,7 @@ interface FocusPageRuntime {
   nebulaScene: NebulaScene | null
   lastTag: string
   themeBindings: StoreBindingsLike | null
+  uiReactions: Array<() => void>
 
   ticker: number
   lastPersistAt: number
@@ -330,26 +332,6 @@ function audioFromPrefs(prefs: FocusPrefs) {
 }
 
 Page({
-  observers: {
-    themeClass(): void {
-      const runtime = this as unknown as FocusPageRuntime
-      if (!runtime || runtime.destroyed || !runtime.ringCanvas) {
-        return
-      }
-      runtime.ringGradient = null
-      this.safeDrawRing()
-    },
-
-    lowMemory(value: boolean): void {
-      const runtime = this as unknown as FocusPageRuntime
-      if (!value || !runtime || runtime.destroyed) {
-        return
-      }
-      this.stopRingLoop(false)
-      this.setData({ ringCanvasMounted: false, canvasReady: false, ringCanvasActive: false })
-    },
-  },
-
   data: {
     themeClass: '',
     lowMemory: false,
@@ -447,6 +429,7 @@ Page({
     runtime.nebulaScene = null
     runtime.lastTag = DEFAULT_TAG
     runtime.themeBindings = null
+    runtime.uiReactions = []
     runtime.ticker = 0
     runtime.lastPersistAt = 0
     runtime.lastHeartbeatAt = 0
@@ -542,6 +525,66 @@ Page({
       },
       actions: [],
     })
+
+    /* Page 不支持 observers：主题 / 低内存副作用用 reaction 显式接管 */
+    runtime.uiReactions.push(
+      reaction(
+        () => uiStore.resolvedTheme,
+        () => {
+          if (runtime.destroyed || !runtime.ringCanvas) {
+            return
+          }
+          runtime.ringGradient = null
+          if (
+            runtime.visible &&
+            this.data.canvasReady &&
+            !runtime.reportOpen &&
+            !this.data.setupOpen &&
+            !runtime.blackScreen &&
+            !this.data.glitchActive &&
+            preferenceStore.motion !== 'saver' &&
+            !uiStore.lowMemory
+          ) {
+            this.safeDrawRing()
+          }
+        },
+      ),
+    )
+
+    runtime.uiReactions.push(
+      reaction(
+        () => uiStore.lowMemory,
+        (low: boolean) => {
+          if (runtime.destroyed) {
+            return
+          }
+          if (low) {
+            this.stopRingLoop(false)
+            this.setData({
+              ringCanvasMounted: false,
+              canvasReady: false,
+              ringCanvasActive: false,
+            })
+            return
+          }
+          if (isDevtools()) {
+            return
+          }
+          /* 低内存解除后重新查询 Canvas；失败仍回 CSS 静态环 */
+          runtime.ringQueryAttempts = 0
+          runtime.ringCanvas = null
+          runtime.ringCtx = null
+          this.setData(
+            { ringCanvasMounted: true, canvasReady: false },
+            () => {
+              if (!runtime.destroyed) {
+                this.queryRingCanvas()
+              }
+            },
+          )
+        },
+      ),
+    )
 
     this.installNetworkListener()
     this.installMotionListener()
@@ -801,6 +844,14 @@ Page({
     runtime.reportStats = null
     runtime.audio.dispose()
     runtime.bgm.dispose()
+    for (const dispose of runtime.uiReactions) {
+      try {
+        dispose()
+      } catch {
+        /* 已销毁 */
+      }
+    }
+    runtime.uiReactions = []
     if (runtime.themeBindings) {
       runtime.themeBindings.destroyStoreBindings()
       runtime.themeBindings = null

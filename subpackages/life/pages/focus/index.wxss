@@ -215,6 +215,12 @@
   transition: opacity var(--glass-duration-base) var(--glass-ease-out);
 }
 
+/* 战报期间隐藏底层舞台文案，避免半透明卡片透出重影 */
+.focus-stage.is-report-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
 .focus-stage.is-dim {
   opacity: 0.72;
 }

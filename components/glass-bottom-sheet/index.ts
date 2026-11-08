@@ -16,7 +16,7 @@
  *   </glass-bottom-sheet>
  */
 
-export type GlassSheetSize = 'auto' | 'half' | 'full'
+export type GlassSheetSize = 'auto' | 'half' | 'tall' | 'full'
 export type GlassSheetCloseSource = 'mask' | 'close' | 'swipe' | 'programmatic'
 
 export interface GlassSheetCloseDetail {

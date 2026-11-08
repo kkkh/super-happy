@@ -5,7 +5,7 @@
     <view class="focus-aurora__grid"></view>
   </view>
 
-  <view class="focus-nav">
+  <view wx:if="{{!reportOpen}}" class="focus-nav">
     <view class="focus-nav__row">
       <view
         class="focus-nav__back"
@@ -22,7 +22,7 @@
   </view>
 
   <view
-    wx:if="{{fsmView !== 'idle' || networkBadge}}"
+    wx:if="{{!reportOpen && (fsmView !== 'idle' || networkBadge)}}"
     class="focus-topline"
   >
     <view wx:if="{{fsmView !== 'idle'}}" class="focus-chip focus-chip--{{chipTone}}">
@@ -38,7 +38,7 @@
     </view>
   </view>
 
-  <view class="focus-stage focus-stage--{{fsmView}}">
+  <view class="focus-stage focus-stage--{{fsmView}} {{reportOpen ? 'is-report-hidden' : ''}}">
     <view class="focus-tag">{{tagDisplay}}</view>
 
     <view
@@ -103,7 +103,7 @@
     show="{{setupOpen}}"
     title="专注设置"
     description="25 分钟专注 · 标签与声音"
-    size="auto"
+    size="tall"
     show-footer="{{true}}"
     aria-label="专注设置"
     bind:close="onSetupClose"
