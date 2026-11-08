@@ -213,29 +213,22 @@ export function writeFocusKey(keyHex: string): boolean {
 }
 
 /**
- * key 首次生成优先走 wx.getRandomValues；不可用时用 Math.random 兜底。
- * 注意：key 丢失后的验签绝不回退 Math.random（见 focus-crypto.verifyRecord）。
+ * key 只能由 wx.getRandomValues 的 32 字节生成。
+ * 接口不可用 / 失败时返回空 key（keyLost）；绝不回退 Math.random。
  */
-function fallbackRandomBytes(): Uint8Array {
-  const bytes = new Uint8Array(32)
-  for (let index = 0; index < bytes.length; index += 1) {
-    bytes[index] = Math.floor(Math.random() * 256)
-  }
-  return bytes
-}
-
 export function ensureFocusKey(seedBytes?: Uint8Array): string {
   const existing = readFocusKey()
   if (existing) {
     return existing
   }
-  const bytes =
-    seedBytes && seedBytes.length === 32 ? seedBytes : fallbackRandomBytes()
+  if (!seedBytes || seedBytes.length !== 32) {
+    return ''
+  }
   let key = ''
   try {
-    key = keyHexFromBytes(bytes)
+    key = keyHexFromBytes(seedBytes)
   } catch {
-    key = keyHexFromBytes(fallbackRandomBytes())
+    return ''
   }
   return writeFocusKey(key) ? key : ''
 }
@@ -266,7 +259,7 @@ export function ensureFocusKeyAsync(): Promise<string> {
   }
   const api = getRandomValuesApi()
   if (!api) {
-    return Promise.resolve(ensureFocusKey())
+    return Promise.resolve('')
   }
   return new Promise<string>((resolve) => {
     let settled = false
@@ -282,27 +275,31 @@ export function ensureFocusKeyAsync(): Promise<string> {
       }
       resolve(value)
     }
-    /* 极端情况下 success / fail 都不回调：2s 后用本地兜底，页面绝不卡在启动 */
-    timer = setTimeout(() => finish(ensureFocusKey()), 2000) as unknown as number
+    /* 极端情况下 success / fail 都不回调：2s 后按 keyLost 收口，页面绝不卡在启动 */
+    timer = setTimeout(() => finish(''), 2000) as unknown as number
     try {
       api({
         length: 32,
         success: (result) => {
-          const values =
-            result.randomValues instanceof Uint8Array
-              ? result.randomValues
-              : new Uint8Array(result.randomValues)
-          finish(ensureFocusKey(values))
+          try {
+            const values =
+              result.randomValues instanceof Uint8Array
+                ? result.randomValues
+                : new Uint8Array(result.randomValues)
+            finish(ensureFocusKey(values))
+          } catch {
+            finish('')
+          }
         },
-        fail: () => finish(ensureFocusKey()),
+        fail: () => finish(''),
         complete: () => {
           if (!settled) {
-            finish(ensureFocusKey())
+            finish('')
           }
         },
       })
     } catch {
-      finish(ensureFocusKey())
+      finish('')
     }
   })
 }

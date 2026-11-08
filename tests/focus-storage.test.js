@@ -168,6 +168,23 @@ test('key：生成 / 复用 / 大写归一 / 异步 getRandomValues', async () =
   assert.equal(mock.storage.get('focus:key:v1'), asyncKey)
 })
 
+test('key：getRandomValues 不可用 / 失败 → keyLost，不回退 Math.random', async () => {
+  const mock = installWxMock()
+  const { storage } = await loadLibs()
+  globalThis.wx.getRandomValues = undefined
+  assert.equal(storage.ensureFocusKey(), '')
+  assert.equal(await storage.ensureFocusKeyAsync(), '')
+  assert.equal(mock.storage.has('focus:key:v1'), false)
+
+  globalThis.wx.getRandomValues = (option) => {
+    if (typeof option.fail === 'function') {
+      option.fail()
+    }
+  }
+  assert.equal(await storage.ensureFocusKeyAsync(), '')
+  assert.equal(mock.storage.has('focus:key:v1'), false)
+})
+
 test('session：保存 / 读取 / 签名 / 字段白名单', async () => {
   installWxMock()
   const { storage, fsm, crypto } = await loadLibs()

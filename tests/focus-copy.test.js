@@ -37,6 +37,7 @@ test('状态文案：READY / FOCUSING / PAUSED / BREAK / COOLDOWN / REPORT', () 
   assert.ok(PAGE_WXML.includes('心流已断裂'))
   assert.ok(PAGE_WXML.includes('已记录 {{glitchCount}} 次中断，计时继续'))
   assert.ok(PAGE_WXML.includes('你完成了 {{reportMinutes}} 分钟专注'))
+  assert.ok(PAGE_WXML.includes('未填写标签时使用「深度工作」'))
 })
 
 test('按钮：全部是动作，不出现歧义“确定”', () => {
@@ -72,6 +73,7 @@ test('弹窗与降级：放弃 / 跳过 / 环境音 / BGM / 传感器 / Canvas /
     '继续休息',
     '环境音不可用，已切换为静音专注',
     '后台保活不可用，倒计时仍会精准继续',
+    '保活音频已暂停，倒计时仍精准',
     '当前设备不支持翻转检测，已隐藏该功能',
     '已切换为简化动效',
     '本机记录暂时无法验证，历史等级已冻结',
@@ -141,4 +143,6 @@ test('无障碍：timer / live / dialog / canvas aria-hidden / 按钮 label', ()
   assert.match(PAGE_WXML, /aria-label="返回"/)
   assert.match(PAGE_WXML, /aria-label="保存海报"/)
   assert.match(PAGE_WXML, /aria-label="完成"/)
+  assert.match(PAGE_WXML, /aria-label="专注设置"/)
+  assert.match(PAGE_WXML, /aria-label="{{modalTitle}}"/)
 })

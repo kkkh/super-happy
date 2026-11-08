@@ -240,6 +240,8 @@ test('BGM：写文件 / 播放 / onEnded 循环 / stop / dispose', async () => {
   const manager = {
     title: '',
     src: '',
+    volume: 0,
+    paused: false,
     plays: 0,
     stops: 0,
     seeks: [],
@@ -285,14 +287,19 @@ test('BGM：写文件 / 播放 / onEnded 循环 / stop / dispose', async () => {
   assert.equal(controller.start(), true)
   assert.equal(manager.title, audio.BGM_TITLE)
   assert.equal(manager.src, '/tmp/focus/focus-bgm-v1.wav')
+  assert.equal(manager.volume, audio.BGM_VOLUME)
   assert.equal(manager.plays, 1)
   assert.equal(controller.isPlaying, true)
+  assert.equal(controller.paused, false)
   assert.equal(written.filePath, '/tmp/focus/focus-bgm-v1.wav')
   assert.ok(written.data.length > 44)
 
   manager.ended()
   assert.deepEqual(manager.seeks, [0])
   assert.equal(manager.plays, 2)
+
+  manager.paused = true
+  assert.equal(controller.paused, true)
 
   controller.stop()
   assert.equal(manager.stops, 1)

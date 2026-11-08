@@ -42,7 +42,7 @@
     <view class="focus-tag">{{tagDisplay}}</view>
 
     <view
-      class="focus-ring-wrap {{breathOn ? 'is-breath' : ''}} {{ringDim ? 'is-dim' : ''}} {{ringTone === 'warm' ? 'is-warm' : ''}} {{ringTone === 'danger' ? 'is-danger' : ''}}"
+      class="focus-ring-wrap {{breathOn ? 'is-breath' : ''}} {{ringDim ? 'is-dim' : ''}} {{ringTone === 'warm' ? 'is-warm' : ''}} {{ringTone === 'danger' ? 'is-danger' : ''}} {{glitchActive && !glitchStatic ? 'is-glitch' : ''}}"
     >
       <view class="focus-ring-fallback {{canvasReady && ringCanvasActive ? 'is-hidden' : ''}}"></view>
       <canvas
@@ -105,6 +105,7 @@
     description="25 分钟专注 · 标签与声音"
     size="auto"
     show-footer="{{true}}"
+    aria-label="专注设置"
     bind:close="onSetupClose"
   >
     <view class="focus-setup">
@@ -119,6 +120,9 @@
         tone="iris"
         bind:input="onTagInput"
       />
+      <text wx:if="{{!tagDraft}}" class="focus-setup__helper">
+        未填写标签时使用「深度工作」
+      </text>
 
       <view class="focus-setup__group">
         <text class="focus-setup__caption">环境音</text>
@@ -357,8 +361,6 @@
   <view
     wx:if="{{glitchActive}}"
     class="focus-glitch {{glitchStatic ? 'is-static' : ''}}"
-    catchtouchmove="noop"
-    catchtap="noop"
     aria-live="assertive"
   >
     <view class="focus-glitch__bars" aria-hidden="true"></view>
@@ -381,6 +383,7 @@
     confirm-text="{{modalConfirm}}"
     cancel-text="{{modalCancel}}"
     danger="{{modalDanger}}"
+    aria-label="{{modalTitle}}"
     haptic="{{motionSaver ? 'none' : 'light'}}"
     bind:confirm="onModalConfirm"
     bind:cancel="onModalCancel"

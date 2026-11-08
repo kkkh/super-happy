@@ -266,7 +266,7 @@ test('完整一轮：开始 → 到期结算 → 战报 → 完成 → 跳过短
     assert.equal(ledger.length, 1)
     assert.equal(ledger[0].focusedMs, FOCUS)
 
-    page.closeReport()
+    page.onCloseReport()
     await wait(10)
     assert.equal(page.data.reportOpen, false)
     assert.equal(page.data.fsmView, 'breaking')
@@ -449,6 +449,33 @@ test('同周期时钟漂移 > 5s：战报可见，但 stats 不更新、不写�
   }
 })
 
+test('同周期瞬时拨钟 1 小时：即使 perf 只走了 200ms 也必须判 tainted', async () => {
+  const page = await bootPage()
+  try {
+    page.onStartFocus()
+    await wait(5)
+    const now = Date.now()
+    page.session.startedAt = now - FOCUS
+    page.session.phaseStartedAt = now - FOCUS
+    page.session.phaseEndsAt = now
+    page.session.phaseTotalMs = FOCUS
+
+    /* 用户刚点开始就把系统时间拨快 1 小时，perf 仅前进 200ms */
+    page.clockAnchorWall = now - 60 * 60 * 1000
+    page.clockAnchorPerf = perfNow - 200
+    assert.equal(page.detectClockDrift(now), true)
+
+    page.tick()
+    await wait(40)
+    assert.equal(page.data.reportOpen, true)
+    assert.equal(page.data.reportTainted, true)
+    assert.equal(page.session, null)
+    assert.equal(globalThis.wx.getStorageSync('focus:stats:v1').completedCount, 0)
+  } finally {
+    page.onUnload()
+  }
+})
+
 test('外部清空 focus:*：onShow 重新 bootstrap，旧会话不复活', async () => {
   const page = await bootPage()
   try {
@@ -474,6 +501,30 @@ test('外部清空 focus:*：onShow 重新 bootstrap，旧会话不复活', asyn
     assert.equal(page.session, null)
     assert.equal(page.data.fsmView, 'idle')
     assert.equal(globalThis.wx.getStorageSync('focus:key:v1'), KEY)
+  } finally {
+    page.onUnload()
+  }
+})
+
+test('会话 key 被单独删除：onShow 回 idle，不复活内存会话', async () => {
+  const page = await bootPage()
+  try {
+    page.onStartFocus()
+    await wait(5)
+    assert.equal(page.session.fsm, 'focusing')
+
+    globalThis.wx.removeStorageSync('focus:session:v1')
+    page.onShow()
+
+    assert.equal(page.session, null)
+    assert.equal(page.data.fsmView, 'idle')
+    assert.equal(page.data.ready, true)
+    assert.equal(globalThis.wx.getStorageSync('focus:session:v1'), '')
+    assert.equal(
+      globalThis.wx.getStorageSync('focus:stats:v1').completedCount,
+      0,
+      '缺失会话不得产生结算记录',
+    )
   } finally {
     page.onUnload()
   }

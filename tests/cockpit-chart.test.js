@@ -125,20 +125,27 @@ test('折线图：全 0 数据也有 0..3 刻度，夜航光效可关闭', async
   assert.ok(night.texts.includes('今天'))
 })
 
-test('动画驱动：progress 从 0 走向 1，cancel 后不再回调', async () => {
+test('动画驱动：progress 从 0 走向 1，cancel 后不再回调', async (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout', 'Date'] })
   const { animateChart } = await import(moduleUrl('subpackages/grow/lib/cockpit-chart.ts'))
-  const frames = []
-  const animator = animateChart(null, 40, (progress) => frames.push(progress))
-  await new Promise((resolve) => setTimeout(resolve, 90))
-  animator.cancel()
-  assert.ok(frames.length >= 2)
-  assert.equal(frames[frames.length - 1], 1)
+  try {
+    const frames = []
+    const animator = animateChart(null, 40, (progress) => frames.push(progress))
+    t.mock.timers.tick(16)
+    t.mock.timers.tick(16)
+    t.mock.timers.tick(16)
+    animator.cancel()
+    assert.ok(frames.length >= 2)
+    assert.equal(frames[frames.length - 1], 1)
 
-  const cancelled = []
-  const second = animateChart(null, 40, (progress) => cancelled.push(progress))
-  second.cancel()
-  await new Promise((resolve) => setTimeout(resolve, 80))
-  assert.equal(cancelled.length, 0)
+    const cancelled = []
+    const second = animateChart(null, 40, (progress) => cancelled.push(progress))
+    second.cancel()
+    t.mock.timers.tick(80)
+    assert.equal(cancelled.length, 0)
+  } finally {
+    t.mock.timers.reset()
+  }
 })
 
 test('调色板：白昼/夜航与 WXSS 变量同源', async () => {

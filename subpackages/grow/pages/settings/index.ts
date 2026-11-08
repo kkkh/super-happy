@@ -733,6 +733,13 @@ Page({
     let running = Boolean(snapshot)
 
     if (snapshot) {
+      /* 已自然结束的休息 / 冷却不再算“运行中”，清空无需提示终止会话 */
+      if (
+        (snapshot.fsm === 'breaking' && snapshot.phaseEndsAt <= now) ||
+        (snapshot.fsm === 'overheat' && snapshot.lockUntil <= now)
+      ) {
+        running = false
+      }
       if (snapshot.fsm === 'focusing' && snapshot.phaseEndsAt <= now) {
         subtitle = '已完成 · 查看战报'
         value = '已完成'

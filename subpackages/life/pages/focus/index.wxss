@@ -187,8 +187,8 @@
 .focus-network {
   padding: 6rpx 12rpx;
   border-radius: var(--glass-radius-xs);
-  background-color: var(--focus-warm-soft);
-  color: var(--focus-warm);
+  background-color: var(--focus-cool-soft);
+  color: var(--focus-cool-2);
   font-size: 20rpx;
   line-height: 1.2;
   white-space: nowrap;
@@ -196,8 +196,8 @@
 }
 
 .focus-network.is-offline {
-  color: var(--focus-danger);
-  background-color: var(--focus-danger-soft);
+  color: var(--focus-warm);
+  background-color: var(--focus-warm-soft);
 }
 
 /* ---- 舞台 ---- */
@@ -807,6 +807,8 @@
   justify-content: center;
   background-color: var(--glass-scrim);
   overflow: hidden;
+  /* 契约：Glitch 只做视觉层，不阻塞暂停 / 放弃等输入 */
+  pointer-events: none;
 }
 
 .focus-glitch__bars {
@@ -863,6 +865,26 @@
   background-color: var(--glass-canvas);
   border: 2rpx solid var(--focus-danger);
   box-sizing: border-box;
+}
+
+/* Glitch 期间进度环横向抖动 4rpx；静态模式不抖动 */
+.focus-ring-wrap.is-glitch {
+  animation: focus-glitch-ring 1s steps(3) both;
+}
+
+@keyframes focus-glitch-ring {
+  0% {
+    transform: translateX(0);
+  }
+  33% {
+    transform: translateX(4rpx);
+  }
+  66% {
+    transform: translateX(-4rpx);
+  }
+  100% {
+    transform: translateX(0);
+  }
 }
 
 @keyframes focus-glitch-bars {

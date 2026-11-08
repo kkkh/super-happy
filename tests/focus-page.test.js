@@ -59,6 +59,18 @@ test('App 亮度兜底：onLaunch 读取 stale key 并恢复', () => {
   assert.match(app, /removeStorageSync\(STALE_KEY\)/)
 })
 
+test('WXML 事件绑定：全部存在对应的页面方法', () => {
+  const ts = read(`${PAGE}.ts`)
+  const wxml = read(`${PAGE}.wxml`)
+  const handlers = new Set()
+  for (const match of wxml.matchAll(/(?:bind|catch)(?::)?[a-z-]+="([A-Za-z0-9_]+)"/g)) {
+    handlers.add(match[1])
+  }
+  for (const name of handlers) {
+    assert.match(ts, new RegExp(`\\b${name}\\s*\\(`), `缺少事件处理器：${name}`)
+  }
+})
+
 test('update-guard：专注 / 抽屉 / 战报 / 海报期间 blocked', () => {
   const ts = read(`${PAGE}.ts`)
   const wxml = read(`${PAGE}.wxml`)

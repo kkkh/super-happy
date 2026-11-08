@@ -483,6 +483,8 @@ export const BGM_TITLE = '超欢 · 心流白噪音'
 export const BGM_FILE_NAME = 'focus-bgm-v1.wav'
 export const BGM_SAMPLE_RATE = 8000
 export const BGM_DURATION_MS = 1000
+/** 契约：BGM 音量固定 0.3 */
+export const BGM_VOLUME = 0.3
 
 function writeAscii(bytes: Uint8Array, offset: number, text: string): void {
   for (let index = 0; index < text.length; index += 1) {
@@ -548,6 +550,8 @@ export function buildBgmWav(
 export interface FocusBgmManagerLike {
   title?: string
   src?: string
+  volume?: number
+  paused?: boolean
   play?(): void
   stop?(): void
   seek?(time: number): void
@@ -633,6 +637,11 @@ export class FocusBgmController {
     return this.started
   }
 
+  /** 用户在系统播放器里手动暂停时为 true */
+  get paused(): boolean {
+    return Boolean(this.manager?.paused)
+  }
+
   ensureSource(): string {
     if (this.disabled) {
       return ''
@@ -674,6 +683,7 @@ export class FocusBgmController {
       this.started = true
       manager.title = BGM_TITLE
       manager.src = src
+      manager.volume = BGM_VOLUME
       manager.play?.()
       if (this.disabledFlag) {
         this.started = false

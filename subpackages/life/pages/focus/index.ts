@@ -376,9 +376,11 @@ Page({
     cycleText: '',
     tagDisplay: DEFAULT_TAG,
     primaryLabel: '开始专注',
-    primaryDisabled: false,
+    /* boot 完成前不允许开始，避免异步 key 生成期间误触 */
+    primaryDisabled: true,
     secondaryLabel: '设置',
-    secondaryHidden: false,
+    /* boot 完成前隐藏次操作，避免异步 key 生成期间误触 */
+    secondaryHidden: true,
 
     setupOpen: false,
     tagDraft: DEFAULT_TAG,
@@ -501,6 +503,8 @@ Page({
     runtime.reportTaintedNoticeShown = false
 
     const devtools = isDevtools()
+    /* 自定义导航页：进入时同步状态栏文字颜色，避免主题切换后残留 */
+    uiStore.syncNativeChrome()
     runtime.motionAvailable =
       !devtools &&
       typeof wx.startDeviceMotionListening === 'function' &&
@@ -546,6 +550,7 @@ Page({
 
   onShow() {
     const runtime = this as unknown as FocusPageRuntime
+    uiStore.syncNativeChrome()
     runtime.visible = true
     if (!runtime.ready) {
       return
@@ -559,6 +564,7 @@ Page({
         if (runtime.session) {
           runtime.session = null
           runtime.reportOpen = false
+          runtime.posterRequestToken += 1
           runtime.reportRecord = null
           runtime.reportStats = null
           runtime.nebulaScene = null
@@ -600,6 +606,7 @@ Page({
       runtime.stats = null
       runtime.session = null
       runtime.reportOpen = false
+      runtime.posterRequestToken += 1
       runtime.reportRecord = null
       runtime.reportStats = null
       runtime.nebulaScene = null
@@ -655,7 +662,7 @@ Page({
         primaryLabel: '开始专注',
         primaryDisabled: true,
         secondaryLabel: '设置',
-        secondaryHidden: false,
+        secondaryHidden: true,
         cycleText: '',
         chipLabel: 'READY',
         chipTone: 'cool',
@@ -674,6 +681,29 @@ Page({
       return
     }
     const stored = loadFocusSession(runtime.key)
+    if (stored.reason === 'none') {
+      /* 会话已被外部删除：不得用内存对象复活，必须回 idle（契约 B.4） */
+      const lostSession = runtime.session
+      runtime.session = null
+      if (
+        lostSession &&
+        (lostSession.fsm === 'overheat' ||
+          (lostSession.fsm === 'breaking' && isLongBreakSession(lostSession)))
+      ) {
+        this.resetContinuousFocus()
+      }
+      this.closeDecisionModal()
+      this.stopAfterSession()
+      this.stopGlitch()
+      this.restoreBrightness()
+      this.setKeepScreenOn(false)
+      this.setData({ blackScreen: false })
+      this.paint()
+      this.syncGuard()
+      this.syncUnloadAlert()
+      this.toast('专注会话已失效，已回到待机', 'warning')
+      return
+    }
     if (
       stored.reason === 'corrupt' ||
       stored.reason === 'signature' ||
@@ -714,6 +744,8 @@ Page({
       runtime.session = restored.session
       this.paint()
       this.applyVisibility()
+      /* onShow 强制回写：补上上一次暂停 / 心跳 / 写盘失败留下的断点 */
+      this.persistSession(true)
     }
   },
 
@@ -721,7 +753,7 @@ Page({
     const runtime = this as unknown as FocusPageRuntime
     runtime.visible = false
     this.stopTicker()
-    this.stopRingLoop(false)
+    this.stopRingLoop(true)
     this.stopMotionListening()
     /* 页面隐藏时姿态不可信：清掉黑屏层，避免 onShow 把“拿起”误判成破功 */
     runtime.blackScreen = false
@@ -759,6 +791,14 @@ Page({
     this.restoreBrightness()
     this.setKeepScreenOn(false)
     this.disableUnloadAlert()
+    /* 卸载后断开 Canvas 引用，交给 GC 释放大图与上下文 */
+    runtime.ringCanvas = null
+    runtime.ringCtx = null
+    runtime.ringGradient = null
+    runtime.ringSize = 0
+    runtime.nebulaScene = null
+    runtime.reportRecord = null
+    runtime.reportStats = null
     runtime.audio.dispose()
     runtime.bgm.dispose()
     if (runtime.themeBindings) {
@@ -1161,7 +1201,17 @@ Page({
       this.startRingLoop()
     } else {
       this.stopRingLoop(false)
-      this.safeDrawRing()
+      /* saver / lowMemory 只保留 CSS 静态环；被全屏层遮住时不做无用重绘 */
+      if (
+        preferenceStore.motion !== 'saver' &&
+        !uiStore.lowMemory &&
+        !reportOpen &&
+        !setupOpen &&
+        !runtime.blackScreen &&
+        !this.data.glitchActive
+      ) {
+        this.safeDrawRing()
+      }
     }
   },
 
@@ -1215,8 +1265,8 @@ Page({
       return false
     }
     const perfElapsed = perfNow - runtime.clockAnchorPerf
-    /* perf.now 不前进 / 被重置时不做误判；超过 10s 的墙钟必须有至少 1s 的单调增量 */
-    if (perfElapsed <= 0 || (wallElapsed > 10000 && perfElapsed < 1000)) {
+    /* perf.now 不前进 / 被重置时不误判；否则墙钟与单调时钟的差值才是真实漂移 */
+    if (perfElapsed <= 0) {
       return false
     }
     return Math.abs(wallElapsed - perfElapsed) > CLOCK_DRIFT_LIMIT_MS
@@ -1985,6 +2035,14 @@ Page({
     this.syncUnloadAlert()
   },
 
+  onCloseReport(): void {
+    const runtime = this as unknown as FocusPageRuntime
+    if (runtime.destroyed || !runtime.reportOpen) {
+      return
+    }
+    this.closeReport()
+  },
+
   closeReport(): void {
     const runtime = this as unknown as FocusPageRuntime
     runtime.reportOpen = false
@@ -2128,6 +2186,10 @@ Page({
   },
 
   onNebulaImageError(): void {
+    const runtime = this as unknown as FocusPageRuntime
+    if (runtime.destroyed) {
+      return
+    }
     this.setData({
       nebulaPath: '',
       nebulaFallbackText: '星云显示失败 · 已保留文字战报',
@@ -2230,6 +2292,10 @@ Page({
   },
 
   onPosterClosed(): void {
+    const runtime = this as unknown as FocusPageRuntime
+    if (runtime.destroyed) {
+      return
+    }
     this.setData({ posterVisible: false })
     this.syncGuard()
   },
@@ -2293,7 +2359,13 @@ Page({
       if (runtime.visible) {
         this.setClockAnchor()
         this.enterFocusBrightness()
+        /* 即使亮度读取失败，也要在专注期间保持常亮 */
+        this.setKeepScreenOn(true)
+        const bgmPaused = runtime.bgm.isPlaying && runtime.bgm.paused
         runtime.bgm.stop()
+        if (bgmPaused) {
+          this.toast('保活音频已暂停，倒计时仍精准', 'info')
+        }
         runtime.audio.resume()
         this.applyAudioForFocus()
         this.startMotionListening()
@@ -2469,6 +2541,16 @@ Page({
         interval: 'ui',
         success: () => {
           runtime.motionStarted = true
+          /* 启动回调可能晚于暂停 / 隐藏 / 战报：立即收口，避免传感器空转 */
+          if (
+            runtime.destroyed ||
+            !runtime.visible ||
+            !runtime.session ||
+            runtime.session.fsm !== 'focusing' ||
+            !runtime.prefs.flipDetection
+          ) {
+            this.stopMotionListening()
+          }
         },
         fail: (error) => {
           runtime.motionStarted = false
@@ -2553,7 +2635,7 @@ Page({
         runtime.blackScreen = true
         this.setData({ blackScreen: true })
         this.applyDimBrightness()
-        this.stopRingLoop(false)
+        this.stopRingLoop(true)
         this.setData({ ringCanvasActive: false })
       }
       return
@@ -2589,6 +2671,11 @@ Page({
     if (!runtime.session || runtime.session.fsm !== 'focusing') {
       return
     }
+    /* saver / lowMemory 只保留 CSS 静态环，避免露出未重绘的 Canvas 旧帧 */
+    if (preferenceStore.motion === 'saver' || uiStore.lowMemory) {
+      this.setData({ ringCanvasActive: false })
+      return
+    }
     this.setData({ ringCanvasActive: true })
     this.startRingLoop()
   },
@@ -2604,7 +2691,7 @@ Page({
       !preferenceStore.lightEffects ||
       preferenceStore.motion === 'saver' ||
       uiStore.lowMemory
-    this.stopRingLoop(false)
+    this.stopRingLoop(true)
     this.setData({
       glitchActive: true,
       glitchStatic: staticMode,
@@ -2626,8 +2713,12 @@ Page({
         runtime.session.fsm === 'focusing' &&
         !runtime.blackScreen
       ) {
-        this.setData({ ringCanvasActive: true })
-        this.startRingLoop()
+        if (preferenceStore.motion === 'saver' || uiStore.lowMemory) {
+          this.setData({ ringCanvasActive: false })
+        } else {
+          this.setData({ ringCanvasActive: true })
+          this.startRingLoop()
+        }
       }
     }, GLITCH_DURATION_MS) as unknown as number
     this.paint()
@@ -2722,6 +2813,8 @@ Page({
           ) {
             return
           }
+          /* 先清掉旧的“恢复”自动隐藏定时器，避免覆盖新的离线状态 */
+          this.stopNetworkTimer()
           if (res.networkType === 'none') {
             runtime.networkOffline = true
             this.setData({
@@ -2839,6 +2932,7 @@ Page({
         this.setData({ canvasReady: true, ringCanvasActive: true }, () => {
           this.safeDrawRing()
           if (
+            runtime.visible &&
             runtime.session &&
             runtime.session.fsm === 'focusing' &&
             !runtime.blackScreen &&
@@ -2882,7 +2976,7 @@ Page({
     const runtime = this as unknown as FocusPageRuntime
     const node = runtime.ringCanvas
     const ctx = runtime.ringCtx
-    if (!node || !ctx || runtime.ringSize <= 0) {
+    if (!this.data.canvasReady || !node || !ctx || runtime.ringSize <= 0) {
       return
     }
     const size = runtime.ringSize
@@ -2964,6 +3058,8 @@ Page({
       return
     }
     if (
+      !runtime.visible ||
+      !this.data.canvasReady ||
       preferenceStore.motion === 'saver' ||
       uiStore.lowMemory ||
       runtime.blackScreen ||
@@ -3037,7 +3133,12 @@ Page({
       this.setData({ ringCanvasActive: false })
     }
     if (clear && runtime.ringCtx && runtime.ringSize > 0) {
-      runtime.ringCtx.clearRect(0, 0, runtime.ringSize, runtime.ringSize)
+      try {
+        runtime.ringCtx.clearRect(0, 0, runtime.ringSize, runtime.ringSize)
+      } catch {
+        runtime.ringCtx = null
+        runtime.ringCanvas = null
+      }
     }
   },
 

@@ -46,6 +46,7 @@
         size="md"
         block
         disabled="{{busy}}"
+        aria-label="{{cancelText}}"
         haptic="{{haptic}}"
         bind:tap="onCancelTap"
       >
@@ -56,6 +57,7 @@
         size="md"
         block
         disabled="{{busy}}"
+        aria-label="{{confirmText}}"
         haptic="{{haptic}}"
         bind:tap="onConfirmTap"
       >
