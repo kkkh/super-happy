@@ -72,9 +72,12 @@ function installWx(options = {}) {
     },
     setScreenBrightness(option) {
       brightness.push(option.value)
-      if (typeof option.complete === 'function') {
-        option.complete()
+      if (options.brightnessFail) {
+        option.fail?.()
+        return
       }
+      option.success?.()
+      option.complete?.()
     },
   }
   return { values, brightness }
@@ -102,6 +105,19 @@ test('JSON 字符串存档同样可以恢复', async () => {
   restore()
   assert.deepEqual(brightness, [0.45])
   assert.equal(values.has(STALE_KEY), false)
+})
+
+test('恢复失败：保留 stale key，下次 onLaunch 继续兜底', async () => {
+  const restore = await loadBrightness()
+  const { values, brightness } = installWx({
+    seed: {
+      [STALE_KEY]: { version: 1, original: 0.7, owned: true },
+    },
+    brightnessFail: true,
+  })
+  restore()
+  assert.deepEqual(brightness, [0.7])
+  assert.equal(values.has(STALE_KEY), true)
 })
 
 test('owned=false：不改亮度，也不删除 key', async () => {

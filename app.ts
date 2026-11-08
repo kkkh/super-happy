@@ -60,7 +60,8 @@ export function restoreStaleFocusBrightness(): void {
     }
     wx.setScreenBrightness({
       value: original,
-      complete: () => {
+      /* 只有真正恢复成功才删标记；失败留到下一次 onLaunch 继续兜底 */
+      success: () => {
         try {
           wx.removeStorageSync(STALE_KEY)
         } catch {

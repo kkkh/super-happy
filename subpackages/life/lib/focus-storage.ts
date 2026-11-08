@@ -451,7 +451,11 @@ export function saveFocusSession(session: FocusSession, keyHex: string): boolean
 
 /** 进入 idle：只删当前会话，保留 stats / ledger */
 export function clearFocusSession(): boolean {
-  return removeStorage(FOCUS_KEYS.session)
+  if (removeStorage(FOCUS_KEYS.session)) {
+    return true
+  }
+  /* 删除失败时写入空串墓碑；读取侧按“无会话”处理，避免放弃后又被冷启动复活 */
+  return writeStorage(FOCUS_KEYS.session, '')
 }
 
 /* -------------------------------------------------------------------------- */

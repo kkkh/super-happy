@@ -1052,7 +1052,8 @@ Page({
     let cycleText = ''
     let tagDisplay = runtime.lastTag || DEFAULT_TAG
     let primaryLabel = '开始专注'
-    let primaryDisabled = !runtime.ready || runtime.evidenceBroken || !runtime.stats
+    let primaryDisabled =
+      !runtime.ready || runtime.evidenceBroken || !runtime.stats || !runtime.key
     let secondaryLabel = '设置'
     let secondaryHidden = false
 
@@ -1773,6 +1774,10 @@ Page({
     const key = runtime.key
     const stats = runtime.stats
     if (!key || !stats || runtime.evidenceBroken) {
+      if (!key) {
+        runtime.key = ''
+        runtime.evidenceBroken = true
+      }
       this.stopTicker()
       runtime.session = null
       clearFocusSession()
@@ -1780,7 +1785,10 @@ Page({
       this.stopAfterSession()
       this.restoreBrightness()
       this.setKeepScreenOn(false)
-      this.setData({ blackScreen: false })
+      this.setData({
+        blackScreen: false,
+        evidenceBroken: runtime.evidenceBroken,
+      })
       this.paint()
       this.syncGuard()
       this.syncUnloadAlert()
@@ -2431,9 +2439,14 @@ Page({
             return
           }
           runtime.originalBrightness = original
-          saveFocusBrightness(original)
-          runtime.brightnessDimmed = true
-          this.applyDimBrightness()
+          /* stale key 写失败时绝不调暗，避免崩溃后无法恢复原始亮度 */
+          if (saveFocusBrightness(original)) {
+            runtime.brightnessDimmed = true
+            this.applyDimBrightness()
+          } else {
+            runtime.originalBrightness = -1
+            logger.warn('focus', '亮度兜底标记写入失败，跳过调暗')
+          }
           this.setKeepScreenOn(true)
         },
         fail: () => {
