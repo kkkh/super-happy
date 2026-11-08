@@ -95,6 +95,11 @@
 .glass-toast_leaving .glass-toast__card {
   opacity: 0;
   transform: translate3d(0, 12rpx, 0) scale(0.98);
+  /* Skyline 会把 backdrop-filter 提升为独立背板层；
+     退场时内容先淡出，模糊背板却会冻结在原位，形成扭曲残影。
+     关闭第一帧直接移除模糊，只保留可随 opacity 正常淡出的底板。 */
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 }
 
 .glass-toast__card_pressed {
