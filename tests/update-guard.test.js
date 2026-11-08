@@ -1,6 +1,6 @@
 /* ==========================================================================
    全链路版本更新守门 · 回归测试
-   - 静态断言：App 只暂存不弹窗 / 39 个页面全部有 update-guard
+   - 静态断言：App 只暂存不弹窗 / 40 个页面全部有 update-guard
    - 静态断言：看门狗、原生降级、全局互斥、AES 等高危阻塞
    - 静态断言：第三操作“查看更新日志”直达设置页版本区块
    - 行为断言：待更新标记与全局阻塞计数可写可读可清
@@ -43,7 +43,7 @@ test('app.ts 只暂存 updateManager，失败时给出全局提示', () => {
   assert.equal(source.includes('wx.showModal'), false)
 })
 
-test('update-guard 是全局组件，39 个页面全部覆盖', () => {
+test('update-guard 是全局组件，40 个页面全部覆盖', () => {
   assert.match(
     read('app.json'),
     /"update-guard"\s*:\s*"\/components\/update-guard\/index"/,
@@ -59,7 +59,7 @@ test('update-guard 是全局组件，39 个页面全部覆盖', () => {
       subpackage.pages.map((page) => `${subpackage.root}/${page}`),
     ),
   ]
-  assert.equal(pages.length, 39)
+  assert.equal(pages.length, 40)
   for (const page of pages) {
     const wxml = read(`${page}.wxml`)
     const covered =

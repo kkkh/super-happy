@@ -1,0 +1,14 @@
+{
+  "navigationBarTitleText": "全息专注",
+  "disableScroll": true,
+  "usingComponents": {
+    "glass-button": "../../../../components/glass-button/index",
+    "glass-input": "../../../../components/glass-input/index",
+    "glass-slider": "../../../../components/glass-slider/index",
+    "glass-bottom-sheet": "../../../../components/glass-bottom-sheet/index",
+    "glass-modal": "../../../../components/glass-modal/index",
+    "glass-toast": "../../../../components/glass-toast/index",
+    "poster-generator": "../../../../components/poster-generator/index",
+    "poster-preview": "../../../../components/poster-preview/index"
+  }
+}

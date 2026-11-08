@@ -26,6 +26,8 @@ export const ROUTES = {
   settings: '/subpackages/grow/pages/settings/index',
   /* 数据驾驶舱：本机计算轨迹 / 效率周报 / 双主题 Canvas 图表 */
   cockpit: '/subpackages/grow/pages/cockpit/index',
+  /* 全息专注引擎：life 分包，独立于 23 个工具路由 */
+  focus: '/subpackages/life/pages/focus/index',
 } as const
 
 /** 当前版本号：设置中心、我的页与更新日志共用同一真相源 */

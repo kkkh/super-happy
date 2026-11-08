@@ -325,3 +325,141 @@ test('抽屉关闭：onPickerClose 复位状态且不写 Store', async (t) => {
     cleanup(page, preference, toolbox)
   }
 })
+
+test('全息专注入口：静态行、清空入口与 Storage 契约', () => {
+  const wxml = fs.readFileSync(PAGE_WXML, 'utf8')
+  const ts = fs.readFileSync(PAGE_TS, 'utf8')
+
+  assert.match(wxml, /全息专注引擎/)
+  assert.match(wxml, /bindtap="onOpenFocus"/)
+  assert.match(wxml, /bindtap="onFocusClearTap"/)
+  assert.match(wxml, /show="{{focusClearShow}}"/)
+  assert.match(ts, /ROUTES\.focus/)
+  assert.match(ts, /FOCUS_STORAGE_KEYS/)
+  assert.match(ts, /refreshFocusEntry/)
+  assert.match(ts, /已冷却 · 可继续/)
+  assert.match(ts, /已完成 · 查看战报/)
+  assert.equal(ts.includes("from '../../../../subpackages/life"), false)
+})
+
+test('全息专注入口：会话状态副标题与冷却倒计时', async (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout'] })
+  const { page, preference, toolbox } = await bootPage()
+
+  try {
+    const base = {
+      version: 1,
+      id: 'focus-test',
+      fsm: 'paused',
+      tag: '深度工作',
+      startedAt: Date.now() - 10 * 60 * 1000,
+      phaseStartedAt: Date.now() - 10 * 60 * 1000,
+      phaseEndsAt: Date.now() + 15 * 60 * 1000,
+      phaseTotalMs: 25 * 60 * 1000,
+      remainingMs: 15 * 60 * 1000,
+      cycle: 1,
+      completedFocus: 0,
+      continuousFocusMs: 0,
+      breaches: 0,
+      audio: {
+        rain: true,
+        fire: false,
+        keyboard: false,
+        volumes: { rain: 0.45, fire: 0.3, keyboard: 0.25 },
+        masterVolume: 0.55,
+        bgm: true,
+      },
+      updatedAt: Date.now(),
+      signature: 'x',
+    }
+    globalThis.wx.setStorageSync('focus:session:v1', base)
+    page.refreshFocusEntry()
+    assert.equal(page.data.focusEntrySub, '心流进行中 · 返回专注')
+    assert.equal(page.data.focusEntryValue, 'PAUSED')
+    assert.equal(page.data.focusClearRunning, true)
+
+    globalThis.wx.setStorageSync('focus:session:v1', {
+      ...base,
+      fsm: 'focusing',
+      phaseEndsAt: Date.now() - 1000,
+    })
+    page.refreshFocusEntry()
+    assert.equal(page.data.focusEntrySub, '已完成 · 查看战报')
+    assert.equal(page.data.focusEntryValue, '已完成')
+
+    globalThis.wx.setStorageSync('focus:session:v1', {
+      ...base,
+      fsm: 'breaking',
+      phaseEndsAt: Date.now() + 5 * 60 * 1000,
+    })
+    page.refreshFocusEntry()
+    assert.equal(page.data.focusEntrySub, '休息中 · 返回专注')
+    assert.equal(page.data.focusEntryValue, 'BREAK')
+
+    globalThis.wx.setStorageSync('focus:session:v1', {
+      ...base,
+      fsm: 'overheat',
+      phaseTotalMs: 30 * 60 * 1000,
+      lockUntil: Date.now() - 1000,
+    })
+    page.refreshFocusEntry()
+    assert.equal(page.data.focusEntrySub, '已冷却 · 可继续')
+    assert.equal(page.data.focusEntryValue, 'READY')
+
+    globalThis.wx.setStorageSync('focus:session:v1', {
+      ...base,
+      fsm: 'overheat',
+      phaseTotalMs: 30 * 60 * 1000,
+      lockUntil: Date.now() + 5 * 60 * 1000,
+    })
+    page.refreshFocusEntry()
+    assert.match(page.data.focusEntrySub, /^冷却中 · 剩余 \d\d:\d\d$/)
+    assert.equal(page.data.focusEntryValue, 'COOLDOWN')
+
+    globalThis.wx.removeStorageSync('focus:session:v1')
+    page.refreshFocusEntry()
+    assert.equal(
+      page.data.focusEntrySub,
+      '25 分钟专注 · 翻转黑屏 · 星云战报',
+    )
+    assert.equal(page.data.focusClearRunning, false)
+  } finally {
+    cleanup(page, preference, toolbox)
+  }
+})
+
+test('清空专注数据：删除 6 个 key 并关闭确认', async (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout'] })
+  const { page, preference, toolbox } = await bootPage()
+
+  try {
+    const keys = [
+      'focus:session:v1',
+      'focus:prefs:v1',
+      'focus:key:v1',
+      'focus:ledger:v1',
+      'focus:stats:v1',
+      'focus:brightness:v1',
+    ]
+    for (const key of keys) {
+      globalThis.wx.setStorageSync(key, { version: 1, owned: true, raw: key })
+    }
+    globalThis.wx.setStorageSync('focus:session:v1', {
+      version: 1,
+      fsm: 'focusing',
+      phaseEndsAt: Date.now() + 1000,
+    })
+
+    page.onFocusClearTap()
+    assert.equal(page.data.focusClearShow, true)
+    assert.equal(page.data.focusClearRunning, true)
+    assert.ok(page.data.focusClearDesc.includes('终止当前会话'))
+    page.onFocusClearConfirm()
+    assert.equal(page.data.focusClearShow, false)
+    for (const key of keys) {
+      assert.equal(globalThis.wx.getStorageSync(key), '', `${key} 未删除`)
+    }
+  } finally {
+    cleanup(page, preference, toolbox)
+  }
+})

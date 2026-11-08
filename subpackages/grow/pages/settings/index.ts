@@ -78,6 +78,73 @@ const DOM_FOCUS_FRAME_INTERVAL = 33
 const GALAXY_FOCUS_DURATION = 420
 const GALAXY_FOCUS_ZOOM = 1.45
 
+/** 专注数据只读快照：设置页不 import life 分包，直接读 Storage 契约 */
+const FOCUS_STORAGE_KEYS = [
+  'focus:session:v1',
+  'focus:prefs:v1',
+  'focus:key:v1',
+  'focus:ledger:v1',
+  'focus:stats:v1',
+  'focus:brightness:v1',
+] as const
+
+interface FocusSessionSnapshot {
+  fsm: string
+  phaseEndsAt: number
+  lockUntil: number
+}
+
+function parseFocusStoredRecord(raw: unknown): Record<string, unknown> | null {
+  if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
+    return raw as Record<string, unknown>
+  }
+  if (typeof raw === 'string' && raw.trim()) {
+    try {
+      const parsed = JSON.parse(raw) as unknown
+      return parsed && typeof parsed === 'object' && !Array.isArray(parsed)
+        ? (parsed as Record<string, unknown>)
+        : null
+    } catch {
+      return null
+    }
+  }
+  return null
+}
+
+function readFocusSessionSnapshot(): FocusSessionSnapshot | null {
+  try {
+    const raw = parseFocusStoredRecord(wx.getStorageSync('focus:session:v1'))
+    if (!raw || raw.version !== 1) {
+      return null
+    }
+    const fsm = raw.fsm
+    if (
+      fsm !== 'focusing' &&
+      fsm !== 'paused' &&
+      fsm !== 'breaking' &&
+      fsm !== 'overheat'
+    ) {
+      return null
+    }
+    const phaseEndsAt = Number(raw.phaseEndsAt)
+    const lockUntil = Number(raw.lockUntil)
+    return {
+      fsm,
+      phaseEndsAt: Number.isFinite(phaseEndsAt) ? phaseEndsAt : 0,
+      lockUntil: Number.isFinite(lockUntil) ? lockUntil : 0,
+    }
+  } catch {
+    return null
+  }
+}
+
+function formatFocusClock(ms: number): string {
+  const seconds = Math.max(0, Math.ceil(Number.isFinite(ms) ? ms / 1000 : 0))
+  const minutes = Math.floor(seconds / 60)
+  const rest = seconds % 60
+  return `${String(minutes).padStart(2, '0')}:${String(rest).padStart(2, '0')}`
+}
+
 type SettingsToastType = 'info' | 'success' | 'error' | 'warning'
 type PickerKind = 'haptics' | 'clean' | ''
 
@@ -435,6 +502,11 @@ Page({
     pickerDesc: '',
     pickerOptions: [] as PickerOptionView[],
     confirmShow: false,
+    focusEntrySub: '25 分钟专注 · 翻转黑屏 · 星云战报',
+    focusEntryValue: '',
+    focusClearShow: false,
+    focusClearRunning: false,
+    focusClearDesc: '将删除本机的专注记录、等级、校验记录与偏好，不可恢复。',
 
     /* ---- Cyber Space OS · 数据星系 ---- */
     geekLabOpen: false,
@@ -587,6 +659,7 @@ Page({
     uiStore.syncNativeChrome()
     this.refreshCache()
     this.refreshPendingUpdate()
+    this.refreshFocusEntry()
     this.pushCyberEvent('lifecycle', 'onShow', '设置页回到前台 · 恢复渲染与调度')
     this.startGalaxyLoop()
     const runtime = this as unknown as SettingsRuntime
@@ -649,6 +722,87 @@ Page({
         this.showToast('数据驾驶舱加载失败，请稍后重试', 'error')
       },
     })
+  },
+
+  /* ---- 全息专注引擎入口：只读 Storage 契约，不 import life 分包 ---- */
+  refreshFocusEntry(): void {
+    const now = Date.now()
+    const snapshot = readFocusSessionSnapshot()
+    let subtitle = '25 分钟专注 · 翻转黑屏 · 星云战报'
+    let value = ''
+    let running = Boolean(snapshot)
+
+    if (snapshot) {
+      if (snapshot.fsm === 'focusing' && snapshot.phaseEndsAt <= now) {
+        subtitle = '已完成 · 查看战报'
+        value = '已完成'
+      } else if (snapshot.fsm === 'focusing') {
+        subtitle = '心流进行中 · 返回专注'
+        value = 'LIVE'
+      } else if (snapshot.fsm === 'paused') {
+        subtitle = '心流进行中 · 返回专注'
+        value = 'PAUSED'
+      } else if (snapshot.fsm === 'breaking') {
+        subtitle = '休息中 · 返回专注'
+        value = 'BREAK'
+      } else if (snapshot.fsm === 'overheat') {
+        if (snapshot.lockUntil > now) {
+          subtitle = `冷却中 · 剩余 ${formatFocusClock(snapshot.lockUntil - now)}`
+          value = 'COOLDOWN'
+        } else {
+          subtitle = '已冷却 · 可继续'
+          value = 'READY'
+        }
+      }
+    }
+
+    this.setData({
+      focusEntrySub: subtitle,
+      focusEntryValue: value,
+      focusClearRunning: running,
+      focusClearDesc: running
+        ? '正在专注或冷却中，清空将终止当前会话；记录、等级与偏好不可恢复。'
+        : '将删除本机的专注记录、等级、校验记录与偏好，不可恢复。',
+    })
+  },
+
+  onOpenFocus(): void {
+    tapTick()
+    wx.navigateTo({
+      url: ROUTES.focus,
+      fail: () => {
+        this.showToast('全息专注引擎加载失败，请稍后重试', 'error')
+      },
+    })
+  },
+
+  onFocusClearTap(): void {
+    tapTick()
+    this.refreshFocusEntry()
+    this.setData({ focusClearShow: true })
+  },
+
+  onFocusClearClose(): void {
+    this.setData({ focusClearShow: false })
+  },
+
+  onFocusClearConfirm(): void {
+    let removed = 0
+    for (const key of FOCUS_STORAGE_KEYS) {
+      try {
+        wx.removeStorageSync(key)
+        removed += 1
+      } catch {
+        /* 单个键失败不阻断其它键 */
+      }
+    }
+    this.setData({ focusClearShow: false })
+    this.refreshFocusEntry()
+    if (removed === FOCUS_STORAGE_KEYS.length) {
+      this.showToast('专注数据已清空', 'success')
+    } else {
+      this.showToast('部分专注数据清理失败，请重试', 'error')
+    }
   },
 
   /* ---- Cyber Space OS · 生命周期与总装 ---- */

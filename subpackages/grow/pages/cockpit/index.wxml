@@ -105,6 +105,53 @@
         </view>
       </glass-card>
 
+      <!-- 全息专注小卡：只读 focus:* Storage，按记录开关显示 -->
+      <view wx:if="{{focusCardVisible}}" class="cockpit-group">
+        <view class="cockpit-group__head">
+          <text class="cockpit-group__title">专注小卡</text>
+          <text class="cockpit-group__code">FOCUS</text>
+        </view>
+
+        <glass-card
+          tone="aurora"
+          radius="lg"
+          padding="lg"
+          depth="soft"
+          card-class="cockpit-focus"
+        >
+          <view class="cockpit-focus__top">
+            <view class="cockpit-focus__status">
+              <view class="cockpit-focus__dot" aria-hidden="true"></view>
+              <text>FOCUS ENGINE</text>
+            </view>
+            <view class="cockpit-focus__level-wrap">
+              <text class="cockpit-focus__level-label">当前等级</text>
+              <text class="cockpit-focus__level">{{focusLevelLabel}}</text>
+            </view>
+          </view>
+
+          <view class="cockpit-focus__kpis">
+            <view class="cockpit-focus__kpi">
+              <text class="cockpit-focus__num">{{focusTodayMinutes}}</text>
+              <text class="cockpit-focus__label">今日专注 · 分钟</text>
+            </view>
+            <view class="cockpit-focus__kpi">
+              <text class="cockpit-focus__num">{{focusCompleted}}</text>
+              <text class="cockpit-focus__label">累计完成</text>
+            </view>
+            <view class="cockpit-focus__kpi">
+              <text class="cockpit-focus__num">{{focusStreak}}</text>
+              <text class="cockpit-focus__label">连续天数</text>
+            </view>
+          </view>
+
+          <view wx:if="{{focusHasData}}" class="cockpit-focus__tag">
+            最近标签 · #{{focusRecentTag || '未记录标签'}}
+          </view>
+          <text wx:else class="cockpit-focus__empty">还没有专注记录</text>
+        </glass-card>
+      </view>
+
       <view wx:if="{{storageWarning}}" class="cockpit-warning" aria-role="alert">
         本机存储空间不足，部分轨迹可能未保存；建议先清理旧数据。
       </view>

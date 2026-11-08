@@ -1,0 +1,397 @@
+<view class="focus-page {{themeClass}} {{lowMemory ? 'focus-page--low' : ''}}">
+  <view class="focus-aurora" aria-hidden="true">
+    <view class="focus-aurora__blob focus-aurora__blob--cool"></view>
+    <view class="focus-aurora__blob focus-aurora__blob--mint"></view>
+    <view class="focus-aurora__grid"></view>
+  </view>
+
+  <view class="focus-nav">
+    <view class="focus-nav__row">
+      <view
+        class="focus-nav__back"
+        hover-class="focus-nav__back--press"
+        hover-stay-time="80"
+        bindtap="onBackTap"
+        aria-role="button"
+        aria-label="返回"
+      >
+        <text class="focus-nav__back-glyph">‹</text>
+      </view>
+      <text class="focus-nav__title" aria-role="heading">全息专注</text>
+      <view class="focus-nav__right">
+        <view
+          wx:if="{{networkBadge}}"
+          class="focus-network {{networkOffline ? 'is-offline' : ''}}"
+          aria-live="polite"
+        >
+          {{networkBadge}}
+        </view>
+        <view wx:if="{{fsmView !== 'idle'}}" class="focus-chip focus-chip--{{chipTone}}">
+          <view class="focus-chip__dot"></view>
+          <text>{{chipLabel}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="focus-stage focus-stage--{{fsmView}}">
+    <view class="focus-tag">{{tagDisplay}}</view>
+
+    <view
+      class="focus-ring-wrap {{breathOn ? 'is-breath' : ''}} {{ringDim ? 'is-dim' : ''}} {{ringTone === 'warm' ? 'is-warm' : ''}} {{ringTone === 'danger' ? 'is-danger' : ''}}"
+    >
+      <view class="focus-ring-fallback {{canvasReady && ringCanvasActive ? 'is-hidden' : ''}}"></view>
+      <canvas
+        wx:if="{{ringCanvasMounted}}"
+        type="2d"
+        id="focus-ring"
+        class="focus-ring-canvas {{canvasReady && ringCanvasActive ? 'is-active' : ''}}"
+        aria-hidden="true"
+      ></canvas>
+      <view class="focus-ring-inner">
+        <text class="focus-timer" aria-role="timer" aria-label="{{clockAria}}">{{clock}}</text>
+        <text class="focus-kicker">{{kicker}}</text>
+      </view>
+    </view>
+
+    <text class="focus-status-title">{{statusTitle}}</text>
+    <text wx:if="{{statusSub}}" class="focus-status-sub">{{statusSub}}</text>
+    <text wx:if="{{cycleText}}" class="focus-meta">{{cycleText}}</text>
+  </view>
+
+  <view
+    wx:if="{{fsmView !== 'preparing' && fsmView !== 'report'}}"
+    class="focus-actions {{secondaryHidden ? 'is-single' : ''}}"
+  >
+    <view class="focus-actions__primary">
+      <glass-button
+        variant="primary"
+        size="lg"
+        block
+        aura="{{fsmView === 'focusing'}}"
+        disabled="{{primaryDisabled}}"
+        aria-label="{{primaryLabel}}"
+        haptic="{{motionSaver ? 'none' : 'light'}}"
+        bind:tap="onPrimaryTap"
+      >
+        {{primaryLabel}}
+      </glass-button>
+    </view>
+    <view wx:if="{{!secondaryHidden}}" class="focus-actions__secondary">
+      <glass-button
+        variant="ghost"
+        size="lg"
+        block
+        aria-label="{{secondaryLabel}}"
+        haptic="{{motionSaver ? 'none' : 'light'}}"
+        bind:tap="onSecondaryTap"
+      >
+        {{secondaryLabel}}
+      </glass-button>
+    </view>
+  </view>
+
+  <text wx:if="{{fsmView === 'idle'}}" class="focus-foot">本机专注 · 不上传</text>
+
+  <!-- 设置抽屉：preparing -->
+  <glass-bottom-sheet
+    show="{{setupOpen}}"
+    title="专注设置"
+    description="25 分钟专注 · 标签与声音"
+    size="auto"
+    show-footer="{{true}}"
+    bind:close="onSetupClose"
+  >
+    <view class="focus-setup">
+      <glass-input
+        label="这次专注什么？"
+        placeholder="例如：写代码 / 读书"
+        hint="最多 12 字 · 只保存在本机"
+        value="{{tagDraft}}"
+        maxlength="{{12}}"
+        show-count="{{true}}"
+        clearable="{{true}}"
+        tone="iris"
+        bind:input="onTagInput"
+      />
+
+      <view class="focus-setup__group">
+        <text class="focus-setup__caption">环境音</text>
+
+        <view class="focus-setup__track">
+          <view class="focus-setup__track-head">
+            <text class="focus-setup__track-name">雨声</text>
+            <switch
+              checked="{{tracks.rain}}"
+              color="var(--glass-accent)"
+              data-track="rain"
+              bindchange="onTrackToggle"
+              aria-label="雨声开关"
+            />
+          </view>
+          <glass-slider
+            value="{{volumes.rain}}"
+            min="0"
+            max="100"
+            step="1"
+            disabled="{{!tracks.rain}}"
+            show-value="{{true}}"
+            unit="%"
+            caption="音量"
+            data-track="rain"
+            bind:input="onVolumeInput"
+            bind:change="onVolumeChange"
+            aria-label="雨声音量"
+          />
+        </view>
+
+        <view class="focus-setup__track">
+          <view class="focus-setup__track-head">
+            <text class="focus-setup__track-name">篝火</text>
+            <switch
+              checked="{{tracks.fire}}"
+              color="var(--glass-accent)"
+              data-track="fire"
+              bindchange="onTrackToggle"
+              aria-label="篝火开关"
+            />
+          </view>
+          <glass-slider
+            value="{{volumes.fire}}"
+            min="0"
+            max="100"
+            step="1"
+            disabled="{{!tracks.fire}}"
+            show-value="{{true}}"
+            unit="%"
+            caption="音量"
+            data-track="fire"
+            bind:input="onVolumeInput"
+            bind:change="onVolumeChange"
+            aria-label="篝火音量"
+          />
+        </view>
+
+        <view class="focus-setup__track">
+          <view class="focus-setup__track-head">
+            <text class="focus-setup__track-name">键盘</text>
+            <switch
+              checked="{{tracks.keyboard}}"
+              color="var(--glass-accent)"
+              data-track="keyboard"
+              bindchange="onTrackToggle"
+              aria-label="键盘开关"
+            />
+          </view>
+          <glass-slider
+            value="{{volumes.keyboard}}"
+            min="0"
+            max="100"
+            step="1"
+            disabled="{{!tracks.keyboard}}"
+            show-value="{{true}}"
+            unit="%"
+            caption="音量"
+            data-track="keyboard"
+            bind:input="onVolumeInput"
+            bind:change="onVolumeChange"
+            aria-label="键盘音量"
+          />
+        </view>
+
+        <glass-slider
+          value="{{masterVolume}}"
+          min="0"
+          max="100"
+          step="1"
+          show-value="{{true}}"
+          unit="%"
+          caption="总音量"
+          bind:input="onMasterInput"
+          bind:change="onMasterChange"
+          aria-label="环境音总音量"
+        />
+      </view>
+
+      <view class="focus-setup__group">
+        <view class="focus-setup__row">
+          <view class="focus-setup__row-copy">
+            <text class="focus-setup__row-title">翻转黑屏</text>
+            <text class="focus-setup__row-sub">面朝下自动进入黑屏心流</text>
+          </view>
+          <switch
+            checked="{{flipDetection}}"
+            disabled="{{!flipAvailable}}"
+            color="var(--glass-accent-warm)"
+            bindchange="onFlipToggle"
+            aria-label="翻转黑屏开关"
+          />
+        </view>
+        <text wx:if="{{!flipAvailable}}" class="focus-setup__helper">
+          当前设备不支持翻转检测，已隐藏该功能
+        </text>
+
+        <view class="focus-setup__row">
+          <view class="focus-setup__row-copy">
+            <text class="focus-setup__row-title">后台保活</text>
+            <text class="focus-setup__row-sub">离开小程序后继续计时与白噪音</text>
+          </view>
+          <switch
+            checked="{{bgm}}"
+            color="var(--glass-accent-2)"
+            bindchange="onBgmToggle"
+            aria-label="后台保活开关"
+          />
+        </view>
+        <text wx:if="{{audioDisabled}}" class="focus-setup__helper">
+          环境音不可用，已切换为静音专注
+        </text>
+      </view>
+    </view>
+
+    <view slot="footer" class="focus-setup__footer">
+      <glass-button variant="primary" size="lg" block aria-label="开始心流" haptic="{{motionSaver ? 'none' : 'light'}}" bind:tap="onStartFocus">
+        开始心流
+      </glass-button>
+      <glass-button variant="ghost" size="lg" block aria-label="取消" haptic="{{motionSaver ? 'none' : 'light'}}" bind:tap="onSetupClose">
+        取消
+      </glass-button>
+    </view>
+  </glass-bottom-sheet>
+
+  <!-- 战报 -->
+  <view wx:if="{{reportOpen}}" class="focus-report">
+    <view class="focus-report__scrim" catchtouchmove="noop" catchtap="noop" aria-hidden="true"></view>
+    <view class="focus-report__card" aria-role="dialog" aria-modal="true" aria-label="心流战报">
+      <scroll-view
+        scroll-y
+        enhanced
+        show-scrollbar="{{false}}"
+        class="focus-report__scroll"
+      >
+        <view class="focus-report__header">
+          <text class="focus-report__kicker">REPORT</text>
+          <text class="focus-report__title">心流战报</text>
+          <text class="focus-report__sub">你完成了 {{reportMinutes}} 分钟专注</text>
+        </view>
+
+        <view class="focus-report__nebula">
+          <image
+            wx:if="{{nebulaPath}}"
+            src="{{nebulaPath}}"
+            mode="aspectFill"
+            class="focus-report__nebula-img"
+            binderror="onNebulaImageError"
+          />
+          <view
+            wx:else
+            class="focus-report__nebula-fallback {{reportTainted ? 'is-withered' : ''}}"
+          >
+            <view class="focus-report__nebula-glow"></view>
+            <view class="focus-report__nebula-dots" aria-hidden="true">
+              <view class="focus-report__nebula-dot focus-report__nebula-dot--a"></view>
+              <view class="focus-report__nebula-dot focus-report__nebula-dot--b"></view>
+              <view class="focus-report__nebula-dot focus-report__nebula-dot--c"></view>
+            </view>
+            <text class="focus-report__nebula-text">{{nebulaFallbackText}}</text>
+          </view>
+        </view>
+
+        <view class="focus-report__metrics">
+          <view class="focus-report__metric">
+            <text class="focus-report__metric-value">{{reportMinutes}}</text>
+            <text class="focus-report__metric-label">专注分钟</text>
+          </view>
+          <view class="focus-report__metric">
+            <text class="focus-report__metric-value">{{reportBreaches}}</text>
+            <text class="focus-report__metric-label">中断次数</text>
+          </view>
+          <view class="focus-report__metric">
+            <text class="focus-report__metric-value">Lv.{{reportLevel}}</text>
+            <text class="focus-report__metric-label">{{reportLevelLabel}}</text>
+          </view>
+          <view class="focus-report__metric">
+            <text class="focus-report__metric-value">{{reportStreak}}</text>
+            <text class="focus-report__metric-label">连续天数</text>
+          </view>
+        </view>
+
+        <view class="focus-report__tag">#{{reportTag}}</view>
+        <text class="focus-report__date">{{reportDate}}</text>
+        <text wx:if="{{reportTainted}}" class="focus-report__wither">
+          本机记录校验失败，本次星云已枯萎
+        </text>
+      </scroll-view>
+
+      <view class="focus-report__actions">
+        <glass-button
+          variant="primary"
+          size="lg"
+          block
+          loading="{{posterLoading}}"
+          aria-label="保存海报"
+          haptic="{{motionSaver ? 'none' : 'light'}}"
+          bind:tap="onSavePoster"
+        >
+          保存海报
+        </glass-button>
+        <glass-button variant="ghost" size="lg" block aria-label="完成" haptic="{{motionSaver ? 'none' : 'light'}}" bind:tap="onCloseReport">
+          完成
+        </glass-button>
+      </view>
+      <text class="focus-report__foot">本机生成 · 不上传</text>
+    </view>
+  </view>
+
+  <!-- Glitch -->
+  <view
+    wx:if="{{glitchActive}}"
+    class="focus-glitch {{glitchStatic ? 'is-static' : ''}}"
+    catchtouchmove="noop"
+    catchtap="noop"
+    aria-live="assertive"
+  >
+    <view class="focus-glitch__bars" aria-hidden="true"></view>
+    <view class="focus-glitch__content">
+      <text class="focus-glitch__kicker">INTERRUPTED</text>
+      <text class="focus-glitch__title">心流已断裂</text>
+      <text class="focus-glitch__sub">已记录 {{glitchCount}} 次中断，计时继续</text>
+    </view>
+  </view>
+
+  <!-- 翻转黑屏 -->
+  <view wx:if="{{blackScreen}}" class="focus-black" catchtouchmove="noop" catchtap="noop" aria-hidden="true">
+    <text class="focus-black__hint">面朝下 · 心流继续</text>
+  </view>
+
+  <glass-modal
+    show="{{modalShow}}"
+    title="{{modalTitle}}"
+    description="{{modalDesc}}"
+    confirm-text="{{modalConfirm}}"
+    cancel-text="{{modalCancel}}"
+    danger="{{modalDanger}}"
+    bind:confirm="onModalConfirm"
+    bind:cancel="onModalCancel"
+  />
+
+  <poster-generator id="focus-poster-generator" />
+  <poster-preview
+    show="{{posterVisible}}"
+    image-path="{{posterPath}}"
+    loading="{{posterLoading}}"
+    saver="{{motionSaver}}"
+    bind:closed="onPosterClosed"
+  />
+  <glass-toast z-index="{{1200}}" />
+
+  <canvas
+    wx:if="{{nebulaCanvasMounted}}"
+    type="2d"
+    id="nebula-canvas"
+    class="focus-nebula-canvas"
+    aria-hidden="true"
+  ></canvas>
+
+  <update-guard blocked="{{guardBlocked}}" />
+</view>

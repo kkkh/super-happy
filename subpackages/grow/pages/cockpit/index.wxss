@@ -1099,3 +1099,105 @@
 .light-off .cockpit-chart-foot__dot {
   box-shadow: none;
 }
+
+/* ---- 全息专注小卡 ---- */
+.cockpit-focus__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+}
+
+.cockpit-focus__status {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  font-family: var(--glass-font-mono);
+  font-size: 20rpx;
+  letter-spacing: 0.08em;
+  color: var(--text-tertiary);
+}
+
+.cockpit-focus__dot {
+  width: 10rpx;
+  height: 10rpx;
+  border-radius: 50%;
+  background-color: var(--glass-accent-2);
+  box-shadow: 0 0 14rpx var(--glass-accent-2-soft);
+}
+
+.cockpit-focus__level-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4rpx;
+}
+
+.cockpit-focus__level-label {
+  font-size: 18rpx;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+  color: var(--text-tertiary);
+}
+
+.cockpit-focus__level {
+  font-family: var(--glass-font-mono);
+  font-size: 22rpx;
+  color: var(--glass-accent);
+}
+
+.cockpit-focus__kpis {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16rpx;
+  margin-top: 24rpx;
+}
+
+.cockpit-focus__kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+  min-width: 0;
+}
+
+.cockpit-focus__num {
+  font-family: var(--glass-font-mono);
+  font-size: 40rpx;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--text-primary);
+}
+
+.cockpit-focus__label {
+  font-size: 20rpx;
+  line-height: 1.3;
+  color: var(--text-tertiary);
+}
+
+.cockpit-focus__tag {
+  margin-top: 24rpx;
+  padding: 12rpx 18rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: var(--glass-radius-xs);
+  background-color: var(--glass-bg);
+  font-size: 22rpx;
+  line-height: 1.3;
+  color: var(--text-secondary);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.cockpit-focus__empty {
+  display: block;
+  margin-top: 24rpx;
+  font-size: 22rpx;
+  line-height: 1.4;
+  color: var(--text-tertiary);
+}
+
+@media (max-width: 360px) {
+  .cockpit-focus__kpis {
+    grid-template-columns: 1fr 1fr;
+  }
+}

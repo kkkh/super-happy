@@ -810,6 +810,49 @@
 
           <view class="settings-divider"></view>
 
+          <view
+            class="settings-row settings-row--action"
+            hover-class="settings-row--press"
+            hover-start-time="0"
+            hover-stay-time="80"
+            aria-role="button"
+            aria-label="打开全息专注引擎"
+            bindtap="onOpenFocus"
+          >
+            <view class="settings-row__icon">
+              <g-icon name="clock" size="{{30}}" tone="iris" />
+            </view>
+            <view class="settings-row__copy">
+              <text class="settings-row__title">全息专注引擎</text>
+              <text class="settings-row__sub">{{focusEntrySub}}</text>
+            </view>
+            <text wx:if="{{focusEntryValue}}" class="settings-row__value">{{focusEntryValue}}</text>
+            <g-icon name="chevron" size="{{22}}" tone="ink4" />
+          </view>
+
+          <view class="settings-divider"></view>
+
+          <view
+            class="settings-row settings-row--action"
+            hover-class="settings-row--press"
+            hover-start-time="0"
+            hover-stay-time="80"
+            aria-role="button"
+            aria-label="清空专注数据"
+            bindtap="onFocusClearTap"
+          >
+            <view class="settings-row__icon">
+              <g-icon name="close" size="{{30}}" tone="ink3" />
+            </view>
+            <view class="settings-row__copy">
+              <text class="settings-row__title">清空专注数据</text>
+              <text class="settings-row__sub">删除专注记录、等级、校验记录与偏好</text>
+            </view>
+            <g-icon name="chevron" size="{{22}}" tone="ink4" />
+          </view>
+
+          <view class="settings-divider"></view>
+
           <view class="settings-row">
             <view class="settings-row__icon">
               <g-icon name="stack" size="{{30}}" tone="iris" />
@@ -1051,10 +1094,38 @@
     </view>
   </glass-bottom-sheet>
 
+  <!-- 清空专注数据确认：与最近使用清空共用底部sheet样式 -->
+  <glass-bottom-sheet
+    show="{{focusClearShow}}"
+    title="清空专注数据"
+    size="auto"
+    z-index="{{1000}}"
+    show-footer="{{true}}"
+    bind:close="onFocusClearClose"
+    bind:closed="onFocusClearClose"
+  >
+    <view slot="footer" class="settings-confirm">
+      <view class="settings-confirm__icon" aria-hidden="true">
+        <g-icon name="clock" size="{{40}}" tone="ink3" />
+      </view>
+      <text class="settings-confirm__title">清空专注数据？</text>
+      <text class="settings-confirm__desc">{{focusClearDesc}}</text>
+
+      <view class="settings-confirm__actions">
+        <view class="settings-confirm__action">
+          <glass-button variant="ghost" block bind:tap="onFocusClearClose">取消</glass-button>
+        </view>
+        <view class="settings-confirm__action">
+          <glass-button variant="danger" block bind:tap="onFocusClearConfirm">清空</glass-button>
+        </view>
+      </view>
+    </view>
+  </glass-bottom-sheet>
+
   <glass-toast z-index="{{1200}}" />
 
   <!-- AES 加密 / 时间旅行 / 分片 / Auto-Pilot / 页面抽屉期间，更新弹窗只排队 -->
   <update-guard
-    blocked="{{vaultBusy || travelBusy || transportBusy || pilotRunning || pickerShow || confirmShow}}"
+    blocked="{{vaultBusy || travelBusy || transportBusy || pilotRunning || pickerShow || confirmShow || focusClearShow}}"
   />
 </view>

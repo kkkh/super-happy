@@ -1,0 +1,169 @@
+/* ==========================================================================
+   全息专注 · 页面静态契约回归
+   - 无 setInterval / 时间戳计时 / 250ms setTimeout
+   - 返回拦截 / onUnload 恢复亮度 / Canvas watchdog / devtools 降级
+   - update-guard blocked / 历史记录 gate / 无障碍 / 防残影
+   - 运行：npm test
+   ========================================================================== */
+const test = require('node:test')
+const assert = require('node:assert/strict')
+const fs = require('node:fs')
+const path = require('node:path')
+
+const ROOT = path.resolve(__dirname, '..')
+const read = (relative) => fs.readFileSync(path.join(ROOT, relative), 'utf8')
+const PAGE = 'subpackages/life/pages/focus/index'
+
+test('计时：没有 setInterval，ticker 250ms，剩余时间由 FSM 推导', () => {
+  const ts = read(`${PAGE}.ts`)
+  assert.equal(ts.includes('setInterval'), false)
+  assert.match(ts, /const TICK_MS = 250/)
+  assert.match(ts, /setTimeout\(\(\) => \{/)
+  assert.match(ts, /focusRemainingMs/)
+  assert.match(ts, /restoreFocusSession/)
+  assert.match(ts, /completeFocusSession/)
+  assert.match(ts, /phaseEndsAt/)
+})
+
+test('生命周期：onUnload 恢复亮度 / 释放音频 / 关闭返回拦截', () => {
+  const ts = read(`${PAGE}.ts`)
+  const unload = ts.match(/onUnload\(\) \{[\s\S]*?onNebulaImageError/) || []
+  assert.ok(unload.length > 0)
+  assert.match(ts, /restoreBrightness\(\)/)
+  assert.match(ts, /runtime\.audio\.dispose\(\)/)
+  assert.match(ts, /runtime\.bgm\.dispose\(\)/)
+  assert.match(ts, /disableUnloadAlert\(\)/)
+  assert.match(ts, /enableAlertBeforeUnload/)
+  assert.match(ts, /心流正在建立，确定放弃？/)
+  assert.match(ts, /clearFocusBrightness/)
+  assert.match(ts, /saveFocusBrightness/)
+})
+
+test('App 亮度兜底：onLaunch 读取 stale key 并恢复', () => {
+  const app = read('app.ts')
+  assert.match(app, /focus:brightness:v1/)
+  assert.match(app, /restoreStaleFocusBrightness\(\)/)
+  assert.match(app, /setScreenBrightness/)
+  assert.match(app, /record\.owned !== true/)
+  assert.match(app, /removeStorageSync\(STALE_KEY\)/)
+})
+
+test('update-guard：专注 / 抽屉 / 战报 / 海报期间 blocked', () => {
+  const ts = read(`${PAGE}.ts`)
+  const wxml = read(`${PAGE}.wxml`)
+  assert.match(wxml, /<update-guard blocked="{{guardBlocked}}" \/>/)
+  assert.match(ts, /Boolean\(runtime\.session\)/)
+  assert.match(ts, /Boolean\(this\.data\.setupOpen\)/)
+  assert.match(ts, /runtime\.reportOpen/)
+  assert.match(ts, /Boolean\(this\.data\.posterVisible\)/)
+})
+
+test('历史轨迹：受 isHistoryTrackingEnabled 管控且写入 night', () => {
+  const ts = read(`${PAGE}.ts`)
+  assert.match(ts, /preferenceStore\.isHistoryTrackingEnabled/)
+  assert.match(ts, /historyStore\.record\(\{/)
+  assert.match(ts, /toolId: 'focus'/)
+  assert.match(ts, /toolName: '全息专注'/)
+  assert.match(ts, /category: 'life'/)
+  assert.match(ts, /night: uiStore\.resolvedTheme === 'dark'/)
+})
+
+test('Canvas：isDevtools 跳过查询，真机 watchdog 与静态环兜底', () => {
+  const ts = read(`${PAGE}.ts`)
+  const wxml = read(`${PAGE}.wxml`)
+  const wxss = read(`${PAGE}.wxss`)
+  assert.match(ts, /isDevtools\(\)/)
+  assert.match(ts, /RING_QUERY_TIMEOUT/)
+  assert.match(ts, /ringCanvasMounted/)
+  assert.match(ts, /canvasReady/)
+  assert.match(ts, /#nebula-canvas/)
+  assert.match(wxml, /class="focus-ring-fallback/)
+  assert.equal(wxss.includes('backdrop-filter'), false)
+  assert.match(wxss, /prefers-reduced-motion/)
+  assert.match(wxss, /focus-page--low/)
+})
+
+test('副本与状态：Overheat / Glitch / 网络徽章 / 跳过休息文案完整', () => {
+  const ts = read(`${PAGE}.ts`)
+  const wxml = read(`${PAGE}.wxml`)
+  assert.match(ts, /连续专注 2 小时，先休息 30 分钟/)
+  assert.match(wxml, /心流已断裂/)
+  assert.match(wxml, /已记录 {{glitchCount}} 次中断，计时继续/)
+  assert.match(ts, /跳过休息？/)
+  assert.match(ts, /放弃这次心流？/)
+  assert.match(ts, /已离线 · 心流继续/)
+  assert.match(ts, /网络已恢复/)
+  assert.match(ts, /冷却中/)
+  assert.match(wxml, /保存海报/)
+  assert.match(wxml, /aria-role="timer"/)
+  assert.match(wxml, /aria-live="assertive"/)
+  assert.match(wxml, /aria-live="polite"/)
+})
+
+test('路由与后台音频：life 分包注册、ROUTES.focus、requiredBackgroundModes', () => {
+  const appJson = JSON.parse(read('app.json'))
+  assert.equal(appJson.subpackages.length, 6)
+  assert.ok(
+    appJson.subpackages.some(
+      (subpackage) =>
+        subpackage.root === 'subpackages/life' &&
+        subpackage.pages.includes('pages/focus/index'),
+    ),
+  )
+  assert.deepEqual(appJson.requiredBackgroundModes, ['audio'])
+
+  const constants = read('core/constants/index.ts')
+  assert.match(constants, /focus: '\/subpackages\/life\/pages\/focus\/index'/)
+})
+
+test('结算：record.id 幂等 / stats 更新 / 星云种子', () => {
+  const ts = read(`${PAGE}.ts`)
+  assert.match(ts, /buildFocusRecord\(/)
+  assert.match(ts, /settleFocusRecord\(/)
+  assert.match(ts, /createNebulaScene\(record\.seed/)
+  assert.match(ts, /renderNebulaScene/)
+  assert.match(ts, /canvasToTempFilePath/)
+  assert.match(ts, /poster-generator/)
+})
+
+test('音频门禁：BGM 只在 focusing/隐藏、sound / saver 全静音', () => {
+  const ts = read(`${PAGE}.ts`)
+  assert.match(ts, /shouldRunBgm/)
+  assert.match(ts, /runtime\.session\?\.fsm === 'focusing'/)
+  assert.match(ts, /preferenceStore\.sound/)
+  assert.match(ts, /preferenceStore\.motion !== 'saver'/)
+  assert.match(ts, /runtime\.audio\.setTracks\(\[\]\)/)
+  assert.match(ts, /runtime\.bgm\.stop\(\)/)
+  assert.match(ts, /runtime\.audio\.suspend\(\)/)
+  assert.match(ts, /runtime\.bgm\.start\(\)/)
+})
+
+test('Canvas 互斥：星云与海报同一时刻只跑一个任务', () => {
+  const ts = read(`${PAGE}.ts`)
+  assert.match(ts, /canvasTask/)
+  assert.match(ts, /canvasTask === 'nebula'/)
+  assert.match(ts, /canvasTask === 'poster'/)
+  assert.match(ts, /runtime\.canvasTask = 'nebula'/)
+  assert.match(ts, /runtime\.canvasTask = 'poster'/)
+})
+
+test('onHide / onUnload：亮度、常亮、ticker 与传感器全部收口', () => {
+  const ts = read(`${PAGE}.ts`)
+  assert.match(ts, /onHide\(\) \{[\s\S]*?this\.restoreBrightness\(\)/)
+  assert.match(ts, /setKeepScreenOn\(false\)/)
+  assert.match(ts, /this\.stopTicker\(\)/)
+  assert.match(ts, /this\.stopMotionListening\(\)/)
+  assert.match(ts, /this\.persistSession\(true\)/)
+})
+
+test('设置入口与清空入口：只读 Storage 契约，不 import life', () => {
+  const settings = read('subpackages/grow/pages/settings/index.ts')
+  const wxml = read('subpackages/grow/pages/settings/index.wxml')
+  assert.match(settings, /ROUTES\.focus/)
+  assert.match(settings, /focus:session:v1/)
+  assert.match(settings, /FOCUS_STORAGE_KEYS/)
+  assert.match(settings, /onFocusClearConfirm/)
+  assert.equal(settings.includes("from '../../../../subpackages/life"), false)
+  assert.match(wxml, /全息专注引擎/)
+  assert.match(wxml, /清空专注数据/)
+})

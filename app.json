@@ -65,7 +65,16 @@
       "pages": [
         "pages/detail/index"
       ]
+    },
+    {
+      "root": "subpackages/life",
+      "pages": [
+        "pages/focus/index"
+      ]
     }
+  ],
+  "requiredBackgroundModes": [
+    "audio"
   ],
   "tabBar": {
     "custom": true,

@@ -113,6 +113,93 @@ const TIMELINE_BATCH = 24
 const DONUT_DURATION = 820
 const LINE_DURATION = 1060
 
+/* ---- 全息专注小卡：只读 focus:* Storage，不 import life 分包 ---- */
+const FOCUS_LEVEL_LABELS = [
+  '初识心流',
+  '渐入佳境',
+  '稳定心流',
+  '深度专注',
+  '心流大师',
+  '心流传奇',
+] as const
+
+function focusLocalDate(timestamp: number): string {
+  const date = new Date(timestamp)
+  if (Number.isNaN(date.getTime())) {
+    return ''
+  }
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+function focusShiftDate(dateKey: string, deltaDays: number): string {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateKey)) {
+    return ''
+  }
+  const [year, month, day] = dateKey.split('-').map((part) => Number(part))
+  const date = new Date(year, month - 1, day)
+  date.setDate(date.getDate() + deltaDays)
+  return focusLocalDate(date.getTime())
+}
+
+function parseFocusStorage(raw: unknown): unknown {
+  if (typeof raw !== 'string') {
+    return raw
+  }
+  if (!raw.trim()) {
+    return null
+  }
+  try {
+    return JSON.parse(raw) as unknown
+  } catch {
+    return null
+  }
+}
+
+function readFocusStatsRaw(): Record<string, unknown> | null {
+  try {
+    const parsed = parseFocusStorage(wx.getStorageSync('focus:stats:v1'))
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      return null
+    }
+    const record = parsed as Record<string, unknown>
+    return record.version === 1 ? record : null
+  } catch {
+    return null
+  }
+}
+
+function readRecentFocusTag(): string {
+  try {
+    const parsed = parseFocusStorage(wx.getStorageSync('focus:ledger:v1'))
+    if (!Array.isArray(parsed)) {
+      return ''
+    }
+    let newest: Record<string, unknown> | null = null
+    let newestEnd = -1
+    for (const item of parsed) {
+      if (!item || typeof item !== 'object' || Array.isArray(item)) {
+        continue
+      }
+      const record = item as Record<string, unknown>
+      const endedAt = Number(record.endedAt)
+      if (
+        Number.isFinite(endedAt) &&
+        endedAt > newestEnd &&
+        typeof record.tag === 'string'
+      ) {
+        newest = record
+        newestEnd = endedAt
+      }
+    }
+    return newest && typeof newest.tag === 'string' ? newest.tag.trim() : ''
+  } catch {
+    return ''
+  }
+}
+
 function readDpr(): number {
   try {
     const info = wx.getWindowInfo()
@@ -194,6 +281,14 @@ Page({
     appVersion: APP_VERSION,
     donutAria: '',
     dailyAria: '',
+
+    focusCardVisible: false,
+    focusHasData: false,
+    focusTodayMinutes: 0,
+    focusCompleted: 0,
+    focusStreak: 0,
+    focusLevelLabel: 'Lv.1 初识心流',
+    focusRecentTag: '',
 
     imageCharts: false,
     chartError: false,
@@ -320,6 +415,7 @@ Page({
       () => {
         this.refreshFromStore(false)
         this.refreshSnapshotCount()
+        this.refreshFocusCard()
         if (runtime.ready && this.data.hasHistory) {
           this.scheduleDraw(true, 60)
         }
@@ -510,12 +606,82 @@ Page({
     this.setData({ snapshotHistoryCount: countHistoryInSnapshots() })
   },
 
+  /* ---- 全息专注小卡：今日 / 累计完成 / 连续天数 / 最近标签 / 等级 ---- */
+  refreshFocusCard(): void {
+    const runtime = this as unknown as CockpitRuntime
+    if (runtime.destroyed) {
+      return
+    }
+    if (!preferenceStore.isHistoryTrackingEnabled) {
+      if (this.data.focusCardVisible) {
+        this.setData({ focusCardVisible: false })
+      }
+      return
+    }
+    const stats = readFocusStatsRaw()
+    const tag = readRecentFocusTag()
+    const now = Date.now()
+    const today = focusLocalDate(now)
+    const yesterday = focusShiftDate(today, -1)
+
+    let todayMinutes = 0
+    let completed = 0
+    let streak = 0
+    let level = 1
+    if (stats) {
+      const todayDate =
+        typeof stats.todayDate === 'string' ? stats.todayDate : ''
+      const todayFocusMs = Number(stats.todayFocusMs)
+      if (todayDate === today && Number.isFinite(todayFocusMs) && todayFocusMs > 0) {
+        todayMinutes = Math.floor(todayFocusMs / 60000)
+      }
+      const count = Number(stats.completedCount)
+      completed = Number.isFinite(count) && count > 0 ? Math.floor(count) : 0
+      const lastCompleted =
+        typeof stats.lastCompletedDate === 'string' ? stats.lastCompletedDate : ''
+      const streakDays = Number(stats.streakDays)
+      if (
+        lastCompleted &&
+        yesterday &&
+        lastCompleted >= yesterday &&
+        Number.isFinite(streakDays) &&
+        streakDays > 0
+      ) {
+        streak = Math.floor(streakDays)
+      }
+      const levelValue = Number(stats.level)
+      level = Number.isFinite(levelValue)
+        ? Math.min(6, Math.max(1, Math.floor(levelValue)))
+        : 1
+    }
+
+    const hasData = completed > 0
+    const recentTag = this.data.masked
+      ? tag
+        ? '已脱敏'
+        : ''
+      : tag
+
+    this.setData({
+      focusCardVisible: true,
+      focusHasData: hasData,
+      focusTodayMinutes: todayMinutes,
+      focusCompleted: completed,
+      focusStreak: streak,
+      focusLevelLabel: `Lv.${level} ${FOCUS_LEVEL_LABELS[level - 1]}`,
+      focusRecentTag: recentTag,
+    })
+  },
+
   /* ---- 隐私盾：偏好持久化，默认脱敏，点击眼睛才显示真实摘要 ---- */
   onTogglePrivacy(): void {
     const persisted = preferenceStore.togglePrivacyMasked()
     const masked = preferenceStore.isPrivacyMasked
     useHaptics().tick()
-    this.setData({ masked }, () => this.rebuildTimeline())
+    this.setData({ masked }, () => {
+      this.rebuildTimeline()
+      this.refreshFocusCard()
+    })
     showCockpitToast(
       persisted
         ? masked
@@ -530,6 +696,7 @@ Page({
     const enabled = Boolean(event.detail && event.detail.value)
     const persisted = preferenceStore.setHistoryTrackingEnabled(enabled)
     this.setData({ trackingEnabled: preferenceStore.isHistoryTrackingEnabled })
+    this.refreshFocusCard()
     showCockpitToast(
       persisted
         ? enabled

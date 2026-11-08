@@ -1,6 +1,6 @@
 /* ==========================================================================
    分包结构与路由完整性 · 静态回归测试
-   - 校验 app.json 的主包/分包边界、39 条路由与页面文件
+   - 校验 app.json 的主包/分包边界、40 条路由与页面文件
    - 校验 TabBar 页面留在主包、23 个工具路由全部注册
    - 校验页面 usingComponents 相对路径真实存在
    - 校验主包不 import 分包、分包不 import 其他分包
@@ -64,9 +64,9 @@ function readJson(file) {
   return JSON.parse(fs.readFileSync(file, 'utf8'))
 }
 
-test('app.json：主包只保留 5 个核心页面，分包共 5 个', () => {
+test('app.json：主包只保留 5 个核心页面，分包共 6 个', () => {
   assert.equal(app.pages.length, 5)
-  assert.equal(app.subpackages.length, 5)
+  assert.equal(app.subpackages.length, 6)
   assert.deepEqual(app.pages, [
     'pages/index/index',
     'pages/lab/index',
@@ -76,10 +76,10 @@ test('app.json：主包只保留 5 个核心页面，分包共 5 个', () => {
   ])
 })
 
-test('路由：39 条唯一且页面文件齐全', () => {
+test('路由：40 条唯一且页面文件齐全', () => {
   const routes = allRoutes()
-  assert.equal(routes.length, 39)
-  assert.equal(new Set(routes).size, 39)
+  assert.equal(routes.length, 40)
+  assert.equal(new Set(routes).size, 40)
 
   for (const route of routes) {
     for (const ext of ['.ts', '.json', '.wxml']) {

@@ -23,6 +23,56 @@ import {
   type AppUpdateGlobalData,
 } from './core/services/update'
 
+/** 焦点页被系统杀死 / 崩溃后的唯一亮度兜底：onLaunch 读取 stale owned 标记 */
+export function restoreStaleFocusBrightness(): void {
+  const STALE_KEY = 'focus:brightness:v1'
+  try {
+    const raw = wx.getStorageSync(STALE_KEY)
+    let record: Record<string, unknown> | null = null
+    if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
+      record = raw as Record<string, unknown>
+    } else if (typeof raw === 'string' && raw.trim()) {
+      try {
+        const parsed = JSON.parse(raw) as unknown
+        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+          record = parsed as Record<string, unknown>
+        }
+      } catch {
+        return
+      }
+    }
+    if (!record || record.version !== 1 || record.owned !== true) {
+      return
+    }
+    const original = record.original
+    if (
+      typeof original !== 'number' ||
+      !Number.isFinite(original) ||
+      original < 0 ||
+      original > 1
+    ) {
+      wx.removeStorageSync(STALE_KEY)
+      return
+    }
+    if (typeof wx.setScreenBrightness !== 'function') {
+      wx.removeStorageSync(STALE_KEY)
+      return
+    }
+    wx.setScreenBrightness({
+      value: original,
+      complete: () => {
+        try {
+          wx.removeStorageSync(STALE_KEY)
+        } catch {
+          /* 已删除 */
+        }
+      },
+    })
+  } catch {
+    /* 解析 / 存储异常不得影响启动 */
+  }
+}
+
 /** globalData 单例：更新管理器与跨页面监听器只在 App 内维护 */
 const UPDATE_GLOBAL_DATA: AppUpdateGlobalData = {
   updateManager: null,
@@ -37,6 +87,9 @@ App({
   globalData: UPDATE_GLOBAL_DATA,
 
   onLaunch() {
+    // 0) 全息专注亮度兜底：必须先于任何页面恢复，避免启动瞬间黑屏
+    restoreStaleFocusBrightness()
+
     // 0) 全局偏好：必须先于主题 / 动效 / 音效读取，异常时自动回退默认值
     preferenceStore.init()
     warmUpSound()
