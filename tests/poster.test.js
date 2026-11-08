@@ -1042,6 +1042,33 @@ test('全局静震：预览打开成功不触发震动', async (t) => {
   }
 })
 
+test('焦点静震：预览打开 / 揭示 / 关闭均不触发震动', async (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout'] })
+  const calls = installWxMock()
+  const preference = await import(moduleUrl(path.join(ROOT, 'core/stores/preference.ts')))
+  preference.preferenceStore.sound = false
+  preference.preferenceStore.haptics = 'light'
+  const definition = await loadDefinition(path.join(PREVIEW_DIR, 'index.ts'))
+  const preview = createComponent(definition, {
+    imagePath: 'wxfile://poster.png',
+    show: true,
+    haptic: 'none',
+  })
+
+  try {
+    preview.openPreview()
+    t.mock.timers.tick(30)
+    preview.markImageReady()
+    preview.writeAlbum()
+    await flushPromises()
+    preview.requestClose('close')
+    assert.equal(calls.vibrate, 0, 'haptic=none 必须完全静震')
+  } finally {
+    t.mock.timers.reset()
+    delete globalThis.wx
+  }
+})
+
 test('预览保存：非权限失败不弹权限引导', async (t) => {
   t.mock.timers.enable({ apis: ['setTimeout'] })
   const calls = installWxMock({ saveFail: 'saveImageToPhotosAlbum:fail system error' })

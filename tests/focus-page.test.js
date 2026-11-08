@@ -25,6 +25,17 @@ test('计时：没有 setInterval，ticker 250ms，剩余时间由 FSM 推导', 
   assert.match(ts, /phaseEndsAt/)
 })
 
+test('时钟作弊：getPerformance 双锚点 + 5s 阈值 + tainted 不更新 stats', () => {
+  const ts = read(`${PAGE}.ts`)
+  assert.match(ts, /getPerformance/)
+  assert.match(ts, /CLOCK_DRIFT_LIMIT_MS = 5000/)
+  assert.match(ts, /setClockAnchor/)
+  assert.match(ts, /detectClockDrift/)
+  assert.match(ts, /handleClockTaintedCompletion/)
+  assert.match(ts, /appendFocusRecord/)
+  assert.match(ts, /本次不计入等级/)
+})
+
 test('生命周期：onUnload 恢复亮度 / 释放音频 / 关闭返回拦截', () => {
   const ts = read(`${PAGE}.ts`)
   const unload = ts.match(/onUnload\(\) \{[\s\S]*?onNebulaImageError/) || []
@@ -147,13 +158,15 @@ test('Canvas 互斥：星云与海报同一时刻只跑一个任务', () => {
   assert.match(ts, /runtime\.canvasTask = 'poster'/)
 })
 
-test('onHide / onUnload：亮度、常亮、ticker 与传感器全部收口', () => {
+test('onHide / onUnload：亮度、常亮、ticker、传感器与网络监听全部收口', () => {
   const ts = read(`${PAGE}.ts`)
   assert.match(ts, /onHide\(\) \{[\s\S]*?this\.restoreBrightness\(\)/)
   assert.match(ts, /setKeepScreenOn\(false\)/)
   assert.match(ts, /this\.stopTicker\(\)/)
   assert.match(ts, /this\.stopMotionListening\(\)/)
   assert.match(ts, /this\.persistSession\(true\)/)
+  assert.match(ts, /stopNetworkListener/)
+  assert.match(ts, /offNetworkStatusChange/)
 })
 
 test('设置入口与清空入口：只读 Storage 契约，不 import life', () => {
@@ -166,4 +179,43 @@ test('设置入口与清空入口：只读 Storage 契约，不 import life', ()
   assert.equal(settings.includes("from '../../../../subpackages/life"), false)
   assert.match(wxml, /全息专注引擎/)
   assert.match(wxml, /清空专注数据/)
+})
+
+test('Storage key 契约：life / 设置 / 驾驶舱 / App 四处一致', () => {
+  const storage = read('subpackages/life/lib/focus-storage.ts')
+  const settings = read('subpackages/grow/pages/settings/index.ts')
+  const cockpit = read('subpackages/grow/pages/cockpit/index.ts')
+  const app = read('app.ts')
+  const keys = [
+    'focus:session:v1',
+    'focus:prefs:v1',
+    'focus:key:v1',
+    'focus:ledger:v1',
+    'focus:stats:v1',
+    'focus:brightness:v1',
+  ]
+  for (const key of keys) {
+    assert.ok(storage.includes(key), `focus-storage 缺少 ${key}`)
+    assert.ok(settings.includes(key), `settings 缺少 ${key}`)
+  }
+  assert.match(cockpit, /focus:stats:v1/)
+  assert.match(cockpit, /focus:ledger:v1/)
+  assert.match(app, /focus:brightness:v1/)
+})
+
+test('等级文案：life 与驾驶舱内联副本完全一致', () => {
+  const level = read('subpackages/life/lib/focus-level.ts')
+  const cockpit = read('subpackages/grow/pages/cockpit/index.ts')
+  const labels = [
+    '初识心流',
+    '渐入佳境',
+    '稳定心流',
+    '深度专注',
+    '心流大师',
+    '心流传奇',
+  ]
+  for (const label of labels) {
+    assert.ok(level.includes(label), `focus-level 缺少 ${label}`)
+    assert.ok(cockpit.includes(label), `cockpit 缺少 ${label}`)
+  }
 })

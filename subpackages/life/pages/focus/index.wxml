@@ -18,19 +18,23 @@
         <text class="focus-nav__back-glyph">‹</text>
       </view>
       <text class="focus-nav__title" aria-role="heading">全息专注</text>
-      <view class="focus-nav__right">
-        <view
-          wx:if="{{networkBadge}}"
-          class="focus-network {{networkOffline ? 'is-offline' : ''}}"
-          aria-live="polite"
-        >
-          {{networkBadge}}
-        </view>
-        <view wx:if="{{fsmView !== 'idle'}}" class="focus-chip focus-chip--{{chipTone}}">
-          <view class="focus-chip__dot"></view>
-          <text>{{chipLabel}}</text>
-        </view>
-      </view>
+    </view>
+  </view>
+
+  <view
+    wx:if="{{fsmView !== 'idle' || networkBadge}}"
+    class="focus-topline"
+  >
+    <view wx:if="{{fsmView !== 'idle'}}" class="focus-chip focus-chip--{{chipTone}}">
+      <view class="focus-chip__dot" aria-hidden="true"></view>
+      <text>{{chipLabel}}</text>
+    </view>
+    <view
+      wx:if="{{networkBadge}}"
+      class="focus-network {{networkOffline ? 'is-offline' : ''}}"
+      aria-live="polite"
+    >
+      {{networkBadge}}
     </view>
   </view>
 
@@ -54,7 +58,7 @@
       </view>
     </view>
 
-    <text class="focus-status-title">{{statusTitle}}</text>
+    <text class="focus-status-title" aria-live="polite">{{statusTitle}}</text>
     <text wx:if="{{statusSub}}" class="focus-status-sub">{{statusSub}}</text>
     <text wx:if="{{cycleText}}" class="focus-meta">{{cycleText}}</text>
   </view>
@@ -82,6 +86,7 @@
         variant="ghost"
         size="lg"
         block
+        custom-style="min-width: 0;"
         aria-label="{{secondaryLabel}}"
         haptic="{{motionSaver ? 'none' : 'light'}}"
         bind:tap="onSecondaryTap"
@@ -139,6 +144,7 @@
             unit="%"
             caption="音量"
             data-track="rain"
+            haptic="{{motionSaver ? 'none' : 'light'}}"
             bind:input="onVolumeInput"
             bind:change="onVolumeChange"
             aria-label="雨声音量"
@@ -166,6 +172,7 @@
             unit="%"
             caption="音量"
             data-track="fire"
+            haptic="{{motionSaver ? 'none' : 'light'}}"
             bind:input="onVolumeInput"
             bind:change="onVolumeChange"
             aria-label="篝火音量"
@@ -193,6 +200,7 @@
             unit="%"
             caption="音量"
             data-track="keyboard"
+            haptic="{{motionSaver ? 'none' : 'light'}}"
             bind:input="onVolumeInput"
             bind:change="onVolumeChange"
             aria-label="键盘音量"
@@ -207,6 +215,7 @@
           show-value="{{true}}"
           unit="%"
           caption="总音量"
+          haptic="{{motionSaver ? 'none' : 'light'}}"
           bind:input="onMasterInput"
           bind:change="onMasterChange"
           aria-label="环境音总音量"
@@ -281,6 +290,7 @@
             src="{{nebulaPath}}"
             mode="aspectFill"
             class="focus-report__nebula-img"
+            aria-label="专注星云图"
             binderror="onNebulaImageError"
           />
           <view
@@ -319,7 +329,7 @@
         <view class="focus-report__tag">#{{reportTag}}</view>
         <text class="focus-report__date">{{reportDate}}</text>
         <text wx:if="{{reportTainted}}" class="focus-report__wither">
-          本机记录校验失败，本次星云已枯萎
+          {{reportTaintText}}
         </text>
       </scroll-view>
 
@@ -371,6 +381,7 @@
     confirm-text="{{modalConfirm}}"
     cancel-text="{{modalCancel}}"
     danger="{{modalDanger}}"
+    haptic="{{motionSaver ? 'none' : 'light'}}"
     bind:confirm="onModalConfirm"
     bind:cancel="onModalCancel"
   />
@@ -381,6 +392,7 @@
     image-path="{{posterPath}}"
     loading="{{posterLoading}}"
     saver="{{motionSaver}}"
+    haptic="{{motionSaver ? 'none' : 'light'}}"
     bind:closed="onPosterClosed"
   />
   <glass-toast z-index="{{1200}}" />

@@ -46,6 +46,7 @@
         size="md"
         block
         disabled="{{busy}}"
+        haptic="{{haptic}}"
         bind:tap="onCancelTap"
       >
         {{cancelText}}
@@ -55,6 +56,7 @@
         size="md"
         block
         disabled="{{busy}}"
+        haptic="{{haptic}}"
         bind:tap="onConfirmTap"
       >
         {{confirmText}}

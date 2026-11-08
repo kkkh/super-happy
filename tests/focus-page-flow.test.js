@@ -19,6 +19,7 @@ const BINDINGS_SHIM = pathToFileURL(
 ).href
 const FOCUS = 25 * 60 * 1000
 const KEY = '07'.repeat(32)
+let perfNow = 10_000_000
 
 globalThis.Behavior = (config) => config
 globalThis.Component = (config) => config
@@ -118,6 +119,9 @@ function installWx(seed = {}) {
     },
     getRandomValues(option) {
       option.success({ randomValues: new Uint8Array(32).fill(7) })
+    },
+    getPerformance() {
+      return { now: () => perfNow }
     },
     getScreenBrightness(option) {
       option.success({ value: 0.8 })
@@ -329,6 +333,122 @@ test('preparing 取消：不产生 session，回到 idle', async () => {
   }
 })
 
+test('标签编辑允许清空，开始专注时才回退默认标签', async () => {
+  const page = await bootPage()
+  try {
+    page.openSetup()
+    page.onTagInput({ detail: { value: '' } })
+    assert.equal(page.data.tagDraft, '')
+    page.onTagInput({ detail: { value: '读书'.repeat(8) } })
+    assert.equal(Array.from(page.data.tagDraft).length, 12)
+
+    page.setData({ tagDraft: '' })
+    page.onStartFocus()
+    assert.equal(page.session.tag, '深度工作')
+    assert.equal(page.data.tagDisplay, '深度工作')
+  } finally {
+    page.onUnload()
+  }
+})
+
+test('弹窗决策期间不自动结算；取消后下一 tick 才出报告', async () => {
+  const page = await bootPage()
+  try {
+    page.onStartFocus()
+    await wait(5)
+    const now = Date.now()
+    page.session.startedAt = now - FOCUS
+    page.session.phaseStartedAt = now - FOCUS
+    page.session.phaseEndsAt = now
+    page.session.phaseTotalMs = FOCUS
+
+    page.openGiveUpModal()
+    assert.equal(page.data.modalShow, true)
+    page.tick()
+    await wait(10)
+    assert.equal(page.data.reportOpen, false)
+    assert.equal(page.session.fsm, 'focusing')
+    assert.equal(globalThis.wx.getStorageSync('focus:stats:v1').completedCount, 0)
+
+    page.onModalCancel()
+    page.tick()
+    await wait(30)
+    assert.equal(page.data.reportOpen, true)
+    assert.equal(page.session.fsm, 'breaking')
+    assert.equal(globalThis.wx.getStorageSync('focus:stats:v1').completedCount, 1)
+  } finally {
+    page.onUnload()
+  }
+})
+
+test('验签失败：战报 tainted、stats 不更新、不无限重试', async () => {
+  const page = await bootPage()
+  try {
+    page.onStartFocus()
+    await wait(5)
+    const now = Date.now()
+    page.session.startedAt = now - FOCUS
+    page.session.phaseStartedAt = now - FOCUS
+    page.session.phaseEndsAt = now
+    page.session.phaseTotalMs = FOCUS
+    page.key = 'not-a-valid-key'
+
+    page.tick()
+    await wait(40)
+
+    assert.equal(page.data.reportOpen, true)
+    assert.equal(page.data.reportTainted, true)
+    assert.ok(page.data.reportTaintText.includes('丢失'))
+    assert.equal(page.session, null)
+    assert.equal(
+      globalThis.wx.getStorageSync('focus:stats:v1').completedCount,
+      0,
+    )
+    assert.equal(globalThis.wx.getStorageSync('focus:ledger:v1').length, 1)
+  } finally {
+    page.onUnload()
+  }
+})
+
+test('同周期时钟漂移 > 5s：战报可见，但 stats 不更新、不写历史', async () => {
+  const page = await bootPage()
+  try {
+    page.onStartFocus()
+    await wait(5)
+    const now = Date.now()
+    page.session.startedAt = now - FOCUS
+    page.session.phaseStartedAt = now - FOCUS
+    page.session.phaseEndsAt = now
+    page.session.phaseTotalMs = FOCUS
+
+    /* wall 25min，而 monotonic 只有 24min：模拟向前拨钟 1min */
+    page.clockAnchorWall = now - FOCUS
+    page.clockAnchorPerf = perfNow - (FOCUS - 60 * 1000)
+    assert.equal(page.detectClockDrift(now), true)
+    page.tick()
+    await wait(40)
+
+    assert.equal(page.data.reportOpen, true)
+    assert.equal(page.data.reportTainted, true)
+    assert.ok(page.data.reportTaintText.includes('本机时钟异常'))
+    assert.equal(page.session, null)
+    assert.equal(
+      globalThis.wx.getStorageSync('focus:stats:v1').completedCount,
+      0,
+      '时钟异常不得更新 stats',
+    )
+    assert.equal(
+      globalThis.wx.getStorageSync('focus:stats:v1').lastAppliedRecordId,
+      '',
+    )
+    const ledger = globalThis.wx.getStorageSync('focus:ledger:v1')
+    assert.equal(ledger.length, 1, '战报仍写入 ledger 供展示')
+    assert.equal(ledger[0].level, 1)
+  } finally {
+    page.onUnload()
+  }
+})
+
 test('外部清空 focus:*：onShow 重新 bootstrap，旧会话不复活', async () => {
   const page = await bootPage()
   try {
@@ -382,6 +502,16 @@ test('keyLost：有账本/统计但 key 缺失时冻结，不生成新 key', asy
     assert.equal(page.session, null)
     assert.equal(page.data.fsmView, 'idle')
     assert.ok(page.data.statusSub.includes('无法验证'))
+    /* 设置页清空后 onShow 必须重新 bootstrap，而不是永久冻结 */
+    globalThis.wx.removeStorageSync('focus:stats:v1')
+    page.onShow()
+    for (let index = 0; index < 8 && !page.data.ready; index += 1) {
+      await wait(10)
+    }
+    assert.equal(page.data.ready, true)
+    assert.equal(page.data.evidenceBroken, false)
+    assert.equal(globalThis.wx.getStorageSync('focus:key:v1'), KEY)
+    assert.equal(globalThis.wx.getStorageSync('focus:stats:v1').completedCount, 0)
   } finally {
     page.onUnload()
   }

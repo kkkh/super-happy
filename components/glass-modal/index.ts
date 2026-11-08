@@ -40,6 +40,8 @@ Component({
     zIndex: { type: Number, value: 240 },
     ariaLabel: { type: String, value: '确认对话框' },
     customStyle: { type: String, value: '' },
+    /** 触觉强度；saver 模式传 none */
+    haptic: { type: String, value: 'light' },
   },
 
   data: {

@@ -616,6 +616,7 @@ export class FocusBgmController {
   private disabledFlag = false
   private disposed = false
   private endedHandler: (() => void) | null = null
+  private errorHandler: ((error: unknown) => void) | null = null
 
   constructor(deps: FocusBgmDeps = {}) {
     this.getManager = deps.getManager ?? defaultGetManager
@@ -670,12 +671,17 @@ export class FocusBgmController {
         return false
       }
       this.bindManager(manager)
+      this.started = true
       manager.title = BGM_TITLE
       manager.src = src
       manager.play?.()
-      this.started = true
+      if (this.disabledFlag) {
+        this.started = false
+        return false
+      }
       return true
     } catch (error) {
+      this.started = false
       this.disabledFlag = true
       this.onWarn(`后台保活启动失败：${error instanceof Error ? error.message : '未知错误'}`)
       return false
@@ -706,7 +712,15 @@ export class FocusBgmController {
         /* 已解绑 */
       }
     }
+    if (this.manager && this.errorHandler) {
+      try {
+        this.manager.offError?.(this.errorHandler)
+      } catch {
+        /* 已解绑 */
+      }
+    }
     this.endedHandler = null
+    this.errorHandler = null
     this.manager = null
     this.disposed = true
   }
@@ -728,10 +742,26 @@ export class FocusBgmController {
       }
     }
     this.endedHandler = handler
+    const errHandler = (error: unknown): void => {
+      if (this.disposed || !this.started) {
+        return
+      }
+      this.disabledFlag = true
+      this.started = false
+      this.onWarn(
+        `后台保活中断：${error instanceof Error ? error.message : '播放器异常'}`,
+      )
+    }
+    this.errorHandler = errHandler
     try {
       manager.onEnded?.(handler)
     } catch {
       /* 部分基础库不支持循环回调；页面仍可用 WebAudio 计时 */
+    }
+    try {
+      manager.onError?.(errHandler)
+    } catch {
+      /* 部分基础库不支持错误回调 */
     }
   }
 }

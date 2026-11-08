@@ -30,6 +30,7 @@ import {
   type FocusCompletion,
 } from '../../lib/focus-fsm'
 import {
+  appendFocusRecord,
   buildFocusRecord,
   clearFocusBrightness,
   clearFocusSession,
@@ -145,8 +146,10 @@ interface FocusPageRuntime {
   ticker: number
   lastPersistAt: number
   lastHeartbeatAt: number
-  lastAriaBucket: number
+  lastAriaKey: string
   settlementToastAt: number
+  clockAnchorWall: number
+  clockAnchorPerf: number
 
   modalAction: ModalAction
   pendingBack: boolean
@@ -196,6 +199,7 @@ interface FocusPageRuntime {
   nebulaQueryTimer: number
   nebulaExportTimer: number
   canvasTask: '' | 'nebula' | 'poster'
+  posterRequestToken: number
   reportTaintedNoticeShown: boolean
 }
 
@@ -211,6 +215,7 @@ const FACE_DOWN_HOLD_MS = 600
 const PICKUP_HOLD_MS = 300
 const GLITCH_COOLDOWN_MS = 5000
 const GLITCH_DURATION_MS = 1000
+const CLOCK_DRIFT_LIMIT_MS = 5000
 const BADGE_RECOVER_MS = 3000
 const RING_FRAME_MS = 33
 const RING_QUERY_TIMEOUT = 700
@@ -244,19 +249,38 @@ function formatAria(ms: number, title: string): string {
   return `${title}，剩余 ${minutes} 分 ${rest} 秒`
 }
 
-function sanitizeTag(raw: string): string {
-  const cleaned = Array.from(
-    String(raw || '')
-      .replace(/[\u0000-\u001f\u007f]/g, '')
-      .trim(),
+function cleanTagChars(raw: string): string {
+  return Array.from(
+    String(raw || '').replace(/[\u0000-\u001f\u007f]/g, ''),
   )
     .slice(0, MAX_TAG_CHARS)
     .join('')
-  return cleaned || DEFAULT_TAG
+}
+
+function sanitizeTag(raw: string): string {
+  return cleanTagChars(raw).trim() || DEFAULT_TAG
 }
 
 function padDate(dateKey: string): string {
   return dateKey ? dateKey.replace(/-/g, '.') : '----.--.--'
+}
+
+function readMonotonicNow(): number {
+  try {
+    if (typeof wx === 'undefined') {
+      return -1
+    }
+    const api = (wx as unknown as {
+      getPerformance?: () => { now?: () => number }
+    }).getPerformance
+    if (typeof api !== 'function') {
+      return -1
+    }
+    const value = api().now?.()
+    return typeof value === 'number' && Number.isFinite(value) ? value : -1
+  } catch {
+    return -1
+  }
 }
 
 function pixelRatio(): number {
@@ -309,15 +333,16 @@ Page({
   observers: {
     themeClass(): void {
       const runtime = this as unknown as FocusPageRuntime
-      if (!runtime || !runtime.ringCanvas) {
+      if (!runtime || runtime.destroyed || !runtime.ringCanvas) {
         return
       }
       runtime.ringGradient = null
-      this.drawRingOnce()
+      this.safeDrawRing()
     },
 
     lowMemory(value: boolean): void {
-      if (!value) {
+      const runtime = this as unknown as FocusPageRuntime
+      if (!value || !runtime || runtime.destroyed) {
         return
       }
       this.stopRingLoop(false)
@@ -393,6 +418,7 @@ Page({
     reportDate: '----.--.--',
     reportConfidence: 'high',
     reportTainted: false,
+    reportTaintText: '',
     nebulaPath: '',
     nebulaCanvasMounted: false,
     nebulaFallbackText: '',
@@ -422,13 +448,21 @@ Page({
     runtime.ticker = 0
     runtime.lastPersistAt = 0
     runtime.lastHeartbeatAt = 0
-    runtime.lastAriaBucket = -1
+    runtime.lastAriaKey = ''
     runtime.settlementToastAt = 0
+    runtime.clockAnchorWall = 0
+    runtime.clockAnchorPerf = -1
     runtime.modalAction = null
     runtime.pendingBack = false
     runtime.audio = new FocusAudioEngine()
     runtime.bgm = new FocusBgmController({
-      onWarn: (message) => logger.warn('focus', message),
+      onWarn: (message) => {
+        logger.warn('focus', message)
+        if (!runtime.bgmToastShown) {
+          runtime.bgmToastShown = true
+          this.toast('后台保活不可用，倒计时仍会精准继续', 'warning')
+        }
+      },
     })
     runtime.audioToastShown = false
     runtime.bgmToastShown = false
@@ -463,6 +497,7 @@ Page({
     runtime.nebulaQueryTimer = 0
     runtime.nebulaExportTimer = 0
     runtime.canvasTask = ''
+    runtime.posterRequestToken = 0
     runtime.reportTaintedNoticeShown = false
 
     const devtools = isDevtools()
@@ -483,6 +518,9 @@ Page({
         ringCanvasMounted: !devtools && !uiStore.lowMemory,
         tagDraft: DEFAULT_TAG,
         tagDisplay: DEFAULT_TAG,
+        statusSub: runtime.motionAvailable
+          ? '25 分钟 · 翻转黑屏 · 星云战报'
+          : '25 分钟 · 环境音 · 星云战报',
         ...this.prefsView(prefs),
       },
       () => {
@@ -514,29 +552,117 @@ Page({
     }
     /* 设置页可能在本页隐藏期间清空全部 focus:*：缺 key 必须回 idle，不得复活旧会话 */
     if (!readFocusKey()) {
-      if (runtime.key || runtime.session) {
-        runtime.key = ''
-        runtime.stats = null
-        runtime.session = null
-        runtime.reportOpen = false
-        runtime.reportRecord = null
-        runtime.reportStats = null
-        runtime.booted = false
-        runtime.ready = false
-        runtime.evidenceBroken = false
-        this.stopAfterSession()
-        this.restoreBrightness()
-        this.setKeepScreenOn(false)
-        this.setData({
-          ready: false,
-          reportOpen: false,
-          evidenceBroken: false,
-          nebulaCanvasMounted: false,
-          posterVisible: false,
-        })
-        this.toast('专注数据已清空', 'info')
-        void this.boot()
+      /* 仍有未验证数据：保持 keyLost 冻结，等待用户去设置页清空 */
+      if (this.hasUnverifiableFocusData()) {
+        this.clearNetworkBadge()
+        this.stopGlitch()
+        if (runtime.session) {
+          runtime.session = null
+          runtime.reportOpen = false
+          runtime.reportRecord = null
+          runtime.reportStats = null
+          runtime.nebulaScene = null
+          this.clearNebulaTimers()
+          clearFocusSession()
+          this.closeDecisionModal()
+          this.stopAfterSession()
+          this.restoreBrightness()
+          this.setKeepScreenOn(false)
+          this.setData({
+            ready: true,
+            reportOpen: false,
+            nebulaCanvasMounted: false,
+            nebulaPath: '',
+            posterVisible: false,
+            posterLoading: false,
+            blackScreen: false,
+          })
+          this.paint()
+          this.syncGuard()
+          this.syncUnloadAlert()
+        }
+        if (!runtime.evidenceBroken) {
+          runtime.key = ''
+          runtime.evidenceBroken = true
+          this.setData({ ready: true, evidenceBroken: true, setupOpen: false })
+          this.paint()
+          this.syncGuard()
+          this.syncUnloadAlert()
+          this.toast(
+            '本机记录暂时无法验证，历史等级已冻结；可清空专注数据后重新开始',
+            'warning',
+          )
+        }
+        return
       }
+      const prefs = loadFocusPrefs()
+      runtime.key = ''
+      runtime.stats = null
+      runtime.session = null
+      runtime.reportOpen = false
+      runtime.reportRecord = null
+      runtime.reportStats = null
+      runtime.nebulaScene = null
+      runtime.prefs = prefs
+      runtime.lastTag = DEFAULT_TAG
+      runtime.booted = false
+      runtime.ready = false
+      runtime.evidenceBroken = false
+      runtime.blackScreen = false
+      runtime.faceDown = false
+      runtime.pickupSince = 0
+      runtime.lastPersistAt = 0
+      runtime.lastHeartbeatAt = 0
+      runtime.lastAriaKey = ''
+      runtime.modalAction = null
+      runtime.pendingBack = false
+      this.clearNebulaTimers()
+      this.stopGlitch()
+      this.clearNetworkBadge()
+      this.stopAfterSession()
+      this.restoreBrightness()
+      this.setKeepScreenOn(false)
+      this.disableUnloadAlert()
+      this.setData({
+        ready: false,
+        guardBlocked: false,
+        setupOpen: false,
+        reportOpen: false,
+        evidenceBroken: false,
+        nebulaCanvasMounted: false,
+        nebulaPath: '',
+        posterVisible: false,
+        posterLoading: false,
+        modalShow: false,
+        modalTitle: '',
+        modalDesc: '',
+        modalConfirm: '',
+        modalCancel: '',
+        modalDanger: false,
+        networkBadge: '',
+        networkOffline: false,
+        glitchActive: false,
+        glitchCount: 0,
+        blackScreen: false,
+        audioDisabled: false,
+        tagDraft: DEFAULT_TAG,
+        tagDisplay: DEFAULT_TAG,
+        fsmView: 'idle',
+        kicker: 'READY',
+        statusTitle: '准备进入心流',
+        statusSub: '25 分钟 · 翻转黑屏 · 星云战报',
+        clock: '25:00',
+        primaryLabel: '开始专注',
+        primaryDisabled: true,
+        secondaryLabel: '设置',
+        secondaryHidden: false,
+        cycleText: '',
+        chipLabel: 'READY',
+        chipTone: 'cool',
+        ...this.prefsView(prefs),
+      })
+      this.toast('专注数据已清空', 'info')
+      void this.boot()
       return
     }
     if (runtime.reportOpen) {
@@ -555,7 +681,11 @@ Page({
     ) {
       runtime.session = null
       clearFocusSession()
+      this.closeDecisionModal()
       this.stopAfterSession()
+      this.clearNetworkBadge()
+      this.stopGlitch()
+      this.setData({ blackScreen: false })
       this.restoreBrightness()
       this.toast('专注数据异常，已回到待机', 'warning')
       this.paint()
@@ -571,6 +701,7 @@ Page({
     if (restored.action === 'idle') {
       runtime.session = null
       clearFocusSession()
+      this.closeDecisionModal()
       if (restored.resetContinuous) {
         this.resetContinuousFocus()
       }
@@ -616,6 +747,7 @@ Page({
     this.stopRingLoop(true)
     this.stopGlitch()
     this.stopNetworkTimer()
+    this.stopNetworkListener()
     this.clearNebulaTimers()
     if (runtime.ringQueryTimer) {
       clearTimeout(runtime.ringQueryTimer)
@@ -639,6 +771,22 @@ Page({
   /* 启动与数据装载                                                            */
   /* ------------------------------------------------------------------------ */
 
+  hasUnverifiableFocusData(): boolean {
+    try {
+      const statsProbe = loadFocusStats('')
+      const sessionProbe = loadFocusSession('')
+      const ledgerProbe = loadFocusLedger('')
+      return (
+        statsProbe.reason === 'keyLost' ||
+        sessionProbe.reason === 'keyLost' ||
+        ledgerProbe.entries.length > 0
+      )
+    } catch {
+      /* 存储读取异常时保守冻结，避免生成新 key 覆盖旧记录 */
+      return true
+    }
+  },
+
   async boot(): Promise<void> {
     const runtime = this as unknown as FocusPageRuntime
     if (runtime.booted) {
@@ -648,13 +796,10 @@ Page({
     /* key 缺失但有账本 / 统计 / 会话：必须判 keyLost，绝不生成新 key 把旧记录打成 tainted */
     if (!readFocusKey()) {
       const statsProbe = loadFocusStats('')
-      const sessionProbe = loadFocusSession('')
-      const ledgerProbe = loadFocusLedger('')
-      const hasUnverifiableData =
-        statsProbe.reason === 'keyLost' ||
-        sessionProbe.reason === 'keyLost' ||
-        ledgerProbe.entries.length > 0
-      if (hasUnverifiableData) {
+      if (this.hasUnverifiableFocusData()) {
+        if (loadFocusSession('').reason !== 'none') {
+          clearFocusSession()
+        }
         runtime.stats = statsProbe.stats
         runtime.evidenceBroken = true
         runtime.ready = true
@@ -687,8 +832,7 @@ Page({
       if (stats) {
         runtime.stats = stats
         if (!saveFocusStats(stats, key)) {
-          runtime.evidenceBroken = true
-          this.toast('专注数据无法写入本机，暂时无法开始', 'error')
+          this.toast('专注数据暂时无法落盘，结算时会重试', 'warning')
         }
       } else {
         runtime.evidenceBroken = true
@@ -709,15 +853,25 @@ Page({
       )
     } else if (loadedStats.reason === 'corrupt') {
       const stats = createEmptyFocusStats(Date.now(), key)
-      if (stats && saveFocusStats(stats, key)) {
+      if (stats) {
         runtime.stats = stats
-        this.toast('专注数据异常，已回到待机', 'warning')
+        if (!saveFocusStats(stats, key)) {
+          this.toast('专注数据异常且暂时无法落盘，结算时会重试', 'warning')
+        } else {
+          this.toast('专注数据异常，已回到待机', 'warning')
+        }
       } else {
         runtime.evidenceBroken = true
       }
     }
 
-    this.restoreStoredSession()
+    if (runtime.evidenceBroken) {
+      /* 统计签名失败 / key 不可用：按契约回 idle，不恢复无法结算的旧会话 */
+      runtime.session = null
+      clearFocusSession()
+    } else {
+      this.restoreStoredSession()
+    }
     runtime.ready = true
     this.setData({ ready: true, evidenceBroken: runtime.evidenceBroken })
     this.paint()
@@ -752,6 +906,7 @@ Page({
     }
     const restored = restoreFocusSession(stored, Date.now())
     if (restored.action === 'complete' && restored.completion) {
+      /* 先落内存：结算写失败时保留 focusing 断点，onShow 用同一 record.id 重试 */
       runtime.session = stored
       this.handleCompletion(restored.completion, stored.id)
       return
@@ -844,7 +999,9 @@ Page({
     let statusTitle = '准备进入心流'
     let statusSub = runtime.evidenceBroken
       ? '本机记录暂时无法验证，请在设置中清空专注数据'
-      : '25 分钟 · 翻转黑屏 · 星云战报'
+      : this.data.flipAvailable
+        ? '25 分钟 · 翻转黑屏 · 星云战报'
+        : '25 分钟 · 环境音 · 星云战报'
     let clock = formatClock(25 * 60 * 1000)
     let progress = 1
     let ringTone: 'cool' | 'warm' | 'danger' = 'cool'
@@ -958,10 +1115,10 @@ Page({
     const remaining = session
       ? focusRemainingMs(session, now)
       : 25 * 60 * 1000
-    const ariaBucket = Math.floor(remaining / ARIA_BUCKET_MS)
+    const ariaKey = `${fsmView}|${statusTitle}|${Math.floor(remaining / ARIA_BUCKET_MS)}`
     let clockAria = this.data.clockAria as string
-    if (ariaBucket !== runtime.lastAriaBucket) {
-      runtime.lastAriaBucket = ariaBucket
+    if (ariaKey !== runtime.lastAriaKey) {
+      runtime.lastAriaKey = ariaKey
       clockAria = formatAria(remaining, statusTitle)
     }
     const progressDeg = Math.round(progress * 3600) / 10
@@ -1004,7 +1161,7 @@ Page({
       this.startRingLoop()
     } else {
       this.stopRingLoop(false)
-      this.drawRingOnce()
+      this.safeDrawRing()
     }
   },
 
@@ -1029,6 +1186,42 @@ Page({
     }
   },
 
+  /** 每次进入前台 / 开始 / 继续：同一可见周期内记录 wall + monotonic 双锚点 */
+  setClockAnchor(now = Date.now()): void {
+    const runtime = this as unknown as FocusPageRuntime
+    if (typeof now !== 'number' || !Number.isFinite(now) || now <= 0) {
+      return
+    }
+    runtime.clockAnchorWall = now
+    runtime.clockAnchorPerf = readMonotonicNow()
+  },
+
+  /** Date.now 跳变超过 5s 视为时钟作弊；monotonic 不可用时不做误判 */
+  detectClockDrift(now: number): boolean {
+    const runtime = this as unknown as FocusPageRuntime
+    if (
+      typeof now !== 'number' ||
+      !Number.isFinite(now) ||
+      runtime.clockAnchorWall <= 0
+    ) {
+      return false
+    }
+    const wallElapsed = now - runtime.clockAnchorWall
+    if (wallElapsed < -CLOCK_DRIFT_LIMIT_MS) {
+      return true
+    }
+    const perfNow = readMonotonicNow()
+    if (perfNow < 0 || runtime.clockAnchorPerf < 0) {
+      return false
+    }
+    const perfElapsed = perfNow - runtime.clockAnchorPerf
+    /* perf.now 不前进 / 被重置时不做误判；超过 10s 的墙钟必须有至少 1s 的单调增量 */
+    if (perfElapsed <= 0 || (wallElapsed > 10000 && perfElapsed < 1000)) {
+      return false
+    }
+    return Math.abs(wallElapsed - perfElapsed) > CLOCK_DRIFT_LIMIT_MS
+  },
+
   tick(): void {
     const runtime = this as unknown as FocusPageRuntime
     if (runtime.destroyed || !runtime.visible || runtime.reportOpen) {
@@ -1039,6 +1232,15 @@ Page({
       return
     }
     const now = Date.now()
+
+    /* 弹窗决策期间不自动完成 / 不自动结束休息，避免报告在弹窗背后打开 */
+    if (this.data.modalShow) {
+      this.paint()
+      if (session.fsm !== 'paused') {
+        this.startTicker(session.fsm === 'overheat' ? 1000 : TICK_MS)
+      }
+      return
+    }
 
     if (session.fsm === 'focusing') {
       if (now - runtime.lastPersistAt >= PERSIST_INTERVAL_MS) {
@@ -1053,7 +1255,11 @@ Page({
       if (focusRemainingMs(runtime.session || session, now) <= 0) {
         const completion = completeFocusSession(runtime.session || session, now)
         if (completion) {
-          this.handleCompletion(completion, (runtime.session || session).id)
+          this.handleCompletion(
+            completion,
+            (runtime.session || session).id,
+            this.detectClockDrift(now),
+          )
           return
         }
       }
@@ -1068,6 +1274,7 @@ Page({
           clearFocusSession()
           this.stopAfterSession()
           this.toast('休息结束，可以开始下一轮', 'info')
+          this.closeDecisionModal()
           this.paint()
           this.syncGuard()
           this.syncUnloadAlert()
@@ -1083,6 +1290,7 @@ Page({
           clearFocusSession()
           this.stopAfterSession()
           this.toast('冷却结束，可以继续', 'success')
+          this.closeDecisionModal()
           this.paint()
           this.syncGuard()
           this.syncUnloadAlert()
@@ -1132,6 +1340,8 @@ Page({
         runtime.stats = loaded.stats
       }
     } else {
+      /* 落盘失败也要先清内存连续值，避免下一轮被旧值立刻再次 Overheat */
+      runtime.stats = next
       this.toast('连续专注重置失败，将在下次结算时重试', 'warning')
     }
   },
@@ -1165,8 +1375,8 @@ Page({
   },
 
   onTagInput(event: WechatMiniprogram.CustomEvent<{ value: string }>): void {
-    const value = sanitizeTag(event.detail?.value || '')
-    this.setData({ tagDraft: value })
+    /* 编辑中允许空值；只有点“开始心流”时才回退默认标签 */
+    this.setData({ tagDraft: cleanTagChars(event.detail?.value || '') })
   },
 
   onTrackToggle(event: WechatMiniprogram.SwitchChange): void {
@@ -1233,6 +1443,15 @@ Page({
     const runtime = this as unknown as FocusPageRuntime
     if (!runtime.ready || !runtime.stats || !runtime.key || runtime.evidenceBroken) {
       this.toast('专注数据暂不可用，请先清空专注数据', 'error')
+      return
+    }
+    const storedKey = readFocusKey()
+    if (!storedKey || storedKey !== runtime.key) {
+      runtime.key = ''
+      runtime.evidenceBroken = true
+      this.setData({ evidenceBroken: true, setupOpen: false })
+      this.paint()
+      this.toast('本机校验记录丢失，请先清空专注数据', 'error')
       return
     }
     const tag = sanitizeTag(this.data.tagDraft as string)
@@ -1303,6 +1522,7 @@ Page({
     this.stopTicker()
     this.stopRingLoop(false)
     this.stopMotionListening()
+    this.clearNetworkBadge()
     runtime.audio.setTracks([])
     runtime.bgm.stop()
   },
@@ -1355,6 +1575,15 @@ Page({
     runtime.pendingBack = false
     this.setData({ modalShow: false })
     this.syncGuard()
+  },
+
+  closeDecisionModal(): void {
+    const runtime = this as unknown as FocusPageRuntime
+    runtime.modalAction = null
+    runtime.pendingBack = false
+    if (this.data.modalShow) {
+      this.setData({ modalShow: false })
+    }
   },
 
   abandonFocus(navigateBack: boolean): void {
@@ -1485,7 +1714,11 @@ Page({
   /* 完成 / 战报                                                               */
   /* ------------------------------------------------------------------------ */
 
-  handleCompletion(completion: FocusCompletion, sessionId: string): void {
+  handleCompletion(
+    completion: FocusCompletion,
+    sessionId: string,
+    clockTainted = false,
+  ): void {
     const runtime = this as unknown as FocusPageRuntime
     const key = runtime.key
     const stats = runtime.stats
@@ -1493,15 +1726,28 @@ Page({
       this.stopTicker()
       runtime.session = null
       clearFocusSession()
+      this.closeDecisionModal()
       this.stopAfterSession()
+      this.restoreBrightness()
+      this.setKeepScreenOn(false)
+      this.setData({ blackScreen: false })
       this.paint()
       this.syncGuard()
       this.syncUnloadAlert()
       this.toast('专注数据暂不可用，已回到待机', 'error')
       return
     }
+    if (clockTainted) {
+      this.handleClockTaintedCompletion(completion, sessionId, key, stats)
+      return
+    }
     const now = Date.now()
-    const level = levelFromFocusMs(stats.totalFocusMs + completion.record.focusedMs)
+    const recordId = `rec-${sessionId}`
+    /* 崩溃恢复重放时 stats 可能已包含该 record，等级不得二次累加 */
+    const alreadyApplied = stats.lastAppliedRecordId === recordId
+    const level = levelFromFocusMs(
+      stats.totalFocusMs + (alreadyApplied ? 0 : completion.record.focusedMs),
+    )
     const record = buildFocusRecord(
       {
         sessionId,
@@ -1516,6 +1762,8 @@ Page({
       key,
     )
     if (!record) {
+      this.stopTicker()
+      this.paint()
       this.toast('战报生成失败，本次专注保留在会话中', 'error')
       return
     }
@@ -1526,7 +1774,15 @@ Page({
       now,
     })
     if (!result.ok) {
-      /* 写失败不空转：保留 session，下一次 onShow / 暂停继续时用同一 record.id 重试 */
+      if (
+        result.reason === 'signature' ||
+        result.reason === 'keyLost' ||
+        result.reason === 'clock'
+      ) {
+        this.handleRejectedCompletion(record, result.stats, result.reason)
+        return
+      }
+      /* 纯写失败不空转：保留 session，下一次 onShow / 暂停继续时用同一 record.id 重试 */
       this.stopTicker()
       this.paint()
       if (now - runtime.settlementToastAt > 5000) {
@@ -1543,8 +1799,95 @@ Page({
     if (!saveFocusSession(completion.session, key)) {
       logger.warn('focus', '战报会话写入失败，将在 onHide 重试')
     }
-    this.writeCompletionHistory(record)
+    /* 崩溃重放：stats 已包含该 record 时不再重复写轨迹 */
+    if (!alreadyApplied) {
+      try {
+        this.writeCompletionHistory(record)
+      } catch (error) {
+        logger.warn('focus', '专注历史写入失败', error)
+      }
+    }
     this.openReport(record, result.stats, !result.check.verified)
+  },
+
+  /** 时钟漂移：战报仍展示，但 stats 不更新、不写历史、不给休息/等级 */
+  handleClockTaintedCompletion(
+    completion: FocusCompletion,
+    sessionId: string,
+    key: string,
+    stats: FocusStats,
+  ): void {
+    const runtime = this as unknown as FocusPageRuntime
+    const record = buildFocusRecord(
+      {
+        sessionId,
+        tag: completion.record.tag,
+        startedAt: completion.record.startedAt,
+        endedAt: completion.record.endedAt,
+        focusedMs: completion.record.focusedMs,
+        breaches: completion.record.breaches,
+        level: levelFromFocusMs(stats.totalFocusMs),
+        confidence: completion.record.confidence,
+      },
+      key,
+    )
+    runtime.session = null
+    clearFocusSession()
+    this.closeDecisionModal()
+    this.stopTicker()
+    this.stopAfterSession()
+    this.restoreBrightness()
+    this.setKeepScreenOn(false)
+    this.setData({ blackScreen: false })
+
+    if (!record) {
+      this.paint()
+      this.syncGuard()
+      this.syncUnloadAlert()
+      this.toast('检测到本机时钟异常，本次专注不计入等级', 'warning')
+      return
+    }
+    if (!appendFocusRecord(record).ok) {
+      logger.warn('focus', '时钟异常战报写入账本失败')
+    }
+    this.openReport(record, stats, true, 'clock', false)
+    this.feedback('warn')
+    this.toast('检测到本机时钟异常，本次专注不计入等级', 'warning')
+  },
+
+  /** 验签 / 时钟异常：战报展示但 stats 不更新，避免同一 record 无限重试 */
+  handleRejectedCompletion(
+    record: FocusRecord,
+    stats: FocusStats,
+    reason: 'signature' | 'keyLost' | 'clock',
+  ): void {
+    const runtime = this as unknown as FocusPageRuntime
+    runtime.session = null
+    clearFocusSession()
+    this.closeDecisionModal()
+    this.stopTicker()
+    this.stopAfterSession()
+    this.restoreBrightness()
+    this.setKeepScreenOn(false)
+    this.setData({ blackScreen: false })
+    this.openReport(
+      record,
+      stats,
+      true,
+      reason,
+      false,
+      stats.level,
+    )
+    this.feedback('warn')
+    if (reason === 'clock') {
+      this.toast('检测到本机时钟异常，本次专注不计入等级', 'warning')
+      return
+    }
+    if (reason === 'keyLost') {
+      this.toast('本机校验记录丢失，本次专注不计入等级', 'warning')
+      return
+    }
+    this.toast('本机记录校验失败，本次专注不计入等级', 'warning')
   },
 
   writeCompletionHistory(record: FocusRecord): void {
@@ -1564,9 +1907,18 @@ Page({
     })
   },
 
-  openReport(record: FocusRecord, stats: FocusStats, tainted: boolean): void {
+  openReport(
+    record: FocusRecord,
+    stats: FocusStats,
+    tainted: boolean,
+    taintReason: 'signature' | 'clock' | 'keyLost' = 'signature',
+    successFeedback = true,
+    displayLevel = record.level,
+  ): void {
     const runtime = this as unknown as FocusPageRuntime
+    this.closeDecisionModal()
     runtime.reportOpen = true
+    runtime.posterRequestToken += 1
     runtime.reportRecord = record
     runtime.reportStats = stats
     runtime.reportTaintedNoticeShown = false
@@ -1588,11 +1940,15 @@ Page({
     this.stopTicker()
     this.stopRingLoop(false)
     this.stopMotionListening()
+    runtime.blackScreen = false
+    this.setData({ blackScreen: false })
     runtime.audio.setTracks([])
     runtime.bgm.stop()
     this.restoreBrightness()
     this.setKeepScreenOn(false)
-    this.feedback('success')
+    if (successFeedback) {
+      this.feedback('success')
+    }
 
     const canCanvas = !isDevtools() && !uiStore.lowMemory
     this.setData(
@@ -1600,13 +1956,20 @@ Page({
         reportOpen: true,
         reportMinutes: minutes,
         reportBreaches: record.breaches,
-        reportLevel: record.level,
-        reportLevelLabel: levelLabel(record.level),
+        reportLevel: displayLevel,
+        reportLevelLabel: levelLabel(displayLevel),
         reportStreak: stats.streakDays,
         reportTag: record.tag || DEFAULT_TAG,
         reportDate: padDate(formatLocalDate(record.endedAt)),
         reportConfidence: record.confidence,
         reportTainted: tainted,
+        reportTaintText: tainted
+          ? taintReason === 'clock'
+            ? '检测到本机时钟异常，本次不计入等级，星云已枯萎'
+            : taintReason === 'keyLost'
+              ? '本机校验记录丢失，本次不计入等级，星云已枯萎'
+              : '本机记录校验失败，本次不计入等级，星云已枯萎'
+          : '',
         nebulaPath: '',
         nebulaCanvasMounted: canCanvas,
         nebulaFallbackText: canCanvas ? '星云生成中' : '简化动效 · 星云未渲染',
@@ -1625,6 +1988,7 @@ Page({
   closeReport(): void {
     const runtime = this as unknown as FocusPageRuntime
     runtime.reportOpen = false
+    runtime.posterRequestToken += 1
     runtime.nebulaScene = null
     this.clearNebulaTimers()
     this.setData({
@@ -1749,6 +2113,9 @@ Page({
     if (runtime.destroyed) {
       return
     }
+    if (!runtime.reportOpen) {
+      return
+    }
     this.setData({
       nebulaCanvasMounted: false,
       nebulaPath: '',
@@ -1779,6 +2146,15 @@ Page({
     }
     const minutes = Math.max(1, Math.round(record.focusedMs / 60000))
     const stats = runtime.reportStats || runtime.stats
+    const level = stats?.level ?? record.level
+    const extras = [
+      `中断 ${record.breaches} 次`,
+      `Lv.${level} ${levelLabel(level)}`,
+      `连续 ${stats?.streakDays ?? 0} 天`,
+    ]
+    if (this.data.reportTainted) {
+      extras.push('本次不计入等级')
+    }
     return {
       toolId: 'focus',
       toolName: '全息专注',
@@ -1789,11 +2165,7 @@ Page({
         { label: '标签', value: record.tag || DEFAULT_TAG },
         { label: '日期', value: formatLocalDate(record.endedAt) },
       ],
-      extras: [
-        `中断 ${record.breaches} 次`,
-        `Lv.${record.level} ${levelLabel(record.level)}`,
-        `连续 ${stats?.streakDays ?? 0} 天`,
-      ],
+      extras,
       theme: uiStore.resolvedTheme,
       date: formatLocalDate(record.endedAt),
     }
@@ -1820,11 +2192,20 @@ Page({
       return
     }
     runtime.canvasTask = 'poster'
+    runtime.posterRequestToken += 1
+    const requestToken = runtime.posterRequestToken
+    const requestRecord = runtime.reportRecord
     this.setData({ posterLoading: true })
     try {
       const path = await generator.generate(payload)
+      if (requestToken !== runtime.posterRequestToken) {
+        return
+      }
       runtime.canvasTask = ''
-      if (runtime.destroyed || !runtime.reportOpen) {
+      if (runtime.destroyed) {
+        return
+      }
+      if (!runtime.reportOpen || runtime.reportRecord !== requestRecord) {
         this.setData({ posterLoading: false })
         return
       }
@@ -1838,6 +2219,9 @@ Page({
       })
       this.syncGuard()
     } catch (error) {
+      if (requestToken !== runtime.posterRequestToken || runtime.destroyed) {
+        return
+      }
       runtime.canvasTask = ''
       logger.warn('focus', '海报生成失败', error)
       this.setData({ posterLoading: false })
@@ -1859,6 +2243,7 @@ Page({
     return (
       Boolean(runtime.session) &&
       runtime.session?.fsm === 'focusing' &&
+      focusRemainingMs(runtime.session as FocusSession, Date.now()) > 0 &&
       Boolean(runtime.session?.audio.bgm) &&
       preferenceStore.sound &&
       preferenceStore.motion !== 'saver'
@@ -1906,6 +2291,7 @@ Page({
     }
     if (session.fsm === 'focusing') {
       if (runtime.visible) {
+        this.setClockAnchor()
         this.enterFocusBrightness()
         runtime.bgm.stop()
         runtime.audio.resume()
@@ -1940,6 +2326,23 @@ Page({
     }
     runtime.brightnessBusy = true
     try {
+      /* 已有 owned 原始值优先复用，避免上次恢复失败后把暗态误存为新 original */
+      const stored = loadFocusBrightness()
+      if (stored && stored.owned && stored.original >= 0) {
+        runtime.brightnessBusy = false
+        if (
+          !runtime.destroyed &&
+          runtime.visible &&
+          runtime.session &&
+          runtime.session.fsm === 'focusing'
+        ) {
+          runtime.originalBrightness = stored.original
+          runtime.brightnessDimmed = true
+          this.applyDimBrightness()
+          this.setKeepScreenOn(true)
+        }
+        return
+      }
       wx.getScreenBrightness({
         success: (res) => {
           runtime.brightnessBusy = false
@@ -1973,6 +2376,10 @@ Page({
 
   applyDimBrightness(): void {
     const runtime = this as unknown as FocusPageRuntime
+    /* 没有成功读到 original 时绝不改亮度，避免退出后无法恢复 */
+    if (!runtime.brightnessDimmed) {
+      return
+    }
     const value = runtime.blackScreen ? 0.05 : 0.2
     try {
       wx.setScreenBrightness({ value, fail: () => undefined })
@@ -1990,14 +2397,25 @@ Page({
         original = stored.original
       }
     }
+    let restoreFailed = false
     if (original >= 0 && typeof wx.setScreenBrightness === 'function') {
       try {
-        wx.setScreenBrightness({ value: original, fail: () => undefined })
+        wx.setScreenBrightness({
+          value: original,
+          /* 恢复失败时重写 stale key，下次 onLaunch 继续兜底 */
+          fail: () => {
+            restoreFailed = true
+            saveFocusBrightness(original)
+          },
+        })
       } catch {
-        /* 恢复失败由 app.ts 的 stale key 兜底 */
+        restoreFailed = true
+        saveFocusBrightness(original)
       }
     }
-    clearFocusBrightness()
+    if (!restoreFailed) {
+      clearFocusBrightness()
+    }
     runtime.brightnessDimmed = false
     runtime.originalBrightness = -1
     runtime.brightnessBusy = false
@@ -2055,6 +2473,9 @@ Page({
         fail: (error) => {
           runtime.motionStarted = false
           runtime.motionAvailable = false
+          if (runtime.destroyed) {
+            return
+          }
           this.setData({ flipAvailable: false })
           logger.warn('focus', 'DeviceMotion 不可用', error)
           if (!runtime.flipToastShown) {
@@ -2218,7 +2639,7 @@ Page({
       clearTimeout(runtime.glitchTimer)
       runtime.glitchTimer = 0
     }
-    if (this.data.glitchActive) {
+    if (this.data.glitchActive && !runtime.destroyed) {
       this.setData({ glitchActive: false })
     }
   },
@@ -2323,7 +2744,7 @@ Page({
     const runtime = this as unknown as FocusPageRuntime
     this.stopNetworkTimer()
     runtime.networkOffline = false
-    if (this.data.networkBadge) {
+    if (this.data.networkBadge || this.data.networkOffline) {
       this.setData({ networkBadge: '', networkOffline: false })
     }
   },
@@ -2334,6 +2755,23 @@ Page({
       clearTimeout(runtime.networkTimer)
       runtime.networkTimer = 0
     }
+  },
+
+  stopNetworkListener(): void {
+    const runtime = this as unknown as FocusPageRuntime
+    if (
+      runtime.networkHandler &&
+      typeof wx.offNetworkStatusChange === 'function'
+    ) {
+      try {
+        wx.offNetworkStatusChange(
+          runtime.networkHandler as unknown as () => void,
+        )
+      } catch {
+        /* 已解绑 */
+      }
+    }
+    runtime.networkHandler = null
   },
 
   /* ------------------------------------------------------------------------ */
@@ -2354,6 +2792,9 @@ Page({
     }
     runtime.ringQueryTimer = setTimeout(() => {
       runtime.ringQueryTimer = 0
+      if (runtime.destroyed) {
+        return
+      }
       if (runtime.ringQueryAttempts < RING_QUERY_RETRY) {
         this.queryRingCanvas()
         return
@@ -2370,7 +2811,7 @@ Page({
           clearTimeout(runtime.ringQueryTimer)
           runtime.ringQueryTimer = 0
         }
-        if (runtime.destroyed) {
+        if (runtime.destroyed || uiStore.lowMemory) {
           return
         }
         const entry =
@@ -2396,7 +2837,7 @@ Page({
         runtime.ringDpr = pixelRatio()
         runtime.ringGradient = null
         this.setData({ canvasReady: true, ringCanvasActive: true }, () => {
-          this.drawRingOnce()
+          this.safeDrawRing()
           if (
             runtime.session &&
             runtime.session.fsm === 'focusing' &&
@@ -2420,6 +2861,21 @@ Page({
       return 1
     }
     return clamp01(focusRemainingMs(session, Date.now()) / session.phaseTotalMs, 1)
+  },
+
+  safeDrawRing(): void {
+    const runtime = this as unknown as FocusPageRuntime
+    try {
+      this.drawRingOnce()
+    } catch (error) {
+      logger.warn('focus', '呼吸环绘制异常，回退 CSS 静态环', error)
+      runtime.ringCanvas = null
+      runtime.ringCtx = null
+      this.stopRingLoop(false)
+      if (!runtime.destroyed) {
+        this.setData({ canvasReady: false, ringCanvasMounted: false })
+      }
+    }
   },
 
   drawRingOnce(): void {
@@ -2528,6 +2984,7 @@ Page({
         runtime.destroyed ||
         !runtime.visible ||
         !runtime.session ||
+        !runtime.ringCanvas ||
         runtime.blackScreen ||
         this.data.glitchActive ||
         runtime.reportOpen ||
@@ -2540,7 +2997,7 @@ Page({
       }
       if (time - runtime.ringLastDrawAt >= RING_FRAME_MS) {
         runtime.ringLastDrawAt = time
-        this.drawRingOnce()
+        this.safeDrawRing()
       }
       if (canRaf) {
         runtime.ringRaf = node.requestAnimationFrame
@@ -2576,7 +3033,7 @@ Page({
       runtime.ringLoopTimer = 0
     }
     runtime.ringActive = false
-    if (this.data.ringCanvasActive) {
+    if (this.data.ringCanvasActive && !runtime.destroyed) {
       this.setData({ ringCanvasActive: false })
     }
     if (clear && runtime.ringCtx && runtime.ringSize > 0) {

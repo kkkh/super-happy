@@ -244,6 +244,7 @@ test('BGM：写文件 / 播放 / onEnded 循环 / stop / dispose', async () => {
     stops: 0,
     seeks: [],
     ended: null,
+    error: null,
     play() {
       this.plays += 1
     },
@@ -259,6 +260,14 @@ test('BGM：写文件 / 播放 / onEnded 循环 / stop / dispose', async () => {
     offEnded(handler) {
       if (this.ended === handler) {
         this.ended = null
+      }
+    },
+    onError(handler) {
+      this.error = handler
+    },
+    offError(handler) {
+      if (this.error === handler) {
+        this.error = null
       }
     },
   }
@@ -292,6 +301,43 @@ test('BGM：写文件 / 播放 / onEnded 循环 / stop / dispose', async () => {
   assert.equal(manager.ended, null)
   assert.doesNotThrow(() => controller.start())
   assert.equal(controller.disabled, true)
+})
+
+test('BGM：异步 onError → disabled + onWarn，dispose 解绑', async () => {
+  const audio = await loadAudio()
+  const warnings = []
+  let errorHandler = null
+  const manager = {
+    title: '',
+    src: '',
+    play() {},
+    stop() {},
+    onEnded() {},
+    offEnded() {},
+    onError(handler) {
+      errorHandler = handler
+    },
+    offError(handler) {
+      if (errorHandler === handler) {
+        errorHandler = null
+      }
+    },
+  }
+  const controller = new audio.FocusBgmController({
+    getManager: () => manager,
+    getFileSystem: () => ({ writeFileSync() {} }),
+    userDataPath: () => '/tmp',
+    onWarn: (message) => warnings.push(message),
+  })
+  assert.equal(controller.start(), true)
+  assert.equal(typeof errorHandler, 'function')
+  errorHandler(new Error('player aborted'))
+  assert.equal(controller.disabled, true)
+  assert.equal(controller.isPlaying, false)
+  assert.ok(warnings.some((message) => message.includes('后台保活中断')))
+
+  controller.dispose()
+  assert.equal(errorHandler, null)
 })
 
 test('BGM：管理器 / 文件系统不可用 → 降级且不抛错', async () => {

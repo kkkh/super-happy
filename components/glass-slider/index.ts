@@ -69,6 +69,11 @@ Component({
       type: String,
       value: '滑轨',
     },
+    /** 触觉强度；saver 模式传 none */
+    haptic: {
+      type: String,
+      value: 'light',
+    },
   },
 
   data: {
@@ -215,7 +220,9 @@ Component({
       runtime.dragging = true
       runtime.lastMoveAt = 0
       runtime.pendingX = touch.clientX
-      tapTick()
+      if (this.data.haptic !== 'none') {
+        tapTick()
+      }
       this.setData({ dragging: true })
       this.measureTrack()
       this.applyValue(this.valueFromX(touch.clientX), false)

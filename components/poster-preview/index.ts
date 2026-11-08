@@ -57,6 +57,11 @@ Component({
       type: Boolean,
       value: false,
     },
+    /** 触觉强度；saver 场景由页面显式传 none */
+    haptic: {
+      type: String,
+      value: 'light',
+    },
     zIndex: {
       type: Number,
       value: 1200,
@@ -136,6 +141,21 @@ Component({
   },
 
   methods: {
+    /** 页面显式静震时不震动；其余尊重全局 haptics 设置 */
+    feedback(kind: 'tick' | 'success' | 'warn'): void {
+      if (this.data.haptic === 'none') {
+        return
+      }
+      const haptics = useHaptics()
+      if (kind === 'success') {
+        haptics.success()
+      } else if (kind === 'warn') {
+        haptics.warn()
+      } else {
+        haptics.tick()
+      }
+    },
+
     openPreview(): void {
       const runtime = this as unknown as PreviewRuntime
       if (runtime.openTimer) {
@@ -164,7 +184,7 @@ Component({
         this.setData({ active: true })
         /* 已有现成图片时才在打开时反馈；生成流程等图片 onload 再反馈 */
         if (this.data.imageReady) {
-          useHaptics().success()
+          this.feedback('success')
         }
       }, 30) as unknown as number
     },
@@ -214,7 +234,7 @@ Component({
       const runtime = this as unknown as PreviewRuntime
       runtime.closeSource = source
       if (source !== 'saved') {
-        useHaptics().tick()
+        this.feedback('tick')
       }
       this.triggerEvent('close', { source })
       this.closePreview()
@@ -257,7 +277,7 @@ Component({
         return
       }
       if (typeof wx.showShareImageMenu !== 'function') {
-        useHaptics().warn()
+        this.feedback('warn')
         showGlassToast({
           message: '当前微信版本不支持图片分享，请保存到相册',
           type: 'warning',
@@ -276,7 +296,7 @@ Component({
             if (message.includes('cancel')) {
               return
             }
-            useHaptics().warn()
+            this.feedback('warn')
             showGlassToast({
               message: '分享失败，请稍后重试',
               type: 'error',
@@ -285,7 +305,7 @@ Component({
           },
         })
       } catch {
-        useHaptics().warn()
+        this.feedback('warn')
         showGlassToast({
           message: '分享失败，请稍后重试',
           type: 'error',
@@ -314,7 +334,7 @@ Component({
       }
       this.setData({ imageReady: true })
       if (this.data.mounted) {
-        useHaptics().success()
+        this.feedback('success')
       }
     },
 
@@ -336,7 +356,7 @@ Component({
         })
         .catch(() => {
           this.setData({ saving: false })
-          useHaptics().warn()
+          this.feedback('warn')
           showGlassToast({
             message: '保存失败，请稍后重试',
             type: 'error',
@@ -351,7 +371,7 @@ Component({
         filePath: this.data.imagePath,
         success: () => {
           this.setData({ saving: false, saved: true })
-          useHaptics().success()
+          this.feedback('success')
           showGlassToast({
             message: '已保存到相册',
             type: 'success',
@@ -370,7 +390,7 @@ Component({
             this.showPermissionModal()
             return
           }
-          useHaptics().warn()
+          this.feedback('warn')
           showGlassToast({
             message: '保存失败，请稍后重试',
             type: 'error',
@@ -382,7 +402,7 @@ Component({
 
     /** 相册权限被拒：原生弹窗引导用户去设置页恢复 */
     showPermissionModal(): void {
-      useHaptics().warn()
+      this.feedback('warn')
       wx.showModal({
         title: '需要相册权限',
         content: '保存海报需要访问你的相册。请在设置中允许“添加到相册”后重试。',
@@ -392,7 +412,7 @@ Component({
           if (result.confirm) {
             wx.openSetting({
               fail: () => {
-                useHaptics().warn()
+                this.feedback('warn')
                 showGlassToast({
                   message: '设置页打开失败',
                   type: 'warning',

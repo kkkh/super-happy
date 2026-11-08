@@ -929,9 +929,9 @@ export function settleFocusRecord(
   }
 
   return {
-    ok: true,
+    ok: applied.applied || applied.reason === 'ok',
     applied: applied.applied,
-    stats: applied.stats,
+    stats: applied.applied ? applied.stats : options.stats,
     check,
     records: appended.records,
     entries,
