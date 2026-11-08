@@ -42,20 +42,30 @@ jobs:
             package-lock.json
             subpackages/tools-core/package-lock.json
 
+      - name: 切换依赖源为 npmjs
+        shell: bash
+        run: |
+          node -e "const fs=require('fs');for(const f of ['package-lock.json','subpackages/tools-core/package-lock.json']){fs.writeFileSync(f,fs.readFileSync(f,'utf8').replaceAll('https://registry.npmmirror.com','https://registry.npmjs.org'))}"
+
       - name: 安装根包依赖
+        timeout-minutes: 12
         run: npm ci
 
       - name: 安装 tools-core 依赖
+        timeout-minutes: 6
         working-directory: subpackages/tools-core
         run: npm ci
 
       - name: 编译 Tailwind 样式
+        timeout-minutes: 5
         run: npm run build:style
 
       - name: 类型检查
+        timeout-minutes: 5
         run: npm run typecheck
 
       - name: 单元 / 集成测试
+        timeout-minutes: 5
         run: npm test
 
       - name: 校验标签与 APP_VERSION
@@ -80,6 +90,7 @@ jobs:
           node -e "const fs=require('fs');const raw=process.env.MP_CI_PRIVATE_KEY_BASE64||'';if(!raw){console.error('缺少 GitHub Secret MP_CI_PRIVATE_KEY_BASE64');process.exit(1)};fs.writeFileSync(process.env.KEY_PATH,Buffer.from(raw,'base64'),{mode:0o600})"
 
       - name: 上传小程序开发版本
+        timeout-minutes: 10
         env:
           MP_CI_PRIVATE_KEY_PATH: ${{ runner.temp }}/mp-ci/private.key
           INPUT_DESC: ${{ inputs.desc }}
