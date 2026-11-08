@@ -187,6 +187,8 @@ Component({
         runtime.imageTimer = 0
       }
 
+      /* closing 类会在 WXSS 中移除 backdrop-filter，
+         避免 Skyline 把模糊背板冻结成退场残影 */
       this.setData({ active: false, closing: true })
 
       runtime.closeTimer = setTimeout(() => {

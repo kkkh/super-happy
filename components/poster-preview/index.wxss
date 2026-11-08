@@ -70,6 +70,19 @@
   transform: translate3d(0, 0, 0) scale(1);
 }
 
+/* --------------------------------------------------------------------------
+   退场残影修复
+   Skyline 会把 backdrop-filter 提升为独立背板层；面板做 transform / opacity
+   退场时，内容先淡出，但模糊背板会冻结在原位，形成巨大的圆角色块残影，
+   直到节点卸载才消失。
+   关闭态第一帧直接移除模糊，只保留可随 opacity 正常淡出的半透明底板；
+   开启态与静态展示不受影响。
+   -------------------------------------------------------------------------- */
+.poster-preview_closing .poster-preview__panel {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
 /* 省电模式：只做透明度渐变 */
 .poster-preview_saver .poster-preview__panel {
   transform: none;
