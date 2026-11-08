@@ -37,6 +37,7 @@ const IGNORES = [
   '**/*.key',
   '.gitignore',
   '.github/**/*',
+  'chaohuan-ci-guide/**/*',
   'preview-qr.png',
   '未命名.png',
 ]
