@@ -3205,7 +3205,7 @@ npm run ci:upload
 5. 输出整包 / 主包 / 分包体积，便于核对 2MB 限制与 1500KB 预算。
 6. 结束时强制收口，避免 miniprogram-ci 残留句柄导致 CI 步骤挂起到超时。
 
-> 已验证：密钥、编译与真实上传成功（v1.1.0，主包 1.07 MB，整包 4.33 MB）；GitHub Actions 的构建 / 测试步骤通过，Runner 出口 IP 需在微信后台放行。
+> 已验证：密钥、编译与真实上传成功（v1.1.0，主包 1.07 MB，整包 4.33 MB）；GitHub Actions 标签触发端到端上传成功。若未来重新开启 IP 白名单，需放行 Runner 出口 IP。
 
 **首次配置**
 
@@ -3380,8 +3380,8 @@ MP_CI_PRIVATE_KEY_PATH="$MP_CI_KEY_FILE" npm run ci:upload
 | Workflow 覆盖率 | `tests/workflow-coverage.test.js` | 23 工具全部注册 / 适配器 / 来源 / 收发端 |
 | 分包路由 | `tests/subpackage-routing.test.js` | 通过 |
 | 视觉验收 | `npm run test:visual:hologram` | 需开发者工具 |
-| CI 上传 | `npm run ci:upload` | 脚本、npm 构建、真实密钥编译已验证；上传受 IP 白名单约束 |
-| GitHub Actions | `.github/workflows/miniprogram-ci.yml` | 标签 `v*` + 手动触发；构建 / 测试通过，上传需 Runner IP 放行 |
+| CI 上传 | `npm run ci:upload` | 脚本、npm 构建、真实密钥上传已验证；v1.1.0 已上传成功 |
+| GitHub Actions | `.github/workflows/miniprogram-ci.yml` | 标签 `v*` + 手动触发；端到端上传成功（v1.1.0） |
 
 ---
 
