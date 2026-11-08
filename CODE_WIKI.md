@@ -112,6 +112,7 @@
 |---|---|
 | `typescript` | `tsc --noEmit` 严格类型检查 |
 | `tailwindcss` / `@tailwindcss/postcss` | Design Tokens v2 / 原子类 |
+| `lightningcss` | Tailwind / weapp 构建期 CSS 引擎；显式锁定 1.33.0 以满足 peer 依赖 |
 | `weapp-tailwindcss` / `@weapp-tailwindcss/cli` | 小程序选择器转义、rem → rpx |
 | `fantasticon` | 从 `.icon-src/*.svg` 生成图标字体 |
 | `remixicon` | 图标源 |
@@ -2364,6 +2365,7 @@ graph LR
 | `diff-match-patch` | `subpackages/tools-core/utils/diffEngine` | 文本 Diff |
 | `typescript` | 构建 / 类型检查 | 无运行时 |
 | `tailwindcss` / `weapp-tailwindcss` | `styles/tokens.css` → `styles/generated/tailwind.wxss` | 原子类 |
+| `lightningcss` | `@tailwindcss/node` / `@weapp-tailwindcss/postcss` | CSS 引擎；显式 1.33.0 解决 peer 冲突 |
 | `fantasticon` | `.icon-src` → `.icon-dist` | 图标字体 |
 | `miniprogram-automator` | `tests/visual`、`tests/e2e` | 开发者工具自动化 |
 | `miniprogram-ci` | `scripts/ci-upload.js` | 自动构建 npm 并上传开发版本 |
@@ -3201,8 +3203,9 @@ npm run ci:upload
 3. 自动执行根包与 `subpackages/tools-core` 的 `miniprogram_npm` 构建（`ci.packNpmManually`，与 `packNpmRelationList` 一致）。
 4. 用 `ci.Project` + `ci.upload` 上传开发版本，编译设置使用 `useProjectConfig: true`。
 5. 输出整包 / 主包 / 分包体积，便于核对 2MB 限制与 1500KB 预算。
+6. 结束时强制收口，避免 miniprogram-ci 残留句柄导致 CI 步骤挂起到超时。
 
-> 当前已验证：脚本语法、缺失密钥提示、根包与 tools-core 的 `packNpmManually`、`npm run typecheck`、`npm test`。实际上传与本地编译需要有效的上传密钥，未配置密钥前无法完成端到端验证。
+> 已验证：密钥、编译与真实上传成功（v1.1.0，主包 1.07 MB，整包 4.33 MB）；GitHub Actions 的构建 / 测试步骤通过，Runner 出口 IP 需在微信后台放行。
 
 **首次配置**
 
@@ -3378,7 +3381,7 @@ MP_CI_PRIVATE_KEY_PATH="$MP_CI_KEY_FILE" npm run ci:upload
 | 分包路由 | `tests/subpackage-routing.test.js` | 通过 |
 | 视觉验收 | `npm run test:visual:hologram` | 需开发者工具 |
 | CI 上传 | `npm run ci:upload` | 脚本、npm 构建、真实密钥编译已验证；上传受 IP 白名单约束 |
-| GitHub Actions | `.github/workflows/miniprogram-ci.yml` | 标签 `v*` 自动触发 + 手动触发 |
+| GitHub Actions | `.github/workflows/miniprogram-ci.yml` | 标签 `v*` + 手动触发；构建 / 测试通过，上传需 Runner IP 放行 |
 
 ---
 
