@@ -64,7 +64,7 @@ test('环境光：media 分类映射暖橙紫', async () => {
   const state = ambient.resolveAmbientTheme(
     'auto',
     'media',
-    new Date('2026-11-05T10:00:00+08:00'),
+    new Date(2026, 10, 5, 10, 0, 0),
   )
 
   assert.equal(state.scene, 'warm')
@@ -78,12 +78,12 @@ test('环境光：深夜相位降低亮度并增加朦胧度', async () => {
   const day = ambient.resolveAmbientTheme(
     'auto',
     'calc',
-    new Date('2026-11-05T12:00:00+08:00'),
+    new Date(2026, 10, 5, 12, 0, 0),
   )
   const night = ambient.resolveAmbientTheme(
     'auto',
     'calc',
-    new Date('2026-11-05T23:30:00+08:00'),
+    new Date(2026, 10, 5, 23, 30, 0),
   )
 
   assert.ok(night.intensity < day.intensity)
