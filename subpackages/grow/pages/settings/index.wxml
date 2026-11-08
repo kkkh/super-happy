@@ -198,14 +198,14 @@
           <view class="cyber-kernel">
             <view class="cyber-kernel__status">
               <view class="cyber-kernel__pulse" aria-hidden="true"></view>
-              <text>{{cyberCanvasReady ? 'CANVAS ONLINE' : cyberFallback ? 'STATIC FALLBACK' : 'BOOTING'}}</text>
+              <text>{{galaxyDomMode ? 'DOM ONLINE' : cyberCanvasReady ? 'CANVAS ONLINE' : cyberFallback ? 'STATIC FALLBACK' : 'BOOTING'}}</text>
             </view>
             <text class="cyber-kernel__meta">{{galaxyNodeCount}} NODES · {{galaxyZoomText}}</text>
           </view>
 
           <view class="cyber-galaxy">
             <canvas
-              wx:if="{{!cyberFallback}}"
+              wx:if="{{!cyberFallback && !galaxyDomMode}}"
               id="galaxyCanvas"
               type="2d"
               class="cyber-canvas"
@@ -217,7 +217,7 @@
               catchtouchcancel="onGalaxyTouchCancel"
             ></canvas>
 
-            <view wx:else class="cyber-fallback">
+            <view wx:elif="{{cyberFallback}}" class="cyber-fallback">
               <view
                 wx:for="{{galaxyFallbackNodes}}"
                 wx:key="id"
@@ -231,6 +231,25 @@
                 </view>
               </view>
               <text wx:if="{{!galaxyFallbackNodes.length}}" class="cyber-fallback__empty">暂无数据星球，先收藏或使用一个工具</text>
+            </view>
+
+            <view
+              wx:if="{{galaxyDomMode}}"
+              class="cyber-galaxy__dom"
+              catchtouchstart="onGalaxyTouchStart"
+              catchtouchmove="onGalaxyTouchMove"
+              catchtouchend="onGalaxyTouchEnd"
+              catchtouchcancel="onGalaxyTouchCancel"
+              aria-hidden="true"
+            >
+              <view
+                wx:for="{{galaxyDots}}"
+                wx:key="id"
+                class="cyber-dom-dot {{item.selected ? 'cyber-dom-dot_selected' : ''}}"
+                style="transform: translate3d({{item.left}}px, {{item.top}}px, 0) translate(-50%, -50%); width:{{item.size}}px; height:{{item.size}}px; background-color:{{item.color}};"
+              >
+                <text wx:if="{{item.showLabel}}" class="cyber-dom-dot__label">{{item.label}}</text>
+              </view>
             </view>
 
             <view class="cyber-galaxy__hud galaxy-hud">

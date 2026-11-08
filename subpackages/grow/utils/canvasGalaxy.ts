@@ -215,6 +215,15 @@ export class GalaxyEngine {
     this.zoomAt(factor, this.width / 2, this.height / 2)
   }
 
+  /** 页面相机动画使用：直接设置视图，边界与缩放范围与手动操作一致 */
+  setView(x: number, y: number, zoomValue: number): void {
+    const limitX = this.width * 0.9
+    const limitY = this.height * 0.9
+    this.cameraX = clamp(safeNumber(x), -limitX, limitX)
+    this.cameraY = clamp(safeNumber(y), -limitY, limitY)
+    this.zoom = clamp(safeNumber(zoomValue, 1), MIN_ZOOM, MAX_ZOOM)
+  }
+
   resetView(): void {
     this.cameraX = 0
     this.cameraY = 0

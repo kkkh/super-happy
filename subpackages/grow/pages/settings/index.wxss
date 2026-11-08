@@ -965,6 +965,47 @@
   height: 100%;
 }
 
+/* ---- 开发者工具专用：Canvas 节点不可用时的 DOM 粒子层 ---- */
+.cyber-galaxy__dom {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1;
+  /* DOM 模式由本层直接接收手势，避免依赖空白 Canvas 的触摸分发 */
+  pointer-events: auto;
+}
+
+.cyber-dom-dot {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: 50%;
+  /* 位置由内联 transform 提供；80ms 过渡把 16fps 的 setData 补成连续运动 */
+  transition: transform 80ms linear;
+  box-shadow: 0 0 12rpx rgba(255, 255, 255, 0.25);
+}
+
+.cyber-dom-dot_selected {
+  box-shadow:
+    0 0 0 2rpx rgba(255, 255, 255, 0.72),
+    0 0 20rpx rgba(255, 255, 255, 0.42);
+}
+
+.cyber-dom-dot__label {
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  margin-top: 6rpx;
+  transform: translateX(-50%);
+  color: var(--glass-text-2);
+  font-size: 18rpx;
+  line-height: 1.2;
+  white-space: nowrap;
+  text-shadow: 0 1rpx 4rpx rgba(0, 0, 0, 0.45);
+}
+
 .cyber-fallback {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1040,6 +1081,7 @@
   justify-content: space-between;
   padding: 12rpx 16rpx;
   box-sizing: border-box;
+  z-index: 2;
   pointer-events: none;
 }
 

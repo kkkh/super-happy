@@ -1658,6 +1658,8 @@ Worker → 主线程: { kind: 'progress', id, progress }
 | 事件流 | `timeTravelEngine.ts` 的 `EventLog` | 内存环形 50 条，不落盘 |
 | 灾难恢复 | `timeTravelEngine.ts` | 热备 3 槽、自动快照 5 槽 |
 
+- 星系图分两条渲染通道：真机走 Canvas 2D 节点；Skyline 开发者工具不返回 canvas 节点（`node()` / `fields({ node: true })` 永不回调），自动切到同一 `GalaxyEngine` 物理驱动的 DOM 粒子层（`galaxyDomMode`），并使用 size-only 查询 + 500ms 看门狗兜底，禁止停在 BOOTING。
+
 `CronScheduler`：
 
 ```ts

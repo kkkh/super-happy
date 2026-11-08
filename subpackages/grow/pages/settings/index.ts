@@ -28,10 +28,12 @@ import { ambientTheme } from '../../../../core/theme/ambient-theme'
 import { APP_VERSION, ROUTES } from '../../../../core/constants/index'
 import { readUpdatePending } from '../../../../core/services/update'
 import { historyStore } from '../../../../core/stores/history'
+import { isDevtools } from '../../../../core/utils/platform'
 import {
   buildGalaxyNodes,
   GalaxyEngine,
   type GalaxyCtx,
+  type GalaxyParticle,
 } from '../../utils/canvasGalaxy'
 import {
   CRON_PRESETS,
@@ -65,6 +67,17 @@ import {
   validatePassphrase,
 } from '../../utils/aesVault'
 
+/** Canvas 节点 / DOM 尺寸查询超时：超时后重试或切换 DOM 兜底，绝不卡在 BOOTING */
+const CANVAS_QUERY_TIMEOUT = 500
+const DOM_QUERY_TIMEOUT = 500
+/** DOM 星系帧间隔：仅开发者工具路径使用，避免 setData 过密 */
+const DOM_FRAME_INTERVAL = 60
+/** 聚焦期间提高到约 30fps，保证相机位移肉眼可见地连续 */
+const DOM_FOCUS_FRAME_INTERVAL = 33
+/** 点击星球后的相机聚焦动画 */
+const GALAXY_FOCUS_DURATION = 420
+const GALAXY_FOCUS_ZOOM = 1.45
+
 type SettingsToastType = 'info' | 'success' | 'error' | 'warning'
 type PickerKind = 'haptics' | 'clean' | ''
 
@@ -83,6 +96,17 @@ interface SettingsChangeDetail<T> {
   value: T
 }
 
+interface GalaxyFocusState {
+  active: boolean
+  startX: number
+  startY: number
+  startZoom: number
+  targetX: number
+  targetY: number
+  targetZoom: number
+  startedAt: number
+}
+
 interface SettingsRuntime {
   themeBindings?: { destroyStoreBindings: () => void }
   preferenceBindings?: { destroyStoreBindings: () => void }
@@ -96,6 +120,8 @@ interface SettingsRuntime {
   galaxyCanvas?: CyberCanvasNode
   galaxyRaf: number
   galaxyTimer: number
+  /** Canvas / DOM 尺寸查询的看门狗句柄，收起或卸载时清理 */
+  galaxyQueryTimer: number
   galaxyLastFrame: number
   galaxyLastHudAt: number
   galaxyPaused: boolean
@@ -107,6 +133,8 @@ interface SettingsRuntime {
   galaxyPinch: number
   galaxyStartedAt: number
   galaxyMoved: boolean
+  /** 点击星球后的相机聚焦动画状态 */
+  galaxyFocus: GalaxyFocusState
   pilot?: CronScheduler
   pilotRunning: boolean
   pilotSeq: number
@@ -139,6 +167,19 @@ interface GalaxySelectedView {
   label: string
   kind: string
   value: string
+}
+
+/** DOM 星系粒子视图：仅开发者工具路径使用，坐标单位为 px */
+interface GalaxyDotView {
+  id: string
+  label: string
+  color: string
+  left: number
+  top: number
+  size: number
+  selected: boolean
+  /** 标签 AABB 未越界且不与已放置标签重叠 */
+  showLabel: boolean
 }
 
 interface GalaxyFallbackView {
@@ -187,6 +228,26 @@ function touchPoint(
         ? touch.pageY
         : 0
   return { x: clientX - rect.left, y: clientY - rect.top }
+}
+
+/** DOM 层是普通 view，触摸事件只有 client/page 坐标；用真实 rect 换算成局部坐标 */
+function domTouchPoint(
+  touch: CyberTouch | undefined,
+  rect: { left: number; top: number },
+): { x: number; y: number } {
+  if (!touch) {
+    return { x: 0, y: 0 }
+  }
+  if (typeof touch.clientX === 'number' && typeof touch.clientY === 'number') {
+    return { x: touch.clientX - rect.left, y: touch.clientY - rect.top }
+  }
+  if (typeof touch.pageX === 'number' && typeof touch.pageY === 'number') {
+    return { x: touch.pageX - rect.left, y: touch.pageY - rect.top }
+  }
+  return {
+    x: typeof touch.x === 'number' ? touch.x : 0,
+    y: typeof touch.y === 'number' ? touch.y : 0,
+  }
 }
 
 const CYBER_PILOT_KEY = 'cyber:pilot:v1'
@@ -385,6 +446,9 @@ Page({
     galaxyZoomText: '100%',
     galaxySelected: null as GalaxySelectedView | null,
     galaxyFallbackNodes: [] as GalaxyFallbackView[],
+    /* 开发者工具专用：Canvas 节点查询不可用时用 DOM 粒子渲染 */
+    galaxyDomMode: false,
+    galaxyDots: [] as GalaxyDotView[],
 
     /* ---- Auto-Pilot ---- */
     pilotEnabled: false,
@@ -450,6 +514,7 @@ Page({
     runtime.cyberDestroyed = false
     runtime.galaxyRaf = 0
     runtime.galaxyTimer = 0
+    runtime.galaxyQueryTimer = 0
     runtime.galaxyLastFrame = 0
     runtime.galaxyLastHudAt = 0
     runtime.galaxyPaused = false
@@ -461,6 +526,16 @@ Page({
     runtime.galaxyPinch = 0
     runtime.galaxyStartedAt = 0
     runtime.galaxyMoved = false
+    runtime.galaxyFocus = {
+      active: false,
+      startX: 0,
+      startY: 0,
+      startZoom: 1,
+      targetX: 0,
+      targetY: 0,
+      targetZoom: 1,
+      startedAt: 0,
+    }
     runtime.pilotRunning = false
     runtime.pilotSeq = 0
     runtime.eventFlushTimer = 0
@@ -593,7 +668,12 @@ Page({
   teardownCyberSpace(): void {
     const runtime = this as unknown as SettingsRuntime
     runtime.cyberDestroyed = true
+    runtime.galaxyFocus.active = false
     this.stopGalaxyLoop()
+    if (runtime.galaxyQueryTimer) {
+      clearTimeout(runtime.galaxyQueryTimer)
+      runtime.galaxyQueryTimer = 0
+    }
     if (runtime.galaxy) {
       runtime.galaxy.clear()
       runtime.galaxy = undefined
@@ -669,12 +749,20 @@ Page({
       runtime.galaxyCtx = undefined
       runtime.galaxyCanvas = undefined
       runtime.galaxyRect = { left: 0, top: 0, width: 0, height: 0 }
+      runtime.galaxyFocus.active = false
+      if (runtime.galaxyQueryTimer) {
+        clearTimeout(runtime.galaxyQueryTimer)
+        runtime.galaxyQueryTimer = 0
+      }
       this.setData({
         geekLabOpen: false,
         cyberCanvasReady: false,
         cyberFallback: false,
         galaxyNodeCount: 0,
         galaxySelected: null,
+        galaxyZoomText: '100%',
+        galaxyDomMode: false,
+        galaxyDots: [],
       })
       this.pushCyberEvent('action', 'geek-lab', 'collapsed')
       return
@@ -685,6 +773,8 @@ Page({
         geekLabOpen: true,
         cyberCanvasReady: false,
         cyberFallback: false,
+        galaxyDomMode: false,
+        galaxyDots: [],
       },
       () => {
         this.pushCyberEvent('action', 'geek-lab', 'expanded')
@@ -721,11 +811,41 @@ Page({
       this.startGalaxyLoop()
       return
     }
+
+    /* Skyline 开发者工具不实现 canvas 节点查询：
+       fields({ node: true }) / node() 永不回调，直接走 DOM 星系兜底 */
+    if (isDevtools()) {
+      this.mountGalaxyDom()
+      return
+    }
+
     try {
+      let settled = false
+      if (runtime.galaxyQueryTimer) {
+        clearTimeout(runtime.galaxyQueryTimer)
+        runtime.galaxyQueryTimer = 0
+      }
+      runtime.galaxyQueryTimer = setTimeout(() => {
+        runtime.galaxyQueryTimer = 0
+        if (settled) {
+          return
+        }
+        settled = true
+        this.retryMountGalaxy(attempt, 'Canvas 节点查询无响应')
+      }, CANVAS_QUERY_TIMEOUT) as unknown as number
+
       this.createSelectorQuery()
         .select('#galaxyCanvas')
         .fields({ node: true, size: true })
         .exec((result: unknown[]) => {
+          if (settled) {
+            return
+          }
+          settled = true
+          if (runtime.galaxyQueryTimer) {
+            clearTimeout(runtime.galaxyQueryTimer)
+            runtime.galaxyQueryTimer = 0
+          }
           if (runtime.cyberDestroyed || !this.data.geekLabOpen) {
             return
           }
@@ -782,11 +902,204 @@ Page({
           this.pushCyberEvent('action', 'galaxy', `Canvas 引擎启动 · ${width}×${height}`)
         })
     } catch (error) {
+      if (runtime.galaxyQueryTimer) {
+        clearTimeout(runtime.galaxyQueryTimer)
+        runtime.galaxyQueryTimer = 0
+      }
       this.retryMountGalaxy(
         attempt,
         error instanceof Error ? error.message : 'Canvas 查询异常',
       )
     }
+  },
+
+  /**
+   * 开发者工具专用：Skyline 模拟器无法查询 canvas 节点，
+   * 用同一套 GalaxyEngine 物理 + DOM 粒子做等价预览；真机永不进入此分支。
+   */
+  mountGalaxyDom(): void {
+    const runtime = this as unknown as SettingsRuntime
+    if (runtime.cyberDestroyed || !this.data.geekLabOpen) {
+      return
+    }
+
+    const create = (width: number, height: number, left = 0, top = 0): void => {
+      try {
+        if (runtime.cyberDestroyed || !this.data.geekLabOpen || runtime.galaxy) {
+          return
+        }
+        const safeWidth = Math.max(160, Math.round(width))
+        const safeHeight = Math.max(120, Math.round(height))
+        const engine = new GalaxyEngine({
+          width: safeWidth,
+          height: safeHeight,
+          degraded: uiStore.lowMemory || preferenceStore.motion === 'saver',
+          theme: uiStore.resolvedTheme,
+        })
+        this.fillGalaxyNodes(engine)
+        runtime.galaxy = engine
+        runtime.galaxyCtx = undefined
+        runtime.galaxyCanvas = undefined
+        /* 记录 DOM 层真实左上角：view 触摸事件没有 canvas 的相对 x/y，
+           必须用 client 坐标减去这个 rect 才能命中星球 */
+        runtime.galaxyRect = { left, top, width: safeWidth, height: safeHeight }
+        this.setData({
+          cyberCanvasReady: true,
+          cyberFallback: false,
+          galaxyDomMode: true,
+          galaxyNodeCount: engine.getParticles().length,
+          galaxyDegraded: engine.isDegraded(),
+          galaxyZoomText: '100%',
+          galaxyDots: this.buildGalaxyDots(engine),
+        })
+        this.startGalaxyLoop()
+        this.pushCyberEvent('action', 'galaxy', `DOM 渲染启动 · ${safeWidth}×${safeHeight}`)
+      } catch (error) {
+        this.activateGalaxyFallback(
+          error instanceof Error ? error.message : 'DOM 星系初始化异常',
+        )
+      }
+    }
+
+    const fallbackSize = (): void => {
+      let width = 320
+      try {
+        const info = wx.getWindowInfo()
+        width = Math.min(420, (info.windowWidth || 375) - 96)
+      } catch {
+        width = 320
+      }
+      create(width, 220)
+    }
+
+    try {
+      let settled = false
+      if (runtime.galaxyQueryTimer) {
+        clearTimeout(runtime.galaxyQueryTimer)
+        runtime.galaxyQueryTimer = 0
+      }
+      runtime.galaxyQueryTimer = setTimeout(() => {
+        runtime.galaxyQueryTimer = 0
+        if (settled) {
+          return
+        }
+        settled = true
+        fallbackSize()
+      }, DOM_QUERY_TIMEOUT) as unknown as number
+
+      /* 只查 rect，不查 node：模拟器下 node 查询永不回调；
+         rect 同时给出尺寸与真实左上角，供 view 触摸坐标换算 */
+      this.createSelectorQuery()
+        .select('#galaxyCanvas')
+        .boundingClientRect()
+        .exec((result: unknown[]) => {
+          if (settled) {
+            return
+          }
+          settled = true
+          if (runtime.galaxyQueryTimer) {
+            clearTimeout(runtime.galaxyQueryTimer)
+            runtime.galaxyQueryTimer = 0
+          }
+          const entry = (result && result[0]) as
+            | {
+                left?: number
+                top?: number
+                width?: number
+                height?: number
+              }
+            | undefined
+          const width = entry && typeof entry.width === 'number' ? entry.width : 0
+          const height = entry && typeof entry.height === 'number' ? entry.height : 0
+          const left = entry && typeof entry.left === 'number' ? entry.left : 0
+          const top = entry && typeof entry.top === 'number' ? entry.top : 0
+          if (width > 0 && height > 0) {
+            create(width, height, left, top)
+            return
+          }
+          fallbackSize()
+        })
+    } catch (error) {
+      if (runtime.galaxyQueryTimer) {
+        clearTimeout(runtime.galaxyQueryTimer)
+        runtime.galaxyQueryTimer = 0
+      }
+      this.activateGalaxyFallback(
+        error instanceof Error ? error.message : 'DOM 星系查询异常',
+      )
+    }
+  },
+
+  buildGalaxyDots(engine: GalaxyEngine): GalaxyDotView[] {
+    const view = engine.getView()
+    const size = engine.getSize()
+    const selected = engine.selected()
+    const placedLabels: Array<{
+      left: number
+      top: number
+      right: number
+      bottom: number
+    }> = []
+    return engine.getParticles().map((particle) => {
+      const label =
+        particle.label.length > 8
+          ? `${particle.label.slice(0, 7)}…`
+          : particle.label
+      const left = Math.round(size.width / 2 + view.x + particle.x * view.zoom)
+      const top = Math.round(size.height / 2 + view.y + particle.y * view.zoom)
+      const diameter = Math.round(
+        particle.radius * 2 * (selected && selected.id === particle.id ? 1.14 : 1),
+      )
+      const labelWidth = Math.min(
+        140,
+        Array.from(label).reduce(
+          (width, char) => width + (/[\u4e00-\u9fa5]/.test(char) ? 10 : 6),
+          0,
+        ),
+      )
+      const labelHeight = 13
+      const labelLeft = left - labelWidth / 2
+      const labelTop = top + diameter / 2 + 4
+      const labelRight = labelLeft + labelWidth
+      const labelBottom = labelTop + labelHeight
+      const inBounds =
+        labelLeft >= 6 &&
+        labelRight <= size.width - 6 &&
+        labelTop >= 4 &&
+        labelBottom <= size.height - 4
+      const overlaps = placedLabels.some((other) => {
+        const gap = 3
+        return !(
+          labelRight + gap < other.left ||
+          labelLeft - gap > other.right ||
+          labelBottom + gap < other.top ||
+          labelTop - gap > other.bottom
+        )
+      })
+      const showLabel = !engine.isDegraded() && inBounds && !overlaps
+      if (showLabel) {
+        placedLabels.push({
+          left: labelLeft,
+          top: labelTop,
+          right: labelRight,
+          bottom: labelBottom,
+        })
+      }
+      return {
+        id: particle.id,
+        label,
+        color: particle.color,
+        left,
+        top,
+        size: diameter,
+        selected: Boolean(selected && selected.id === particle.id),
+        showLabel,
+      }
+    })
+  },
+
+  applyGalaxyDots(engine: GalaxyEngine): void {
+    this.setData({ galaxyDots: this.buildGalaxyDots(engine) })
   },
 
   retryMountGalaxy(attempt: number, reason: string): void {
@@ -822,7 +1135,29 @@ Page({
   },
 
   activateGalaxyFallback(reason: string): void {
-    this.setData({ cyberCanvasReady: false, cyberFallback: true, galaxyDegraded: true })
+    const runtime = this as unknown as SettingsRuntime
+    runtime.galaxyFocus.active = false
+    this.stopGalaxyLoop()
+    if (runtime.galaxyQueryTimer) {
+      clearTimeout(runtime.galaxyQueryTimer)
+      runtime.galaxyQueryTimer = 0
+    }
+    if (runtime.galaxy) {
+      runtime.galaxy.clear()
+      runtime.galaxy = undefined
+    }
+    runtime.galaxyCtx = undefined
+    runtime.galaxyCanvas = undefined
+    /* 画布不可用时也把数据星球灌进静态列表，避免降级后一片空白 */
+    this.refreshGalaxyNodes()
+    this.setData({
+      cyberCanvasReady: false,
+      cyberFallback: true,
+      galaxyDegraded: true,
+      galaxyZoomText: '100%',
+      galaxyDomMode: false,
+      galaxyDots: [],
+    })
     this.pushCyberEvent('error', 'galaxy', `已降级为静态星球列表：${reason}`)
   },
 
@@ -843,11 +1178,12 @@ Page({
     if (runtime.galaxy) {
       runtime.galaxy.setTheme(uiStore.resolvedTheme)
     }
+    const domMode = this.data.galaxyDomMode
     if (
       runtime.cyberDestroyed ||
       !this.data.geekLabOpen ||
       !runtime.galaxy ||
-      !runtime.galaxyCanvas ||
+      (!domMode && !runtime.galaxyCanvas) ||
       runtime.galaxyRaf ||
       runtime.galaxyTimer
     ) {
@@ -865,11 +1201,22 @@ Page({
       if (!engine) {
         return
       }
+      this.tickGalaxyFocus(Date.now())
       const last = runtime.galaxyLastFrame
       runtime.galaxyLastFrame = time
-      const dt = last ? Math.min(32, Math.max(1, time - last)) : 16
-      engine.step(dt)
-      engine.draw(runtime.galaxyCtx || null)
+      const elapsed = last ? Math.max(1, time - last) : 16
+      const dt = Math.min(32, elapsed)
+      if (this.data.galaxyDomMode) {
+        /* DOM 模式 60ms 一帧；用 16ms 切片补足物理时间，避免模拟器里变成慢动作 */
+        const steps = Math.max(1, Math.min(4, Math.round(elapsed / 16)))
+        for (let index = 0; index < steps; index += 1) {
+          engine.step(16)
+        }
+        this.applyGalaxyDots(engine)
+      } else {
+        engine.step(dt)
+        engine.draw(runtime.galaxyCtx || null)
+      }
       if (time - runtime.galaxyLastHudAt > 420) {
         runtime.galaxyLastHudAt = time
         const zoomText = `${Math.round(engine.getView().zoom * 100)}%`
@@ -881,6 +1228,13 @@ Page({
     }
     schedule = (): void => {
       if (runtime.cyberDestroyed || runtime.galaxyPaused || !runtime.galaxy) {
+        return
+      }
+      if (this.data.galaxyDomMode) {
+        runtime.galaxyTimer = setTimeout(
+          () => frame(Date.now()),
+          runtime.galaxyFocus.active ? DOM_FOCUS_FRAME_INTERVAL : DOM_FRAME_INTERVAL,
+        ) as unknown as number
         return
       }
       const canvas = runtime.galaxyCanvas
@@ -907,6 +1261,117 @@ Page({
     runtime.galaxyLastFrame = 0
   },
 
+  /** DOM 模式：每次按下刷新真实 rect，页面滚动后仍能精准命中 */
+  refreshGalaxyRect(): void {
+    const runtime = this as unknown as SettingsRuntime
+    if (!this.data.galaxyDomMode || typeof this.createSelectorQuery !== 'function') {
+      return
+    }
+    this.createSelectorQuery()
+      .select('.cyber-galaxy__dom')
+      .boundingClientRect()
+      .exec((result: unknown[]) => {
+        if (runtime.cyberDestroyed || !this.data.galaxyDomMode) {
+          return
+        }
+        const rect = (result && result[0]) as
+          | {
+              left?: number
+              top?: number
+              width?: number
+              height?: number
+            }
+          | undefined
+        if (!rect || typeof rect.left !== 'number' || typeof rect.top !== 'number') {
+          return
+        }
+        runtime.galaxyRect = {
+          left: rect.left,
+          top: rect.top,
+          width:
+            typeof rect.width === 'number' ? rect.width : runtime.galaxyRect.width,
+          height:
+            typeof rect.height === 'number' ? rect.height : runtime.galaxyRect.height,
+        }
+      })
+  },
+
+  /** Canvas 用相对 x/y；DOM view 用 client 坐标减真实 rect */
+  resolveGalaxyTouch(touch: CyberTouch | undefined): { x: number; y: number } {
+    const runtime = this as unknown as SettingsRuntime
+    if (this.data.galaxyDomMode) {
+      return domTouchPoint(touch, runtime.galaxyRect)
+    }
+    return touchPoint(touch, runtime.galaxyRect)
+  },
+
+  /** 点击星球：相机平滑放大并把该星球移到画布中心 */
+  focusGalaxyParticle(particle: GalaxyParticle): void {
+    const runtime = this as unknown as SettingsRuntime
+    const engine = runtime.galaxy
+    if (!engine) {
+      return
+    }
+    const view = engine.getView()
+    const targetZoom = Math.max(view.zoom, GALAXY_FOCUS_ZOOM)
+    runtime.galaxyFocus = {
+      active: true,
+      startX: view.x,
+      startY: view.y,
+      startZoom: view.zoom,
+      targetX: -particle.x * targetZoom,
+      targetY: -particle.y * targetZoom,
+      targetZoom,
+      /* 首帧再取真实起点，避免点击到下一帧之间的延迟被算进进度造成起步跳变 */
+      startedAt: 0,
+    }
+  },
+
+  /** 由渲染循环每帧调用；DOM 与 Canvas 两种模式共用 */
+  tickGalaxyFocus(now: number): void {
+    const runtime = this as unknown as SettingsRuntime
+    const focus = runtime.galaxyFocus
+    const engine = runtime.galaxy
+    if (!focus.active || !engine) {
+      return
+    }
+    /* 星球在聚焦过程中仍在缓慢运动，目标点跟随它，最终保持居中 */
+    const selected = engine.selected()
+    if (selected) {
+      focus.targetX = -selected.x * focus.targetZoom
+      focus.targetY = -selected.y * focus.targetZoom
+    }
+    if (focus.startedAt === 0) {
+      const current = engine.getView()
+      focus.startedAt = now
+      focus.startX = current.x
+      focus.startY = current.y
+      focus.startZoom = current.zoom
+      return
+    }
+    const progress = Math.min(
+      1,
+      Math.max(0, (now - focus.startedAt) / GALAXY_FOCUS_DURATION),
+    )
+    /* ease-in-out：低帧率下也不会在首帧把大部分距离一次性走完 */
+    const eased =
+      progress < 0.5
+        ? 4 * progress * progress * progress
+        : 1 - Math.pow(-2 * progress + 2, 3) / 2
+    engine.setView(
+      focus.startX + (focus.targetX - focus.startX) * eased,
+      focus.startY + (focus.targetY - focus.startY) * eased,
+      focus.startZoom + (focus.targetZoom - focus.startZoom) * eased,
+    )
+    if (progress >= 1) {
+      focus.active = false
+      const zoomText = `${Math.round(focus.targetZoom * 100)}%`
+      if (zoomText !== this.data.galaxyZoomText) {
+        this.setData({ galaxyZoomText: zoomText })
+      }
+    }
+  },
+
   onGalaxyTouchStart(event: CyberTouchEvent): void {
     const runtime = this as unknown as SettingsRuntime
     const engine = runtime.galaxy
@@ -914,7 +1379,12 @@ Page({
     if (!engine || touches.length === 0) {
       return
     }
-    const first = touchPoint(touches[0], runtime.galaxyRect)
+    /* 用户重新触摸立即接管相机，取消尚未完成的聚焦动画 */
+    runtime.galaxyFocus.active = false
+    if (this.data.galaxyDomMode) {
+      this.refreshGalaxyRect()
+    }
+    const first = this.resolveGalaxyTouch(touches[0])
     runtime.galaxyStartX = first.x
     runtime.galaxyStartY = first.y
     runtime.galaxyLastX = first.x
@@ -922,7 +1392,7 @@ Page({
     runtime.galaxyStartedAt = Date.now()
     runtime.galaxyMoved = false
     if (touches.length >= 2) {
-      const second = touchPoint(touches[1], runtime.galaxyRect)
+      const second = this.resolveGalaxyTouch(touches[1])
       runtime.galaxyPinch = Math.max(
         1,
         Math.sqrt(
@@ -943,8 +1413,8 @@ Page({
       return
     }
     if (touches.length >= 2) {
-      const first = touchPoint(touches[0], runtime.galaxyRect)
-      const second = touchPoint(touches[1], runtime.galaxyRect)
+      const first = this.resolveGalaxyTouch(touches[0])
+      const second = this.resolveGalaxyTouch(touches[1])
       const distance = Math.max(
         1,
         Math.sqrt(
@@ -966,7 +1436,7 @@ Page({
       return
     }
 
-    const point = touchPoint(touches[0], runtime.galaxyRect)
+    const point = this.resolveGalaxyTouch(touches[0])
     const dx = point.x - runtime.galaxyLastX
     const dy = point.y - runtime.galaxyLastY
     runtime.galaxyLastX = point.x
@@ -990,7 +1460,7 @@ Page({
       event && Array.isArray(event.changedTouches) && event.changedTouches.length > 0
         ? event.changedTouches[0]
         : undefined
-    const point = touchPoint(changed, runtime.galaxyRect)
+    const point = this.resolveGalaxyTouch(changed)
     const local = { x: point.x, y: point.y }
     const elapsed = Date.now() - runtime.galaxyStartedAt
     runtime.galaxyPinch = 0
@@ -999,6 +1469,10 @@ Page({
       return
     }
     const particle = engine.hitTest(local.x, local.y)
+    if (particle) {
+      /* 命中后先启动相机聚焦，再展示详情卡 */
+      this.focusGalaxyParticle(particle)
+    }
     this.setData({
       galaxySelected: particle
         ? {
@@ -1022,6 +1496,7 @@ Page({
     if (!runtime.galaxy) {
       return
     }
+    runtime.galaxyFocus.active = false
     runtime.galaxy.zoomBy(1.18)
     this.setData({ galaxyZoomText: `${Math.round(runtime.galaxy.getView().zoom * 100)}%` })
   },
@@ -1031,6 +1506,7 @@ Page({
     if (!runtime.galaxy) {
       return
     }
+    runtime.galaxyFocus.active = false
     runtime.galaxy.zoomBy(0.84)
     this.setData({ galaxyZoomText: `${Math.round(runtime.galaxy.getView().zoom * 100)}%` })
   },
@@ -1040,6 +1516,7 @@ Page({
     if (!runtime.galaxy) {
       return
     }
+    runtime.galaxyFocus.active = false
     runtime.galaxy.resetView()
     runtime.galaxy.select('')
     this.setData({ galaxyZoomText: '100%', galaxySelected: null })

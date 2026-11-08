@@ -456,6 +456,13 @@ test('Galaxy：引力位移、弹性碰撞、命中、缩放与降级', async ()
   engine.resetView()
   assert.equal(engine.getView().zoom, 1)
 
+  engine.setView(80, -40, 1.45)
+  const focusView = engine.getView()
+  assert.equal(focusView.x, 80)
+  assert.equal(focusView.y, -40)
+  assert.equal(focusView.zoom, 1.45)
+  engine.resetView()
+
   engine.setDegraded(true)
   assert.equal(engine.isDegraded(), true)
   const ctx = {
@@ -610,6 +617,19 @@ test('Geek Lab：默认收起，展开后才查询 Canvas，初始化失败自�
     'Canvas 查询只请求 node/size，避免 rect 字段在 Skyline 下拿不到尺寸',
   )
   assert.equal(ts.includes('rect: true'), false, '不得在 Canvas 查询里请求 rect')
+  assert.ok(ts.includes('isDevtools()'), '开发者工具必须走独立星系渲染分支')
+  assert.ok(ts.includes('mountGalaxyDom'), '缺少开发者工具 DOM 星系兜底')
+  assert.ok(ts.includes('galaxyDomMode'), '缺少 DOM 星系状态')
+  assert.ok(ts.includes('CANVAS_QUERY_TIMEOUT'), 'Canvas 节点查询必须带看门狗')
+  assert.ok(ts.includes('.boundingClientRect()'), 'DOM 兜底必须查询真实矩形')
+  assert.ok(ts.includes('domTouchPoint'), 'DOM 兜底必须用 client 坐标换算')
+  assert.ok(ts.includes('refreshGalaxyRect'), 'DOM 触摸必须刷新真实 rect')
+  assert.ok(ts.includes('focusGalaxyParticle'), '缺少点击星球自动聚焦')
+  assert.ok(ts.includes('tickGalaxyFocus'), '缺少相机聚焦动画帧')
+  assert.ok(ts.includes('GALAXY_FOCUS_ZOOM'), '缺少聚焦目标缩放')
+  assert.ok(wxml.includes('cyber-galaxy__dom'), '缺少 DOM 星系渲染层')
+  assert.ok(wxml.includes('galaxyDots'), '缺少 DOM 粒子循环')
+  assert.ok(wxml.includes('!galaxyDomMode'), 'DOM 模式必须移除 Canvas，避免拦截触摸')
   assert.ok(
     wxml.includes('bindtap="onToggleGeekLab"'),
     '实验室标题必须可点击展开',
