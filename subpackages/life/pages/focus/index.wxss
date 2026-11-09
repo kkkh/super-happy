@@ -878,6 +878,11 @@
   animation: focus-glitch-ring 1s steps(3) both;
 }
 
+/* 故障层为半透明 scrim：隐藏圆心计时，避免与「心流已断裂」叠加 */
+.focus-ring-wrap.is-glitch .focus-ring-inner {
+  opacity: 0;
+}
+
 @keyframes focus-glitch-ring {
   0% {
     transform: translateX(0);
