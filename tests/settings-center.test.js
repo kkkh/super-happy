@@ -398,6 +398,16 @@ test('全息专注入口：会话状态副标题与冷却倒计时', async (t) =
 
     globalThis.wx.setStorageSync('focus:session:v1', {
       ...base,
+      fsm: 'breaking',
+      phaseEndsAt: Date.now() - 1000,
+    })
+    page.refreshFocusEntry()
+    assert.equal(page.data.focusEntrySub, '休息已结束 · 可开始下一轮')
+    assert.equal(page.data.focusEntryValue, 'READY')
+    assert.equal(page.data.focusClearRunning, false)
+
+    globalThis.wx.setStorageSync('focus:session:v1', {
+      ...base,
       fsm: 'overheat',
       phaseTotalMs: 30 * 60 * 1000,
       lockUntil: Date.now() - 1000,

@@ -125,9 +125,15 @@ test('Canvas：isDevtools 跳过查询，真机 watchdog 与静态环兜底', ()
 test('副本与状态：Overheat / Glitch / 网络徽章 / 跳过休息文案完整', () => {
   const ts = read(`${PAGE}.ts`)
   const wxml = read(`${PAGE}.wxml`)
+  const wxss = read(`${PAGE}.wxss`)
   assert.match(ts, /连续专注 2 小时，先休息 30 分钟/)
   assert.match(wxml, /心流已断裂/)
   assert.match(wxml, /已记录 {{glitchCount}} 次中断，计时继续/)
+  /* Glitch 半透明 scrim 下必须隐藏圆心计时，避免与提示文字叠加 */
+  assert.match(
+    wxss,
+    /\.focus-ring-wrap\.is-glitch \.focus-ring-inner \{[\s\S]*?opacity: 0;/,
+  )
   assert.match(ts, /跳过休息？/)
   assert.match(ts, /放弃这次心流？/)
   assert.match(ts, /已离线 · 心流继续/)

@@ -750,8 +750,13 @@ Page({
         subtitle = '心流进行中 · 返回专注'
         value = 'PAUSED'
       } else if (snapshot.fsm === 'breaking') {
-        subtitle = '休息中 · 返回专注'
-        value = 'BREAK'
+        if (snapshot.phaseEndsAt <= now) {
+          subtitle = '休息已结束 · 可开始下一轮'
+          value = 'READY'
+        } else {
+          subtitle = '休息中 · 返回专注'
+          value = 'BREAK'
+        }
       } else if (snapshot.fsm === 'overheat') {
         if (snapshot.lockUntil > now) {
           subtitle = `冷却中 · 剩余 ${formatFocusClock(snapshot.lockUntil - now)}`
