@@ -1108,7 +1108,7 @@
       <view class="settings-confirm__icon" aria-hidden="true">
         <g-icon name="clock" size="{{40}}" tone="ink3" />
       </view>
-      <text class="settings-confirm__title">清空专注数据？</text>
+      <text class="settings-confirm__title">确定清空？</text>
       <text class="settings-confirm__desc">{{focusClearDesc}}</text>
 
       <view class="settings-confirm__actions">
