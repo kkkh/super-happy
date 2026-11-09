@@ -116,6 +116,11 @@ interface CanvasQueryEntry {
   height?: number
 }
 
+interface CanvasBoxRect {
+  width?: number
+  height?: number
+}
+
 interface NetworkChangeResult {
   isConnected: boolean
   networkType: string
@@ -2959,6 +2964,8 @@ Page({
     this.createSelectorQuery()
       .select('#focus-ring')
       .fields({ node: true, size: true })
+      .select('.focus-ring-wrap')
+      .boundingClientRect()
       .exec((result: unknown[]) => {
         if (runtime.ringQueryTimer) {
           clearTimeout(runtime.ringQueryTimer)
@@ -2969,8 +2976,12 @@ Page({
         }
         const entry =
           result && result[0] ? (result[0] as CanvasQueryEntry) : null
+        const box =
+          result && result[1] ? (result[1] as CanvasBoxRect) : null
         const node = entry?.node
-        const width = safeNumber(entry?.width)
+        /* 以环盒宽度为准：canvas 的 CSS 盒子必须严格等于 520rpx 环盒，
+           不能依赖 canvas 自身的内禀尺寸 */
+        const width = safeNumber(box?.width) || safeNumber(entry?.width)
         if (!node || width <= 0) {
           if (runtime.ringQueryAttempts < RING_QUERY_RETRY) {
             this.queryRingCanvas()

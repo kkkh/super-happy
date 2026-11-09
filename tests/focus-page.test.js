@@ -134,6 +134,8 @@ test('圆环几何：canvas 只在专注 / 休息态接管，变换每帧重置�
   )
   assert.match(ts, /ringCanvasPx/)
   assert.match(wxml, /ringCanvasPx/)
+  /* 画布几何以环盒为准，不依赖 canvas 内禀尺寸 */
+  assert.match(ts, /\.select\('\.focus-ring-wrap'\)/)
   assert.match(
     wxss,
     /\.focus-ring-canvas \{[\s\S]*?width: 100%;[\s\S]*?height: 100%;/,

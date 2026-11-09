@@ -145,9 +145,15 @@ function installWx(seed = {}) {
         fields() {
           return query
         },
+        boundingClientRect() {
+          return query
+        },
         exec(callback) {
           setTimeout(() => {
-            callback([{ node, width: 260, height: 260 }])
+            callback([
+              { node, width: 260, height: 260 },
+              { width: 260, height: 260 },
+            ])
           }, 0)
         },
       }
