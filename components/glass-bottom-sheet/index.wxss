@@ -52,6 +52,15 @@
   transform: translate3d(0, 0, 0);
 }
 
+/* Skyline 会把 backdrop-filter 提升为独立背板层：
+   面板滑出后模糊背板仍会冻结在原位，形成整块扭曲残影。
+   关闭第一帧直接移除模糊，只保留可随 transform / opacity 正常退场的底板。 */
+.glass-sheet_closing .glass-sheet__drag {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  background-color: var(--sg-glass-bg-strong, var(--glass-bg-strong));
+}
+
 /* ---- 高度策略 ---- */
 .glass-sheet_size_auto {
   max-height: 82vh;

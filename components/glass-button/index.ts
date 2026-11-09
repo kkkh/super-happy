@@ -3,7 +3,8 @@
  * - 物理弹簧回弹：CSS spring 曲线，按下快、回弹慢
  * - 触觉反馈：统一走 haptics 接管层，受全局震感档位与音效开关管控
  * - loading：菊花态 + 文案切换，loading / disabled 时拦截重复触发
- * - 变体：primary / aurora / warm / tint / ghost / danger
+ * - 变体：primary / aurora / warm / tint / frost / ghost / danger
+ *   frost：为弹窗 / 抽屉内的次级操作提供通透玻璃面，不在 blur 面板内叠加 backdrop-filter
  * - virtualHost + styleIsolation，样式不污染页面
  *
  * 用法：
@@ -13,7 +14,14 @@
  */
 import { vibrate } from '../../core/utils/haptics'
 
-export type GlassButtonVariant = 'primary' | 'aurora' | 'warm' | 'tint' | 'ghost' | 'danger'
+export type GlassButtonVariant =
+  | 'primary'
+  | 'aurora'
+  | 'warm'
+  | 'tint'
+  | 'frost'
+  | 'ghost'
+  | 'danger'
 export type GlassButtonSize = 'sm' | 'md' | 'lg'
 export type GlassButtonShape = 'capsule' | 'rounded'
 export type GlassButtonHaptic = 'none' | 'light' | 'medium' | 'heavy'

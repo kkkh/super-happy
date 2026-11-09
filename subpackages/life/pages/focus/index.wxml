@@ -266,7 +266,7 @@
       <glass-button variant="primary" size="lg" block aria-label="开始心流" haptic="{{motionSaver ? 'none' : 'light'}}" bind:tap="onStartFocus">
         开始心流
       </glass-button>
-      <glass-button variant="ghost" size="lg" block aria-label="取消" haptic="{{motionSaver ? 'none' : 'light'}}" bind:tap="onSetupClose">
+      <glass-button variant="frost" size="lg" block aria-label="取消" haptic="{{motionSaver ? 'none' : 'light'}}" bind:tap="onSetupClose">
         取消
       </glass-button>
     </view>
@@ -349,7 +349,7 @@
         >
           保存海报
         </glass-button>
-        <glass-button variant="ghost" size="lg" block aria-label="完成" haptic="{{motionSaver ? 'none' : 'light'}}" bind:tap="onCloseReport">
+        <glass-button variant="frost" size="lg" block aria-label="完成" haptic="{{motionSaver ? 'none' : 'light'}}" bind:tap="onCloseReport">
           完成
         </glass-button>
       </view>

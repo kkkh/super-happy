@@ -96,7 +96,7 @@
           </glass-button>
         </view>
         <view class="poster-preview__action-cell">
-          <glass-button variant="ghost" size="md" block bind:tap="onCloseTap">
+          <glass-button variant="frost" size="md" block bind:tap="onCloseTap">
             关闭
           </glass-button>
         </view>

@@ -1,6 +1,6 @@
 <view
   wx:if="{{visible}}"
-  class="custom-class glass-modal {{active ? 'glass-modal_active' : ''}}"
+  class="custom-class glass-modal {{active ? 'glass-modal_active' : ''}} {{closing ? 'glass-modal_closing' : ''}}"
   style="z-index: {{zIndex}}; {{customStyle}}"
 >
   <view
@@ -42,7 +42,7 @@
     <view class="glass-modal__actions">
       <glass-button
         wx:if="{{showCancel}}"
-        variant="ghost"
+        variant="frost"
         size="md"
         block
         disabled="{{busy}}"

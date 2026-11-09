@@ -40,7 +40,7 @@
   z-index: 2;
   width: 100%;
   max-width: 620rpx;
-  padding: 48rpx 40rpx 36rpx;
+  padding: 44rpx 40rpx 32rpx;
   box-sizing: border-box;
   overflow: hidden;
   border: 1rpx solid var(--glass-border);
@@ -63,6 +63,15 @@
 .glass-modal_active .glass-modal__panel {
   opacity: 1;
   transform: translate3d(0, 0, 0) scale(1);
+}
+
+/* Skyline 会把 backdrop-filter 提升为独立背板层：
+   面板淡出后模糊背板仍会冻结在原位，形成一整块扭曲色斑。
+   关闭第一帧直接移除模糊，只保留可随 opacity 正常淡出的底板。 */
+.glass-modal_closing .glass-modal__panel {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  background-color: var(--glass-bg-strong);
 }
 
 /* ---- 材质层 ---- */
@@ -100,7 +109,7 @@
   z-index: 3;
   display: flex;
   flex-direction: column;
-  padding-bottom: 36rpx;
+  padding-bottom: 24rpx;
 }
 
 .glass-modal__title {
@@ -112,11 +121,11 @@
 }
 
 .glass-modal__desc {
-  margin-top: 18rpx;
+  margin-top: 14rpx;
   color: var(--glass-text-2);
   font-size: 26rpx;
   font-weight: 400;
-  line-height: 1.6;
+  line-height: 1.55;
   word-break: break-all;
 }
 
@@ -155,7 +164,7 @@
   z-index: 3;
   display: flex;
   flex-direction: column;
-  gap: 16rpx;
+  gap: 14rpx;
 }
 
 /* ---- 低端机 / 不支持滤镜降级 ---- */

@@ -192,6 +192,36 @@ test('Canvas 互斥：星云与海报同一时刻只跑一个任务', () => {
   assert.match(ts, /runtime\.canvasTask = 'poster'/)
 })
 
+test('残影防护：弹窗 / 抽屉关闭首帧移除 backdrop-filter', () => {
+  const modalWxml = read('components/glass-modal/index.wxml')
+  const modalWxss = read('components/glass-modal/index.wxss')
+  const sheetWxml = read('components/glass-bottom-sheet/index.wxml')
+  const sheetWxss = read('components/glass-bottom-sheet/index.wxss')
+  const buttonWxss = read('components/glass-button/index.wxss')
+  const focusWxml = read(`${PAGE}.wxml`)
+
+  /* Skyline 会把 backdrop-filter 提升为独立背板层，退场时冻结成残影 */
+  assert.match(modalWxml, /glass-modal_closing/)
+  assert.match(
+    modalWxss,
+    /\.glass-modal_closing \.glass-modal__panel \{[\s\S]*?backdrop-filter: none;/,
+  )
+  assert.match(sheetWxml, /glass-sheet_closing/)
+  assert.match(
+    sheetWxss,
+    /\.glass-sheet_closing \.glass-sheet__drag \{[\s\S]*?backdrop-filter: none;/,
+  )
+
+  /* 弹窗 / 抽屉内的次级按钮使用 frost：不叠加第二层 backdrop-filter */
+  assert.match(modalWxml, /variant="frost"/)
+  assert.match(focusWxml, /variant="frost"/)
+  const frostBlock = buttonWxss.match(
+    /\.glass-button_variant_frost \{[\s\S]*?\n\}/,
+  )
+  assert.ok(frostBlock, '缺少 frost 变体')
+  assert.equal(frostBlock[0].includes('backdrop-filter'), false)
+})
+
 test('onHide / onUnload：亮度、常亮、ticker、传感器与网络监听全部收口', () => {
   const ts = read(`${PAGE}.ts`)
   assert.match(ts, /onHide\(\) \{[\s\S]*?this\.restoreBrightness\(\)/)

@@ -2,7 +2,7 @@
 
 <view
   wx:if="{{visible}}"
-  class="custom-class glass-sheet {{active ? 'glass-sheet_active' : ''}}"
+  class="custom-class glass-sheet {{active ? 'glass-sheet_active' : ''}} {{closing ? 'glass-sheet_closing' : ''}}"
   style="z-index: {{zIndex}}; {{customStyle}}"
 >
   <view

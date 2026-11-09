@@ -116,6 +116,23 @@
     0 12rpx 28rpx var(--glass-accent-soft);
 }
 
+/* frost：弹窗 / 抽屉内的次级操作
+   - 不挂 backdrop-filter：父面板已经做过一次模糊，二次模糊既掉帧又会在退场时冻结成残影
+   - 用低 alpha 底板 + 左上镜面 + 右下极光折射，做出通透玻璃面 */
+.glass-button_variant_frost {
+  color: var(--glass-text);
+  border-color: var(--glass-border-strong);
+  background-color: var(--glass-accent-soft);
+  background-image:
+    radial-gradient(130% 160% at 14% 0%, rgba(255, 255, 255, 0.36) 0%, transparent 46%),
+    radial-gradient(120% 140% at 92% 100%, var(--glass-accent-2-soft) 0%, transparent 58%);
+  box-shadow:
+    inset 0 1rpx 0 var(--glass-highlight),
+    inset 0 0 0 1rpx var(--glass-accent-soft),
+    var(--glass-shadow-soft),
+    0 10rpx 24rpx var(--glass-accent-soft);
+}
+
 .glass-button_variant_ghost {
   color: var(--glass-text);
   border-color: var(--glass-border);
