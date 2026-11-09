@@ -122,6 +122,47 @@ test('Canvas：isDevtools 跳过查询，真机 watchdog 与静态环兜底', ()
   assert.match(wxss, /focus-page--low/)
 })
 
+test('圆环几何：canvas 只在专注 / 休息态接管，变换每帧重置，文字与环保持物理间距', () => {
+  const ts = read(`${PAGE}.ts`)
+  const wxml = read(`${PAGE}.wxml`)
+  const wxss = read(`${PAGE}.wxss`)
+
+  /* 单环原则：静态环只在 canvas 接管时隐藏，且 canvas 只在需要动画的状态接管 */
+  assert.match(
+    wxml,
+    /canvasReady && ringCanvasActive && \(fsmView === 'focusing' \|\| fsmView === 'breaking'\)/,
+  )
+  assert.match(ts, /ringCanvasPx/)
+  assert.match(wxml, /ringCanvasPx/)
+  assert.match(
+    wxss,
+    /\.focus-ring-canvas \{[\s\S]*?width: 100%;[\s\S]*?height: 100%;/,
+  )
+
+  /* 每帧重置变换矩阵，避免 canvas 重挂载后 scale(dpr) 叠加导致圆心偏移 */
+  assert.match(ts, /ctx\.setTransform\(dpr, 0, 0, dpr, 0, 0\)/)
+  assert.equal(ts.includes('ctx.scale('), false)
+
+  /* 文字与 520rpx 环盒之间保留 40rpx 物理间距 */
+  assert.match(wxss, /\.focus-status-title \{[\s\S]*?margin-top: 40rpx;/)
+
+  /* 暂停只压暗环，不整块降透明度 */
+  assert.match(ts, /kicker = 'PAUSED'[\s\S]*?ringDim = false/)
+  assert.equal(wxss.includes('.focus-stage--paused .focus-ring-wrap'), false)
+  assert.match(
+    wxss,
+    /\.focus-stage--paused \.focus-ring-fallback \{[\s\S]*?opacity: 0\.45;/,
+  )
+})
+
+test('传感器降级：不在屏幕中央弹 Toast，改为设置抽屉内常驻说明', () => {
+  const ts = read(`${PAGE}.ts`)
+  const wxml = read(`${PAGE}.wxml`)
+  assert.equal(ts.includes("this.toast('当前设备不支持翻转检测"), false)
+  assert.equal(ts.includes('flipToastShown'), false)
+  assert.match(wxml, /当前设备不支持翻转检测，已隐藏该功能/)
+})
+
 test('副本与状态：Overheat / Glitch / 网络徽章 / 跳过休息文案完整', () => {
   const ts = read(`${PAGE}.ts`)
   const wxml = read(`${PAGE}.wxml`)

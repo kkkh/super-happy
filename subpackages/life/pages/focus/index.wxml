@@ -44,12 +44,13 @@
     <view
       class="focus-ring-wrap {{breathOn ? 'is-breath' : ''}} {{ringDim ? 'is-dim' : ''}} {{ringTone === 'warm' ? 'is-warm' : ''}} {{ringTone === 'danger' ? 'is-danger' : ''}} {{glitchActive && !glitchStatic ? 'is-glitch' : ''}}"
     >
-      <view class="focus-ring-fallback {{canvasReady && ringCanvasActive ? 'is-hidden' : ''}}"></view>
+      <view class="focus-ring-fallback {{canvasReady && ringCanvasActive && (fsmView === 'focusing' || fsmView === 'breaking') ? 'is-hidden' : ''}}"></view>
       <canvas
         wx:if="{{ringCanvasMounted}}"
         type="2d"
         id="focus-ring"
-        class="focus-ring-canvas {{canvasReady && ringCanvasActive ? 'is-active' : ''}}"
+        class="focus-ring-canvas {{canvasReady && ringCanvasActive && (fsmView === 'focusing' || fsmView === 'breaking') ? 'is-active' : ''}}"
+        style="{{ringCanvasPx ? 'width:' + ringCanvasPx + 'px;height:' + ringCanvasPx + 'px;' : ''}}"
         aria-hidden="true"
       ></canvas>
       <view class="focus-ring-inner">

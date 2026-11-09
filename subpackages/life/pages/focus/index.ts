@@ -87,7 +87,7 @@ interface FocusRingContext {
   strokeStyle: unknown
   lineWidth: number
   lineCap: string
-  scale: (x: number, y: number) => void
+  setTransform: (a: number, b: number, c: number, d: number, e: number, f: number) => void
   clearRect: (x: number, y: number, width: number, height: number) => void
   beginPath: () => void
   moveTo: (x: number, y: number) => void
@@ -168,7 +168,6 @@ interface FocusPageRuntime {
   motionHandler: ((res: MotionChangeResult) => void) | null
   motionStarted: boolean
   motionAvailable: boolean
-  flipToastShown: boolean
   faceDown: boolean
   faceDownSince: number
   pickupSince: number
@@ -351,6 +350,7 @@ Page({
     ringDim: false,
     ringCanvasMounted: false,
     ringCanvasActive: false,
+    ringCanvasPx: 0,
     canvasReady: false,
 
     chipLabel: 'READY',
@@ -457,7 +457,6 @@ Page({
     runtime.motionHandler = null
     runtime.motionStarted = false
     runtime.motionAvailable = false
-    runtime.flipToastShown = false
     runtime.faceDown = false
     runtime.faceDownSince = 0
     runtime.pickupSince = 0
@@ -1159,7 +1158,8 @@ Page({
       clock = formatClock(focusRemainingMs(session, now))
       progress = clamp01(focusRemainingMs(session, now) / session.phaseTotalMs, 1)
       ringTone = 'cool'
-      ringDim = true
+      /* 暂停只压暗圆环，计时数字与标题保持满对比度 */
+      ringDim = false
       breathOn = false
       chipLabel = 'PAUSED'
       chipTone = 'warm'
@@ -2624,10 +2624,6 @@ Page({
           }
           this.setData({ flipAvailable: false })
           logger.warn('focus', 'DeviceMotion 不可用', error)
-          if (!runtime.flipToastShown) {
-            runtime.flipToastShown = true
-            this.toast('当前设备不支持翻转检测，已隐藏该功能', 'warning')
-          }
         },
       })
     } catch (error) {
@@ -2993,18 +2989,25 @@ Page({
         runtime.ringSize = width
         runtime.ringDpr = pixelRatio()
         runtime.ringGradient = null
-        this.setData({ canvasReady: true, ringCanvasActive: true }, () => {
-          this.safeDrawRing()
-          if (
-            runtime.visible &&
-            runtime.session &&
-            runtime.session.fsm === 'focusing' &&
-            !runtime.blackScreen &&
-            !this.data.glitchActive
-          ) {
-            this.startRingLoop()
-          }
-        })
+        this.setData(
+          {
+            canvasReady: true,
+            ringCanvasActive: true,
+            ringCanvasPx: Math.round(width),
+          },
+          () => {
+            this.safeDrawRing()
+            if (
+              runtime.visible &&
+              runtime.session &&
+              runtime.session.fsm === 'focusing' &&
+              !runtime.blackScreen &&
+              !this.data.glitchActive
+            ) {
+              this.startRingLoop()
+            }
+          },
+        )
       })
   },
 
@@ -3049,9 +3052,11 @@ Page({
     if (node.width !== pixel || node.height !== pixel) {
       node.width = pixel
       node.height = pixel
-      ctx.scale(dpr, dpr)
       runtime.ringGradient = null
     }
+    /* 每帧重置变换矩阵：避免 canvas 重挂载 / 尺寸变化后残留 scale(dpr)，
+       否则圆心会被再次放大偏移，和 CSS 静态环错位 */
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
     const theme = uiStore.resolvedTheme
     const tone = this.ringToneNow()
     const center = size / 2
@@ -3198,7 +3203,9 @@ Page({
     }
     if (clear && runtime.ringCtx && runtime.ringSize > 0) {
       try {
-        runtime.ringCtx.clearRect(0, 0, runtime.ringSize, runtime.ringSize)
+        const pixel = Math.round(runtime.ringSize * runtime.ringDpr)
+        runtime.ringCtx.setTransform(1, 0, 0, 1, 0, 0)
+        runtime.ringCtx.clearRect(0, 0, pixel, pixel)
       } catch {
         runtime.ringCtx = null
         runtime.ringCanvas = null

@@ -258,8 +258,12 @@
   opacity: 0.4;
 }
 
-.focus-stage--paused .focus-ring-wrap {
+/* 暂停：只压暗圆环，计时数字保持满对比度，避免整块发灰 */
+.focus-stage--paused .focus-ring-fallback {
   opacity: 0.45;
+}
+.focus-stage--paused .focus-kicker {
+  color: var(--focus-text-2);
 }
 
 .focus-ring-fallback {
@@ -277,7 +281,8 @@
   transition: opacity var(--glass-duration-fast) var(--glass-ease-out);
 }
 
-.focus-ring-fallback.is-hidden {
+/* 提高优先级：canvas 接管时，任何状态的静态环都必须彻底隐藏 */
+.focus-ring-wrap .focus-ring-fallback.is-hidden {
   opacity: 0;
 }
 
@@ -296,12 +301,10 @@
 .focus-ring-canvas {
   position: absolute;
   top: 0;
-  right: 0;
-  bottom: 0;
   left: 0;
   z-index: 2;
-  width: 520rpx;
-  height: 520rpx;
+  width: 100%;
+  height: 100%;
   border-radius: 50%;
   opacity: 0;
   transition: opacity var(--glass-duration-fast) var(--glass-ease-out);
@@ -355,7 +358,7 @@
 }
 
 .focus-status-title {
-  margin-top: 28rpx;
+  margin-top: 40rpx;
   font-size: 36rpx;
   font-weight: 700;
   line-height: 1.2;
