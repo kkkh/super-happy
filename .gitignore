@@ -4,6 +4,8 @@ subpackages/tools-core/node_modules/
 
 # 本地密钥（高德 Web服务 Key 不进仓库）
 subpackages/tools-core/weather/config.local.ts
+# 本地密钥（腾讯云元宝搜索服务 API KEY 不进仓库）
+core/services/yuanbao/config-local.ts
 
 # miniprogram-ci 上传密钥
 private/

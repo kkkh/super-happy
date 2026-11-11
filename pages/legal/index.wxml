@@ -21,7 +21,7 @@
       <view class="legal-head">
         <text class="legal-kicker">LEGAL / LOCAL FIRST</text>
         <text class="legal-title">先说清楚，再开始</text>
-        <text class="legal-desc">超欢不登录、不设账号、不上传您的内容；除「全息气象」按需向高德开放平台请求天气、以及「汇率换算」按需向中国外汇交易中心请求人民币汇率中间价外，其余功能全部在本机完成。以下说明生效于 {{effectiveDate}}。</text>
+        <text class="legal-desc">超欢不登录、不设账号、不上传您的内容；除「全息气象」按需向高德开放平台请求天气、「汇率换算」按需向中国外汇交易中心请求人民币汇率中间价、以及「元宝搜索」在您主动搜索时向腾讯云元宝搜索发送查询词外，其余功能全部在本机完成。以下说明生效于 {{effectiveDate}}。</text>
       </view>
 
       <view class="legal-seg" aria-role="tablist" aria-label="说明章节">
@@ -54,7 +54,7 @@
             </view>
           </view>
 
-          <text class="legal-body">本小程序是 {{toolCount}} 个效率工具的合集，没有账号体系、没有自建后端、没有广告 SDK、没有第三方统计 SDK。除「全息气象」按需向高德开放平台请求天气数据外，我们不向任何服务器上传您的姓名、手机号、邮箱、设备标识或工具输入内容；除您主动产生的轨迹摘要、专注记录、时间旅行快照与天气/城市缓存外，工具输入只在本机参与计算。</text>
+          <text class="legal-body">本小程序是 {{toolCount}} 个效率工具的合集，没有账号体系、没有自建后端、没有广告 SDK、没有第三方统计 SDK。除「全息气象」按需向高德开放平台请求天气数据、以及「元宝搜索」在您主动搜索时向腾讯云元宝搜索发送查询词外，我们不向任何服务器上传您的姓名、手机号、邮箱、设备标识或工具输入内容；除您主动产生的轨迹摘要、专注记录、时间旅行快照与天气/城市缓存外，工具输入只在本机参与计算。</text>
 
           <view class="legal-list">
             <view class="legal-list__item">
@@ -83,11 +83,15 @@
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
+              <text class="legal-list__text">元宝搜索：仅在您主动点击搜索时，把搜索词与筛选条件发送至腾讯云元宝搜索（https://api.wsa.cloud.tencent.com），用于返回公开网页结果；不发送微信身份、手机号、通讯录、剪贴板或本机存储内容，搜索词不写入草稿与计算轨迹。</text>
+            </view>
+            <view class="legal-list__item">
+              <view class="legal-list__dot" aria-hidden="true"></view>
               <text class="legal-list__text">IP 定位：仅在模糊定位不可用或被拒绝时调用高德 IP 定位，获取城市级省市与 adcode；局域网、非法或高德无法识别的 IP 会跳过并转手动选城。</text>
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
-              <text class="legal-list__text">网络请求：气象站仅向 https://restapi.amap.com 发送模糊经纬度、adcode、城市搜索关键词与高德 Web服务 Key，用于实况、4 天预报、逆地理编码、IP 定位与行政区搜索；汇率换算仅向 https://www.chinamoney.com.cn 请求公开的中间价 JSON。两者都不发送通讯录、相册、剪贴板或其他工具的输入内容。</text>
+              <text class="legal-list__text">网络请求：气象站仅向 https://restapi.amap.com 发送模糊经纬度、adcode、城市搜索关键词与高德 Web服务 Key，用于实况、4 天预报、逆地理编码、IP 定位与行政区搜索；汇率换算仅向 https://www.chinamoney.com.cn 请求公开的中间价 JSON；元宝搜索仅向 https://api.wsa.cloud.tencent.com 发送搜索词与筛选条件。三者都不发送通讯录、相册、剪贴板或其他工具的输入内容。</text>
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
@@ -103,7 +107,7 @@
             </view>
           </view>
 
-          <text class="legal-body">第三方服务：全息气象接入高德开放平台 Web 服务 API，汇率换算接入中国外汇交易中心公开中间价接口。请求由微信客户端直接发出，服务方可获取请求 IP、调用时间与请求参数；汇率请求不包含金额或币种选择。本程序不向其发送微信身份信息、手机号或本机存储内容。高德隐私政策：https://lbs.amap.com/pages/privacy/</text>
+          <text class="legal-body">第三方服务：全息气象接入高德开放平台 Web 服务 API，汇率换算接入中国外汇交易中心公开中间价接口，元宝搜索接入腾讯云元宝搜索（WSA）SearchPro 接口。请求由微信客户端直接发出，服务方可获取请求 IP、调用时间与请求参数；汇率请求不包含金额或币种选择，元宝搜索请求包含搜索词与筛选条件。本程序不向其发送微信身份信息、手机号或本机存储内容。高德隐私政策：https://lbs.amap.com/pages/privacy/；腾讯云隐私政策：https://cloud.tencent.com/document/product/301/3011</text>
           <text class="legal-body">您可在微信「设置 → 小程序 → 超欢 → 权限管理」中撤回相册或位置权限。撤回相册仅影响保存图片；撤回位置后气象站改用 IP 定位或手动选城；设备方向随「省电模式」关闭，剪贴板仅在您点击对应按钮时读取，不影响其他工具。</text>
           <text class="legal-body">本程序不面向未成年人定向收集信息，也不提供付费、打赏、社交、抽奖或虚拟支付功能。</text>
           <text class="legal-body">本页为小程序内说明；微信后台公示的《用户隐私保护指引》与本页不一致时，以后台公示版本为准。当前隐私保护指引版本 v{{privacyVersion}}；版本变化时设置页「隐私中心」会提示一次，确认后仅在本机记录版本号。</text>
@@ -350,7 +354,7 @@
             </view>
           </view>
 
-          <text class="legal-body">除「全息气象」按需直连 https://restapi.amap.com、以及「汇率换算」按需直连 https://www.chinamoney.com.cn 获取官方汇率中间价外，本程序不包含广告 SDK、统计 SDK、推送 SDK，其余功能不发起任何网络请求。</text>
+          <text class="legal-body">除「全息气象」按需直连 https://restapi.amap.com、「汇率换算」按需直连 https://www.chinamoney.com.cn 获取官方汇率中间价、以及「元宝搜索」在您主动搜索时直连 https://api.wsa.cloud.tencent.com 外，本程序不包含广告 SDK、统计 SDK、推送 SDK，其余功能不发起任何网络请求。</text>
           <text class="legal-body">开源许可证全文可在各项目官方仓库查看；如对署名或授权有疑问，可通过下方邮箱联系，我们会在核实后更正。</text>
         </glass-card>
       </view>

@@ -86,6 +86,7 @@ export const WORKFLOW_ROUTING: Record<WorkflowToolId, WorkflowRouteMode> = {
   qr: 'jump',
   watermark: 'jump',
   weather: 'jump',
+  'web-search': 'jump',
 }
 
 /** 接收能力：用于面板智能过滤与置灰 */
@@ -157,6 +158,7 @@ export const WORKFLOW_ACCEPTS: Record<WorkflowToolId, WorkflowDataType[]> = {
   watermark: ['image'],
   /* 气象站为纯产出：天气摘要可复制/流转，但不接受任意文本注入 */
   weather: [],
+  'web-search': ['text'],
 }
 
 /** 路由元数据：mode + accepts 一处取用 */

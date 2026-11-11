@@ -807,6 +807,33 @@ export const TOOLS: ToolMeta[] = [
     sensitive: '',
     weight: 98,
   },
+  {
+    id: 'web-search',
+    name: '元宝搜索',
+    desc: '全网实时搜索 · 腾讯元宝',
+    category: 'text',
+    icon: '搜',
+    route: '/subpackages/tools-core/pages/web-search/index',
+    keywords: [
+      '搜索',
+      '全网',
+      '联网',
+      '元宝',
+      '腾讯',
+      '资讯',
+      '新闻',
+      '百科',
+      '问答',
+      '网页',
+      'search',
+      'web',
+    ],
+    aliases: ['sousuo', 'ss', 'search', 'yuanbao', 'yb', 'quanwang', 'lianwang', '元宝', '全网搜索', '联网搜索'],
+    sensitive: '',
+    privacyNote: '查询词会发送至腾讯云元宝搜索，仅用于本次检索；查询词不写入草稿与计算轨迹',
+    draftExcluded: true,
+    weight: 97,
+  },
 ]
 
 const TOOL_MAP: Record<string, ToolMeta> = TOOLS.reduce<Record<string, ToolMeta>>((map, tool) => {

@@ -32,6 +32,8 @@ export const ROUTES = {
   focus: '/subpackages/life/pages/focus/index',
   /* 全息气象站：tools-core 分包，直连高德 Web服务 REST */
   weather: '/subpackages/tools-core/pages/weather/index',
+  /* 元宝搜索：tools-core 分包，腾讯云 WSA SearchPro */
+  webSearch: '/subpackages/tools-core/pages/web-search/index',
 } as const
 
 /** 当前版本号：设置中心、我的页与更新日志共用同一真相源 */
@@ -84,6 +86,7 @@ export const ROUTE_TITLES: Record<string, string> = {
   [ROUTES.cockpit]: '数据驾驶舱',
   [ROUTES.help]: '使用指南',
   [ROUTES.weather]: '全息气象',
+  [ROUTES.webSearch]: '元宝搜索',
 }
 
 /** 带参路由构造器 */

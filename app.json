@@ -38,7 +38,8 @@
         "pages/text-convert/index",
         "pages/template/index",
         "pages/regex/index",
-        "pages/weather/index"
+        "pages/weather/index",
+        "pages/web-search/index"
       ]
     },
     {

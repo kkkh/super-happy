@@ -1,0 +1,199 @@
+<glass-tool-shell
+  tool-id="web-search"
+  title="{{toolName}}"
+  kicker="{{kicker}}"
+  desc="{{desc}}"
+  run-label="开始搜索"
+  poster-data="{{posterData}}"
+  export-enabled="{{true}}"
+  export-name="{{toolName}}"
+  export-content="{{searchSummary}}"
+  state="{{shellState}}"
+  has-result="{{hasResult}}"
+  can-run="{{canRun}}"
+  error="{{error}}"
+  empty-title="输入搜索词，搜索全网信息"
+  empty-sub="结果来自腾讯云元宝搜索，查询词会上传；不写入本机轨迹"
+  bind:run="runSearch"
+  bind:reset="onReset"
+  bind:example="onExample"
+>
+  <view slot="input" class="ws-fields">
+    <glass-input
+      label="搜索词"
+      maxlength="{{maxQuery}}"
+      value="{{query}}"
+      placeholder="例如：人工智能发展现状"
+      hint="支持新闻、百科、问答与公开网页；单次最多 {{maxQuery}} 字"
+      confirm-type="search"
+      aria-label="元宝搜索词"
+      bind:input="onQueryInput"
+      bind:confirm="onConfirm"
+    />
+
+    <view class="ws-filter">
+      <text class="ws-filter__label">返回条数</text>
+      <view class="ws-chips" aria-role="tablist" aria-label="返回条数">
+        <view
+          wx:for="{{cntOptions}}"
+          wx:key="value"
+          class="ws-chip {{item.value === cnt ? 'ws-chip--on' : ''}}"
+          data-value="{{item.value}}"
+          bindtap="onCnt"
+          aria-role="tab"
+          aria-selected="{{item.value === cnt}}"
+        >{{item.label}}</view>
+      </view>
+    </view>
+
+    <view class="ws-filter">
+      <text class="ws-filter__label">时效</text>
+      <view class="ws-chips" aria-role="tablist" aria-label="搜索时效">
+        <view
+          wx:for="{{freshnessOptions}}"
+          wx:key="value"
+          class="ws-chip {{item.value === freshness ? 'ws-chip--on' : ''}}"
+          data-value="{{item.value}}"
+          bindtap="onFreshness"
+          aria-role="tab"
+          aria-selected="{{item.value === freshness}}"
+        >{{item.label}}</view>
+      </view>
+    </view>
+
+    <view
+      class="ws-advanced-toggle"
+      bindtap="onToggleAdvanced"
+      aria-role="button"
+      aria-label="{{advancedOpen ? '收起高级筛选' : '展开高级筛选'}}"
+    >
+      <text class="ws-advanced-toggle__text">高级筛选</text>
+      <g-icon name="chevron" size="{{20}}" tone="ink4" />
+    </view>
+
+    <view wx:if="{{advancedOpen}}" class="ws-advanced">
+      <view class="ws-filter">
+        <text class="ws-filter__label">领域</text>
+        <view class="ws-chips" aria-role="tablist" aria-label="垂直领域">
+          <view
+            wx:for="{{industryOptions}}"
+            wx:key="value"
+            class="ws-chip {{item.value === industry ? 'ws-chip--on' : ''}}"
+            data-value="{{item.value}}"
+            bindtap="onIndustry"
+            aria-role="tab"
+            aria-selected="{{item.value === industry}}"
+          >{{item.label}}</view>
+        </view>
+      </view>
+
+      <glass-input
+        label="站点"
+        maxlength="{{120}}"
+        value="{{site}}"
+        placeholder="qq.com 或 exclude:qq.com|sohu.com"
+        hint="只填一个域名；exclude: 前缀表示排除，最多 5 个"
+        aria-label="指定或排除站点"
+        bind:input="onSiteInput"
+      />
+    </view>
+
+    <view class="ws-notice">
+      <text class="ws-notice__text">
+        查询词会发送至腾讯云元宝搜索，仅用于本次检索；查询词不写入草稿与计算轨迹。
+      </text>
+    </view>
+
+    <view wx:if="{{!serviceReady}}" class="ws-warning">
+      <text class="ws-warning__text">
+        尚未配置元宝搜索服务 API KEY，请先在 core/services/yuanbao/config-local.ts 填入。
+      </text>
+    </view>
+  </view>
+
+  <view slot="result" class="ws-result">
+    <view class="ws-result__head">
+      <view class="ws-result__copy">
+        <text class="ws-result__count">{{resultCount}} 条结果</text>
+        <text class="ws-result__meta">{{searchedQuery}}{{version ? ' · ' + version : ''}}</text>
+      </view>
+      <text
+        class="ws-result__action"
+        bindtap="onCopySummary"
+        aria-role="button"
+        aria-label="复制搜索摘要"
+      >复制摘要</text>
+    </view>
+
+    <view wx:if="{{resultCount === 0}}" class="ws-empty">
+      <text class="ws-empty__title">没有找到相关结果</text>
+      <text class="ws-empty__sub">换一个关键词，或放宽时效与站点限制</text>
+    </view>
+
+    <view class="ws-list">
+      <view
+        wx:for="{{results}}"
+        wx:key="url"
+        class="ws-card"
+        data-index="{{index}}"
+        bindtap="onOpenDetail"
+        aria-role="button"
+        aria-label="查看{{item.title}}"
+      >
+        <text class="ws-card__index" aria-hidden="true">{{index + 1}}</text>
+        <view class="ws-card__body">
+          <text class="ws-card__title">{{item.title}}</text>
+          <text wx:if="{{item.meta}}" class="ws-card__meta">{{item.meta}}</text>
+          <text class="ws-card__passage">{{item.passage}}</text>
+          <view class="ws-card__actions">
+            <view
+              class="ws-card__action"
+              data-url="{{item.url}}"
+              catchtap="onCopyLink"
+              aria-role="button"
+              aria-label="复制{{item.title}}链接"
+            >复制链接</view>
+            <text class="ws-card__hint">点击查看详情</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="ws-foot">
+      结果来自腾讯云元宝搜索 · 内容版权归原作者所有 · 不构成投资或医疗建议
+    </view>
+  </view>
+</glass-tool-shell>
+
+<glass-bottom-sheet
+  show="{{detailShow}}"
+  title="搜索结果"
+  size="tall"
+  show-footer="{{true}}"
+  z-index="{{1000}}"
+  bind:close="onDetailClose"
+  bind:closed="onDetailClose"
+>
+  <scroll-view class="ws-detail__scroll" scroll-y>
+    <text class="ws-detail__title">{{detailTitle}}</text>
+    <text wx:if="{{detailMeta}}" class="ws-detail__meta">{{detailMeta}}</text>
+    <text wx:if="{{detailPassage}}" class="ws-detail__passage">{{detailPassage}}</text>
+    <text wx:if="{{detailContent}}" class="ws-detail__content">{{detailContent}}</text>
+    <text class="ws-detail__url" selectable>{{detailUrl}}</text>
+  </scroll-view>
+
+  <view slot="footer" class="ws-detail__footer">
+    <view
+      class="ws-detail__button ws-detail__button--primary"
+      bindtap="onCopyDetailLink"
+      aria-role="button"
+      aria-label="复制链接"
+    >复制链接</view>
+    <view
+      class="ws-detail__button ws-detail__button--ghost"
+      bindtap="onDetailClose"
+      aria-role="button"
+      aria-label="关闭详情"
+    >关闭</view>
+  </view>
+</glass-bottom-sheet>

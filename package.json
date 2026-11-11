@@ -6,9 +6,9 @@
   "scripts": {
     "build:style": "weapp-tw -i styles/tokens.css -o styles/generated/tailwind.wxss --target weapp",
     "build:icon": "npx fantasticon .icon-src -o .icon-dist -n gicon --font-types ttf --asset-types json",
-    "pretypecheck": "node scripts/ensure-weather-config.js",
+    "pretypecheck": "node scripts/ensure-weather-config.js && node scripts/ensure-yuanbao-config.js",
     "typecheck": "tsc --noEmit",
-    "pretest": "node scripts/ensure-weather-config.js",
+    "pretest": "node scripts/ensure-weather-config.js && node scripts/ensure-yuanbao-config.js",
     "test": "node --experimental-strip-types --test tests/*.test.js",
     "budget": "node scripts/check-budget.js",
     "check:contrast": "node scripts/check-contrast.js",

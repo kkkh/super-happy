@@ -52,6 +52,7 @@ const NEW_PAGES = [
   'subpackages/tools-dict/pages/zh-convert',
   'subpackages/tools-dict/pages/pinyin',
   'subpackages/grow/pages/help',
+  'subpackages/tools-core/pages/web-search',
 ]
 
 for (const page of NEW_PAGES) {
