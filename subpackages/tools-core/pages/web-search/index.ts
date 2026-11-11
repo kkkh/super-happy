@@ -368,7 +368,7 @@ Page({
           searchSummary: summary,
           searchedQuery: query,
           versionLabel: this.versionLabel(response.version),
-          versionHint: this.versionHint(response.version),
+          versionHint: this.versionHint(response.version, this.data.deeplinks),
           message: response.message,
           requestId: response.requestId,
           posterData: poster,
@@ -408,14 +408,12 @@ Page({
     return version
   },
 
-  versionHint(version: string): string {
-    if (!version || version === 'flagship') {
+  /** 仅在主动开启附件子链但账号不支持时提示，避免每次搜索都占用结果区 */
+  versionHint(version: string, deeplinks: boolean): string {
+    if (!deeplinks || !version || version === 'flagship') {
       return ''
     }
-    if (version === 'lite') {
-      return '极速版不返回相关性、配图与动态摘要；权威度 / 子链需旗舰版'
-    }
-    return '当前为标准版；权威度与附件子链需旗舰版'
+    return `已请求附件子链，但当前为${this.versionLabel(version)}未返回；子链需旗舰版`
   },
 
   onReceiveWorkflow(data: { type?: string; payload?: string }): boolean {
