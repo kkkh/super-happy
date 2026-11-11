@@ -377,6 +377,20 @@ export function searchYuanbao(
       },
       fail(error) {
         const message = asString(error && error.errMsg)
+        if (/url not in domain list/i.test(message)) {
+          reject(
+            new YuanbaoError(
+              'network',
+              '域名未加入 request 合法域名：请在 MP 后台添加 wsa.tencentcloudapi.com',
+              false,
+            ),
+          )
+          return
+        }
+        if (/ssl|certificate|handshake/i.test(message)) {
+          reject(new YuanbaoError('network', 'TLS 握手失败，请检查网络或证书', true))
+          return
+        }
         const timeout = /timeout/i.test(message)
         reject(
           timeout

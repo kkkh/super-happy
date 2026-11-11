@@ -183,6 +183,20 @@ test('请求：HTTP 失败、网络失败与空查询', async () => {
     (error) => error instanceof YuanbaoError && error.code === 'timeout',
   )
 
+  globalThis.wx = {
+    request(options) {
+      options.fail({ errMsg: 'request:fail url not in domain list' })
+      return { abort() {} }
+    },
+  }
+  await assert.rejects(
+    () => searchYuanbao({ query: '天气' }),
+    (error) =>
+      error instanceof YuanbaoError &&
+      error.code === 'network' &&
+      error.message.includes('wsa.tencentcloudapi.com'),
+  )
+
   delete globalThis.wx
 })
 
