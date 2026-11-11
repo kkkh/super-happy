@@ -847,6 +847,8 @@
 
 .home-recent__scroll {
   width: 100%;
+  /* Skyline 的 scroll-view 不会按内容自适应高度；固定为胶囊 68 + 上下留白 10 */
+  height: 78rpx;
   white-space: nowrap;
 }
 
