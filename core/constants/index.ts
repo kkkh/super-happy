@@ -10,7 +10,7 @@ export const ROUTES = {
   home: '/pages/index/index',
   favorites: '/pages/favorites/index',
   mine: '/pages/mine/index',
-  legal: '/pages/legal/index',
+  legal: '/subpackages/grow/pages/legal/index',
   /* 简历首页：由主包迁入 grow 分包，入口统一走「我的 → 关于作者」 */
   growHome: '/subpackages/grow/pages/home/index',
   greeting: '/subpackages/grow/pages/greeting/index',

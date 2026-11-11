@@ -213,7 +213,10 @@ test('设置页与 legal 已接入隐私中心契约', () => {
     path.join(ROOT, 'subpackages/grow/pages/settings/index.wxml'),
     'utf8',
   )
-  const legalWxml = fs.readFileSync(path.join(ROOT, 'pages/legal/index.wxml'), 'utf8')
+  const legalWxml = fs.readFileSync(
+    path.join(ROOT, 'subpackages/grow/pages/legal/index.wxml'),
+    'utf8',
+  )
   const constants = fs.readFileSync(path.join(ROOT, 'core/constants/index.ts'), 'utf8')
 
   assert.match(settingsTs, /refreshPrivacyCenter\(\)/)

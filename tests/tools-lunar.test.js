@@ -197,7 +197,7 @@ test('农历契约：tools-dict 分包 / 页面 / 注册 / 帮助 / 文本工作
   assert.match(read('subpackages/grow/lib/help.ts'), /lunar: \{/)
   assert.match(read('scripts/check-budget.js'), /pages\/lunar/)
   assert.match(read('scripts/e2e-tools.js'), /id: 'lunar'/)
-  assert.match(read('pages/legal/index.wxml'), /solarlunar 3\.1\.0/)
+  assert.match(read('subpackages/grow/pages/legal/index.wxml'), /solarlunar 3\.1\.0/)
 
   const config = await import(`${URL_ROOT}core/workflow/workflowConfig.ts`)
   assert.equal(config.WORKFLOW_ROUTING.lunar, 'jump')

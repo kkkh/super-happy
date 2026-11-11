@@ -187,7 +187,7 @@ test('二维码识别契约：页面 / 注册 / 帮助 / 图片工作流 / 适�
   assert.match(read('subpackages/grow/lib/help.ts'), /'qr-decode': \{/)
   assert.match(read('scripts/check-budget.js'), /pages\/qr-decode/)
   assert.match(read('scripts/e2e-tools.js'), /id: 'qr-decode'/)
-  assert.match(read('pages/legal/index.wxml'), /jsQR 1\.4\.0/)
+  assert.match(read('subpackages/grow/pages/legal/index.wxml'), /jsQR 1\.4\.0/)
 
   const config = await import(`${URL_ROOT}core/workflow/workflowConfig.ts`)
   assert.equal(config.WORKFLOW_ROUTING['qr-decode'], 'jump')

@@ -132,6 +132,62 @@
   line-height: 1.55;
 }
 
+/* ---- 排序与管理入口 ---- */
+.fav-toolbar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  margin-top: 22rpx;
+}
+
+.fav-sorts {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 10rpx;
+  min-width: 0;
+}
+
+.fav-sort {
+  padding: 10rpx 20rpx;
+  border: 1px solid var(--glass-border);
+  border-radius: 999rpx;
+  background-color: var(--glass-bg-soft);
+  color: var(--glass-text-2);
+  font-size: 21rpx;
+  font-size: calc(21rpx * var(--fs-scale, 1));
+  line-height: 1.3;
+}
+
+.fav-sort--on {
+  border-color: var(--glass-accent);
+  background-color: var(--glass-accent-soft);
+  color: var(--glass-accent-text);
+  font-weight: 600;
+}
+
+.fav-head-actions {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 18rpx;
+}
+
+.fav-manage,
+.fav-clear {
+  color: var(--glass-accent-text);
+  font-size: 22rpx;
+  font-size: calc(22rpx * var(--fs-scale, 1));
+  font-weight: 600;
+}
+
+.fav-clear {
+  color: var(--glass-danger-text);
+}
+
 /* ---- 收藏列表 ---- */
 .fav-list {
   display: flex;
@@ -179,6 +235,40 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.92),
     inset 0 0 0 1px rgba(255, 255, 255, 0.42),
     0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.fav-item--selected {
+  border-color: var(--glass-accent);
+  background-color: var(--glass-accent-soft);
+  box-shadow:
+    inset 0 1px 0 var(--glass-highlight),
+    inset 0 0 0 1px var(--glass-accent),
+    0 4px 14px rgba(0, 0, 0, 0.08);
+}
+
+.fav-check {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 44rpx;
+  height: 44rpx;
+  box-sizing: border-box;
+  border: 2rpx solid var(--glass-border);
+  border-radius: 50%;
+  background-color: var(--glass-bg-soft);
+}
+
+.fav-check--on {
+  border-color: var(--glass-accent);
+  background-color: var(--glass-accent);
+}
+
+.fav-check__glyph {
+  color: var(--glass-on-accent);
+  font-size: 24rpx;
+  font-weight: 700;
+  line-height: 1;
 }
 
 /* 夜航按压：薄镜面，不整块提亮 */
@@ -365,4 +455,56 @@
   font-size: calc(17rpx * var(--fs-scale, 1));
   letter-spacing: 0.06em;
   text-align: center;
+}
+
+/* ---- 管理模式底部操作条 ---- */
+.fav-page--manage .fav-inner {
+  padding-bottom: calc(200px + env(safe-area-inset-bottom));
+}
+
+.fav-managebar {
+  position: fixed;
+  right: 24rpx;
+  bottom: calc(18rpx + env(safe-area-inset-bottom));
+  left: 24rpx;
+  z-index: 20;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18rpx;
+  padding: 18rpx 24rpx;
+  border: 1px solid var(--glass-border);
+  border-radius: 24rpx;
+  background-color: var(--glass-bg-strong);
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
+  box-shadow:
+    inset 0 1px 0 var(--glass-highlight),
+    0 12px 32px rgba(0, 0, 0, 0.18);
+}
+
+.fav-managebar__count {
+  color: var(--glass-text);
+  font-size: 23rpx;
+  font-size: calc(23rpx * var(--fs-scale, 1));
+  font-weight: 600;
+}
+
+.fav-managebar__actions {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 22rpx;
+}
+
+.fav-managebar__action {
+  color: var(--glass-accent-text);
+  font-size: 23rpx;
+  font-size: calc(23rpx * var(--fs-scale, 1));
+  font-weight: 600;
+}
+
+.fav-managebar__action--disabled {
+  color: var(--glass-text-3);
 }

@@ -84,6 +84,7 @@ test('偏好归一化：合法字段完整映射', async () => {
     lightEffects: false,
     motion: 'saver',
     autoCleanDays: 0,
+    favoriteSort: 'category',
     flags: { enable_ai_assist: true },
   })
 
@@ -97,6 +98,7 @@ test('偏好归一化：合法字段完整映射', async () => {
     isPrivacyMasked: true,
     isHistoryTrackingEnabled: true,
     fontScale: 'standard',
+    favoriteSort: 'category',
     flags: { enable_ai_assist: true },
   })
 })

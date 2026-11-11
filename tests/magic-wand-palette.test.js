@@ -240,7 +240,10 @@ test('指令数据：内置命令覆盖全部工具与导航', async () => {
 
   const legalCommand = BUILTIN_COMMANDS.find((command) => command.id === 'nav-legal')
   assert.ok(legalCommand)
-  assert.equal(buildPaletteUrl(legalCommand), '/pages/legal/index?section=privacy')
+  assert.equal(
+    buildPaletteUrl(legalCommand),
+    '/subpackages/grow/pages/legal/index?section=privacy',
+  )
 
   const defaultResults = filterPaletteCommands(BUILTIN_COMMANDS, '', 8)
   assert.equal(defaultResults.length, 8)

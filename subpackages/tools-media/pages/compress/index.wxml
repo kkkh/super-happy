@@ -10,33 +10,56 @@
   has-result="{{hasResult}}"
   error="{{error}}"
   empty-title="从相册选择图片开始压缩"
-  empty-sub="图片只在本机处理，不会上传服务器"
+  empty-sub="最多 9 张串行处理，图片只在本机，不会上传服务器"
   bind:reset="onReset"
 >
   <view slot="input" class="sg-tool-fields">
-    <view class="tool-stage" aria-label="{{imagePath ? '已选择图片' : '尚未选择图片'}}">
-      <image
-        wx:if="{{imagePath}}"
-        class="tool-stage__preview"
-        src="{{imagePath}}"
-        mode="aspectFit"
-        aria-label="原图预览"
-      />
+    <view class="tool-stage" aria-label="{{items.length ? '已选择 ' + items.length + ' 张图片' : '尚未选择图片'}}">
+      <block wx:if="{{items.length}}">
+        <view class="batch-grid">
+          <view
+            wx:for="{{items}}"
+            wx:key="id"
+            class="batch-thumb batch-thumb--{{item.status}}"
+          >
+            <image class="batch-thumb__img" src="{{item.originalPath}}" mode="aspectFill" aria-label="{{item.name}}" />
+            <text class="batch-thumb__index">{{index + 1}}</text>
+            <view wx:if="{{item.status === 'processing'}}" class="batch-thumb__mask">处理中</view>
+            <view wx:elif="{{item.status === 'failed' || item.status === 'rejected'}}" class="batch-thumb__mask batch-thumb__mask--error">!</view>
+            <view wx:elif="{{item.status === 'done'}}" class="batch-thumb__badge">✓</view>
+          </view>
+        </view>
+      </block>
       <view wx:else class="tool-stage__blank">
         <view class="tool-stage__icon">
           <g-icon name="image" size="{{44}}" tone="media" />
         </view>
         <text class="tool-stage__title">从相册选择图片</text>
-        <text class="tool-stage__sub">支持 JPG / PNG / 系统可解码的 HEIC</text>
+        <text class="tool-stage__sub">最多 9 张 · 单张 ≤12MP · 总源 ≤80MB</text>
       </view>
-      <view wx:if="{{compressing}}" class="tool-stage__loading">
-        <view class="tool-stage__spinner" aria-hidden="true"></view>
-        <text class="tool-stage__loading-text">本机压缩中</text>
+
+      <view wx:if="{{compressing}}" class="batch-progress">
+        <view class="batch-progress__head">
+          <text>{{cancelling ? '正在取消…' : '正在压缩 ' + processingIndex + ' / ' + processingTotal}}</text>
+          <text>{{progressPercent}}%</text>
+        </view>
+        <view class="batch-progress__track">
+          <view class="batch-progress__bar" style="width: {{progressPercent}}%"></view>
+        </view>
+        <text class="batch-progress__name">{{processingName}}</text>
+        <glass-button
+          size="sm"
+          variant="ghost"
+          aria-label="取消批量压缩"
+          bind:tap="onCancel"
+        >{{cancelling ? '取消中' : '取消'}}</glass-button>
       </view>
     </view>
 
     <view class="tool-meta">
-      <text class="tool-meta__hint">{{imagePath ? originalSizeText + ' · ' + originalSizeNote : '不会读取相册，也不会申请相机'}}</text>
+      <text class="tool-meta__hint">
+        {{items.length ? items.length + ' 张 · 原图合计 ' + sourceTotalText : '不会读取相册，也不会申请相机'}}
+      </text>
     </view>
 
     <glass-button
@@ -45,10 +68,10 @@
       block
       loading="{{compressing}}"
       loading-text="本机压缩中"
-      aria-label="{{imagePath ? '重新选择图片' : '从相册选择图片'}}"
+      aria-label="{{items.length ? '重新选择图片' : '从相册选择图片'}}"
       bind:tap="onChoose"
     >
-      {{imagePath ? '重新选择图片' : '从相册选择图片'}}
+      {{items.length ? '重新选择（最多 9 张）' : '从相册选择图片'}}
     </glass-button>
 
     <view class="tool-field">
@@ -87,97 +110,81 @@
           {{item.label}}
         </glass-button>
       </view>
+      <text class="batch-cap-hint">批量场景输出长边最多 2048px</text>
     </view>
   </view>
 
   <view slot="result" class="sg-tool-result">
     <view class="sg-tool-result__head">
-      <text class="sg-tool-result__label">压缩对比</text>
-      <text class="sg-tool-result__meta">{{imageWidth}} × {{imageHeight}}</text>
+      <text class="sg-tool-result__label">批量压缩</text>
+      <text class="sg-tool-result__meta">{{doneCount}} / {{totalCount}} 张完成</text>
     </view>
 
-    <view class="tool-compare">
-      <view class="tool-compare__item">
-        <image
-          class="tool-compare__img"
-          src="{{imagePath}}"
-          mode="aspectFit"
-          aria-label="原图"
-        />
-        <text class="tool-compare__name">原图 / BEFORE</text>
-        <text class="tool-compare__size">{{originalSizeText}}</text>
+    <view wx:if="{{doneCount}}" class="tool-metrics">
+      <view class="tool-metric">
+        <text class="tool-metric__k">原图合计</text>
+        <text class="tool-metric__v">{{totalOriginalText}}</text>
       </view>
-      <view class="tool-compare__item">
-        <image
-          class="tool-compare__img"
-          src="{{compressedPath}}"
-          mode="aspectFit"
-          aria-label="压缩后的图片"
-        />
-        <text class="tool-compare__name">压缩后 / AFTER</text>
-        <text class="tool-compare__size">{{compressedSizeText}}</text>
+      <view class="tool-metric">
+        <text class="tool-metric__k">压缩后合计</text>
+        <text class="tool-metric__v">{{totalCompressedText}}</text>
       </view>
     </view>
 
-    <view class="tool-hero">
+    <view wx:if="{{doneCount}}" class="tool-hero">
       <animated-number
-        value="{{ratioValue}}"
+        value="{{totalRatioValue}}"
         decimals="1"
         suffix="%"
         size="xl"
         tone="aurora"
       />
-      <text class="tool-hero__label">体积缩减 / SAVED</text>
-      <text class="tool-hero__caption">{{savedText}}</text>
+      <text class="tool-hero__label">总体积变化 / DELTA</text>
+      <text class="tool-hero__caption">{{totalSavedText}}</text>
     </view>
 
-    <view class="tool-metrics">
-      <view class="tool-metric">
-        <text class="tool-metric__k">原图体积</text>
-        <animated-number
-          value="{{originalSizeMb}}"
-          decimals="2"
-          suffix=" MB"
-          size="md"
-          tone="neutral"
-        />
-      </view>
-      <view class="tool-metric">
-        <text class="tool-metric__k">压缩后体积</text>
-        <animated-number
-          value="{{compressedSizeMb}}"
-          decimals="2"
-          suffix=" MB"
-          size="md"
-          tone="iris"
-        />
-      </view>
-    </view>
-
-    <view class="sg-tool-rows">
-      <view class="sg-tool-row">
-        <text class="sg-tool-row__k">原图尺寸</text>
-        <text class="sg-tool-row__v">{{imageWidth}} × {{imageHeight}}</text>
-      </view>
-      <view class="sg-tool-row">
-        <text class="sg-tool-row__k">压缩后尺寸</text>
-        <text class="sg-tool-row__v">{{compressedWidth}} × {{compressedHeight}}</text>
+    <view class="batch-list">
+      <view wx:for="{{items}}" wx:key="id" class="batch-row batch-row--{{item.status}}">
+        <image class="batch-row__thumb" src="{{item.originalPath}}" mode="aspectFill" aria-label="{{item.name}}缩略图" />
+        <view class="batch-row__body">
+          <view class="batch-row__head">
+            <text class="batch-row__name">{{item.name}}</text>
+            <text class="batch-row__status">{{item.statusText}}</text>
+          </view>
+          <text wx:if="{{item.status === 'done'}}" class="batch-row__size">{{item.originalSizeText}} → {{item.compressedSizeText}}</text>
+          <text wx:if="{{item.status === 'done'}}" class="batch-row__saved">{{item.savedText}}</text>
+          <text wx:elif="{{item.error}}" class="batch-row__error">{{item.error}}</text>
+          <text wx:else class="batch-row__size">{{item.originalSizeText}} · {{item.originalWidth}} × {{item.originalHeight}}</text>
+        </view>
+        <glass-button
+          wx:if="{{item.status === 'done'}}"
+          size="sm"
+          variant="ghost"
+          custom-class="batch-row__save"
+          data-id="{{item.id}}"
+          loading="{{savingId === item.id}}"
+          loading-text="保存中"
+          aria-label="保存{{item.name}}到相册"
+          bind:tap="onSaveItem"
+        >保存</glass-button>
       </view>
     </view>
 
-    <view wx:if="{{compressedNote}}" class="tool-notice">{{compressedNote}}</view>
+    <view wx:if="{{failedCount}}" class="tool-notice">
+      有 {{failedCount}} 张未完成（超过 12MP 或压缩失败），已跳过，不影响其余图片。
+    </view>
 
-    <view class="sg-tool-result__actions">
+    <view wx:if="{{doneCount}}" class="sg-tool-result__actions">
       <glass-button
         variant="aurora"
         size="md"
         block
-        loading="{{saving}}"
+        loading="{{savingAll}}"
         loading-text="保存中"
-        aria-label="保存压缩后的图片到相册"
-        bind:tap="onSave"
+        aria-label="保存全部压缩图片到相册"
+        bind:tap="onSaveAll"
       >
-        保存到相册
+        保存全部（{{doneCount}} 张）
       </glass-button>
       <glass-button
         variant="ghost"
@@ -189,15 +196,18 @@
         复制信息
       </glass-button>
     </view>
+
+    <text wx:if="{{doneCount}}" class="batch-poster-note">海报取第 1 张已完成图片</text>
   </view>
 
   <view slot="note">
     <glass-card tone="amber" radius="lg" padding="md" depth="soft">
       <view class="sg-tool-note">
-        <text class="sg-tool-note__title">本机处理</text>
+        <text class="sg-tool-note__title">本机批量处理</text>
         <text class="sg-tool-note__text">
-          使用微信原生压缩能力在本机处理图片，只读取您主动选择的那张图片；不扫描相册列表、不申请相机、不上传服务器。
-          仅在点击「保存到相册」时申请写入权限；关闭页面后临时文件由系统回收。
+          使用微信原生压缩能力逐张串行处理，只读取您主动选择的图片；不扫描相册列表、不申请相机、不上传服务器。
+          单张超过 12MP 会跳过，单批最多 9 张且总源不超过 80MB；取消或关闭页面会清理临时文件。
+          仅在点击保存时申请写入权限。
         </text>
       </view>
     </glass-card>

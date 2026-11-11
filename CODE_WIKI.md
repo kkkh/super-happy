@@ -6,7 +6,7 @@
 > 渲染引擎：Skyline + glass-easel
 > 基础库：`3.17.6`
 > 文档基线：2026-11-11（已按当前源码全量核验）
-> 校验状态：`tsc --noEmit` 通过；`npm test` 811/811 通过（复核于 2026-11-11，108 个测试文件）
+> 校验状态：`tsc --noEmit` 通过；`npm test` 823/823 通过（复核于 2026-11-12，110 个测试文件）
 
 本文是面向开发者的完整 Code Wiki，覆盖项目定位、技术栈、整体架构、启动编排、核心 Store、Workflow 流转引擎、64 个工具算法、全息气象站、全息专注引擎、组件库、82 个页面、设计令牌、存储迁移、隐私与更新机制、依赖关系、运行方式、部署发布流程和扩展指南。文中路径均为仓库相对路径，关键公式与常量标注来源文件。
 
@@ -43,20 +43,20 @@
 
 | 指标 | 数值 | 说明 |
 |---|---|---|
-| 页面总数 | 81 | 主包 5 页 + 8 个分包共 76 页 |
-| 主包页面 | 5 | `pages/index`、`pages/lab`、`pages/favorites`、`pages/mine`、`pages/legal` |
-| 分包 | 8 | `tools-core`（29 页）、`tools-daily`（17 页）、`tools-media`（14 页）、`tools-dict`（3 页）、`grow`（8 页）、`works`（3 页）、`campus`（1 页）、`life`（1 页） |
+| 页面总数 | 82 | 主包 3 页 + 8 个分包共 79 页 |
+| 主包页面 | 3 | `pages/index`、`pages/favorites`、`pages/mine` |
+| 分包 | 8 | `tools-core`（31 页）、`tools-daily`（17 页）、`tools-media`（14 页）、`tools-dict`（3 页）、`grow`（9 页）、`works`（3 页）、`campus`（1 页）、`life`（1 页） |
 | 工具 | 63 | 6 个分类，唯一注册表 `core/toolbox/registry.ts` |
 | 工具分类 | 6 | `calc` / `date` / `text` / `media` / `life` / `work` |
 | 主包组件 | 29 | `components/` 下 29 个组件目录 + `sound-hook.ts` |
 | 分包组件 | 14 | grow 8 个、works 2 个、campus 2 个、tools-core 2 个（`weather-glyph`、`web-search-results`） |
-| 核心 TS 模块 | 69 | `core/` 下全部 `.ts` |
-| 分包 TS 模块 | 178 | `subpackages/` 下业务 `.ts`（含页面 / 组件 / lib / weather，不含 `node_modules` 与 `.d.ts`） |
+| 核心 TS 模块 | 70 | `core/` 下全部 `.ts` |
+| 分包 TS 模块 | 179 | `subpackages/` 下业务 `.ts`（含页面 / 组件 / lib / weather，不含 `node_modules` 与 `.d.ts`） |
 | 运行时 npm 依赖 | 2 | `mobx-miniprogram`、`mobx-miniprogram-bindings` |
 | 工具分包依赖 | 2 | `crypto-js`、`diff-match-patch`（仅 tools-core；grow 内有 crypto-js 副本） |
 | AI SKILL 原子接口 | 12 | `core/skill/registry.ts` |
 | 作品数据 | 11 | `core/data/resume-data.ts` 的 `projects` |
-| 单元 / 集成测试 | 811 | 108 个 `.test.js` 文件，全部通过 |
+| 单元 / 集成测试 | 823 | 110 个 `.test.js` 文件，全部通过 |
 | 存储结构版本 | 1 | `app:storage.version` |
 | Spatial Glass 元数据版本 | 2 | `gallery.glass.meta` |
 
@@ -93,7 +93,7 @@ flowchart TB
   end
   subgraph L2[页面层]
     P1["主包 pages/*"]
-    P2["tools-core 29 页"]
+    P2["tools-core 31 页"]
     P3["tools-daily / tools-media"]
     P4["grow / works / campus"]
     P5["life 专注引擎"]
@@ -198,7 +198,7 @@ flowchart TB
 | 文件 | 关键配置 |
 |---|---|
 | `app.json` | `renderer: "skyline"`、`componentFramework: "glass-easel"`、`custom` TabBar、`lazyCodeLoading: "requiredComponents"`、`workers: "workers"`、`darkmode: true`、`__usePrivacyCheck__: true`、`requiredBackgroundModes: ["audio"]`（专注 BGM）、`requiredPrivateInfos: ["getFuzzyLocation"]`（天气模糊定位） |
-| `app.json` 分包 | 8 个：`tools-core`、`tools-daily`、`tools-media`、`tools-dict`、`grow`、`works`、`campus`、`life`；共 81 页 |
+| `app.json` 分包 | 8 个：`tools-core`、`tools-daily`、`tools-media`、`tools-dict`、`grow`、`works`、`campus`、`life`；共 82 页 |
 | `app.json` 主题 | `navigationStyle: "custom"`、`pageOrientation: "portrait"`、`themeLocation: "theme.json"`、`backgroundColor: "@canvas"` |
 | `app.json` 全局组件 | `update-guard` 与 `meeting-timer-hud` 注册在 `usingComponents`，所有页面可用 |
 | `theme.json` | `light.canvas = #eef1f7`、`dark.canvas = #070a12`，导航文字黑 / 白 |
@@ -216,7 +216,7 @@ flowchart TB
 | `build:icon` | `npx fantasticon .icon-src -o .icon-dist -n gicon --font-types ttf --asset-types json` | 生成图标字体到 `.icon-dist/` |
 | `pretypecheck` / `pretest` | `node scripts/ensure-weather-config.js && node scripts/ensure-yuanbao-config.js` | 自动生成 `weather/config.local.ts` 与 `yuanbao/config-local.ts`（若缺失），避免 Key 缺失导致编译失败 |
 | `typecheck` | `tsc --noEmit` | 严格类型检查 |
-| `test` | `node --experimental-strip-types --test tests/*.test.js` | 108 个测试文件、811 项全部单元 / 集成测试 |
+| `test` | `node --experimental-strip-types --test tests/*.test.js` | 110 个测试文件、823 项全部单元 / 集成测试 |
 | `test:hologram` | 仅 `tests/spatial-hologram.test.js` | 空间全息单测 |
 | `test:integration` | `tests/*.integration.test.js` | 集成测试 |
 | `test:integration:hologram` | 仅空间全息集成测试 | 集成测试 |
@@ -520,7 +520,7 @@ sequenceDiagram
 ├── store/index.ts             # glassStore 全局门面
 ├── styles/                    # Design Tokens / V3 / 旧工具箱样式
 ├── workers/compute.js         # Worker 计算入口
-├── tests/                     # 811 项测试 + 视觉 / E2E
+├── tests/                     # 823 项测试 + 视觉 / E2E
 ├── assets/                    # 头像、二维码、作品封面
 └── CODE_WIKI.md               # 本文档
 ```
@@ -2860,14 +2860,12 @@ glass-tool-shell.onGeneratePoster()
 | 路由 | 文件 | 职责 |
 |---|---|---|
 | `/pages/index/index` | `pages/index/` | 工具箱首页：Hero 数据、搜索、最近使用、收藏、魔法棒指令面板、深链、分享 |
-| `/pages/favorites/index` | `pages/favorites/` | 工具收藏列表、取消收藏、空态 CTA、TabBar 选中 |
+| `/pages/favorites/index` | `pages/favorites/` | 工具收藏列表、三排序、多选管理、批量移除、清空确认、空态 CTA、TabBar 选中 |
 | `/pages/mine/index` | `pages/mine/` | 外观切换、关于作者、隐私说明、设置中心、数据驾驶舱、邮箱复制、清空工具数据、版本号；隐私中心与重置全部已迁入设置页 |
-| `/pages/legal/index` | `pages/legal/` | 隐私说明 / 本机数据 / 免责声明 / 开源许可；隐私授权弹窗 |
-| `/pages/lab/index` | `pages/lab/` | 组件样板间：空间全息、玻璃输入、底部抽屉、数字滚动 |
 
-### 10.2 `subpackages/tools-core`（29 页）
+### 10.2 `subpackages/tools-core`（31 页）
 
-单位换算、个税计算、房贷试算、存款复利、进制转换、日期格式、日期加减、颜色转换、JSON ↔ CSV、时区换算、工期排期、文本转换、模板填充、正则测试、日期间隔、年龄周岁、倒数日、时间戳、金额大写、字数统计、文本对比、Hash 加密、去重排序、JSON 格式化、URL 编解码、Base64、随机密码、BMI 指数、全息气象。
+单位换算、个税计算、房贷试算、存款复利、进制转换、日期格式、日期加减、颜色转换、JSON ↔ CSV、时区换算、工期排期、文本转换、模板填充、正则测试、日期间隔、年龄周岁、倒数日、时间戳、金额大写、字数统计、文本对比、Hash 加密、去重排序、JSON 格式化、URL 编解码、Base64、随机密码、BMI 指数、全息气象、元宝搜索；另有组件样板间 `lab`。
 
 所有页面：
 
@@ -2918,7 +2916,7 @@ glass-tool-shell.onGeneratePoster()
 | `/subpackages/tools-media/pages/vcard/index` | 二维码名片：vCard / 图片名片 / 二维码 |
 | `/subpackages/tools-media/pages/watermark/index` | 水印 / 打码 / Logo / 手势工作台 |
 
-### 10.4 `subpackages/grow`（8 页）
+### 10.4 `subpackages/grow`（9 页）
 
 | 路由 | 职责 |
 |---|---|
@@ -2930,6 +2928,7 @@ glass-tool-shell.onGeneratePoster()
 | `/subpackages/grow/pages/settings/index` | 全局设置 + 隐私中心（权限 / 版本 / 重置）+ Cyber Space OS 极客实验室 + 专注引擎入口 / 清空 |
 | `/subpackages/grow/pages/cockpit/index` | 数据驾驶舱：轨迹 / 周报 / 环形图 / 折线图 / 隐私盾 |
 | `/subpackages/grow/pages/help/index` | 使用指南：覆盖 64 个工具的步骤 / 提示 / FAQ，搜索复用 `searchTools`；底部「问题未解决？」可复制反馈邮箱、预览并导出脱敏诊断包 |
+| `/subpackages/grow/pages/legal/index` | 隐私说明 / 本机数据 / 免责声明 / 开源许可；隐私授权弹窗 |
 
 #### 10.4.1 设置页功能分区
 
@@ -4011,7 +4010,7 @@ npm test
 | 项 | 要求 |
 |---|---|
 | 类型检查 | `npm run typecheck` 通过 |
-| 单元 / 集成测试 | `npm test` 811/811 通过 |
+| 单元 / 集成测试 | `npm test` 823/823 通过 |
 | 样式产物 | `styles/generated/tailwind.wxss` 存在且为最新 |
 | npm 产物 | 根包与 tools-core 的 `miniprogram_npm` 均存在 |
 | 版本号 | `APP_VERSION` 与后台版本说明一致 |
@@ -4055,10 +4054,10 @@ npm run plan            # 81 项能力 / 63 张工具卡与注册表一致
 | 门禁 | 通过输出 | 当前值 |
 |---|---|---|
 | `check:version` | `✔ 版本四源一致：1.1.0` | `1.1.0` |
-| `budget` | `✔ 包体预算通过` | 主包 1899.5 KB / 1900 KB；tools-core 1430.8 KB |
+| `budget` | `✔ 包体预算通过` | 主包 1855.2 KB / 1900 KB；tools-core 1441.0 KB |
 | `plan` | `✔ 方案自检通过` | 能力 81 项 / 卡片 63 张 |
 | `typecheck` | 无输出 | 通过 |
-| `test` | `tests 811`、`pass 811`、`fail 0` | 811/811 |
+| `test` | `tests 823`、`pass 823`、`fail 0` | 823/823 |
 
 任一项失败时的处理顺序：
 
@@ -4349,7 +4348,7 @@ wx.getStorageSync('diag:errors.v1')
 | 服务器域名 | request 合法域名：`https://restapi.amap.com`（全息气象）、`https://www.chinamoney.com.cn`（汇率换算官方中间价） | 除这两个公开数据请求外，`localTransport` 只读本地数据 |
 | 云开发 / 云函数 | 不使用 | 不需要创建云环境、云数据库或云存储 |
 | 微信支付 / 订阅消息 | 未接入 | 不需要商户号、支付目录或订阅模板 |
-| 应用内隐私入口 | `pages/legal/index` | 隐私说明、本机数据、免责声明、开源许可 |
+| 应用内隐私入口 | `subpackages/grow/pages/legal/index` | 隐私说明、本机数据、免责声明、开源许可 |
 
 涉及授权 / 系统能力的 API 与声明口径：
 
@@ -4745,7 +4744,7 @@ MP_CI_PRIVATE_KEY_PATH="$MP_CI_KEY_FILE" npm run ci:upload
 
 ### 15.1 测试构成
 
-`npm test` 当前 **811 项全部通过**。
+`npm test` 当前 **823 项全部通过**。
 
 | 测试组 | 文件 | 覆盖主题 |
 |---|---|---|
@@ -4775,7 +4774,7 @@ MP_CI_PRIVATE_KEY_PATH="$MP_CI_KEY_FILE" npm run ci:upload
 | 门禁 | 命令 | 当前状态 |
 |---|---|---|
 | 类型检查 | `npm run typecheck` | 通过 |
-| 单元 / 集成 | `npm test` | 811/811 通过 |
+| 单元 / 集成 | `npm test` | 823/823 通过 |
 | 文字对比度 | `npm run check:contrast` | 通过（正文全绿，按钮 6 条 warning 设计债） |
 | Workflow 覆盖率 | `tests/workflow-coverage.test.js` | 63 工具全部注册 / 适配器 / 来源 / 收发端；15 silent + 48 jump |
 | 分包路由 | `tests/subpackage-routing.test.js` | 通过 |
@@ -4877,10 +4876,10 @@ MP_CI_PRIVATE_KEY_PATH="$MP_CI_KEY_FILE" npm run ci:upload
 | 路由 | 页面 | 包 |
 |---|---|---|
 | `/pages/index/index` | 工具箱首页 | 主包 |
-| `/pages/lab/index` | 组件样板间 | 主包 |
+| `/subpackages/tools-core/pages/lab/index` | 组件样板间 | tools-core |
 | `/pages/favorites/index` | 收藏 | 主包 |
 | `/pages/mine/index` | 我的 | 主包 |
-| `/pages/legal/index` | 隐私与说明 | 主包 |
+| `/subpackages/grow/pages/legal/index` | 隐私与说明 | grow |
 | `/subpackages/tools-core/pages/unit/index` | 单位换算 | tools-core |
 | `/subpackages/tools-core/pages/tax/index` | 个税计算 | tools-core |
 | `/subpackages/tools-core/pages/loan/index` | 房贷试算 | tools-core |
@@ -5143,13 +5142,13 @@ MP_CI_PRIVATE_KEY_PATH="$MP_CI_KEY_FILE" npm run ci:upload
 
 | 核对项 | 结果 |
 |---|---|
-| 页面路由 | 81 / 81，全部在 10.1–10.6 与 18.1 中列出 |
+| 页面路由 | 82 / 82，全部在 10.1–10.6 与 18.1 中列出 |
 | 主包组件 | 29 / 29，全部在 9.1 中列出 |
 | 分包组件 | 14 / 14，全部在 9.10 中列出 |
 | 工具 | 63 / 63，全部在 6.1 与 8.4 中列出 |
 | `core/` TypeScript 模块 | 69 / 69，均在 5.x、6.x、7.x、8.x、11.x、12.x 或 5.11 中出现 |
 | `subpackages/` TypeScript 模块 | 178 / 178，页面 / 组件在 10.x、9.10 中按路由列出，lib / utils / weather 在 8.x、5.11、18.3 中说明 |
-| 测试文件 | 108 个 `.test.js`；`npm test` 811 项通过 |
+| 测试文件 | 110 个 `.test.js`；`npm test` 823 项通过 |
 | 运行时依赖 | 根包 2 个 + tools-core 2 个，均在 2.1 / 13.2 中列出 |
 | 配置文件 | `app.json`、`app.ts`、`theme.json`、`project.config.json`、`project.private.config.json`、`tsconfig.json`、`package.json`、`postcss.config.js`、`sitemap.json` |
 | 存储键 | 42 个运行期键（含 `weather:*` 动态后缀），见 12.1 |

@@ -1,10 +1,20 @@
 /* ==========================================================================
    收藏页 · 只显示工具收藏（作品收藏保留在简历模块内部）
-   - 顺序按收藏时间倒序；卡片星标直接取消收藏
+   - 支持最近收藏 / 名称 / 分类三种排序，偏好写入 preferenceStore
+   - 管理模式支持多选、全选、批量移除与二次确认清空
+   - 顺序默认按收藏时间倒序；非管理态卡片星标可直接取消收藏
    ========================================================================== */
 import { createStoreBindings } from 'mobx-miniprogram-bindings'
 import { uiStore } from '../../core/stores/ui'
+import { preferenceStore } from '../../core/stores/preference'
 import { toolboxStore } from '../../core/toolbox/store'
+import {
+  FAVORITE_SORTS,
+  FAVORITE_SORT_LABELS,
+  isFavoriteSort,
+  sortFavoriteTools,
+} from '../../core/toolbox/favorites-sort'
+import type { FavoriteSort } from '../../core/toolbox/types'
 import { selectTabBar } from '../../core/toolbox/tabbar'
 import { tapTick, tapWarn } from '../../core/utils/haptics'
 import { logger } from '../../core/utils/logger'
@@ -18,12 +28,17 @@ import { fontScaleClass, syncFontScaleClass } from '../../core/services/font-sca
 
 interface FavoriteState {
   themeBindings?: { destroyStoreBindings: () => void }
-  storeBindings?: { destroyStoreBindings: () => void }
   /** 导航锁：防止疯狂连点工具行产生重复页面栈 */
   navigating: boolean
 }
 
+const SORT_OPTIONS = FAVORITE_SORTS.map((key) => ({
+  key,
+  label: FAVORITE_SORT_LABELS[key],
+}))
+
 toolboxStore.init()
+preferenceStore.init()
 
 Page({
   /* 此处是处理全局分享与深链参数校验的边界 */
@@ -39,13 +54,21 @@ Page({
     themeClass: uiStore.themeClass,
     themeSwitching: false,
     fsClass: fontScaleClass(),
-    tools: toolboxStore.favoriteTools(),
+    tools: sortFavoriteTools(toolboxStore.favoriteTools(), preferenceStore.favoriteSort),
+    sort: preferenceStore.favoriteSort as FavoriteSort,
+    sortOptions: SORT_OPTIONS,
+    manageMode: false,
+    selectedMap: {} as Record<string, boolean>,
+    selectedCount: 0,
+    allSelected: false,
+    showClearConfirm: false,
   },
 
   onLoad() {
     const state = this as unknown as FavoriteState
     state.navigating = false
     toolboxStore.init()
+    preferenceStore.init()
     state.themeBindings = createStoreBindings(this, {
       store: uiStore,
       fields: {
@@ -54,19 +77,21 @@ Page({
       },
       actions: [],
     })
-    state.storeBindings = createStoreBindings(this, {
-      store: toolboxStore,
-      fields: {
-        tools: () => toolboxStore.favoriteTools(),
-      },
-      actions: [],
-    })
+    this.refreshTools()
   },
 
   onShow() {
     const state = this as unknown as FavoriteState
     state.navigating = false
-    this.setData({ fsClass: syncFontScaleClass() })
+    this.setData({
+      fsClass: syncFontScaleClass(),
+      manageMode: false,
+      selectedMap: {},
+      selectedCount: 0,
+      allSelected: false,
+      showClearConfirm: false,
+    })
+    this.refreshTools()
     selectTabBar(this, 1)
     uiStore.syncNativeChrome()
   },
@@ -76,9 +101,160 @@ Page({
     if (state.themeBindings) {
       state.themeBindings.destroyStoreBindings()
     }
-    if (state.storeBindings) {
-      state.storeBindings.destroyStoreBindings()
+  },
+
+  /** 重新计算排序结果与勾选状态；收藏变化后统一走这里 */
+  refreshTools() {
+    const tools = sortFavoriteTools(toolboxStore.favoriteTools(), preferenceStore.favoriteSort)
+    const previous = this.data.selectedMap as Record<string, boolean>
+    const selectedMap: Record<string, boolean> = {}
+    let selectedCount = 0
+    tools.forEach((tool) => {
+      if (previous[tool.id]) {
+        selectedMap[tool.id] = true
+        selectedCount += 1
+      }
+    })
+    this.setData({
+      tools,
+      sort: preferenceStore.favoriteSort,
+      manageMode: this.data.manageMode && tools.length > 0,
+      selectedMap,
+      selectedCount,
+      allSelected: tools.length > 0 && selectedCount === tools.length,
+    })
+  },
+
+  onSort(event: WechatMiniprogram.TouchEvent) {
+    const key = String(event.currentTarget.dataset.key || '')
+    if (!isFavoriteSort(key) || key === this.data.sort) {
+      return
     }
+    tapTick()
+    if (!preferenceStore.setFavoriteSort(key)) {
+      tapWarn()
+      showGlassToast('排序偏好保存失败')
+    }
+    this.refreshTools()
+  },
+
+  onToggleManage() {
+    if (!this.data.tools.length && !this.data.manageMode) {
+      return
+    }
+    tapTick()
+    const manageMode = !this.data.manageMode
+    this.setData({
+      manageMode,
+      selectedMap: {},
+      selectedCount: 0,
+      allSelected: false,
+      showClearConfirm: false,
+    })
+  },
+
+  onRowTap(event: WechatMiniprogram.TouchEvent) {
+    if (this.data.manageMode) {
+      this.toggleSelected(String(event.currentTarget.dataset.id || ''))
+      return
+    }
+    this.onOpenTool(event)
+  },
+
+  toggleSelected(id: string) {
+    if (!id) {
+      return
+    }
+    tapTick()
+    const selectedMap = { ...(this.data.selectedMap as Record<string, boolean>) }
+    if (selectedMap[id]) {
+      delete selectedMap[id]
+    } else {
+      selectedMap[id] = true
+    }
+    const selectedCount = Object.keys(selectedMap).length
+    this.setData({
+      selectedMap,
+      selectedCount,
+      allSelected: selectedCount === this.data.tools.length && selectedCount > 0,
+    })
+  },
+
+  onSelectAll() {
+    if (!this.data.tools.length) {
+      return
+    }
+    tapTick()
+    if (this.data.allSelected) {
+      this.setData({ selectedMap: {}, selectedCount: 0, allSelected: false })
+      return
+    }
+    const selectedMap: Record<string, boolean> = {}
+    this.data.tools.forEach((tool) => {
+      selectedMap[tool.id] = true
+    })
+    this.setData({
+      selectedMap,
+      selectedCount: this.data.tools.length,
+      allSelected: true,
+    })
+  },
+
+  onRemoveSelected() {
+    const ids = Object.keys(this.data.selectedMap as Record<string, boolean>)
+    if (!ids.length) {
+      tapWarn()
+      showGlassToast('请先选择要移除的工具')
+      return
+    }
+    if (!toolboxStore.removeFavorites(ids)) {
+      tapWarn()
+      showGlassToast('移除失败，请重试')
+      return
+    }
+    tapTick()
+    this.setData(
+      {
+        manageMode: this.data.tools.length - ids.length > 0,
+        selectedMap: {},
+        selectedCount: 0,
+        allSelected: false,
+      },
+      () => this.refreshTools(),
+    )
+    showGlassToast(`已移除 ${ids.length} 个收藏`)
+  },
+
+  onAskClear() {
+    if (!this.data.tools.length) {
+      return
+    }
+    tapTick()
+    this.setData({ showClearConfirm: true })
+  },
+
+  onCancelClear() {
+    this.setData({ showClearConfirm: false })
+  },
+
+  onConfirmClear() {
+    this.setData({ showClearConfirm: false })
+    if (!toolboxStore.clearFavorites()) {
+      tapWarn()
+      showGlassToast('清空失败，请重试')
+      return
+    }
+    tapTick()
+    this.setData(
+      {
+        manageMode: false,
+        selectedMap: {},
+        selectedCount: 0,
+        allSelected: false,
+      },
+      () => this.refreshTools(),
+    )
+    showGlassToast('已清空收藏')
   },
 
   onOpenTool(event: WechatMiniprogram.TouchEvent) {
@@ -106,25 +282,6 @@ Page({
     })
   },
 
-  onFavorite(event: WechatMiniprogram.CustomEvent<{ id: string }>) {
-    const id = event.detail?.id
-    if (!id) {
-      return
-    }
-    const result = toolboxStore.toggleFavorite(id)
-    if (result === 'full') {
-      tapWarn()
-      showGlassToast('收藏已满（最多 100 个）')
-      return
-    }
-    if (result === 'failed' || result === 'invalid') {
-      tapWarn()
-      showGlassToast('收藏失败，请重试')
-      return
-    }
-    showGlassToast(result === 'added' ? '已收藏工具' : '已取消收藏')
-  },
-
   onUnfavorite(event: WechatMiniprogram.TouchEvent) {
     const id = event.currentTarget.dataset.id as string
     if (!id) {
@@ -137,6 +294,7 @@ Page({
       showGlassToast('收藏失败，请重试')
       return
     }
+    this.refreshTools()
     showGlassToast('已取消收藏')
   },
 

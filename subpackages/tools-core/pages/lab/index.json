@@ -1,0 +1,11 @@
+{
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "spatial-hologram": "../../../../components/spatial-hologram/index",
+    "glass-card": "../../../../components/glass-card/index",
+    "glass-input": "../../../../components/glass-input/index",
+    "glass-button": "../../../../components/glass-button/index",
+    "animated-number": "../../../../components/animated-number/index",
+    "glass-bottom-sheet": "../../../../components/glass-bottom-sheet/index"
+  }
+}

@@ -241,3 +241,230 @@
 }
 
 /* ---- 注释 ---- */
+
+/* ---- 批量选图网格 ---- */
+.batch-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10rpx;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 14rpx;
+}
+
+.batch-thumb {
+  position: relative;
+  overflow: hidden;
+  border: 1rpx solid var(--glass-border);
+  border-radius: var(--glass-radius-xs);
+  background-color: var(--glass-bg);
+}
+
+.batch-thumb--processing {
+  border-color: var(--glass-accent-2);
+}
+
+.batch-thumb--failed,
+.batch-thumb--rejected {
+  opacity: 0.72;
+}
+
+.batch-thumb__img {
+  display: block;
+  width: 100%;
+  height: 154rpx;
+}
+
+.batch-thumb__index {
+  position: absolute;
+  top: 8rpx;
+  left: 8rpx;
+  min-width: 30rpx;
+  padding: 2rpx 8rpx;
+  box-sizing: border-box;
+  border-radius: 999rpx;
+  background-color: var(--glass-scrim);
+  color: var(--glass-text);
+  font-family: var(--glass-font-mono);
+  font-size: 17rpx;
+  text-align: center;
+}
+
+.batch-thumb__mask {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 4rpx 0;
+  background-color: var(--glass-scrim);
+  color: var(--glass-text);
+  font-size: 17rpx;
+  text-align: center;
+}
+
+.batch-thumb__mask--error {
+  color: var(--glass-danger-text);
+  font-weight: 700;
+}
+
+.batch-thumb__badge {
+  position: absolute;
+  top: 8rpx;
+  right: 8rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30rpx;
+  height: 30rpx;
+  border-radius: 50%;
+  background-color: var(--glass-accent);
+  color: var(--glass-on-accent);
+  font-size: 18rpx;
+  font-weight: 700;
+}
+
+/* ---- 串行进度 ---- */
+.batch-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 16rpx 18rpx 18rpx;
+  border-top: 1rpx solid var(--glass-border);
+  background-color: var(--glass-bg-soft);
+}
+
+.batch-progress__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--glass-text-2);
+  font-family: var(--glass-font-mono);
+  font-size: 20rpx;
+}
+
+.batch-progress__track {
+  overflow: hidden;
+  height: 10rpx;
+  border-radius: 999rpx;
+  background-color: var(--glass-bg-strong);
+}
+
+.batch-progress__bar {
+  height: 100%;
+  border-radius: 999rpx;
+  background-color: var(--glass-accent-2);
+  transition: width 180ms ease;
+}
+
+.batch-progress__name {
+  color: var(--glass-text-3);
+  font-size: 19rpx;
+}
+
+.batch-cap-hint {
+  color: var(--glass-text-3);
+  font-size: 19rpx;
+}
+
+/* ---- 批量结果 ---- */
+.tool-metric__v {
+  color: var(--glass-text);
+  font-family: var(--glass-font-mono);
+  font-size: 26rpx;
+  font-weight: 600;
+}
+
+.batch-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+  box-sizing: border-box;
+}
+
+.batch-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 14rpx;
+  box-sizing: border-box;
+  padding: 12rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: var(--glass-radius-sm);
+  background-color: var(--glass-bg-soft);
+}
+
+.batch-row--processing {
+  border-color: var(--glass-accent-2);
+}
+
+.batch-row--failed,
+.batch-row--rejected {
+  border-color: var(--glass-danger);
+}
+
+.batch-row__thumb {
+  flex: none;
+  width: 84rpx;
+  height: 84rpx;
+  border-radius: var(--glass-radius-xs);
+  background-color: var(--glass-bg);
+}
+
+.batch-row__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4rpx;
+  min-width: 0;
+}
+
+.batch-row__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10rpx;
+}
+
+.batch-row__name {
+  overflow: hidden;
+  color: var(--glass-text);
+  font-size: 23rpx;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.batch-row__status {
+  flex: none;
+  color: var(--glass-text-3);
+  font-size: 18rpx;
+}
+
+.batch-row__size,
+.batch-row__saved,
+.batch-row__error {
+  color: var(--glass-text-2);
+  font-family: var(--glass-font-mono);
+  font-size: 19rpx;
+  line-height: 1.4;
+}
+
+.batch-row__saved {
+  color: var(--glass-accent-text);
+}
+
+.batch-row__error {
+  color: var(--glass-danger-text);
+}
+
+.batch-row__save {
+  flex: none;
+}
+
+.batch-poster-note {
+  color: var(--glass-text-3);
+  font-size: 18rpx;
+  text-align: center;
+}

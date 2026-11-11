@@ -1,4 +1,4 @@
-<view class="fav-page sg-ambient-surface sg-ambient-iris {{themeClass}} {{fsClass}} {{themeSwitching ? 'theme-breathing' : ''}}">
+<view class="fav-page sg-ambient-surface sg-ambient-iris {{themeClass}} {{fsClass}} {{themeSwitching ? 'theme-breathing' : ''}} {{manageMode ? 'fav-page--manage' : ''}}">
   <view class="fav-aurora" aria-hidden="true">
     <view class="sg-aurora-a fav-aurora__a"></view>
     <view class="sg-aurora-b fav-aurora__b"></view>
@@ -22,6 +22,35 @@
         </view>
         <text wx:if="{{tools.length}}" class="fav-sub">只收藏工具本身，不保存任何输入与结果。当前 {{tools.length}} 个常用工具。</text>
         <text wx:else class="fav-sub">还没有收藏，先把顺手的那个工具留下。</text>
+
+        <view wx:if="{{tools.length}}" class="fav-toolbar">
+          <view class="fav-sorts" aria-role="tablist" aria-label="收藏排序">
+            <view
+              wx:for="{{sortOptions}}"
+              wx:key="key"
+              class="fav-sort {{sort === item.key ? 'fav-sort--on' : ''}}"
+              data-key="{{item.key}}"
+              bindtap="onSort"
+              aria-role="tab"
+              aria-selected="{{sort === item.key}}"
+            >{{item.label}}</view>
+          </view>
+          <view class="fav-head-actions">
+            <text
+              wx:if="{{manageMode}}"
+              class="fav-clear"
+              bindtap="onAskClear"
+              aria-role="button"
+              aria-label="清空全部收藏"
+            >清空</text>
+            <text
+              class="fav-manage"
+              bindtap="onToggleManage"
+              aria-role="button"
+              aria-label="{{manageMode ? '退出管理' : '管理收藏'}}"
+            >{{manageMode ? '完成' : '管理'}}</text>
+          </view>
+        </view>
       </view>
 
       <block wx:if="{{tools.length}}">
@@ -29,15 +58,16 @@
           <view
             wx:for="{{tools}}"
             wx:key="id"
-            class="fav-item"
+            class="fav-item {{manageMode ? 'fav-item--manage' : ''}} {{selectedMap[item.id] ? 'fav-item--selected' : ''}}"
             hover-class="fav-item--press"
             hover-start-time="0"
             hover-stay-time="120"
             data-route="{{item.route}}"
             data-id="{{item.id}}"
-            aria-role="button"
-            aria-label="{{item.name}}，{{item.desc}}"
-            bindtap="onOpenTool"
+            aria-role="{{manageMode ? 'checkbox' : 'button'}}"
+            aria-checked="{{selectedMap[item.id] ? true : false}}"
+            aria-label="{{manageMode ? '选择' + item.name : item.name + '，' + item.desc}}"
+            bindtap="onRowTap"
           >
             <text class="fav-index">{{index + 1 < 10 ? '0' + (index + 1) : index + 1}}</text>
 
@@ -51,6 +81,14 @@
             </view>
 
             <view
+              wx:if="{{manageMode}}"
+              class="fav-check {{selectedMap[item.id] ? 'fav-check--on' : ''}}"
+              aria-hidden="true"
+            >
+              <text wx:if="{{selectedMap[item.id]}}" class="fav-check__glyph">✓</text>
+            </view>
+            <view
+              wx:else
               class="fav-mark"
               hover-class="fav-mark--press"
               hover-stay-time="80"
@@ -64,7 +102,8 @@
           </view>
         </view>
         <view class="fav-hint">
-          <text>点击行进入工具，点击右侧星标取消收藏</text>
+          <text wx:if="{{manageMode}}">点击行选择工具，底部可全选或批量移除</text>
+          <text wx:else>点击行进入工具，点击右侧星标取消收藏</text>
         </view>
       </block>
 
@@ -99,6 +138,42 @@
       <view class="fav-foot">收藏只存本机 · 最多 100 个</view>
     </view>
   </scroll-view>
+
+  <view wx:if="{{manageMode}}" class="fav-managebar">
+    <text class="fav-managebar__count" aria-role="status">已选 {{selectedCount}} 项</text>
+    <view class="fav-managebar__actions">
+      <text
+        class="fav-managebar__action"
+        bindtap="onSelectAll"
+        aria-role="button"
+        aria-label="{{allSelected ? '取消全选' : '全选'}}"
+      >{{allSelected ? '取消全选' : '全选'}}</text>
+      <text
+        class="fav-managebar__action {{selectedCount ? '' : 'fav-managebar__action--disabled'}}"
+        bindtap="onRemoveSelected"
+        aria-role="button"
+        aria-label="移除已选收藏"
+      >移除</text>
+      <text
+        class="fav-managebar__action"
+        bindtap="onToggleManage"
+        aria-role="button"
+        aria-label="退出管理"
+      >取消</text>
+    </view>
+  </view>
+
+  <glass-modal
+    show="{{showClearConfirm}}"
+    title="清空收藏"
+    description="将移除全部 {{tools.length}} 个收藏，此操作不可撤销"
+    confirm-text="清空"
+    cancel-text="取消"
+    danger
+    bind:confirm="onConfirmClear"
+    bind:cancel="onCancelClear"
+    bind:close="onCancelClear"
+  />
 
   <glass-toast />
   <update-guard />

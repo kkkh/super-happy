@@ -6,6 +6,8 @@
    ========================================================================== */
 import { observable } from 'mobx-miniprogram'
 import { STORAGE_KEYS } from '../constants/index'
+import { isFavoriteSort } from '../toolbox/favorites-sort'
+import type { FavoriteSort } from '../toolbox/types'
 import { logger } from '../utils/logger'
 
 export type HapticLevel = 'off' | 'light' | 'heavy'
@@ -33,6 +35,8 @@ export interface PreferenceSnapshot {
   isHistoryTrackingEnabled: boolean
   /** 字号档：标准 / 大 / 特大，默认标准 */
   fontScale: FontScale
+  /** 收藏页排序偏好 */
+  favoriteSort: FavoriteSort
   flags: PreferenceFlags
 }
 
@@ -83,6 +87,7 @@ export const DEFAULT_PREFERENCE: PreferenceSnapshot = {
   isPrivacyMasked: true,
   isHistoryTrackingEnabled: true,
   fontScale: 'standard',
+  favoriteSort: 'recent',
   flags: {
     enable_ai_assist: false,
   },
@@ -321,6 +326,9 @@ export function normalizePreference(
       base.isHistoryTrackingEnabled,
     ),
     fontScale: normalizeFontScale(record.fontScale ?? record.font, base.fontScale),
+    favoriteSort: isFavoriteSort(record.favoriteSort)
+      ? record.favoriteSort
+      : base.favoriteSort,
     flags: normalizeFlags(flagsSource, base.flags),
   }
 }
@@ -389,6 +397,7 @@ export const preferenceStore = observable({
   isPrivacyMasked: DEFAULT_PREFERENCE.isPrivacyMasked,
   isHistoryTrackingEnabled: DEFAULT_PREFERENCE.isHistoryTrackingEnabled,
   fontScale: DEFAULT_PREFERENCE.fontScale as FontScale,
+  favoriteSort: DEFAULT_PREFERENCE.favoriteSort as FavoriteSort,
   flags: { ...DEFAULT_PREFERENCE.flags } as PreferenceFlags,
 
   /** 启动调用一次；任何异常都保留默认值，绝不抛给 App */
@@ -417,6 +426,7 @@ export const preferenceStore = observable({
     this.isPrivacyMasked = safe.isPrivacyMasked
     this.isHistoryTrackingEnabled = safe.isHistoryTrackingEnabled
     this.fontScale = safe.fontScale
+    this.favoriteSort = safe.favoriteSort
     this.flags = { ...safe.flags }
   },
 
@@ -431,6 +441,7 @@ export const preferenceStore = observable({
       isPrivacyMasked: this.isPrivacyMasked,
       isHistoryTrackingEnabled: this.isHistoryTrackingEnabled,
       fontScale: this.fontScale,
+      favoriteSort: this.favoriteSort,
       flags: { ...this.flags },
     }
   },
@@ -535,6 +546,17 @@ export const preferenceStore = observable({
       return true
     }
     this.fontScale = scale
+    return this.persist()
+  },
+
+  setFavoriteSort(sort: FavoriteSort): boolean {
+    if (!isFavoriteSort(sort)) {
+      return false
+    }
+    if (this.favoriteSort === sort) {
+      return true
+    }
+    this.favoriteSort = sort
     return this.persist()
   },
 

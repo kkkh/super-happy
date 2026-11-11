@@ -1,10 +1,8 @@
 {
   "pages": [
     "pages/index/index",
-    "pages/lab/index",
     "pages/favorites/index",
-    "pages/mine/index",
-    "pages/legal/index"
+    "pages/mine/index"
   ],
   "subpackages": [
     {
@@ -39,7 +37,8 @@
         "pages/template/index",
         "pages/regex/index",
         "pages/weather/index",
-        "pages/web-search/index"
+        "pages/web-search/index",
+        "pages/lab/index"
       ]
     },
     {
@@ -101,7 +100,8 @@
         "pages/skills/index",
         "pages/settings/index",
         "pages/cockpit/index",
-        "pages/help/index"
+        "pages/help/index",
+        "pages/legal/index"
       ]
     },
     {

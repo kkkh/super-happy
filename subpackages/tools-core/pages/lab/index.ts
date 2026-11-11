@@ -1,11 +1,11 @@
 /* ==========================================================================
    pages/lab · 组件样板间
    ========================================================================== */
-import type { GlassInputValueDetail } from '../../components/glass-input/index'
+import type { GlassInputValueDetail } from '../../../../components/glass-input/index'
 import {
   sharePayloadForCurrentPage,
   timelinePayloadForCurrentPage,
-} from '../../core/toolbox/share'
+} from '../../../../core/toolbox/share'
 
 interface LabRuntime {
   submitTimer: number

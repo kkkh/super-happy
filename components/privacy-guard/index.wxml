@@ -57,7 +57,7 @@
 
       <navigator
         class="privacy-link"
-        url="/pages/legal/index?section=privacy"
+        url="/subpackages/grow/pages/legal/index?section=privacy"
         hover-class="privacy-link--press"
       >
         查看完整隐私说明
