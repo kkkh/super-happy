@@ -96,7 +96,7 @@ function installWxMock(options = {}) {
 
 test('权限快照：定位 / 相册 / 隐私指引状态与系统一致', async () => {
   installWxMock({
-    auth: { 'scope.userLocation': true, 'scope.writePhotosAlbum': false },
+    auth: { 'scope.userFuzzyLocation': true, 'scope.writePhotosAlbum': false },
     privacy: { needAuthorization: true, privacyContractName: '超欢隐私保护指引' },
     seed: { 'app:privacy.version': 1 },
   })

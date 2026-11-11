@@ -163,7 +163,7 @@
     "navigationBarTextStyle": "@navText"
   },
   "permission": {
-    "scope.userLocation": {
+    "scope.userFuzzyLocation": {
       "desc": "用于定位当前城市并展示本地天气"
     }
   },

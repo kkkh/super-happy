@@ -76,6 +76,15 @@
           <view class="weather-hero__place">
             <text class="weather-hero__city">{{cityName}}</text>
             <text class="weather-hero__meta">{{province}}{{adcode ? ' · ' + adcode : ''}}{{citySourceLabel ? ' · ' + citySourceLabel : ''}}</text>
+            <text
+              wx:if="{{citySourceLabel !== '模糊定位' || locationAttention}}"
+              class="weather-hero__locate"
+              bindtap="onUseCurrentLocation"
+              aria-role="button"
+              aria-label="使用当前位置"
+            >
+              {{locationAttention ? '使用当前位置 · 开启模糊定位 ›' : '使用当前位置 ›'}}
+            </text>
           </view>
           <view class="weather-hero__badges">
             <text wx:if="{{stale}}" class="weather-badge weather-badge--stale">可能已过期 · {{cacheAgeText}}</text>
@@ -298,6 +307,24 @@
   >
     <view class="weather-city-sheet">
       <view
+        class="weather-locate-row"
+        hover-class="weather-locate-row--press"
+        hover-stay-time="80"
+        bindtap="onUseCurrentLocation"
+        aria-role="button"
+        aria-label="定位当前城市"
+      >
+        <view class="weather-locate-row__icon">
+          <g-icon name="compass" size="{{28}}" tone="iris" />
+        </view>
+        <view class="weather-locate-row__copy">
+          <text class="weather-locate-row__title">定位当前城市</text>
+          <text class="weather-locate-row__desc">{{locationPermissionText}}</text>
+        </view>
+        <text class="weather-locate-row__action">{{locationActionText}}</text>
+      </view>
+
+      <view
         wx:for="{{cities}}"
         wx:key="adcode"
         class="weather-city-row {{index === currentIndex ? 'is-active' : ''}}"
@@ -396,6 +423,20 @@
     </view>
   </glass-bottom-sheet>
 
+  <glass-modal
+    show="{{locationPromptShow}}"
+    title="{{locationPromptTitle}}"
+    description="{{locationPromptDesc}}"
+    confirm-text="{{locationPromptConfirmText}}"
+    cancel-text="{{locationPromptCancelText}}"
+    extra-text="{{locationPromptExtraText}}"
+    show-cancel="{{locationPromptShowCancel}}"
+    aria-label="定位授权引导"
+    bind:confirm="onLocationPromptConfirm"
+    bind:cancel="onLocationPromptCancel"
+    bind:extra="onLocationPromptExtra"
+  />
+
   <workflow-receiver tool-id="weather" />
   <workflow-panel
     show="{{workflowPanelVisible}}"
@@ -404,5 +445,5 @@
   />
   <glass-toast />
   <privacy-guard />
-  <update-guard blocked="{{citySheetOpen || searchOpen || diagnosticsOpen}}" />
+  <update-guard blocked="{{citySheetOpen || searchOpen || diagnosticsOpen || locationPromptShow}}" />
 </view>

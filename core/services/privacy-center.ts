@@ -113,8 +113,13 @@ function readPrivacySetting(): Promise<{
 export function permissionSnapshot(): Promise<PrivacySnapshot> {
   return Promise.all([readAuthSetting(), readPrivacySetting()]).then(([auth, privacy]) => {
     const authAvailable = auth !== null
+    /* 全息气象只申请城市级模糊定位；旧版本可能只留下精确位置授权，做一次兼容回退 */
+    const locationAuth =
+      auth && typeof auth['scope.userFuzzyLocation'] !== 'undefined'
+        ? auth['scope.userFuzzyLocation']
+        : auth && auth['scope.userLocation']
     const locationStatus = authAvailable
-      ? authStatus(auth['scope.userLocation'])
+      ? authStatus(locationAuth)
       : ('unavailable' as PrivacyPermissionStatus)
     const albumStatus = authAvailable
       ? authStatus(auth['scope.writePhotosAlbum'])
@@ -133,7 +138,7 @@ export function permissionSnapshot(): Promise<PrivacySnapshot> {
           label: '定位',
           status: locationStatus,
           statusText: statusTextOf(locationStatus),
-          detail: '天气页选城时使用；拒绝后仍可手动搜索城市',
+          detail: '天气页「使用当前位置」申请；仅城市级模糊定位，拒绝后可手动选城',
         },
         {
           key: 'album',

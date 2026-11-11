@@ -35,14 +35,24 @@ test('注册表：weather 已注册，路由真实存在', () => {
 test('定位：只声明 getFuzzyLocation，不申请精确 GPS', () => {
   const app = JSON.parse(read('app.json'))
   assert.deepEqual(app.requiredPrivateInfos, ['getFuzzyLocation'])
-  assert.match(app.permission['scope.userLocation'].desc, /定位当前城市/)
+  assert.match(app.permission['scope.userFuzzyLocation'].desc, /定位当前城市/)
   const page = read(`${PAGE}.ts`)
+  const wxml = read(`${PAGE}.wxml`)
   const location = read('subpackages/tools-core/weather/weatherLocation.ts')
   assert.match(location, /getFuzzyLocation/)
   assert.equal(location.includes('wx.getLocation'), false)
   assert.match(page, /locateByIp/)
   assert.match(location, /局域网/)
   assert.match(location, /ensurePrivacyAuthorized/)
+  /* 未申请 / 已拒绝必须有明确引导，而不是静默走 IP */
+  assert.match(location, /readFuzzyLocationPermission/)
+  assert.match(location, /scope\.userFuzzyLocation/)
+  assert.match(page, /beginLocationFlow/)
+  assert.match(page, /openLocationPrompt/)
+  assert.match(page, /wx\.openSetting/)
+  assert.match(wxml, /onUseCurrentLocation/)
+  assert.match(wxml, /glass-modal/)
+  assert.match(read(`${PAGE}.json`), /glass-modal/)
 })
 
 test('实况模板：9 个官方字段全部展示，禁用字段一个不多', () => {
