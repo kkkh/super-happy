@@ -872,6 +872,27 @@
             hover-start-time="0"
             hover-stay-time="80"
             aria-role="button"
+            aria-label="打开备份与恢复"
+            bindtap="onBackupTap"
+          >
+            <view class="settings-row__icon">
+              <g-icon name="save" size="{{30}}" tone="aurora" />
+            </view>
+            <view class="settings-row__copy">
+              <text class="settings-row__title">备份与恢复</text>
+              <text class="settings-row__sub">{{backupAtText}} · 导出 / 导入本机 JSON 备份</text>
+            </view>
+            <g-icon name="chevron" size="{{22}}" tone="ink4" />
+          </view>
+
+          <view class="settings-divider"></view>
+
+          <view
+            class="settings-row settings-row--action"
+            hover-class="settings-row--press"
+            hover-start-time="0"
+            hover-stay-time="80"
+            aria-role="button"
             aria-label="设置自动清理阈值"
             bindtap="onCleanTap"
           >
@@ -1122,6 +1143,123 @@
     </view>
   </glass-bottom-sheet>
 
+  <!-- 备份与恢复：导出 / 导入 / 删除，只操作本机 JSON 备份 -->
+  <glass-bottom-sheet
+    show="{{backupShow}}"
+    title="备份与恢复"
+    description="备份只写本机；导入会覆盖收藏、最近、搜索、天气、专注与全局偏好。"
+    size="auto"
+    z-index="{{1000}}"
+    show-footer="{{true}}"
+    bind:close="onBackupClose"
+    bind:closed="onBackupClose"
+  >
+    <view slot="footer" class="settings-confirm settings-backup">
+      <view class="settings-backup__status">
+        <text class="settings-backup__status-label">最近备份</text>
+        <text class="settings-backup__status-value">{{backupAtText}}</text>
+      </view>
+
+      <view class="settings-backup__rows">
+        <view
+          class="settings-backup__row"
+          hover-class="settings-backup__row--press"
+          hover-start-time="0"
+          hover-stay-time="80"
+          aria-role="button"
+          aria-label="导出备份并分享"
+          bindtap="onBackupExport"
+        >
+          <view class="settings-backup__icon">
+            <g-icon name="save" size="{{30}}" tone="aurora" />
+          </view>
+          <view class="settings-backup__copy">
+            <text class="settings-backup__title">导出备份</text>
+            <text class="settings-backup__desc">{{backupBusy ? '正在生成备份…' : '生成 JSON，通过系统分享保存或发送'}}</text>
+          </view>
+          <g-icon name="chevron" size="{{22}}" tone="ink4" />
+        </view>
+
+        <view
+          class="settings-backup__row"
+          hover-class="settings-backup__row--press"
+          hover-start-time="0"
+          hover-stay-time="80"
+          aria-role="button"
+          aria-label="导入备份"
+          bindtap="onBackupImport"
+        >
+          <view class="settings-backup__icon">
+            <g-icon name="stack" size="{{30}}" tone="iris" />
+          </view>
+          <view class="settings-backup__copy">
+            <text class="settings-backup__title">导入备份</text>
+            <text class="settings-backup__desc">从聊天文件选择 JSON，校验通过后整体替换</text>
+          </view>
+          <g-icon name="chevron" size="{{22}}" tone="ink4" />
+        </view>
+
+        <view
+          wx:if="{{backupHasFile}}"
+          class="settings-backup__row settings-backup__row--danger"
+          hover-class="settings-backup__row--press"
+          hover-start-time="0"
+          hover-stay-time="80"
+          aria-role="button"
+          aria-label="删除备份文件"
+          bindtap="onBackupDelete"
+        >
+          <view class="settings-backup__icon">
+            <g-icon name="close" size="{{30}}" tone="ink3" />
+          </view>
+          <view class="settings-backup__copy">
+            <text class="settings-backup__title">删除备份文件</text>
+            <text class="settings-backup__desc">只删除本机备份，不影响现有收藏与记录</text>
+          </view>
+          <g-icon name="chevron" size="{{22}}" tone="ink4" />
+        </view>
+      </view>
+
+      <view class="settings-confirm__actions">
+        <view class="settings-confirm__action">
+          <glass-button variant="ghost" block bind:tap="onBackupClose">关闭</glass-button>
+        </view>
+      </view>
+    </view>
+  </glass-bottom-sheet>
+
+  <!-- 导入 / 删除备份确认 -->
+  <glass-bottom-sheet
+    show="{{backupConfirmShow}}"
+    title="{{backupConfirmTitle}}"
+    size="auto"
+    z-index="{{1000}}"
+    show-footer="{{true}}"
+    bind:close="onBackupConfirmClose"
+    bind:closed="onBackupConfirmClose"
+  >
+    <view slot="footer" class="settings-confirm">
+      <view class="settings-confirm__icon" aria-hidden="true">
+        <g-icon name="{{backupConfirmKind === 'delete' ? 'close' : 'stack'}}" size="{{40}}" tone="ink3" />
+      </view>
+      <text class="settings-confirm__title">{{backupConfirmTitle}}</text>
+      <text class="settings-confirm__desc">{{backupConfirmDesc}}</text>
+
+      <view class="settings-confirm__actions">
+        <view class="settings-confirm__action">
+          <glass-button variant="ghost" block bind:tap="onBackupConfirmClose">取消</glass-button>
+        </view>
+        <view class="settings-confirm__action">
+          <glass-button
+            variant="{{backupConfirmKind === 'delete' ? 'danger' : 'primary'}}"
+            block
+            bind:tap="onBackupConfirm"
+          >{{backupConfirmKind === 'delete' ? '删除' : '导入'}}</glass-button>
+        </view>
+      </view>
+    </view>
+  </glass-bottom-sheet>
+
   <glass-toast z-index="{{1200}}" />
 
   <!-- 剪贴板属于微信隐私接口：分片复制 / 从剪贴板追加 / 备份码复制前必须能弹出授权 -->
@@ -1129,6 +1267,6 @@
 
   <!-- AES 加密 / 时间旅行 / 分片 / Auto-Pilot / 页面抽屉期间，更新弹窗只排队 -->
   <update-guard
-    blocked="{{vaultBusy || travelBusy || transportBusy || pilotRunning || pickerShow || confirmShow || focusClearShow}}"
+    blocked="{{vaultBusy || travelBusy || transportBusy || pilotRunning || pickerShow || confirmShow || focusClearShow || backupShow || backupConfirmShow || backupBusy}}"
   />
 </view>

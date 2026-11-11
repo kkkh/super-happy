@@ -149,6 +149,8 @@ export const STORAGE_KEYS = {
   preference: 'app:prefs.v1',
   /** 旧版偏好：仅迁移读取，不再写入 */
   preferenceLegacy: 'app:prefs.v0',
+  /** 最近一次备份导出时间：删除备份或重置全部时清除 */
+  backupAt: 'app:backup.at',
   /** 会议倒计时悬浮胶囊位置：只存 left / top，跨启动恢复 */
   meetingTimerHud: 'toolbox:meeting-timer.hud.v1',
   /** 官方汇率中间价缓存：只存最近一次牌价与更新时间，用于离线回退 */

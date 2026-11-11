@@ -48,6 +48,12 @@ export const toolboxStore = observable({
       return
     }
     this.inited = true
+    this.reload()
+  },
+
+  /** 备份导入后重新从 Storage 装载；不触发额外迁移 */
+  reload(): void {
+    this.inited = true
     this.favorites = sanitize(readIdList(TBX_KEYS.favorites)).slice(0, MAX_FAVORITES)
     this.recents = sanitize(readIdList(TBX_KEYS.recent)).slice(0, MAX_RECENTS)
     this.usageCount = readCount(TBX_KEYS.usage)

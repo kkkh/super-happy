@@ -23,6 +23,18 @@ import {
   timelinePayloadForCurrentPage,
 } from '../../../../core/toolbox/share'
 import { applyAutoClean, readCacheSummary } from '../../../../core/services/storage-governor'
+import { sharePrepared } from '../../../../core/services/export'
+import {
+  applyBackup,
+  deleteBackupFiles,
+  exportBackup,
+  formatBackupAt,
+  hasBackupFile,
+  pickBackupFile,
+  readBackupAt,
+  type BackupFailReason,
+  type BackupFile,
+} from '../../../../core/services/backup'
 import { useSound } from '../../../../core/services/sound'
 import { ambientTheme } from '../../../../core/theme/ambient-theme'
 import { APP_VERSION, ROUTES } from '../../../../core/constants/index'
@@ -216,6 +228,11 @@ interface SettingsRuntime {
   vaultFile: string
   vaultShared: boolean
   disasterChecked: boolean
+  /** 备份与恢复：文件路径、待确认导入内容与卸载保护 */
+  backupPath: string
+  backupName: string
+  pendingBackup?: BackupFile
+  backupDestroyed: boolean
 }
 
 interface CyberCanvasNode {
@@ -509,6 +526,16 @@ Page({
     focusClearRunning: false,
     focusClearDesc: '将删除本机的专注记录、等级、校验记录与偏好，不可恢复。',
 
+    /* ---- 备份与恢复 ---- */
+    backupShow: false,
+    backupBusy: false,
+    backupAtText: '尚未备份',
+    backupHasFile: false,
+    backupConfirmShow: false,
+    backupConfirmKind: 'import' as 'import' | 'delete',
+    backupConfirmTitle: '',
+    backupConfirmDesc: '',
+
     /* ---- Cyber Space OS · 数据星系 ---- */
     geekLabOpen: false,
     geekGuideOpen: false,
@@ -617,6 +644,10 @@ Page({
     runtime.vaultFile = ''
     runtime.vaultShared = false
     runtime.disasterChecked = false
+    runtime.backupPath = ''
+    runtime.backupName = ''
+    runtime.pendingBackup = undefined
+    runtime.backupDestroyed = false
     this.setupInsets()
 
     runtime.themeBindings = createStoreBindings(this, {
@@ -661,6 +692,7 @@ Page({
     this.refreshCache()
     this.refreshPendingUpdate()
     this.refreshFocusEntry()
+    this.refreshBackupInfo()
     this.pushCyberEvent('lifecycle', 'onShow', '设置页回到前台 · 恢复渲染与调度')
     this.startGalaxyLoop()
     const runtime = this as unknown as SettingsRuntime
@@ -678,6 +710,7 @@ Page({
 
   onUnload() {
     const runtime = this as unknown as SettingsRuntime
+    runtime.backupDestroyed = true
     this.teardownCyberSpace()
     if (runtime.themeBindings) {
       runtime.themeBindings.destroyStoreBindings()
@@ -2702,6 +2735,246 @@ Page({
       this.captureFrame('清空最近使用')
     } else {
       this.showToast('清空失败，请稍后重试', 'error')
+    }
+  },
+
+  /* ---- 备份与恢复 ---- */
+  onBackupTap(): void {
+    tapTick()
+    this.setData({ backupShow: true })
+    this.prepareBackup(false)
+  },
+
+  /** 打开抽屉即预写备份，保证“导出”按钮在 tap 同步栈内直接分享 */
+  prepareBackup(notify = true): void {
+    const runtime = this as unknown as SettingsRuntime
+    if (this.data.backupBusy) {
+      return
+    }
+    this.setData({ backupBusy: true })
+    exportBackup()
+      .then((result) => {
+        if (runtime.backupDestroyed) {
+          return
+        }
+        if (!result.ok) {
+          this.setData({ backupBusy: false })
+          if (notify) {
+            this.showToast(this.backupReasonText(result.reason), 'error')
+          }
+          return
+        }
+        runtime.backupPath = result.path
+        runtime.backupName = result.name
+        this.setData({
+          backupBusy: false,
+          backupHasFile: true,
+          backupAtText: formatBackupAt(result.at) || '刚刚',
+        })
+        this.refreshCache()
+      })
+      .catch(() => {
+        if (runtime.backupDestroyed) {
+          return
+        }
+        this.setData({ backupBusy: false })
+        if (notify) {
+          this.showToast('备份生成失败，请稍后重试', 'error')
+        }
+      })
+  },
+
+  onBackupExport(): void {
+    const runtime = this as unknown as SettingsRuntime
+    if (this.data.backupBusy) {
+      this.showToast('备份生成中，请稍候', 'info')
+      return
+    }
+    if (!runtime.backupPath) {
+      this.prepareBackup(true)
+      this.showToast('正在生成备份，请稍候再次点击', 'info')
+      return
+    }
+    tapTick()
+    sharePrepared(runtime.backupPath, runtime.backupName)
+      .then((outcome) => {
+        if (runtime.backupDestroyed) {
+          return
+        }
+        if (outcome === 'shared') {
+          this.showToast('备份已分享', 'success')
+          return
+        }
+        if (outcome === 'cancelled') {
+          this.showToast('已取消分享', 'info')
+          return
+        }
+        if (outcome === 'unsupported') {
+          this.showToast('当前基础库不支持文件分享，备份已保存在本机', 'warning')
+          return
+        }
+        this.showToast('分享失败，请稍后重试', 'error')
+      })
+      .catch(() => {
+        if (!runtime.backupDestroyed) {
+          this.showToast('分享失败，请稍后重试', 'error')
+        }
+      })
+  },
+
+  onBackupImport(): void {
+    const runtime = this as unknown as SettingsRuntime
+    if (this.data.backupBusy) {
+      return
+    }
+    tapTick()
+    this.setData({ backupBusy: true })
+    pickBackupFile()
+      .then((result) => {
+        if (runtime.backupDestroyed) {
+          return
+        }
+        if (!result.ok) {
+          this.setData({ backupBusy: false })
+          if (result.reason !== 'cancelled') {
+            this.showToast(this.backupReasonText(result.reason), 'error')
+          }
+          return
+        }
+        const data = result.file.data
+        runtime.pendingBackup = result.file
+        this.setData({
+          backupBusy: false,
+          backupConfirmShow: true,
+          backupConfirmKind: 'import',
+          backupConfirmTitle: '导入备份？',
+          backupConfirmDesc: `将恢复备份中的收藏、最近、搜索、天气、专注与全局偏好数据，并覆盖本机对应数据。备份时间 ${formatBackupAt(
+            result.file.exportedAt,
+          )}；收藏 ${data.favorites.length}、最近 ${data.recent.length}、搜索 ${
+            data.searchHistory.length
+          }、天气 ${data.weather.cities.length}、专注 ${
+            data.focus.ledger ? data.focus.ledger.length : 0
+          }。`,
+        })
+      })
+      .catch(() => {
+        if (runtime.backupDestroyed) {
+          return
+        }
+        this.setData({ backupBusy: false })
+        this.showToast('读取备份失败，请重新选择文件', 'error')
+      })
+  },
+
+  onBackupDelete(): void {
+    if (this.data.backupBusy) {
+      this.showToast('备份生成中，请稍候', 'info')
+      return
+    }
+    if (!this.data.backupHasFile) {
+      this.showToast('本机没有备份文件', 'info')
+      return
+    }
+    tapTick()
+    this.setData({
+      backupConfirmShow: true,
+      backupConfirmKind: 'delete',
+      backupConfirmTitle: '删除备份文件？',
+      backupConfirmDesc:
+        '将删除本机的 JSON 备份文件与最近备份时间；不会影响收藏、最近使用、搜索、天气、专注与全局偏好。',
+    })
+  },
+
+  onBackupConfirm(): void {
+    const runtime = this as unknown as SettingsRuntime
+    if (this.data.backupConfirmKind === 'delete') {
+      if (this.data.backupBusy) {
+        this.showToast('备份生成中，请稍候', 'info')
+        return
+      }
+      const result = deleteBackupFiles()
+      if (!result.ok) {
+        this.showToast('删除失败，请稍后重试或清理小程序缓存', 'error')
+        return
+      }
+      runtime.backupPath = ''
+      runtime.backupName = ''
+      this.setData({
+        backupConfirmShow: false,
+        backupShow: false,
+        backupHasFile: false,
+        backupAtText: '尚未备份',
+      })
+      tapSuccess()
+      this.showToast(
+        result.removed > 0 ? `已删除 ${result.removed} 份备份` : '备份文件已删除',
+        'success',
+      )
+      return
+    }
+
+    const pending = runtime.pendingBackup
+    if (!pending) {
+      this.setData({ backupConfirmShow: false })
+      this.showToast('备份内容已失效，请重新选择文件', 'error')
+      return
+    }
+    const result = applyBackup(pending)
+    if (!result.ok) {
+      this.setData({ backupConfirmShow: false })
+      this.showToast(this.backupReasonText(result.reason), 'error')
+      return
+    }
+    runtime.pendingBackup = undefined
+    this.setData({ backupConfirmShow: false, backupShow: false })
+    this.refreshAfterRestore()
+    this.refreshBackupInfo()
+    tapSuccess()
+    this.showToast(
+      `已恢复：收藏 ${result.counts.favorites} · 最近 ${result.counts.recent} · 搜索 ${result.counts.searchHistory} · 天气 ${result.counts.weatherCities} · 专注 ${result.counts.focusRecords}`,
+      'success',
+    )
+  },
+
+  onBackupClose(): void {
+    this.setData({ backupShow: false })
+  },
+
+  onBackupConfirmClose(): void {
+    const runtime = this as unknown as SettingsRuntime
+    if (this.data.backupConfirmKind === 'import') {
+      runtime.pendingBackup = undefined
+    }
+    this.setData({ backupConfirmShow: false })
+  },
+
+  refreshBackupInfo(): void {
+    const at = readBackupAt()
+    const hasFile = hasBackupFile()
+    this.setData({
+      backupAtText: at ? formatBackupAt(at) : hasFile ? '本机已有备份' : '尚未备份',
+      backupHasFile: hasFile,
+    })
+  },
+
+  backupReasonText(reason: BackupFailReason): string {
+    switch (reason) {
+      case 'empty':
+        return '备份内容为空'
+      case 'too-large':
+        return '备份超过 256KB，请精简后再试'
+      case 'version':
+        return '备份版本不兼容，请使用当前版本导出的备份'
+      case 'read-failed':
+        return '读取备份失败，请重新选择文件'
+      case 'write-failed':
+        return '写入失败，已保留原有数据'
+      case 'unsupported':
+        return '当前基础库不支持文件操作'
+      case 'cancelled':
+        return '已取消'
+      default:
+        return '备份文件格式不正确'
     }
   },
 
