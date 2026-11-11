@@ -26,6 +26,7 @@
       placeholder="例如：人工智能发展现状"
       hint="支持新闻、百科、问答与公开网页；单次最多 {{maxQuery}} 字"
       confirm-type="search"
+      clearable="{{true}}"
       aria-label="元宝搜索词"
       bind:input="onQueryInput"
       bind:confirm="onConfirm"

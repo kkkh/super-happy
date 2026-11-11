@@ -408,6 +408,17 @@
   font-family: var(--glass-font-sans);
 }
 
+/* 搜索框内一键清空：命中区占满整条高度，图标保持 16px */
+.home-search__clear {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56rpx;
+  height: 100%;
+  margin-left: 6rpx;
+}
+
 .home-search__placeholder {
   color: var(--glass-text-3);
 }

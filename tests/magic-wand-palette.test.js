@@ -161,7 +161,9 @@ test('首页红线：搜索 input 与 bindinput 原样保留', () => {
   assert.ok(wxml.includes('value="{{keyword}}"'))
   assert.ok(wxml.includes('bindinput="onSearchInput"'))
   assert.ok(wxml.includes('bindconfirm="onSearchConfirm"'))
+  assert.ok(wxml.includes('catchtap="onClearSearch"'))
   assert.ok(ts.includes('onSearchInput('))
+  assert.ok(ts.includes('onClearSearch('))
   assert.ok(ts.includes('keyword'))
 })
 

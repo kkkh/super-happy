@@ -503,6 +503,21 @@ Component({
       this.scheduleWebSearch(keyword)
     },
 
+    /** 搜索框内一键清空：中断在途请求并回到初始搜索态 */
+    onClearSearch() {
+      tapTick()
+      this.cancelWebSearch()
+      this.setData({
+        keyword: '',
+        results: [],
+        webResults: [],
+        webLoading: false,
+        webError: '',
+        webQuery: '',
+        searchHistory: readSearchHistory(),
+      })
+    },
+
     onSearchConfirm(event: WechatMiniprogram.Input) {
       const keyword = event.detail.value
       const history = pushSearchHistory(keyword)

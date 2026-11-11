@@ -2605,7 +2605,7 @@ sequenceDiagram
 - 出参：`Response.Pages` 为 JSON 字符串数组；逐条解析 title / url / site / date / passage / content / score / authority_level / favicon / pics / deeplinks，HTML 标签与实体清洗为纯文本，非法条目丢弃；页面同时展示 `Version`（极速版 / 标准版 / 旗舰版）、`Msg` 与 `RequestId`。
 - 错误：`UnauthorizedOperation` / `ResourceNotFound` / `RequestLimitExceeded` / `ResourceUnavailable` / `InvalidParameter` 映射为可读文案；HTTP 401/403 按未授权处理，超时与网络失败可重试；`url not in domain list` 明确提示添加 `wsa.tencentcloudapi.com`。
 - 配置：`core/services/yuanbao/config-local.ts` 保存服务 API KEY 或 SecretId / SecretKey（git 忽略）；`scripts/ensure-yuanbao-config.js` 在缺失时生成占位文件；MP 后台按凭证方式加入 request 合法域名：Bearer 用 `api.wsa.cloud.tencent.com`，TC3 用 `wsa.tencentcloudapi.com`。
-- 入口：独立工具卡 + 独立页 + 首页搜索「用元宝搜索」+ 首页内联前 4 条结果；首页 520ms 防抖并在新输入 / 卸载时 abort 在途请求。
+- 入口：独立工具卡 + 独立页 + 首页搜索「用元宝搜索」+ 首页内联前 4 条结果；首页 520ms 防抖并在新输入 / 卸载时 abort 在途请求；首页搜索框与元宝搜索词输入框均支持一键清空，首页清空会中断在途请求并复位结果。
 - 结果区：`subpackages/tools-core/components/web-search-results/` 承载结果卡、权威度 / 相关性徽标、复制、详情抽屉（配图描述、图标地址、附件子链、RequestId）与空态；页面因此保持 24KB 预算内。
 - 导出：`summarizeYuanbaoResults` 只取前 3 条并标注剩余数量用于复制摘要；`exportYuanbaoResults` 输出全部结果的标题 / 来源 / 日期 / 链接 / 摘要，供 `.txt` 导出与分享；详情抽屉通过 `toArticleExport` 预写单篇文章（标题 / 来源 / 链接 / 摘要 / 正文 / 配图地址 / 子链），tap 时同步调用 `sharePrepared`。
 - 页面拆分：`subpackages/tools-core/lib/web-search-view.ts` 承载筛选选项、结果卡片映射与空态，`subpackages/tools-core/lib/freshness.ts` 统一自定义时效归一化与校验，页面只保留交互，保持 24KB 预算内。
@@ -4055,7 +4055,7 @@ npm run plan            # 81 项能力 / 63 张工具卡与注册表一致
 | 门禁 | 通过输出 | 当前值 |
 |---|---|---|
 | `check:version` | `✔ 版本四源一致：1.1.0` | `1.1.0` |
-| `budget` | `✔ 包体预算通过` | 主包 1898.6 KB / 1900 KB；tools-core 1430.8 KB |
+| `budget` | `✔ 包体预算通过` | 主包 1899.5 KB / 1900 KB；tools-core 1430.8 KB |
 | `plan` | `✔ 方案自检通过` | 能力 81 项 / 卡片 63 张 |
 | `typecheck` | 无输出 | 通过 |
 | `test` | `tests 811`、`pass 811`、`fail 0` | 811/811 |

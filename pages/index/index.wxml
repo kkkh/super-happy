@@ -176,6 +176,19 @@
       bindfocus="onSearchFocus"
       bindblur="onSearchBlur"
     />
+    <view
+      wx:if="{{keyword}}"
+      class="home-search__clear"
+      catchtap="onClearSearch"
+      aria-role="button"
+      aria-label="清空搜索"
+    >
+      <icon
+        type="clear"
+        size="16"
+        color="{{themeClass === 'theme-dark' ? 'rgba(255, 255, 255, 0.55)' : 'rgba(0, 0, 0, 0.35)'}}"
+      />
+    </view>
   </view>
 
   <!-- 首次使用指南横幅：可关闭，状态仅存本机 -->
