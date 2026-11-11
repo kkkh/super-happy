@@ -106,7 +106,7 @@
 
     <view wx:if="{{!serviceReady}}" class="ws-warning">
       <text class="ws-warning__text">
-        尚未配置元宝搜索服务 API KEY，请先在 core/services/yuanbao/config-local.ts 填入。
+        尚未配置元宝搜索密钥，请先在 core/services/yuanbao/config-local.ts 填入服务 API KEY 或 SecretId / SecretKey。
       </text>
     </view>
   </view>

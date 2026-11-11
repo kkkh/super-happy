@@ -12,7 +12,7 @@ const { registerHooks } = require('node:module')
 
 const ROOT = path.resolve(__dirname, '..')
 const FAKE_CONFIG = `data:text/javascript,${encodeURIComponent(
-  "export const YUANBAO_CONFIG = { apiKey: 'sk-test', endpoint: 'https://example.test/SearchPro', timeout: 1000 }",
+  "export const YUANBAO_CONFIG = { apiKey: 'sk-test', secretId: '', secretKey: '', endpoint: 'https://example.test/SearchPro', timeout: 1000 }",
 )}`
 
 registerHooks({
@@ -137,7 +137,8 @@ test('请求：Bearer 头、SearchPro 地址、筛选参数与成功解析', asy
     assert.equal(request.method, 'POST')
     assert.equal(request.header.Authorization, 'Bearer sk-test')
     assert.equal(request.header['Content-Type'], 'application/json; charset=utf-8')
-    assert.deepEqual(request.data, {
+    assert.equal(typeof request.data, 'string')
+    assert.deepEqual(JSON.parse(request.data), {
       Query: '人工智能',
       Cnt: 20,
       Freshness: 'd7',

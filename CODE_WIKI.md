@@ -6,7 +6,7 @@
 > 渲染引擎：Skyline + glass-easel
 > 基础库：`3.17.6`
 > 文档基线：2026-11-11（已按当前源码全量核验）
-> 校验状态：`tsc --noEmit` 通过；`npm test` 802/802 通过（复核于 2026-11-11，105 个测试文件）
+> 校验状态：`tsc --noEmit` 通过；`npm test` 806/806 通过（复核于 2026-11-11，107 个测试文件）
 
 本文是面向开发者的完整 Code Wiki，覆盖项目定位、技术栈、整体架构、启动编排、核心 Store、Workflow 流转引擎、64 个工具算法、全息气象站、全息专注引擎、组件库、82 个页面、设计令牌、存储迁移、隐私与更新机制、依赖关系、运行方式、部署发布流程和扩展指南。文中路径均为仓库相对路径，关键公式与常量标注来源文件。
 
@@ -56,7 +56,7 @@
 | 工具分包依赖 | 2 | `crypto-js`、`diff-match-patch`（仅 tools-core；grow 内有 crypto-js 副本） |
 | AI SKILL 原子接口 | 12 | `core/skill/registry.ts` |
 | 作品数据 | 11 | `core/data/resume-data.ts` 的 `projects` |
-| 单元 / 集成测试 | 802 | 105 个 `.test.js` 文件，全部通过 |
+| 单元 / 集成测试 | 802 | 107 个 `.test.js` 文件，全部通过 |
 | 存储结构版本 | 1 | `app:storage.version` |
 | Spatial Glass 元数据版本 | 2 | `gallery.glass.meta` |
 
@@ -216,7 +216,7 @@ flowchart TB
 | `build:icon` | `npx fantasticon .icon-src -o .icon-dist -n gicon --font-types ttf --asset-types json` | 生成图标字体到 `.icon-dist/` |
 | `pretypecheck` / `pretest` | `node scripts/ensure-weather-config.js && node scripts/ensure-yuanbao-config.js` | 自动生成 `weather/config.local.ts` 与 `yuanbao/config-local.ts`（若缺失），避免 Key 缺失导致编译失败 |
 | `typecheck` | `tsc --noEmit` | 严格类型检查 |
-| `test` | `node --experimental-strip-types --test tests/*.test.js` | 105 个测试文件、802 项全部单元 / 集成测试 |
+| `test` | `node --experimental-strip-types --test tests/*.test.js` | 107 个测试文件、806 项全部单元 / 集成测试 |
 | `test:hologram` | 仅 `tests/spatial-hologram.test.js` | 空间全息单测 |
 | `test:integration` | `tests/*.integration.test.js` | 集成测试 |
 | `test:integration:hologram` | 仅空间全息集成测试 | 集成测试 |
@@ -520,7 +520,7 @@ sequenceDiagram
 ├── store/index.ts             # glassStore 全局门面
 ├── styles/                    # Design Tokens / V3 / 旧工具箱样式
 ├── workers/compute.js         # Worker 计算入口
-├── tests/                     # 802 项测试 + 视觉 / E2E
+├── tests/                     # 806 项测试 + 视觉 / E2E
 ├── assets/                    # 头像、二维码、作品封面
 └── CODE_WIKI.md               # 本文档
 ```
@@ -991,7 +991,7 @@ send<T>(request: TransportRequest<T>): Promise<Result<T>>
 | `core/services/diagnostics.ts` | `redactDiagnosticText`、`shouldDropDiagnosticMessage`、`sanitizeDiagnosticEntries`、`buildDiagnosticPreview`、`collectDiagnosticEnvironment`、`prepareDiagnosticFile` | 本地诊断包：版本 / 基础库 / 机型 / 路由 / 黑匣 20 条；路径、Key、Bearer、邮箱、手机号、证件号脱敏；残留用户输入整条丢弃；≤50KB；复用 `prepareExport` 写 `.txt` |
 | `core/services/privacy-center.ts` | `permissionSnapshot`、`openPrivacySetting`、`openPrivacyContract`、`readPrivacyVersion`、`ackPrivacyVersion`、`privacyVersionChanged`、`resetAllLocalData` | 隐私中心：定位 / 相册 / 隐私指引状态；`PRIVACY_VERSION` ↔ `app:privacy.version`；重置全部删除 tbx / weather / focus / diag / cyber / 备份 / 偏好，保留 `gallery.*` 与 `app:storage.version` |
 | `core/services/font-scale.ts` | `FONT_SCALE_OPTIONS`、`scaleFor`、`currentFontScale`、`fontScaleClass`、`syncFontScaleClass`、`applyFontScale` | 字号档：standard / large / xlarge 映射 `fs-standard / fs-large / fs-xlarge`；页面 `onShow`、组件 `pageLifetimes.show` 一行同步；只改字号与行高，不缩放间距 / 图标 / Canvas |
-| `core/services/yuanbao/index.ts` | `searchYuanbao`、`parseYuanbaoResponse`、`summarizeYuanbaoResults`、`isYuanbaoConfigured`、`YuanbaoError` | 元宝搜索：`POST https://api.wsa.cloud.tencent.com/SearchPro` + `Authorization: Bearer <服务 API KEY>`；Pages JSON 字符串解析、HTML 清洗、官方错误码映射、RequestTask 取消；查询词不写草稿与计算轨迹 |
+| `core/services/yuanbao/index.ts` | `searchYuanbao`、`parseYuanbaoResponse`、`summarizeYuanbaoResults`、`isYuanbaoConfigured`、`YuanbaoError` | 元宝搜索：服务 API KEY（Bearer）或 TC3 SecretId/SecretKey；`sign.ts` 提供纯 TS SHA-256 / HMAC / TC3 签名；Pages JSON 字符串解析、HTML 清洗、官方错误码映射、RequestTask 取消；查询词不写草稿与计算轨迹 |
 | `core/toolbox/engines/money.ts` | `parseCents`、`roundHalfUp`、`formatCents`、`parseBasisPoints` | 金额 / 利率唯一实现，tools-core 与 tools-daily 共享 |
 | `core/toolbox/engines/date.ts` | `serialOf`、`serialOfISO`、`isoOf`、`dayDiff`、`countWeekdays`、`addWorkdays`、`countWorkdays`、`addDays`、`addMonths`、`addDate`、`dateAddSummary`、`parseDateAddWorkflow`、`isoWeekOf`、`dayOfYear`、`formatAll`、`dateSummaryText` 等 46 个导出 | 日期唯一实现：UTC 零点日序号、ISO 周、闰年 / 闰日 / 生日推进、工作日推进、月末钳制、日期加减；`tools-core/lib/date.ts` 只做薄 re-export，跨分包共享 |
 | `core/toolbox/engines/color.ts` | `parseColor`、`formatColor`、`rgbToHsl`、`hslToRgb`、`relativeLuminance`、`contrastRatio`、`contrastReport`、`simulateCvd`、`cvdResults`、`colorSummary` | 颜色唯一实现：HEX / RGB / HSL 互转、WCAG 对比度与 AA/AAA、Machado 色觉模拟；页面与 silent 共用 |
@@ -2599,11 +2599,12 @@ sequenceDiagram
 
 ### 8.42 元宝搜索（`web-search`）
 
-- 服务：腾讯云元宝搜索 WSA `SearchPro`（`Version=2025-05-08`），服务 API KEY 方式 `POST https://api.wsa.cloud.tencent.com/SearchPro`，`Authorization: Bearer <API KEY>`。
+- 服务：腾讯云元宝搜索 WSA `SearchPro`（`Version=2025-05-08`）；支持服务 API KEY 方式（`POST https://api.wsa.cloud.tencent.com/SearchPro` + `Authorization: Bearer <API KEY>`）或标准 TC3 方式（`POST https://wsa.tencentcloudapi.com/` + `SecretId/SecretKey` 签名）。
+- 签名：`core/services/yuanbao/sign.ts` 纯 TS SHA-256 / HMAC-SHA256 / TC3-HMAC-SHA256；固定时间戳向量已与 Node crypto 对照。
 - 入参：`Query` 必填；`Cnt` 10 / 20 / 30；`Freshness` 支持 `d7 / m1 / y1`；`Industry` 支持 `news / acad / finance / gov`；`Site` 支持单域名或 `exclude:域名|域名`。
 - 出参：`Response.Pages` 为 JSON 字符串数组；逐条解析 title / url / site / date / passage / content / score / authority_level / pics / deeplinks，HTML 标签与实体清洗为纯文本，非法条目丢弃。
 - 错误：`UnauthorizedOperation` / `ResourceNotFound` / `RequestLimitExceeded` / `ResourceUnavailable` / `InvalidParameter` 映射为可读文案；HTTP 401/403 按未授权处理，超时与网络失败可重试。
-- 配置：`core/services/yuanbao/config-local.ts` 保存服务 API KEY（git 忽略）；`scripts/ensure-yuanbao-config.js` 在缺失时生成占位文件；MP 后台需把 `api.wsa.cloud.tencent.com` 加入 request 合法域名。
+- 配置：`core/services/yuanbao/config-local.ts` 保存服务 API KEY 或 SecretId / SecretKey（git 忽略）；`scripts/ensure-yuanbao-config.js` 在缺失时生成占位文件；MP 后台按凭证方式加入 request 合法域名：Bearer 用 `api.wsa.cloud.tencent.com`，TC3 用 `wsa.tencentcloudapi.com`。
 - 入口：独立工具卡 + 独立页 + 首页搜索「用元宝搜索」+ 首页内联前 4 条结果；首页 520ms 防抖并在新输入 / 卸载时 abort 在途请求。
 - 隐私：查询词会上传至腾讯云；查询词不写草稿与计算轨迹；海报 / 轨迹只保存结果数量与筛选条件。
 - 边界：外链不能直接被小程序打开，统一复制后在浏览器打开；`pics` / `deeplinks` 解析但不展示；极速版不支持部分筛选参数。
@@ -4006,7 +4007,7 @@ npm test
 | 项 | 要求 |
 |---|---|
 | 类型检查 | `npm run typecheck` 通过 |
-| 单元 / 集成测试 | `npm test` 802/802 通过 |
+| 单元 / 集成测试 | `npm test` 806/806 通过 |
 | 样式产物 | `styles/generated/tailwind.wxss` 存在且为最新 |
 | npm 产物 | 根包与 tools-core 的 `miniprogram_npm` 均存在 |
 | 版本号 | `APP_VERSION` 与后台版本说明一致 |
@@ -4053,7 +4054,7 @@ npm run plan            # 81 项能力 / 63 张工具卡与注册表一致
 | `budget` | `✔ 包体预算通过` | 主包 1888.8 KB / 1900 KB；tools-core 1408.3 KB |
 | `plan` | `✔ 方案自检通过` | 能力 81 项 / 卡片 63 张 |
 | `typecheck` | 无输出 | 通过 |
-| `test` | `tests 802`、`pass 802`、`fail 0` | 802/802 |
+| `test` | `tests 802`、`pass 802`、`fail 0` | 806/806 |
 
 任一项失败时的处理顺序：
 
@@ -4740,7 +4741,7 @@ MP_CI_PRIVATE_KEY_PATH="$MP_CI_KEY_FILE" npm run ci:upload
 
 ### 15.1 测试构成
 
-`npm test` 当前 **802 项全部通过**。
+`npm test` 当前 **806 项全部通过**。
 
 | 测试组 | 文件 | 覆盖主题 |
 |---|---|---|
@@ -4770,7 +4771,7 @@ MP_CI_PRIVATE_KEY_PATH="$MP_CI_KEY_FILE" npm run ci:upload
 | 门禁 | 命令 | 当前状态 |
 |---|---|---|
 | 类型检查 | `npm run typecheck` | 通过 |
-| 单元 / 集成 | `npm test` | 802/802 通过 |
+| 单元 / 集成 | `npm test` | 806/806 通过 |
 | 文字对比度 | `npm run check:contrast` | 通过（正文全绿，按钮 6 条 warning 设计债） |
 | Workflow 覆盖率 | `tests/workflow-coverage.test.js` | 63 工具全部注册 / 适配器 / 来源 / 收发端；15 silent + 48 jump |
 | 分包路由 | `tests/subpackage-routing.test.js` | 通过 |
@@ -5144,7 +5145,7 @@ MP_CI_PRIVATE_KEY_PATH="$MP_CI_KEY_FILE" npm run ci:upload
 | 工具 | 63 / 63，全部在 6.1 与 8.4 中列出 |
 | `core/` TypeScript 模块 | 69 / 69，均在 5.x、6.x、7.x、8.x、11.x、12.x 或 5.11 中出现 |
 | `subpackages/` TypeScript 模块 | 176 / 176，页面 / 组件在 10.x、9.10 中按路由列出，lib / utils / weather 在 8.x、5.11、18.3 中说明 |
-| 测试文件 | 105 个 `.test.js`；`npm test` 802 项通过 |
+| 测试文件 | 107 个 `.test.js`；`npm test` 806 项通过 |
 | 运行时依赖 | 根包 2 个 + tools-core 2 个，均在 2.1 / 13.2 中列出 |
 | 配置文件 | `app.json`、`app.ts`、`theme.json`、`project.config.json`、`project.private.config.json`、`tsconfig.json`、`package.json`、`postcss.config.js`、`sitemap.json` |
 | 存储键 | 42 个运行期键（含 `weather:*` 动态后缀），见 12.1 |

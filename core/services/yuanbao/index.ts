@@ -6,6 +6,7 @@
    - 文档：https://cloud.tencent.com/document/product/1806/130615
    ========================================================================== */
 import { YUANBAO_CONFIG } from './config-local'
+import { signTc3 } from './sign'
 
 export interface YuanbaoSearchOptions {
   /** 搜索词，1–100 字 */
@@ -123,6 +124,18 @@ function asRecord(value: unknown): Record<string, unknown> | null {
     : null
 }
 
+/** wx.request 可能把 JSON 响应解析为对象，也可能保留字符串 */
+function asPayload(value: unknown): unknown {
+  if (typeof value !== 'string') {
+    return value
+  }
+  try {
+    return JSON.parse(value)
+  } catch {
+    return value
+  }
+}
+
 function decodeEntities(text: string): string {
   return text
     .replace(/&nbsp;/gi, ' ')
@@ -225,7 +238,7 @@ export function parseYuanbaoPage(raw: unknown): YuanbaoResult | null {
 function mapApiError(code: string, message: string): YuanbaoError {
   const normalized = code.replace(/^.*?\./, '')
   if (normalized === 'UnauthorizedOperation') {
-    return new YuanbaoError('unauthorized', '元宝搜索密钥无效或未授权，请检查服务 API KEY', false)
+    return new YuanbaoError('unauthorized', '元宝搜索密钥无效或未授权，请检查本地配置', false)
   }
   if (normalized === 'ResourceNotFound') {
     return new YuanbaoError('not-activated', '元宝搜索服务未开通，请先在腾讯云控制台开通', false)
@@ -243,7 +256,10 @@ function mapApiError(code: string, message: string): YuanbaoError {
 }
 
 export function isYuanbaoConfigured(): boolean {
-  return Boolean(YUANBAO_CONFIG.apiKey.trim())
+  const apiKey = YUANBAO_CONFIG.apiKey.trim()
+  const secretId = YUANBAO_CONFIG.secretId.trim()
+  const secretKey = YUANBAO_CONFIG.secretKey.trim()
+  return Boolean(apiKey || (secretId && secretKey))
 }
 
 /**
@@ -288,7 +304,7 @@ export function searchYuanbao(
   }
   if (!isYuanbaoConfigured()) {
     return Promise.reject(
-      new YuanbaoError('not-configured', '尚未配置元宝搜索服务 API KEY'),
+      new YuanbaoError('not-configured', '尚未配置元宝搜索密钥'),
     )
   }
 
@@ -309,20 +325,37 @@ export function searchYuanbao(
     data.Deeplinks = true
   }
 
+  /* 固定 JSON 字符串作为请求体，保证 TC3 签名的 payload 与实际发送字节一致 */
+  const payload = JSON.stringify(data)
+  const apiKey = YUANBAO_CONFIG.apiKey.trim()
+  const useApiKey = Boolean(apiKey)
+  const headers: Record<string, string> = useApiKey
+    ? {
+        'Content-Type': 'application/json; charset=utf-8',
+        Authorization: `Bearer ${apiKey}`,
+      }
+    : signTc3({
+        secretId: YUANBAO_CONFIG.secretId.trim(),
+        secretKey: YUANBAO_CONFIG.secretKey.trim(),
+        host: 'wsa.tencentcloudapi.com',
+        service: 'wsa',
+        action: 'SearchPro',
+        version: '2025-05-08',
+        payload,
+        timestamp: Math.floor(Date.now() / 1000),
+      }).headers
+
   return new Promise((resolve, reject) => {
     const task = wx.request({
-      url: YUANBAO_CONFIG.endpoint,
+      url: useApiKey ? YUANBAO_CONFIG.endpoint : 'https://wsa.tencentcloudapi.com/',
       method: 'POST',
       timeout: YUANBAO_CONFIG.timeout,
-      header: {
-        'Content-Type': 'application/json; charset=utf-8',
-        Authorization: `Bearer ${YUANBAO_CONFIG.apiKey.trim()}`,
-      },
-      data,
+      header: headers,
+      data: payload,
       success(response) {
         if (response.statusCode === 401 || response.statusCode === 403) {
           reject(
-            new YuanbaoError('unauthorized', '元宝搜索密钥无效或未授权，请检查服务 API KEY'),
+            new YuanbaoError('unauthorized', '元宝搜索密钥无效或未授权，请检查本地配置'),
           )
           return
         }
@@ -333,7 +366,7 @@ export function searchYuanbao(
           return
         }
         try {
-          resolve(parseYuanbaoResponse(response.data))
+          resolve(parseYuanbaoResponse(asPayload(response.data)))
         } catch (error) {
           reject(
             error instanceof YuanbaoError

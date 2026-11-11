@@ -13,7 +13,7 @@ const { registerHooks } = require('node:module')
 
 const ROOT = path.resolve(__dirname, '..')
 const FAKE_CONFIG = `data:text/javascript,${encodeURIComponent(
-  "export const YUANBAO_CONFIG = { apiKey: 'sk-test', endpoint: 'https://example.test/SearchPro', timeout: 1000 }",
+  "export const YUANBAO_CONFIG = { apiKey: 'sk-test', secretId: '', secretKey: '', endpoint: 'https://example.test/SearchPro', timeout: 1000 }",
 )}`
 
 registerHooks({

@@ -131,7 +131,14 @@ Page({
     runtime.destroyed = false
     runtime.seq = 0
     runtime.task = undefined
-    const incoming = String(query?.query || '').trim()
+    const rawIncoming = String(query?.query || '').trim()
+    let incoming = rawIncoming
+    try {
+      /* 首页 / 分享链接会把查询词 encodeURIComponent，onLoad 需还原 */
+      incoming = decodeURIComponent(rawIncoming)
+    } catch {
+      incoming = rawIncoming
+    }
     const serviceReady = isYuanbaoConfigured()
     this.setData({
       serviceReady,

@@ -630,10 +630,10 @@ export const HELP_ENTRIES: Record<string, ToolHelp> = {
     tips: [
       '查询词会发送至腾讯云元宝搜索，仅用于本次检索；查询词不写入草稿与计算轨迹',
       '结果版权归原作者所有；外链需复制后在浏览器打开',
-      '需要先在本地 config-local.ts 配置服务 API KEY，并在 MP 后台加入请求域名',
+      '需要先在本地 config-local.ts 配置服务 API KEY 或 SecretId / SecretKey，并在 MP 后台加入请求域名',
     ],
     faq: [
-      { q: '为什么提示未配置 API KEY？', a: '元宝搜索使用腾讯云服务密钥；请在 config-local.ts 填入服务 API KEY 后重新编译。' },
+      { q: '为什么提示未配置密钥？', a: '元宝搜索支持服务 API KEY 或腾讯云 SecretId / SecretKey；请在 config-local.ts 填入并重新编译。' },
       { q: '为什么真机搜不到？', a: '请把 api.wsa.cloud.tencent.com 加入小程序后台的 request 合法域名。' },
       { q: '会保存我的搜索词吗？', a: '不会写入草稿与计算轨迹；首页搜索历史是否保留由你本机决定。' },
     ],
