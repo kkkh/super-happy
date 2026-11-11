@@ -6,7 +6,7 @@
 > 渲染引擎：Skyline + glass-easel
 > 基础库：`3.17.6`
 > 文档基线：2026-11-11（已按当前源码全量核验）
-> 校验状态：`tsc --noEmit` 通过；`npm test` 792/792 通过（复核于 2026-11-11，103 个测试文件）
+> 校验状态：`tsc --noEmit` 通过；`npm test` 794/794 通过（复核于 2026-11-11，103 个测试文件）
 
 本文是面向开发者的完整 Code Wiki，覆盖项目定位、技术栈、整体架构、启动编排、核心 Store、Workflow 流转引擎、63 个工具算法、全息气象站、全息专注引擎、组件库、81 个页面、设计令牌、存储迁移、隐私与更新机制、依赖关系、运行方式、部署发布流程和扩展指南。文中路径均为仓库相对路径，关键公式与常量标注来源文件。
 
@@ -56,7 +56,7 @@
 | 工具分包依赖 | 2 | `crypto-js`、`diff-match-patch`（仅 tools-core；grow 内有 crypto-js 副本） |
 | AI SKILL 原子接口 | 12 | `core/skill/registry.ts` |
 | 作品数据 | 11 | `core/data/resume-data.ts` 的 `projects` |
-| 单元 / 集成测试 | 792 | 103 个 `.test.js` 文件，全部通过 |
+| 单元 / 集成测试 | 794 | 103 个 `.test.js` 文件，全部通过 |
 | 存储结构版本 | 1 | `app:storage.version` |
 | Spatial Glass 元数据版本 | 2 | `gallery.glass.meta` |
 
@@ -216,7 +216,7 @@ flowchart TB
 | `build:icon` | `npx fantasticon .icon-src -o .icon-dist -n gicon --font-types ttf --asset-types json` | 生成图标字体到 `.icon-dist/` |
 | `pretypecheck` / `pretest` | `node scripts/ensure-weather-config.js` | 自动生成 `weather/config.local.ts`（若缺失），避免 Key 缺失导致编译失败 |
 | `typecheck` | `tsc --noEmit` | 严格类型检查 |
-| `test` | `node --experimental-strip-types --test tests/*.test.js` | 103 个测试文件、792 项全部单元 / 集成测试 |
+| `test` | `node --experimental-strip-types --test tests/*.test.js` | 103 个测试文件、794 项全部单元 / 集成测试 |
 | `test:hologram` | 仅 `tests/spatial-hologram.test.js` | 空间全息单测 |
 | `test:integration` | `tests/*.integration.test.js` | 集成测试 |
 | `test:integration:hologram` | 仅空间全息集成测试 | 集成测试 |
@@ -520,7 +520,7 @@ sequenceDiagram
 ├── store/index.ts             # glassStore 全局门面
 ├── styles/                    # Design Tokens / V3 / 旧工具箱样式
 ├── workers/compute.js         # Worker 计算入口
-├── tests/                     # 792 项测试 + 视觉 / E2E
+├── tests/                     # 794 项测试 + 视觉 / E2E
 ├── assets/                    # 头像、二维码、作品封面
 └── CODE_WIKI.md               # 本文档
 ```
@@ -2942,7 +2942,7 @@ glass-tool-shell.onGeneratePoster()
 |---|---|
 | 效率洞察 | 总数 / 近 7 日 / 连续天数 / 最常用工具 / 分类 / 昼夜占比 / 人格标签 |
 | 分类占比 | Canvas 环形图，按分类统计本机轨迹 |
-| 近 7 日活动 | Canvas 折线图，每天完成的计算次数 |
+| 近 7 日活动 | Canvas 折线图，每天完成的计算次数；省电 / 关闭动画直接画终态，rAF 不回帧由 watchdog（时长 + 220ms）兜底 |
 | 计算轨迹 | 分页展示本机轨迹，展开后按 24 条一批追加，可单条删除 |
 | 隐私盾 | 默认脱敏；只隐藏金额 / 密码 / 健康等敏感值 |
 | 记录开关 | `isHistoryTrackingEnabled`，关闭后不再写入新轨迹 |
@@ -3473,7 +3473,7 @@ flowchart LR
 |---|---|---|
 | 1 | 安装 Node.js `>= 22.6`，在仓库根目录执行 `npm ci` 与 `npm ci --prefix subpackages/tools-core` | 无报错，根包与 tools-core 的 `node_modules/` 均生成 |
 | 2 | `npm run build:style` | 生成 `styles/generated/tailwind.wxss`，文件非空 |
-| 3 | `npm run typecheck && npm test` | 类型检查无输出；测试 `792 pass / 0 fail` |
+| 3 | `npm run typecheck && npm test` | 类型检查无输出；测试 `794 pass / 0 fail` |
 | 4 | 微信开发者工具「导入项目」选择仓库根目录，AppID 填 `wx0f5c60d97c1ce6e2`（无权限可用测试号） | 能识别为小程序项目，基础库 `3.17.6` |
 | 5 | 工具 → 构建 npm，分别构建根包与 `subpackages/tools-core` | 根包与 tools-core 两处 `miniprogram_npm/` 均生成 |
 | 6 | 编译 `pages/index/index` | 首页显示 63 个工具、Hero 数据、搜索与 Dock 正常 |
@@ -3649,7 +3649,7 @@ npm test
 预期：
 
 - `tsc --noEmit` 无输出即为通过。
-- `npm test` 输出 `tests 792`、`pass 792`、`fail 0`。
+- `npm test` 输出 `tests 794`、`pass 794`、`fail 0`。
 
 说明：
 
@@ -3993,7 +3993,7 @@ npm test
 | 项 | 要求 |
 |---|---|
 | 类型检查 | `npm run typecheck` 通过 |
-| 单元 / 集成测试 | `npm test` 792/792 通过 |
+| 单元 / 集成测试 | `npm test` 794/794 通过 |
 | 样式产物 | `styles/generated/tailwind.wxss` 存在且为最新 |
 | npm 产物 | 根包与 tools-core 的 `miniprogram_npm` 均存在 |
 | 版本号 | `APP_VERSION` 与后台版本说明一致 |
@@ -4040,7 +4040,7 @@ npm run plan            # 81 项能力 / 63 张工具卡与注册表一致
 | `budget` | `✔ 包体预算通过` | 主包 1824.4 KB / 1900 KB；tools-core 1363.0 KB |
 | `plan` | `✔ 方案自检通过` | 能力 81 项 / 卡片 63 张 |
 | `typecheck` | 无输出 | 通过 |
-| `test` | `tests 792`、`pass 792`、`fail 0` | 792/792 |
+| `test` | `tests 794`、`pass 794`、`fail 0` | 794/794 |
 
 任一项失败时的处理顺序：
 
@@ -4377,7 +4377,7 @@ npm test
 | 依赖安装 | `npm ci`（根包 + tools-core） | 无报错，`node_modules` 与分包依赖齐全 |
 | Tailwind 产物 | `npm run build:style` | `styles/generated/tailwind.wxss` 存在且为最新 |
 | 类型检查 | `npm run typecheck` | `tsc --noEmit` 无输出 |
-| 单元 / 集成测试 | `npm test` | `tests 792`、`pass 792`、`fail 0` |
+| 单元 / 集成测试 | `npm test` | `tests 794`、`pass 794`、`fail 0` |
 | Workflow 覆盖 | `tests/workflow-coverage.test.js` | 63 个工具全部注册，适配器 / 来源 / 收发端完整 |
 | 分包路由 | `tests/subpackage-routing.test.js` | 通过 |
 | npm 产物 | 开发者工具「构建 npm」 | 根包 2 个依赖 + tools-core 2 个依赖均生成 |
@@ -4726,7 +4726,7 @@ MP_CI_PRIVATE_KEY_PATH="$MP_CI_KEY_FILE" npm run ci:upload
 
 ### 15.1 测试构成
 
-`npm test` 当前 **792 项全部通过**。
+`npm test` 当前 **794 项全部通过**。
 
 | 测试组 | 文件 | 覆盖主题 |
 |---|---|---|
@@ -4755,7 +4755,7 @@ MP_CI_PRIVATE_KEY_PATH="$MP_CI_KEY_FILE" npm run ci:upload
 | 门禁 | 命令 | 当前状态 |
 |---|---|---|
 | 类型检查 | `npm run typecheck` | 通过 |
-| 单元 / 集成 | `npm test` | 792/792 通过 |
+| 单元 / 集成 | `npm test` | 794/794 通过 |
 | 文字对比度 | `npm run check:contrast` | 通过（正文全绿，按钮 6 条 warning 设计债） |
 | Workflow 覆盖率 | `tests/workflow-coverage.test.js` | 63 工具全部注册 / 适配器 / 来源 / 收发端；15 silent + 48 jump |
 | 分包路由 | `tests/subpackage-routing.test.js` | 通过 |
@@ -5128,7 +5128,7 @@ MP_CI_PRIVATE_KEY_PATH="$MP_CI_KEY_FILE" npm run ci:upload
 | 工具 | 63 / 63，全部在 6.1 与 8.4 中列出 |
 | `core/` TypeScript 模块 | 69 / 69，均在 5.x、6.x、7.x、8.x、11.x、12.x 或 5.11 中出现 |
 | `subpackages/` TypeScript 模块 | 176 / 176，页面 / 组件在 10.x、9.10 中按路由列出，lib / utils / weather 在 8.x、5.11、18.3 中说明 |
-| 测试文件 | 103 个 `.test.js`；`npm test` 792 项通过 |
+| 测试文件 | 103 个 `.test.js`；`npm test` 794 项通过 |
 | 运行时依赖 | 根包 2 个 + tools-core 2 个，均在 2.1 / 13.2 中列出 |
 | 配置文件 | `app.json`、`app.ts`、`theme.json`、`project.config.json`、`project.private.config.json`、`tsconfig.json`、`package.json`、`postcss.config.js`、`sitemap.json` |
 | 存储键 | 42 个运行期键（含 `weather:*` 动态后缀），见 12.1 |

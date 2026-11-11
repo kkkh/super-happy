@@ -38,6 +38,7 @@ import {
   animateChart,
   drawDonutChart,
   drawLineChart,
+  planChartAnimation,
   type ChartAnimator,
   type ChartCanvas,
   type ChartCtx,
@@ -933,14 +934,18 @@ Page({
 
         const motion = useMotion()
         const glow = motion.lightEnabled
-        const donutDuration =
-          animate && motion.level !== 'saver'
-            ? Math.round(DONUT_DURATION * motion.durationScale)
-            : 0
-        const lineDuration =
-          animate && motion.level !== 'saver'
-            ? Math.round(LINE_DURATION * motion.durationScale)
-            : 0
+        const donutPlan = planChartAnimation(
+          animate,
+          motion.level,
+          motion.durationScale,
+          DONUT_DURATION,
+        )
+        const linePlan = planChartAnimation(
+          animate,
+          motion.level,
+          motion.durationScale,
+          LINE_DURATION,
+        )
 
         const paintDonut = (progress: number): void => {
           drawDonutChart(
@@ -966,15 +971,15 @@ Page({
           )
         }
 
-        /* 零时长也先画首帧，主题切换时保证旧颜色被立即擦除 */
-        paintDonut(animate ? 0 : 1)
-        paintLine(animate ? 0 : 1)
+        /* 省电 / 关闭动画 / 时长归零时直接画终态，避免停在坐标轴首帧 */
+        paintDonut(donutPlan.firstFrame)
+        paintLine(linePlan.firstFrame)
 
-        if (donutDuration > 0) {
-          runtime.donutAnim = animateChart(donut.node, donutDuration, paintDonut)
+        if (donutPlan.duration > 0) {
+          runtime.donutAnim = animateChart(donut.node, donutPlan.duration, paintDonut)
         }
-        if (lineDuration > 0) {
-          runtime.lineAnim = animateChart(line.node, lineDuration, paintLine)
+        if (linePlan.duration > 0) {
+          runtime.lineAnim = animateChart(line.node, linePlan.duration, paintLine)
         }
       },
     )

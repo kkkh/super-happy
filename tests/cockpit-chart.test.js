@@ -148,6 +148,57 @@ test('动画驱动：progress 从 0 走向 1，cancel 后不再回调', async (t
   }
 })
 
+test('动画计划：省电 / 关闭动画直接落终态，全效才从首帧生长', async () => {
+  const { planChartAnimation } = await import(moduleUrl('subpackages/grow/lib/cockpit-chart.ts'))
+
+  assert.deepEqual(planChartAnimation(true, 'full', 1, 1060), {
+    duration: 1060,
+    firstFrame: 0,
+  })
+  assert.deepEqual(planChartAnimation(true, 'lite', 0.72, 1060), {
+    duration: 763,
+    firstFrame: 0,
+  })
+  assert.deepEqual(planChartAnimation(true, 'saver', 0.001, 1060), {
+    duration: 0,
+    firstFrame: 1,
+  })
+  assert.deepEqual(planChartAnimation(false, 'full', 1, 1060), {
+    duration: 0,
+    firstFrame: 1,
+  })
+  assert.deepEqual(planChartAnimation(true, 'full', 0, 1060), {
+    duration: 0,
+    firstFrame: 1,
+  })
+})
+
+test('动画驱动：rAF 不回帧时 watchdog 仍落到终态', async (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout', 'Date'] })
+  const { animateChart } = await import(moduleUrl('subpackages/grow/lib/cockpit-chart.ts'))
+  try {
+    const frames = []
+    const canvas = {
+      width: 100,
+      height: 100,
+      getContext() {
+        return null
+      },
+      /* 模拟部分 Skyline 真机：rAF 存在但永不回帧 */
+      requestAnimationFrame() {
+        return 1
+      },
+      cancelAnimationFrame() {},
+    }
+    const animator = animateChart(canvas, 40, (progress) => frames.push(progress))
+    t.mock.timers.tick(300)
+    assert.equal(frames[frames.length - 1], 1)
+    animator.cancel()
+  } finally {
+    t.mock.timers.reset()
+  }
+})
+
 test('调色板：白昼/夜航与 WXSS 变量同源', async () => {
   const fs = require('node:fs')
   const { paletteFor } = await import(moduleUrl('subpackages/grow/lib/cockpit-chart.ts'))

@@ -429,8 +429,34 @@ export function drawLineChart(
 }
 
 /* --------------------------------------------------------------------------
+   动画计划
+   - 省电 / 关闭动画时必须直接落终态，否则只会画出第 0 帧（坐标轴 + 首个点）
+   - 时长被倍率压到 0 时同样按终态处理
+   -------------------------------------------------------------------------- */
+export type ChartMotionLevel = 'full' | 'lite' | 'saver'
+
+export interface ChartAnimationPlan {
+  duration: number
+  firstFrame: 0 | 1
+}
+
+export function planChartAnimation(
+  animate: boolean,
+  level: ChartMotionLevel,
+  durationScale: number,
+  baseDuration: number,
+): ChartAnimationPlan {
+  if (!animate || level === 'saver') {
+    return { duration: 0, firstFrame: 1 }
+  }
+  const duration = Math.max(0, Math.round(baseDuration * durationScale))
+  return duration > 0 ? { duration, firstFrame: 0 } : { duration: 0, firstFrame: 1 }
+}
+
+/* --------------------------------------------------------------------------
    动画驱动器
    - 优先使用 Canvas 节点的 requestAnimationFrame；离屏 / 旧环境回退 setTimeout
+   - watchdog：部分 Skyline 真机 rAF 不回帧时，在时长后强制落终态
    - 返回 cancel，页面 onHide / onUnload / 重绘前必须调用
    -------------------------------------------------------------------------- */
 export interface ChartAnimator {
@@ -445,18 +471,32 @@ export function animateChart(
   let finished = false
   let frameHandle = 0
   let timer = 0
+  let watchdog = 0
   const start = Date.now()
 
   const canRaf = Boolean(canvas && typeof canvas.requestAnimationFrame === 'function')
+
+  const clearWatchdog = (): void => {
+    if (watchdog) {
+      clearTimeout(watchdog)
+      watchdog = 0
+    }
+  }
+
+  if (duration <= 0) {
+    paint(1)
+    return { cancel() {} }
+  }
 
   const step = (): void => {
     if (finished) {
       return
     }
-    const raw = duration <= 0 ? 1 : Math.min(1, (Date.now() - start) / duration)
+    const raw = Math.min(1, (Date.now() - start) / duration)
     paint(easeOutCubic(raw))
     if (raw >= 1) {
       finished = true
+      clearWatchdog()
       return
     }
     schedule()
@@ -470,11 +510,26 @@ export function animateChart(
     timer = setTimeout(step, 16) as unknown as number
   }
 
+  /* rAF 存在但真机不回帧的兜底：时长 + 220ms 后直接画终态 */
+  watchdog = setTimeout(() => {
+    watchdog = 0
+    if (finished) {
+      return
+    }
+    finished = true
+    if (frameHandle && canvas && typeof canvas.cancelAnimationFrame === 'function') {
+      canvas.cancelAnimationFrame(frameHandle)
+    }
+    frameHandle = 0
+    paint(1)
+  }, duration + 220) as unknown as number
+
   schedule()
 
   return {
     cancel(): void {
       finished = true
+      clearWatchdog()
       if (frameHandle && canvas && typeof canvas.cancelAnimationFrame === 'function') {
         canvas.cancelAnimationFrame(frameHandle)
       }
