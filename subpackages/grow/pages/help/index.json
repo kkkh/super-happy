@@ -3,6 +3,7 @@
   "disableScroll": true,
   "usingComponents": {
     "g-navbar": "../../../../components/g-navbar/index",
-    "glass-card": "../../../../components/glass-card/index"
+    "glass-bottom-sheet": "../../../../components/glass-bottom-sheet/index",
+    "glass-toast": "../../../../components/glass-toast/index"
   }
 }

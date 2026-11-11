@@ -157,9 +157,67 @@
           </view>
         </view>
       </block>
+
+      <view
+        class="help-feedback"
+        bindtap="onOpenFeedback"
+        aria-role="button"
+        aria-label="问题未解决"
+      >
+        <view class="help-feedback__copy">
+          <text class="help-feedback__title">问题未解决？</text>
+          <text class="help-feedback__sub">复制反馈邮箱，或导出一份脱敏诊断包</text>
+        </view>
+        <text class="help-feedback__arrow" aria-hidden="true">→</text>
+      </view>
     </view>
   </scroll-view>
 
+  <glass-bottom-sheet
+    show="{{feedbackOpen}}"
+    title="问题未解决？"
+    description="诊断包只含版本、基础库、机型、当前路由与最近错误摘要，已脱敏；确认后才写文件。"
+    size="tall"
+    z-index="{{1000}}"
+    show-footer="{{true}}"
+    bind:close="onFeedbackClose"
+    bind:closed="onFeedbackClose"
+  >
+    <scroll-view class="help-diag__scroll" scroll-y>
+      <text class="help-diag__text">{{diagnosticPreview}}</text>
+    </scroll-view>
+
+    <view slot="footer" class="help-diag__footer">
+      <view class="help-diag__actions">
+        <view
+          class="help-diag__action"
+          bindtap="onCopyDiagnostic"
+          aria-role="button"
+          aria-label="复制诊断包"
+        >复制诊断包</view>
+        <view
+          wx:if="{{diagnosticShareSupported}}"
+          class="help-diag__action help-diag__action--primary"
+          bindtap="onExportDiagnostic"
+          aria-role="button"
+          aria-label="{{diagnosticFileReady ? '分享诊断文件' : '生成诊断文件'}}"
+        >
+          <text wx:if="{{diagnosticBusy}}">生成中…</text>
+          <text wx:elif="{{diagnosticFileReady}}">分享诊断文件</text>
+          <text wx:else>生成诊断文件</text>
+        </view>
+        <view
+          class="help-diag__action"
+          bindtap="onCopyEmail"
+          aria-role="button"
+          aria-label="复制邮箱"
+        >复制反馈邮箱</view>
+      </view>
+    </view>
+  </glass-bottom-sheet>
+
+  <glass-toast z-index="{{1200}}" />
+
   <!-- 全局更新弹窗：搜索输入期间不阻塞 -->
-  <update-guard blocked="{{keyword.length > 0}}" />
+  <update-guard blocked="{{keyword.length > 0 || feedbackOpen || diagnosticBusy}}" />
 </view>

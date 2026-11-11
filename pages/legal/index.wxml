@@ -215,7 +215,7 @@
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
-              <text class="legal-list__text">本地文件：专注后台提示音会在小程序本地文件目录生成 focus-bgm-v1.wav（约 16KB，1 秒低振幅）；界面音效预加载会写入 4 个极短 WAV 缓存；工具导出会写入本地 exports 目录，单文件 ≤2MB，结果变更或卸载时清理；本机备份会写入 backups 目录，最多保留 1 份，单份 ≤256KB；以上均保留在小程序本地文件目录，随小程序缓存清除，均为本机生成，不含录音、不上传。</text>
+              <text class="legal-list__text">本地文件：专注后台提示音会在小程序本地文件目录生成 focus-bgm-v1.wav（约 16KB，1 秒低振幅）；界面音效预加载会写入 4 个极短 WAV 缓存；工具导出会写入本地 exports 目录，单文件 ≤2MB，结果变更或卸载时清理；诊断包同样写入 exports 目录，单份 ≤50KB，预览确认后才生成；本机备份会写入 backups 目录，最多保留 1 份，单份 ≤256KB；以上均保留在小程序本地文件目录，随小程序缓存清除，均为本机生成，不含录音、不上传。</text>
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
