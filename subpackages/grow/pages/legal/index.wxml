@@ -231,7 +231,7 @@
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
-              <text class="legal-list__text">cyber:auto:v1 与 cyber:hot:v1：时间旅行的自动快照（最多 5 个）与手动热备（最多 3 个），含当时的收藏、最近使用、打开次数、外观、偏好与轨迹副本；cyber:pilot:v1 只保存自动任务开关与表达式。快照不是云备份，卸载或清理缓存即丢失。</text>
+              <text class="legal-list__text">cyber:auto:v1 与 cyber:hot:v1：时间旅行的自动快照（最多 5 个）与手动热备（最多 3 个），含当时的收藏、最近使用、打开次数、外观、偏好与轨迹副本；cyber:frames:v1 保存时间轴最近 8 帧状态（含偏好、收藏、最近使用、打开次数与轨迹副本），仅用于选帧回滚；cyber:pilot:v1 只保存自动任务开关与表达式。快照不是云备份，卸载或清理缓存即丢失。</text>
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>

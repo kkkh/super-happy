@@ -732,6 +732,8 @@ Page({
     this.refreshBackupInfo()
     this.refreshPrivacyCenter()
     this.pushCyberEvent('lifecycle', 'onShow', '设置页回到前台 · 恢复渲染与调度')
+    /* 页面在其它页面修改收藏 / 历史后返回时，补抓一帧（状态相同会自动去重） */
+    this.captureFrame('回到设置页')
     this.startGalaxyLoop()
     const runtime = this as unknown as SettingsRuntime
     if (runtime.pilot) {
@@ -894,13 +896,15 @@ Page({
   initCyberSpace(): void {
     const runtime = this as unknown as SettingsRuntime
     runtime.timeTravel = new TimeTravelEngine(20)
+    runtime.timeTravel.restorePersisted()
     runtime.eventLog = new EventLog(50)
     runtime.restoreStorageHook = runtime.eventLog.installStorageHook(wx)
     this.pushCyberEvent('lifecycle', 'onLaunch', this.launchDetail())
     this.captureFrame('系统启动')
     this.restorePilotConfig()
     this.refreshSlots()
-    this.refreshTimeline()
+    /* 当前状态与最后一帧相同时 capture 会去重，这里仍要定位到最新一帧 */
+    this.refreshTimeline(runtime.timeTravel.size() - 1)
     this.runDisasterCheck()
   },
 
@@ -2014,6 +2018,7 @@ Page({
     }
     const frame = runtime.timeTravel.capture(label)
     if (frame) {
+      runtime.timeTravel.persist()
       this.refreshTimeline(runtime.timeTravel.size() - 1)
     }
   },
@@ -2926,8 +2931,16 @@ Page({
     if (!this.data.privacyConfirmShow) {
       return
     }
+    const runtime = this as unknown as SettingsRuntime
     if (this.data.privacyConfirmKind === 'toolbox') {
       const removed = toolboxStore.clearAll()
+      /* clearAll 已清掉磁盘帧里的轨迹副本，内存帧必须同步重建，否则下次 persist 会把旧轨迹写回 */
+      if (runtime.timeTravel) {
+        runtime.timeTravel.clear()
+        runtime.timeTravel.restorePersisted()
+      }
+      this.captureFrame('清空工具数据')
+      this.refreshTimeline(runtime.timeTravel ? runtime.timeTravel.size() - 1 : 0)
       this.setData({ privacyConfirmShow: false, recentCount: toolboxStore.recents.length })
       this.refreshCache()
       this.refreshBackupInfo()
@@ -2942,6 +2955,11 @@ Page({
     historyStore.clearMemory()
     preferenceStore.applySnapshot(DEFAULT_PREFERENCE)
     preferenceStore.persist()
+    /* cyber:* 已被删除，销毁内存帧防止延迟写入复活 */
+    if (runtime.timeTravel) {
+      runtime.timeTravel.clear()
+    }
+    this.refreshTimeline()
     this.setData({ privacyConfirmShow: false, fsClass: fontScaleClass('standard') })
     this.showToast(`已重置本机数据（${result.removedKeys} 项）`, 'success')
     setTimeout(() => {

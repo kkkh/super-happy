@@ -785,7 +785,7 @@ privacyVersionChanged(version?): boolean
 resetAllLocalData(): { removedKeys: number; backups: number }
 ```
 
-- 权限快照：`wx.getSetting` 读取 `scope.userLocation` / `scope.writePhotosAlbum`，`wx.getPrivacySetting` 读取 `needAuthorization` 与 `privacyContractName`；API 不可用时统一降级为 `unavailable`。
+- 权限快照：`wx.getSetting` 读取 `scope.userFuzzyLocation`（旧版回退 `scope.userLocation`）/ `scope.writePhotosAlbum`，`wx.getPrivacySetting` 读取 `needAuthorization` 与 `privacyContractName`；API 不可用时统一降级为 `unavailable`。
 - 版本：`PRIVACY_VERSION`（当前 1）与 `app:privacy.version` 比对；设置页隐私中心首次进入提示，用户确认后写回，清空工具数据不重置，只有重置全部才清除。
 - 重置全部：删除 `tbx:` / `weather:` / `focus:` / `diag:` / `cyber:`、`app:prefs.v1`、`app:prefs.v0`、`app:backup.at`、`app:privacy.version` 与 `USER_DATA_PATH/backups`、`exports`；保留 `gallery.*` 与 `app:storage.version`。
 - 设置页入口：权限状态与跳转、查看隐私指引、导出本机数据（复用备份）、清除工具数据、重置全部；`tests/privacy-center.test.js` 7 条契约测试。
@@ -1246,8 +1246,8 @@ purgeHistoryFromSnapshots(): { slots: number; records: number }
 purgeHistoryRecordFromSnapshots(id: string): number
 ```
 
-- 扫描 `cyber:auto:v1`、`cyber:hot:v1` 中的快照 payload。
-- 只修改 `snapshot.history`，保留主题 / 收藏 / 偏好。
+- 扫描 `cyber:auto:v1`、`cyber:hot:v1` 中的快照 payload 与 `cyber:frames:v1` 时间轴帧。
+- 只修改 `snapshot.history` / `frame.history`，保留主题 / 收藏 / 偏好。
 - 修改后重算 CRC32，保证 Time Travel 仍可解码。
 
 ### 6.9 自定义 TabBar（`core/toolbox/tabbar.ts` + `custom-tab-bar/`）
@@ -2054,7 +2054,7 @@ Worker → 主线程: { kind: 'pong', id }
 |---|---|---|
 | 星系图 | `utils/canvasGalaxy.ts` | Canvas 粒子星系，支持平移 / 缩放 / 选中 / 降级 |
 | Auto-Pilot | `utils/cronParser.ts` | 5 段 Cron 解析与分钟级调度 |
-| Time Travel | `utils/timeTravelEngine.ts` | 状态快照 / 时间旅行 / 热备 / 自动快照 |
+| Time Travel | `utils/timeTravelEngine.ts` | 状态快照 / 时间旅行 / 热备 / 自动快照；时间轴帧经 `cyber:frames:v1` 跨页面恢复 |
 | 分片传输 | `utils/slicedTransfer.ts` | `[Part i/n] CSOS1|sid|index|total|crc|jsonChunk` 文本协议 |
 | AES 保险箱 | `utils/aesVault.ts` | AES-256-CBC + PKCS7，`CYBER-AES1|ivHex|cipherHex` |
 | 事件流 | `timeTravelEngine.ts` 的 `EventLog` | 内存环形 50 条，不落盘 |
@@ -2180,7 +2180,8 @@ wx.getFuzzyLocation（gcj02，城市级）
 ```
 
 - 定位前必须 `ensurePrivacyAuthorized()`；拒绝 / 低版本 / 局域网 / IPv6-only 全部优雅降级，不伪造数据。
-- `app.json` 只声明 `requiredPrivateInfos: ["getFuzzyLocation"]`，不申请精确位置。
+- `app.json` 只声明 `requiredPrivateInfos: ["getFuzzyLocation"]`，不申请精确位置；必须同时配置 `permission["scope.userFuzzyLocation"].desc`，否则微信不会弹出定位授权窗。
+- 未申请时先展示应用内说明（只获取城市级模糊位置），确认后再由微信弹出系统授权；已拒绝时提供「去设置 / 手动选城」，设置页权限行读取 `scope.userFuzzyLocation` 实时同步。
 
 一次完整刷新（定位 → 数据 → 缓存）的时序如下：
 
@@ -3177,6 +3178,7 @@ buildContrastVars(result): string
 | `tbx:legacy-tip-home` | tbx | 首页旧收藏提示 | `storage.ts` |
 | `cyber:hot:v1` | cyber | 热备 3 槽 | `timeTravelEngine` |
 | `cyber:auto:v1` | cyber | 自动快照 5 槽 | `timeTravelEngine` |
+| `cyber:frames:v1` | cyber | 时间轴帧（持久化最近 8 帧） | `timeTravelEngine` |
 | `cyber:pilot:v1` | cyber | Auto-Pilot 配置 | 设置页 |
 | `weather:cities:v1` | weather | 城市表（≤5） | `weatherCache.ts` |
 | `weather:current:v1` | weather | 当前城市 adcode | `weatherCache.ts` |

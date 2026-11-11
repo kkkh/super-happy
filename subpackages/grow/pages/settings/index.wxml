@@ -447,6 +447,9 @@
               aria-label="时间旅行轴"
               bind:input="onTimelineSlide"
             />
+            <text wx:if="{{timelineFrames.length === 1}}" class="cyber-timeline__hint">
+              当前只有 1 帧，时间轴需至少 2 帧才可拖动；调整任一设置或执行备份后会自动累积。
+            </text>
           </view>
 
           <view class="cyber-preview">

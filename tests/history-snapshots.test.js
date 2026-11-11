@@ -72,16 +72,21 @@ function parseSlot(slot) {
   return JSON.parse(slot.payload)
 }
 
-test('快照清理：统计并清空所有 auto/hot 中的 history，保留其他字段', async () => {
+test('快照清理：统计并清空 auto/hot/时间轴帧中的 history，保留其他字段', async () => {
   const history = [
     { id: 'h-1', toolId: 'loan', timestamp: 1 },
     { id: 'h-2', toolId: 'unit', timestamp: 2 },
   ]
   const auto = [makeSlot('auto-1', history)]
   const hot = [makeSlot('hot-1', history)]
+  const frames = [
+    { id: 'tt-1', label: '帧 1', createdAt: 1, themeMode: 'dark', preference: {}, toolbox: {}, history },
+    { id: 'tt-2', label: '帧 2', createdAt: 2, themeMode: 'dark', preference: {}, toolbox: {}, history },
+  ]
   const values = installStorageMock({
     'cyber:auto:v1': auto,
     'cyber:hot:v1': hot,
+    'cyber:frames:v1': frames,
   })
 
   try {
@@ -90,10 +95,10 @@ test('快照清理：统计并清空所有 auto/hot 中的 history，保留其�
     )
     const { crc32Hex } = await import(moduleUrl('core/toolbox/crc32.ts'))
 
-    assert.equal(countHistoryInSnapshots(), 4)
+    assert.equal(countHistoryInSnapshots(), 8)
     const result = purgeHistoryFromSnapshots()
-    assert.equal(result.slots, 2)
-    assert.equal(result.records, 4)
+    assert.equal(result.slots, 3)
+    assert.equal(result.records, 8)
 
     for (const key of ['cyber:auto:v1', 'cyber:hot:v1']) {
       const slot = values[key][0]
@@ -104,6 +109,11 @@ test('快照清理：统计并清空所有 auto/hot 中的 history，保留其�
       assert.equal(envelope.checksum, crc32Hex(JSON.stringify(envelope.snapshot)))
       assert.equal(slot.bytes, slot.payload.length)
     }
+    assert.deepEqual(
+      values['cyber:frames:v1'].map((frame) => frame.history),
+      [[], []],
+    )
+    assert.equal(values['cyber:frames:v1'][0].label, '帧 1')
     assert.equal(countHistoryInSnapshots(), 0)
   } finally {
     delete globalThis.wx
@@ -119,6 +129,10 @@ test('单条删除：从所有快照中移除指定 id，其他轨迹保留', as
   const values = installStorageMock({
     'cyber:auto:v1': [makeSlot('auto-1', history)],
     'cyber:hot:v1': [makeSlot('hot-1', history)],
+    'cyber:frames:v1': [
+      { id: 'tt-1', label: '帧 1', createdAt: 1, themeMode: 'dark', preference: {}, toolbox: {}, history },
+      { id: 'tt-2', label: '帧 2', createdAt: 2, themeMode: 'dark', preference: {}, toolbox: {}, history },
+    ],
   })
 
   try {
@@ -128,7 +142,7 @@ test('单条删除：从所有快照中移除指定 id，其他轨迹保留', as
     const { crc32Hex } = await import(moduleUrl('core/toolbox/crc32.ts'))
 
     const removed = purgeHistoryRecordFromSnapshots('h-2')
-    assert.equal(removed, 2)
+    assert.equal(removed, 4)
     for (const key of ['cyber:auto:v1', 'cyber:hot:v1']) {
       const envelope = parseSlot(values[key][0])
       assert.deepEqual(
@@ -137,6 +151,13 @@ test('单条删除：从所有快照中移除指定 id，其他轨迹保留', as
       )
       assert.equal(envelope.checksum, crc32Hex(JSON.stringify(envelope.snapshot)))
     }
+    assert.deepEqual(
+      values['cyber:frames:v1'].map((frame) => frame.history.map((item) => item.id)),
+      [
+        ['h-1', 'h-3'],
+        ['h-1', 'h-3'],
+      ],
+    )
 
     const missing = purgeHistoryRecordFromSnapshots('h-9')
     assert.equal(missing, 0)

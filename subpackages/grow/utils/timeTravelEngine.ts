@@ -95,6 +95,52 @@ function preferenceSummary(snapshot: PreferenceSnapshot): string {
   } · 字号${fontLabel} · ${flagCount} flag`
 }
 
+const FRAME_KEY = 'cyber:frames:v1'
+/**
+ * 只持久化最近 8 帧：单帧含最多 100 条轨迹副本，20 帧约 800KB，
+ * 接近单 key 1MB 上限且每次设置变更都同步写盘会卡主线程。
+ */
+const MAX_PERSISTED_FRAMES = 8
+
+/** 持久化前的结构校验：坏帧直接丢弃，避免 travel() 写坏 Store */
+function isCyberSnapshot(value: unknown): value is CyberSnapshot {
+  if (!value || typeof value !== 'object') {
+    return false
+  }
+  const record = value as Record<string, unknown>
+  if (
+    typeof record.id !== 'string' ||
+    !record.id ||
+    typeof record.label !== 'string' ||
+    typeof record.createdAt !== 'number' ||
+    !Number.isFinite(record.createdAt)
+  ) {
+    return false
+  }
+  if (
+    record.themeMode !== 'auto' &&
+    record.themeMode !== 'light' &&
+    record.themeMode !== 'dark'
+  ) {
+    return false
+  }
+  const preference = record.preference as Record<string, unknown> | undefined
+  if (!preference || typeof preference !== 'object') {
+    return false
+  }
+  const toolbox = record.toolbox as Record<string, unknown> | undefined
+  if (
+    !toolbox ||
+    typeof toolbox !== 'object' ||
+    !Array.isArray(toolbox.favorites) ||
+    !Array.isArray(toolbox.recents) ||
+    typeof toolbox.usageCount !== 'number'
+  ) {
+    return false
+  }
+  return Array.isArray(record.history)
+}
+
 export class TimeTravelEngine {
   private frames: CyberSnapshot[] = []
   private seq = 0
@@ -102,6 +148,32 @@ export class TimeTravelEngine {
 
   constructor(maxFrames = 20) {
     this.maxFrames = Math.max(3, Math.min(50, Math.floor(maxFrames)))
+  }
+
+  /**
+   * 从本机 Storage 恢复时间轴。
+   * 页面每次 onLoad 都会重建引擎，只靠内存会让用户永远只看到「系统启动」。
+   */
+  restorePersisted(): number {
+    const raw = readStorage(FRAME_KEY)
+    if (!Array.isArray(raw)) {
+      return 0
+    }
+    const frames = raw
+      .filter(isCyberSnapshot)
+      .slice(-this.maxFrames)
+      .map((frame) => clone(frame))
+    this.frames = frames
+    this.seq = frames.length
+    return frames.length
+  }
+
+  /** 帧发生变化后落盘最近 8 帧；失败只影响下次启动的恢复，不影响当前会话 */
+  persist(): boolean {
+    return writeStorage(
+      FRAME_KEY,
+      this.frames.slice(-MAX_PERSISTED_FRAMES).map((frame) => clone(frame)),
+    )
   }
 
   capture(label: string): CyberSnapshot | null {

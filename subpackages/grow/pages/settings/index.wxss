@@ -1646,6 +1646,17 @@
   padding: 6rpx 4rpx;
 }
 
+.cyber-timeline__hint {
+  display: block;
+  width: 100%;
+  margin-top: 10rpx;
+  color: var(--glass-text-3);
+  font-size: 20rpx;
+  font-size: calc(20rpx * var(--fs-scale, 1));
+  line-height: 1.5;
+  white-space: normal;
+}
+
 .cyber-preview {
   display: flex;
   flex-direction: column;
