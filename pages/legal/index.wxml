@@ -179,6 +179,10 @@
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
+              <text class="legal-list__text">tbx:draft.*（按工具 id 区分）：最近一次工具输入与模式，仅存本机，单工具不超过 4KB，最多保留 20 个工具，30 天后自动清理；敏感工具与工时工具不保存，可随「清空工具数据」删除。</text>
+            </view>
+            <view class="legal-list__item">
+              <view class="legal-list__dot" aria-hidden="true"></view>
               <text class="legal-list__text">gallery.theme.mode：白昼 / 夜航 / 跟随系统，由超欢整体共用。</text>
             </view>
             <view class="legal-list__item">

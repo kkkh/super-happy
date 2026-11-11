@@ -111,6 +111,28 @@ Page({
     )
   },
 
+  /* ---- 草稿：生日与基准日；恢复后重新计算 ---- */
+  collectDraftInput(): Record<string, string> {
+    return { birth: this.data.birth, ref: this.data.ref }
+  },
+
+  applyDraftInput(input: Record<string, string>): void {
+    const ref = input.ref || todayISO()
+    this.setData(
+      {
+        birth: input.birth ?? '',
+        ref,
+        birthLabel: input.birth ? formatCN(input.birth) : '',
+        refLabel: formatCN(ref),
+        hasResult: false,
+        error: '',
+      },
+      () => {
+        this.recalculate()
+      },
+    )
+  },
+
   onCopy() {
     copyText(this.data.copyPayload, '年龄结果已复制')
   },

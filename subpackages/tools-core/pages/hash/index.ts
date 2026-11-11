@@ -467,6 +467,49 @@ Page({
     })
   },
 
+  /* ---- 草稿：文本、算法与选项；HMAC 密钥不写草稿 ---- */
+  draftMode(): string {
+    return this.data.algorithm
+  },
+
+  collectDraftInput(): Record<string, string> {
+    return {
+      text: this.data.text,
+      hmac: this.data.hmac ? '1' : '0',
+      caseMode: this.data.caseMode,
+    }
+  },
+
+  applyDraftInput(input: Record<string, string>, mode: string): void {
+    const algorithm: HashAlgorithm =
+      mode === 'md5' || mode === 'sha1' || mode === 'sha256' || mode === 'sha512'
+        ? mode
+        : 'sha256'
+    const text = input.text ?? ''
+    const hmac = input.hmac === '1'
+    this.setData(
+      {
+        ...EMPTY_RESULT_PATCH,
+        text,
+        textCount: codePointLength(text),
+        algorithm,
+        selectedLabel: algorithmLabel(algorithm),
+        hmac,
+        caseMode: input.caseMode === 'upper' ? 'upper' : 'lower',
+        state: 'idle',
+        canRun: Boolean(text.trim()),
+        error: hmac ? 'HMAC 模式需重新填写密钥' : '',
+        tooLongShow: false,
+        tooLongText: '',
+      },
+      () => {
+        if (text.trim() && !hmac) {
+          this.onCompute()
+        }
+      },
+    )
+  },
+
   /** Workflow 接收端：文本自动填入；HMAC 密钥已存在时自动计算 */
   onReceiveWorkflow(data: IWorkflowData): boolean {
     if (!data || data.type === 'image' || typeof data.payload !== 'string') {

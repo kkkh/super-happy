@@ -145,6 +145,32 @@ Page({
     this.setData({ dateValue: todayText(), error: '' }, () => this.clearConvert())
   },
 
+  /* ---- 草稿：模式与日期；恢复后重新换算 ---- */
+  draftMode(): string {
+    return this.data.mode
+  },
+
+  collectDraftInput(): Record<string, string> {
+    return { dateValue: this.data.dateValue, birthDate: this.data.birthDate }
+  },
+
+  applyDraftInput(input: Record<string, string>, mode: string): void {
+    this.setData(
+      {
+        mode: mode === 'birthday' ? 'birthday' : 'convert',
+        dateValue: input.dateValue || todayText(),
+        birthDate: input.birthDate ?? '',
+        error: '',
+        hasResult: false,
+        shellState: 'idle',
+        posterData: null,
+      },
+      () => {
+        this.onRun()
+      },
+    )
+  },
+
   onRun() {
     if (this.data.mode === 'birthday') {
       void this.computeBirthday()

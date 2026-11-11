@@ -114,6 +114,33 @@ Page({
     })
   },
 
+  /* ---- 草稿：里程 / 加油量 / 油价；恢复后重算 ---- */
+  collectDraftInput(): Record<string, string> {
+    return {
+      distanceText: this.data.distanceText,
+      litersText: this.data.litersText,
+      priceText: this.data.priceText,
+    }
+  },
+
+  applyDraftInput(input: Record<string, string>): void {
+    this.setData(
+      {
+        distanceText: input.distanceText ?? '',
+        litersText: input.litersText ?? '',
+        priceText: input.priceText ?? '',
+        formTouched: true,
+        shellState: 'idle',
+        hasResult: false,
+        error: '',
+        posterData: null,
+      },
+      () => {
+        this.onRun()
+      },
+    )
+  },
+
   onRun() {
     const state = this as unknown as FuelState
     if (state.destroyed) {

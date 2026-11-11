@@ -199,6 +199,44 @@ Page({
     )
   },
 
+  /* ---- 草稿：开始日、工期与休息日；恢复后重新排期 ---- */
+  collectDraftInput(): Record<string, string> {
+    return {
+      startDate: this.data.startDate,
+      workdaysText: this.data.workdaysText,
+      includeStart: this.data.includeStart ? '1' : '0',
+      skipWeekend: this.data.skipWeekend ? '1' : '0',
+      holidaysText: this.data.holidaysText,
+    }
+  },
+
+  applyDraftInput(input: Record<string, string>): void {
+    this.setData(
+      {
+        startDate: input.startDate || todayISO(),
+        workdaysText: input.workdaysText ?? '5',
+        includeStart: input.includeStart !== '0',
+        skipWeekend: input.skipWeekend !== '0',
+        holidaysText: input.holidaysText ?? '',
+        formTouched: true,
+        shellState: 'idle',
+        hasResult: false,
+        resultMain: '',
+        resultRows: [],
+        scheduleSummary: '',
+        listRows: [],
+        visibleList: [],
+        listNote: '',
+        showList: false,
+        error: '',
+        posterData: null,
+      },
+      () => {
+        this.onRun()
+      },
+    )
+  },
+
   clearResult() {
     this.setData({
       shellState: 'idle',

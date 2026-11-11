@@ -192,6 +192,32 @@ Page({
     )
   },
 
+  /* ---- 草稿：起止日与两个开关；恢复后重新计算 ---- */
+  collectDraftInput(): Record<string, string> {
+    return {
+      start: this.data.start,
+      end: this.data.end,
+      includeStart: this.data.includeStart ? '1' : '0',
+      excludeWeekend: this.data.excludeWeekend ? '1' : '0',
+    }
+  },
+
+  applyDraftInput(input: Record<string, string>): void {
+    const start = input.start || todayISO()
+    this.setData(
+      {
+        start,
+        end: input.end || (addDays(start, 30) ?? start),
+        includeStart: input.includeStart === '1',
+        excludeWeekend: input.excludeWeekend !== '0',
+        formTouched: true,
+      },
+      () => {
+        this.recalculate()
+      },
+    )
+  },
+
   onCopy() {
     copyText(this.data.copyPayload, '日期间隔结果已复制')
   },

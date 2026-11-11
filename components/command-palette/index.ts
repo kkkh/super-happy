@@ -60,10 +60,10 @@ Component({
       type: String,
       value: '搜索工具或命令',
     },
-    /** 最大结果数 */
+    /** 最大结果数：媒体矩阵扩展后 8 条会截断低权重工具，12 条仍可单屏滚动 */
     maxResults: {
       type: Number,
-      value: 8,
+      value: 12,
     },
     /** 选中后自动跳转 */
     autoNavigate: {

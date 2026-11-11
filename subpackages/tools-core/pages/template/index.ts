@@ -119,6 +119,30 @@ Page({
     })
   },
 
+  /* ---- 草稿：模板与变量表；恢复后重新渲染 ---- */
+  collectDraftInput(): Record<string, string> {
+    return {
+      templateText: this.data.templateText,
+      variablesText: this.data.variablesText,
+    }
+  },
+
+  applyDraftInput(input: Record<string, string>): void {
+    this.setData(
+      {
+        templateText: input.templateText ?? '',
+        variablesText: input.variablesText ?? '',
+        shellState: 'idle',
+        hasResult: false,
+        error: '',
+        posterData: null,
+      },
+      () => {
+        this.onRun()
+      },
+    )
+  },
+
   onCopy() {
     if (!this.data.resultText) {
       return

@@ -91,6 +91,15 @@ Page({
     this.setData({ date: todayISO(), error: '' }, () => this.onRun())
   },
 
+  /* ---- 草稿：只存日期；恢复后重新格式化 ---- */
+  collectDraftInput(): Record<string, string> {
+    return { date: this.data.date }
+  },
+
+  applyDraftInput(input: Record<string, string>): void {
+    this.setData({ date: input.date || todayISO(), error: '' }, () => this.onRun())
+  },
+
   onRun() {
     const state = this as unknown as DateFormatState
     if (state.destroyed) {

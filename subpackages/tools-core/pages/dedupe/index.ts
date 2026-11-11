@@ -114,6 +114,35 @@ Page({
     })
   },
 
+  /* ---- 草稿：文本与处理选项；恢复后重新去重 ---- */
+  collectDraftInput(): Record<string, string> {
+    return {
+      text: this.data.text,
+      dropEmpty: this.data.dropEmpty ? '1' : '0',
+      trimLines: this.data.trimLines ? '1' : '0',
+      ignoreCase: this.data.ignoreCase ? '1' : '0',
+      sortMode: this.data.sortMode,
+    }
+  },
+
+  applyDraftInput(input: Record<string, string>): void {
+    const sortMode = SORT_MODES.some((item) => item.key === input.sortMode)
+      ? (input.sortMode as SortMode)
+      : 'none'
+    this.setData(
+      {
+        text: input.text ?? '',
+        dropEmpty: input.dropEmpty !== '0',
+        trimLines: input.trimLines !== '0',
+        ignoreCase: input.ignoreCase === '1',
+        sortMode,
+      },
+      () => {
+        this.recalculate()
+      },
+    )
+  },
+
   onCopy() {
     copyText(this.data.outputText, '处理结果已复制')
   },

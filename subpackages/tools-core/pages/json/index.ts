@@ -112,6 +112,36 @@ Page({
     })
   },
 
+  /* ---- 草稿：文本、模式与缩进；恢复后重新格式化 ---- */
+  draftMode(): string {
+    return this.data.mode
+  },
+
+  collectDraftInput(): Record<string, string> {
+    return { input: this.data.input, indent: `${this.data.indent}` }
+  },
+
+  applyDraftInput(input: Record<string, string>, mode: string): void {
+    this.setData(
+      {
+        input: input.input ?? '',
+        mode: mode === 'minify' ? 'minify' : 'format',
+        indent: input.indent === '4' ? 4 : 2,
+        shellState: 'idle',
+        hasResult: false,
+        error: '',
+        outputText: '',
+        resultSizeText: '',
+        resultLinesText: '',
+        resultTypeText: '',
+        posterData: null,
+      },
+      () => {
+        this.run()
+      },
+    )
+  },
+
   onRun() {
     this.run()
   },

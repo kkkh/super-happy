@@ -152,6 +152,31 @@ Page({
     })
   },
 
+  /* ---- 草稿：文本、方向与模式；恢复后重新转换 ---- */
+  draftMode(): string {
+    return this.data.mode
+  },
+
+  collectDraftInput(): Record<string, string> {
+    return { inputText: this.data.inputText, direction: this.data.direction }
+  },
+
+  applyDraftInput(input: Record<string, string>, mode: string): void {
+    const text = input.inputText ?? ''
+    this.setData(
+      {
+        inputText: text,
+        inputLength: Array.from(text).length,
+        direction: normalizeZhDirection(input.direction),
+        mode: normalizeZhMode(mode),
+        ...emptyResult(),
+      },
+      () => {
+        this.compute()
+      },
+    )
+  },
+
   onCopy() {
     if (!this.data.resultText) {
       toast('没有可复制的内容')

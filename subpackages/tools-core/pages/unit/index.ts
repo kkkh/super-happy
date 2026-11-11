@@ -218,6 +218,51 @@ Page({
     })
   },
 
+  /* ---- 草稿：类别、源/目标单位与数值；恢复后重新换算 ---- */
+  draftMode(): string {
+    return `${this.data.activeCategory}`
+  },
+
+  collectDraftInput(): Record<string, string> {
+    return {
+      fromIndex: `${this.data.fromIndex}`,
+      toIndex: `${this.data.toIndex}`,
+      value: this.data.value,
+    }
+  },
+
+  applyDraftInput(input: Record<string, string>, mode: string): void {
+    const categoryIndex = Number(mode)
+    const category =
+      UNIT_CATEGORIES[categoryIndex] && categoryIndex >= 0
+        ? UNIT_CATEGORIES[categoryIndex]
+        : UNIT_CATEGORIES[0]
+    const activeCategory = UNIT_CATEGORIES.indexOf(category)
+    const units = category.units
+    const readIndex = (raw: string, fallback: number): number => {
+      const value = Number(raw)
+      return Number.isInteger(value) && value >= 0 && value < units.length ? value : fallback
+    }
+    const fromIndex = readIndex(input.fromIndex, 0)
+    const toIndex = readIndex(input.toIndex, units.length > 1 ? 1 : 0)
+    this.setData(
+      {
+        activeCategory,
+        units,
+        unitNames: units.map((item) => item.name),
+        fromIndex,
+        toIndex,
+        fromName: units[fromIndex].name,
+        toName: units[toIndex].name,
+        inputType: category.key === 'temperature' ? 'text' : 'digit',
+        value: input.value ?? '',
+      },
+      () => {
+        this.recalculate()
+      },
+    )
+  },
+
   /**
    * Workflow 接收接口：按上下文切换分类 / 源单位 / 目标单位
    * - 只做字段落位，换算仍由原有 recalculate 完成，零业务改写

@@ -63,6 +63,21 @@
         </view>
       </view>
 
+      <view wx:if="{{draftPromptVisible}}" class="tool-shell__draft" aria-live="polite">
+        <view class="tool-shell__draft-copy">
+          <text class="tool-shell__draft-title">恢复上次输入</text>
+          <text class="tool-shell__draft-sub">检测到上次未完成的输入，恢复后会重新计算</text>
+        </view>
+        <view class="tool-shell__draft-actions">
+          <glass-button variant="primary" size="sm" bind:tap="onDraftRestore">
+            恢复
+          </glass-button>
+          <glass-button variant="ghost" size="sm" bind:tap="onDraftDismiss">
+            忽略
+          </glass-button>
+        </view>
+      </view>
+
       <glass-tool-card
         variant="input"
         label="INPUT / 输入"

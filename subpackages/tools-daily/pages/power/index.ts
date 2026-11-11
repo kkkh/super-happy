@@ -22,6 +22,8 @@ import {
 import type { IPosterData } from '../../../../core/toolbox/poster'
 import type { IWorkflowData } from '../../../../core/workflow/types'
 import { copyText } from '../../lib/ui'
+import { collectPowerDraft, powerDraftPatch } from '../../lib/draft'
+import { MODE_COPY, emptyInputs, type PowerMode } from '../../lib/power-ui'
 
 interface ResultRow {
   k: string
@@ -37,53 +39,11 @@ interface PowerState {
   destroyed: boolean
 }
 
-type PowerMode = 'electric' | 'water' | 'gas'
-
-interface PowerModeCopy {
-  runLabel: string
-  emptyTitle: string
-  emptySub: string
-  priceLabel: string
-  tierTitle: string
-  tierUnit: string
-  usageLabel: string
-}
-
 const MODES: Array<{ key: PowerMode; label: string }> = [
   { key: 'electric', label: '电费' },
   { key: 'water', label: '水费' },
   { key: 'gas', label: '燃气' },
 ]
-
-const MODE_COPY: Record<PowerMode, PowerModeCopy> = {
-  electric: {
-    runLabel: '估算电费',
-    emptyTitle: '填写功率与时长，估算用电与电费',
-    emptySub: '支持平价电价与最多 3 档阶梯；结果只在本机计算',
-    priceLabel: '平价电价（元/度）',
-    tierTitle: '阶梯电价（可选，最多 3 档）',
-    tierUnit: '度',
-    usageLabel: '用电量',
-  },
-  water: {
-    runLabel: '估算水费',
-    emptyTitle: '填写用水量与单价，估算水费',
-    emptySub: '支持平价水价与最多 3 档阶梯水价；可加基础费',
-    priceLabel: '平价水价（元/吨）',
-    tierTitle: '阶梯水价（可选，最多 3 档）',
-    tierUnit: '吨',
-    usageLabel: '用水量（吨）',
-  },
-  gas: {
-    runLabel: '估算燃气费',
-    emptyTitle: '填写用气量与单价，估算燃气费',
-    emptySub: '支持平价气价与最多 3 档阶梯气价；可加基础费',
-    priceLabel: '平价气价（元/m³）',
-    tierTitle: '阶梯气价（可选，最多 3 档）',
-    tierUnit: 'm³',
-    usageLabel: '用气量（m³）',
-  },
-}
 
 interface TierInput {
   limit: string
@@ -173,23 +133,6 @@ function emptyResult() {
     error: '',
     posterData: null as IPosterData | null,
     formTouched: false,
-  }
-}
-
-function emptyInputs() {
-  return {
-    powerText: '',
-    hoursText: '',
-    daysText: '',
-    usageText: '',
-    baseFeeText: '',
-    priceText: '',
-    tier1Limit: '',
-    tier1Price: '',
-    tier2Limit: '',
-    tier2Price: '',
-    tier3Limit: '',
-    tier3Price: '',
   }
 }
 
@@ -323,6 +266,32 @@ Page({
       ...emptyResult(),
       ...MODE_COPY[this.data.mode],
     })
+  },
+
+  /* ---- 草稿：模式 + 全部输入；恢复后重新估算 ---- */
+  draftMode(): string {
+    return this.data.mode
+  },
+
+  collectDraftInput(): Record<string, string> {
+    return collectPowerDraft(this.data)
+  },
+
+  applyDraftInput(input: Record<string, string>, mode: string): void {
+    const patch = powerDraftPatch(input, mode)
+    this.setData(
+      {
+        ...emptyInputs(),
+        ...emptyResult(),
+        ...MODE_COPY[patch.mode],
+        ...patch.fields,
+        mode: patch.mode,
+        formTouched: true,
+      },
+      () => {
+        this.onRun()
+      },
+    )
   },
 
   onRun() {

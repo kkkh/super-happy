@@ -22,6 +22,7 @@ import {
 } from './core/services/meetingTimer'
 import { applyAutoClean } from './core/services/storage-governor'
 import { cleanupStaleExports } from './core/services/export'
+import { pruneDrafts } from './core/toolbox/draft'
 import {
   clearUpdatePending,
   notifyUpdateGuards,
@@ -123,6 +124,12 @@ App({
     applyAutoClean()
     /* 导出目录：删除超过 24 小时或总量超过 10MB 的旧文件 */
     cleanupStaleExports()
+    /* 工具草稿：清理超过 30 天或超出 20 个上限的旧草稿，失败不阻塞启动 */
+    try {
+      pruneDrafts()
+    } catch {
+      /* 存储不可用时由后续读写自行兜底 */
+    }
 
     // 3) 领域数据：本地域瞬回；云图片由各页面按需加载
     resumeStore

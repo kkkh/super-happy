@@ -263,6 +263,53 @@ Page({
     )
   },
 
+  /* ---- 草稿：模式与选项；恢复后不自动生成随机结果 ---- */
+  draftMode(): string {
+    return this.data.mode
+  },
+
+  collectDraftInput(): Record<string, string> {
+    return {
+      optionsText: this.data.optionsText,
+      separator: this.data.separator,
+      pickCount: this.data.pickCount,
+      allowRepeat: this.data.allowRepeat ? '1' : '0',
+      numberMin: this.data.numberMin,
+      numberMax: this.data.numberMax,
+      diceCount: this.data.diceCount,
+      diceSides: `${this.data.diceSides}`,
+      coinCount: this.data.coinCount,
+    }
+  },
+
+  applyDraftInput(input: Record<string, string>, mode: string): void {
+    const nextMode: RandomMode =
+      mode === 'number' || mode === 'dice' || mode === 'coin' ? mode : 'pick'
+    const copy = MODE_COPY[nextMode]
+    const sides = Number(input.diceSides) as DiceSide
+    this.setData(
+      {
+        ...emptyResult(),
+        mode: nextMode,
+        runLabel: copy.runLabel,
+        emptyTitle: copy.emptyTitle,
+        emptySub: copy.emptySub,
+        optionsText: input.optionsText ?? '',
+        separator: SEPARATORS.some((item) => item.key === input.separator)
+          ? (input.separator as OptionSeparator)
+          : 'newline',
+        pickCount: input.pickCount ?? '1',
+        allowRepeat: input.allowRepeat === '1',
+        numberMin: input.numberMin ?? '1',
+        numberMax: input.numberMax ?? '100',
+        diceCount: input.diceCount ?? '2',
+        diceSides: DICE_SIDES.includes(sides) ? sides : 6,
+        coinCount: input.coinCount ?? '3',
+      },
+      () => this.refreshCanRun(),
+    )
+  },
+
   onCopy() {
     if (!this.data.resultText) {
       return

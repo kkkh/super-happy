@@ -297,7 +297,7 @@ test('面板空结果：searchResults 必须为空数组，清空后恢复默认
 
     instance.onClear()
     assert.equal(instance.data.query, '')
-    assert.equal(instance.data.searchResults.length, 8)
+    assert.equal(instance.data.searchResults.length, 12)
     assert.equal(instance.data.activeIndex, 0)
     assert.equal(instance.data.focusInput, true)
   } finally {
@@ -335,11 +335,11 @@ test('面板输入容错：缺失 detail / 非字符串 value 不阻断渲染', 
 
   assert.doesNotThrow(() => instance.onInput({}))
   assert.equal(instance.data.query, '')
-  assert.equal(instance.data.searchResults.length, 8)
+  assert.equal(instance.data.searchResults.length, 12)
 
   assert.doesNotThrow(() => instance.onInput({ detail: { value: 123 } }))
   assert.equal(instance.data.query, '')
-  assert.equal(instance.data.searchResults.length, 8)
+  assert.equal(instance.data.searchResults.length, 12)
 
   assert.doesNotThrow(() => instance.onResultTap({ currentTarget: { dataset: { index: 'bad' } } }))
 })
@@ -412,7 +412,7 @@ test('面板打开：30ms 后激活并渲染默认结果列表', async (t) => {
     assert.equal(instance.data.query, '')
     /* 工具命令随注册表增长，这里只校验下限 30（当前 26 个工具 + 6 个导航命令 = 32） */
     assert.ok(instance.data.allCommands.length >= 30)
-    assert.equal(instance.data.searchResults.length, 8)
+    assert.equal(instance.data.searchResults.length, 12)
     assert.equal(instance.data.searchResults[0].id, 'nav-home')
   } finally {
     t.mock.timers.reset()

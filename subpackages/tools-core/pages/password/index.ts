@@ -98,6 +98,47 @@ Page({
     this.generate()
   },
 
+  /* ---- 草稿：只恢复生成选项，不自动生成新密码 ---- */
+  collectDraftInput(): Record<string, string> {
+    return {
+      length: `${this.data.length}`,
+      uppercase: this.data.uppercase ? '1' : '0',
+      lowercase: this.data.lowercase ? '1' : '0',
+      digits: this.data.digits ? '1' : '0',
+      symbols: this.data.symbols ? '1' : '0',
+      excludeAmbiguous: this.data.excludeAmbiguous ? '1' : '0',
+    }
+  },
+
+  applyDraftInput(input: Record<string, string>): void {
+    const lengthValue = Number(input.length)
+    const length =
+      Number.isInteger(lengthValue) && lengthValue >= 8 && lengthValue <= 64 ? lengthValue : 16
+    const uppercase = input.uppercase !== '0'
+    const lowercase = input.lowercase !== '0'
+    const digits = input.digits !== '0'
+    const symbols = input.symbols !== '0'
+    const anySelected = uppercase || lowercase || digits || symbols
+    this.setData({
+      length,
+      lengthHint: `${length} 位`,
+      uppercase: anySelected ? uppercase : true,
+      lowercase: anySelected ? lowercase : true,
+      digits: anySelected ? digits : true,
+      symbols: anySelected ? symbols : true,
+      excludeAmbiguous: input.excludeAmbiguous !== '0',
+      shellState: 'idle',
+      hasResult: false,
+      error: '',
+      password: '',
+      strengthText: '',
+      strengthPercent: 0,
+      entropyText: '',
+      classesText: '',
+      posterData: null,
+    })
+  },
+
   onUnload() {
     const state = this as unknown as PasswordState
     state.destroyed = true

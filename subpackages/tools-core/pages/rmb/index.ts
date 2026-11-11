@@ -71,6 +71,17 @@ Page({
     })
   },
 
+  /* ---- 草稿：只存金额输入，恢复后重算 ---- */
+  collectDraftInput(): Record<string, string> {
+    return { amount: this.data.amount }
+  },
+
+  applyDraftInput(input: Record<string, string>): void {
+    this.setData({ amount: input.amount ?? '' }, () => {
+      this.recalculate()
+    })
+  },
+
   onCopy() {
     copyText(this.data.upperText, '大写金额已复制')
   },

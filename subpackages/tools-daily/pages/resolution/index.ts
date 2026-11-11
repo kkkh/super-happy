@@ -255,6 +255,53 @@ Page({
     })
   },
 
+  /* ---- 草稿：模式 + 宽高 / 比例 / 打印参数；恢复后重算 ---- */
+  draftMode(): string {
+    return this.data.mode
+  },
+
+  collectDraftInput(): Record<string, string> {
+    return {
+      widthText: this.data.widthText,
+      heightText: this.data.heightText,
+      targetWidthText: this.data.targetWidthText,
+      ratioKey: this.data.ratioKey,
+      customWText: this.data.customWText,
+      customHText: this.data.customHText,
+      paperKey: this.data.paperKey,
+      orientation: this.data.orientation,
+      dpi: `${this.data.dpi}`,
+    }
+  },
+
+  applyDraftInput(input: Record<string, string>, mode: string): void {
+    const nextMode: Mode = mode === 'ratio' || mode === 'print' ? mode : 'width'
+    const dpi = Number(input.dpi)
+    this.setData(
+      {
+        mode: nextMode,
+        widthText: input.widthText ?? '',
+        heightText: input.heightText ?? '',
+        targetWidthText: input.targetWidthText ?? '',
+        ratioKey: RATIOS.some((item) => item.key === input.ratioKey)
+          ? input.ratioKey
+          : '16:9',
+        customWText: input.customWText ?? '',
+        customHText: input.customHText ?? '',
+        paperKey: PAPER_PRESETS.some((item) => item.key === input.paperKey)
+          ? input.paperKey
+          : 'a4',
+        orientation: input.orientation === 'landscape' ? 'landscape' : 'portrait',
+        dpi: DPI_OPTIONS.includes(dpi as (typeof DPI_OPTIONS)[number]) ? dpi : 300,
+        ...this.emptyResult(),
+        formTouched: true,
+      },
+      () => {
+        this.onRun()
+      },
+    )
+  },
+
   onRun() {
     const state = this as unknown as ResolutionState
     if (state.destroyed) {

@@ -141,6 +141,43 @@
   font-size: 19rpx;
 }
 
+.tool-shell__draft {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18rpx;
+  padding: 20rpx 24rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: var(--glass-radius-md);
+  background-color: var(--glass-bg-soft);
+}
+
+.tool-shell__draft-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+  min-width: 0;
+}
+
+.tool-shell__draft-title {
+  color: var(--glass-text-1);
+  font-size: 25rpx;
+  font-weight: 600;
+}
+
+.tool-shell__draft-sub {
+  color: var(--glass-text-3);
+  font-size: 20rpx;
+  line-height: 1.4;
+}
+
+.tool-shell__draft-actions {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 12rpx;
+}
+
 .tool-shell__alert {
   display: flex;
   align-items: center;

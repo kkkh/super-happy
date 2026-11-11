@@ -166,6 +166,10 @@ async function runE2E(miniProgram) {
     assert.ok(ids.includes('tool:compress'), '图片应命中图片压缩')
     assert.ok(ids.includes('tool:palette'), '图片应命中图片取色')
     assert.ok(ids.includes('tool:nine-grid'), '图片应命中九宫格切图')
+    assert.ok(
+      ids.filter((id) => id.startsWith('tool:')).length >= 6,
+      '图片分类别名应命中多个媒体工具',
+    )
 
     const homeInput = await page.$('.home-search__input')
     assert.equal(await homeInput.value(), '二维码', '首页搜索值被面板污染')
