@@ -126,7 +126,15 @@
 
   <view slot="footer" class="wr-detail__footer">
     <view
-      wx:if="{{detailUrl}}"
+      wx:if="{{canShareArticle && !articleError}}"
+      class="wr-detail__button wr-detail__button--primary"
+      bindtap="onExportArticle"
+      aria-role="button"
+      aria-label="导出文章"
+      aria-disabled="{{!articleReady}}"
+    >{{articleReady ? '导出文章' : '准备中…'}}</view>
+    <view
+      wx:elif="{{detailUrl}}"
       class="wr-detail__button wr-detail__button--primary"
       data-value="{{detailUrl}}"
       bindtap="onCopy"

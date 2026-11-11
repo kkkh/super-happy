@@ -7,7 +7,7 @@
   poster-data="{{posterData}}"
   export-enabled="{{true}}"
   export-name="{{toolName}}"
-  export-content="{{searchSummary}}"
+  export-content="{{exportContent}}"
   state="{{shellState}}"
   has-result="{{hasResult}}"
   can-run="{{canRun}}"

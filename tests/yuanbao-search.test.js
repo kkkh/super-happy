@@ -215,7 +215,7 @@ test('请求：HTTP 失败、网络失败与空查询', async () => {
 })
 
 test('摘要：无结果与前三条的纯文本输出', async () => {
-  const { summarizeYuanbaoResults } = await import(
+  const { exportYuanbaoResults, summarizeYuanbaoResults } = await import(
     moduleUrl('core/services/yuanbao/index.ts')
   )
   assert.equal(summarizeYuanbaoResults('空', []), '元宝搜索「空」暂无结果')
@@ -226,4 +226,27 @@ test('摘要：无结果与前三条的纯文本输出', async () => {
   assert.match(summary, /共 2 条结果/)
   assert.match(summary, /1\. A（站A）/)
   assert.match(summary, /2\. B/)
+
+  const many = Array.from({ length: 5 }, (_, index) => ({
+    title: `结果${index + 1}`,
+    url: `https://example.com/${index + 1}`,
+    site: '示例网',
+    date: '2026-11-12',
+    passage: `摘要${index + 1}`,
+    content: '',
+    score: 0,
+    authorityLevel: 0,
+    favicon: '',
+    pics: [],
+    deeplinks: [],
+  }))
+  const truncated = summarizeYuanbaoResults('AI', many)
+  assert.match(truncated, /另有 2 条/)
+  assert.equal(truncated.includes('结果5'), false)
+
+  const exported = exportYuanbaoResults('AI', many)
+  assert.match(exported, /共 5 条结果/)
+  assert.match(exported, /5\. 结果5（示例网 · 2026-11-12）/)
+  assert.match(exported, /摘要5/)
+  assert.equal(exportYuanbaoResults('空', []), '元宝搜索「空」，共 0 条结果')
 })

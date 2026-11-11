@@ -102,3 +102,35 @@ export function toView(result: YuanbaoResult, index: number): WebSearchResultVie
     deeplinks: result.deeplinks,
   }
 }
+
+/** 单篇文章导出正文：标题、来源、链接、摘要、正文、配图地址与附件子链 */
+export function toArticleExport(result: WebSearchResultView): { filename: string; content: string } {
+  const title = result.title || '元宝搜索文章'
+  const lines = [title]
+  if (result.meta) {
+    lines.push(result.meta)
+  }
+  if (result.url) {
+    lines.push(result.url)
+  }
+  if (result.passage) {
+    lines.push('', result.passage)
+  }
+  if (result.content && result.content !== result.passage) {
+    lines.push('', result.content)
+  }
+  if (result.pics.length) {
+    lines.push('', '配图地址：')
+    result.pics.forEach((item, index) => {
+      lines.push(`${index + 1}. ${item.caption || '配图'}：${item.originUrl}`)
+    })
+  }
+  if (result.deeplinks.length) {
+    lines.push('', '附件子链：')
+    result.deeplinks.forEach((item, index) => {
+      lines.push(`${index + 1}. ${item.title || item.url}`)
+      lines.push(item.url)
+    })
+  }
+  return { filename: title, content: lines.join('\n') }
+}

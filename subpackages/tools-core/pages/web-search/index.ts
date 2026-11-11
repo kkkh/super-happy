@@ -2,6 +2,7 @@
 import { tapSuccess, tapTick, tapWarn } from '../../../../core/utils/haptics'
 import {
   YUANBAO_MAX_QUERY,
+  exportYuanbaoResults,
   isYuanbaoConfigured,
   searchYuanbao,
   summarizeYuanbaoResults,
@@ -39,6 +40,7 @@ function emptyResultState() {
     shellState: 'idle' as string,
     error: '',
     searchSummary: '',
+    exportContent: '',
     searchedQuery: '',
     versionLabel: '',
     versionHint: '',
@@ -345,6 +347,7 @@ Page({
         runtime.task = undefined
         const results = response.results.map((result, index) => toView(result, index))
         const summary = summarizeYuanbaoResults(query, response.results)
+        const exportContent = exportYuanbaoResults(query, response.results)
         /* 海报与轨迹只保存结果量与筛选条件，不保存搜索词本身 */
         const poster = {
           toolName: '元宝搜索',
@@ -366,6 +369,7 @@ Page({
           shellState: 'done',
           error: '',
           searchSummary: summary,
+          exportContent,
           searchedQuery: query,
           versionLabel: this.versionLabel(response.version),
           versionHint: this.versionHint(response.version, this.data.deeplinks),

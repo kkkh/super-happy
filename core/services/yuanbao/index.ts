@@ -425,5 +425,30 @@ export function summarizeYuanbaoResults(
     const source = result.site ? `（${result.site}）` : ''
     return `${index + 1}. ${result.title}${source}\n${result.url}`
   })
+  const rest = results.length - limit
+  if (rest > 0) {
+    lines.push(`……另有 ${rest} 条，导出文件可查看全部`)
+  }
   return [`元宝搜索「${query}」，共 ${results.length} 条结果`, ...lines].join('\n')
+}
+
+/** 导出文件正文：列出全部结果（标题 / 来源 / 日期 / 链接 / 摘要） */
+export function exportYuanbaoResults(query: string, results: YuanbaoResult[]): string {
+  const header = `元宝搜索「${query}」，共 ${results.length} 条结果`
+  if (!results.length) {
+    return header
+  }
+  const blocks = results.map((result, index) => {
+    const source = [result.site, result.date].filter((item) => Boolean(item)).join(' · ')
+    const lines = [`${index + 1}. ${result.title}${source ? `（${source}）` : ''}`]
+    if (result.url) {
+      lines.push(result.url)
+    }
+    const passage = result.passage || result.content
+    if (passage) {
+      lines.push(passage)
+    }
+    return lines.join('\n')
+  })
+  return [header, ...blocks].join('\n\n')
 }

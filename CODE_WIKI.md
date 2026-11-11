@@ -2607,6 +2607,7 @@ sequenceDiagram
 - 配置：`core/services/yuanbao/config-local.ts` 保存服务 API KEY 或 SecretId / SecretKey（git 忽略）；`scripts/ensure-yuanbao-config.js` 在缺失时生成占位文件；MP 后台按凭证方式加入 request 合法域名：Bearer 用 `api.wsa.cloud.tencent.com`，TC3 用 `wsa.tencentcloudapi.com`。
 - 入口：独立工具卡 + 独立页 + 首页搜索「用元宝搜索」+ 首页内联前 4 条结果；首页 520ms 防抖并在新输入 / 卸载时 abort 在途请求。
 - 结果区：`subpackages/tools-core/components/web-search-results/` 承载结果卡、权威度 / 相关性徽标、复制、详情抽屉（配图描述、图标地址、附件子链、RequestId）与空态；页面因此保持 24KB 预算内。
+- 导出：`summarizeYuanbaoResults` 只取前 3 条并标注剩余数量用于复制摘要；`exportYuanbaoResults` 输出全部结果的标题 / 来源 / 日期 / 链接 / 摘要，供 `.txt` 导出与分享；详情抽屉通过 `toArticleExport` 预写单篇文章（标题 / 来源 / 链接 / 摘要 / 正文 / 配图地址 / 子链），tap 时同步调用 `sharePrepared`。
 - 页面拆分：`subpackages/tools-core/lib/web-search-view.ts` 承载筛选选项、结果卡片映射与空态，`subpackages/tools-core/lib/freshness.ts` 统一自定义时效归一化与校验，页面只保留交互，保持 24KB 预算内。
 - 隐私：查询词会上传至腾讯云；查询词不写草稿与计算轨迹；海报 / 轨迹只保存结果数量与筛选条件。
 - 边界：外链不能直接被小程序打开，统一复制后在浏览器打开；`pics` / `favicon` 展示描述与地址复制，受小程序图片下载域名限制；`deeplinks` 需旗舰版权限，标准版 / 极速版忽略并提示；极速版不支持部分筛选参数。
@@ -4054,7 +4055,7 @@ npm run plan            # 81 项能力 / 63 张工具卡与注册表一致
 | 门禁 | 通过输出 | 当前值 |
 |---|---|---|
 | `check:version` | `✔ 版本四源一致：1.1.0` | `1.1.0` |
-| `budget` | `✔ 包体预算通过` | 主包 1897.3 KB / 1900 KB；tools-core 1427.1 KB |
+| `budget` | `✔ 包体预算通过` | 主包 1898.6 KB / 1900 KB；tools-core 1430.8 KB |
 | `plan` | `✔ 方案自检通过` | 能力 81 项 / 卡片 63 张 |
 | `typecheck` | 无输出 | 通过 |
 | `test` | `tests 811`、`pass 811`、`fail 0` | 811/811 |

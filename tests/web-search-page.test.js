@@ -7,6 +7,7 @@
    ========================================================================== */
 const test = require('node:test')
 const assert = require('node:assert/strict')
+const fs = require('node:fs')
 const path = require('node:path')
 const { pathToFileURL } = require('node:url')
 const { registerHooks } = require('node:module')
@@ -165,12 +166,34 @@ test('页面：查询后回填结果、摘要与海报，且海报不含搜索�
   assert.equal(page.data.results[0].favicon, 'https://example.com/favicon.ico')
   assert.equal(page.data.results[0].pics.length, 1)
   assert.equal(page.data.results[0].deeplinks[0].title, '附件一')
+  assert.match(page.data.exportContent, /第一条结果/)
+  assert.match(page.data.exportContent, /第二条结果/)
+  assert.equal(page.data.exportContent.includes('另有'), false)
+  const { toArticleExport } = await import(
+    pathToFileURL(path.join(ROOT, 'subpackages/tools-core/lib/web-search-view.ts')).href
+  )
+  const article = toArticleExport(page.data.results[0])
+  assert.equal(article.filename, '第一条结果')
+  assert.match(article.content, /示例网 · 2026-11-11/)
+  assert.match(article.content, /附件子链/)
+  assert.match(article.content, /https:\/\/example\.com\/deep\/1/)
+  const componentDir = path.join(ROOT, 'subpackages/tools-core/components/web-search-results')
+  const componentWxml = fs.readFileSync(path.join(componentDir, 'index.wxml'), 'utf8')
+  const componentTs = fs.readFileSync(path.join(componentDir, 'index.ts'), 'utf8')
+  assert.match(componentWxml, /bindtap="onExportArticle"/)
+  assert.match(componentTs, /sharePrepared\(runtime\.articlePath\)/)
   page.onUnload()
 })
 
 test('页面：Cnt 50、Deeplinks 与自定义时效透传官方参数', async () => {
   const definition = await loadDefinition()
-  installWx()
+  const five = payload()
+  five.Response.Pages.push(
+    JSON.stringify({ title: '第三条结果', url: 'https://example.com/3', passage: '摘要三' }),
+    JSON.stringify({ title: '第四条结果', url: 'https://example.com/4', passage: '摘要四' }),
+    JSON.stringify({ title: '第五条结果', url: 'https://example.com/5', passage: '摘要五' }),
+  )
+  installWx(five)
   const page = createPage(definition)
 
   page.onLoad({})
@@ -196,7 +219,11 @@ test('页面：Cnt 50、Deeplinks 与自定义时效透传官方参数', async (
   assert.equal(request.Freshness, 'm3')
   assert.equal(request.Deeplinks, true)
   assert.equal(page.data.shellState, 'done')
+  assert.equal(page.data.resultCount, 5)
   assert.equal(page.data.posterData.params[1].value, '最近 3 月')
+  assert.match(page.data.searchSummary, /另有 2 条/)
+  assert.match(page.data.exportContent, /5\. 第五条结果/)
+  assert.match(page.data.exportContent, /摘要五/)
   page.onUnload()
 })
 

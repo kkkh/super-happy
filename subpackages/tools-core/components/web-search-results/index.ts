@@ -1,5 +1,12 @@
 /* 元宝搜索结果区：结果卡 + 详情抽屉；图片/图标仅复制地址，避免任意域名下载限制 */
-import { copyText } from '../../lib/ui'
+import {
+  canShareFile,
+  cleanupExport,
+  prepareExport,
+  sharePrepared,
+} from '../../../../core/services/export'
+import { copyText, toast } from '../../lib/ui'
+import { toArticleExport } from '../../lib/web-search-view'
 
 interface ResultPicture {
   caption: string
@@ -25,6 +32,13 @@ interface ResultView {
   favicon: string
   pics: ResultPicture[]
   deeplinks: ResultDeeplink[]
+}
+
+interface ResultRuntime {
+  /** 详情切换序号：准备完成的旧文章不覆盖新详情 */
+  articleSeq: number
+  /** 已预写的单篇文章路径，tap 时只做同步分享 */
+  articlePath: string
 }
 
 Component({
@@ -57,6 +71,18 @@ Component({
     detailFavicon: '',
     detailPics: [] as ResultPicture[],
     detailDeeplinks: [] as ResultDeeplink[],
+    canShareArticle: false,
+    articleReady: false,
+    articleError: false,
+  },
+
+  lifetimes: {
+    detached() {
+      const runtime = this as unknown as ResultRuntime
+      runtime.articleSeq = (runtime.articleSeq || 0) + 1
+      cleanupExport(runtime.articlePath || '')
+      runtime.articlePath = ''
+    },
   },
 
   methods: {
@@ -82,6 +108,12 @@ Component({
       if (!result) {
         return
       }
+      const runtime = this as unknown as ResultRuntime
+      runtime.articleSeq = (runtime.articleSeq || 0) + 1
+      const seq = runtime.articleSeq
+      cleanupExport(runtime.articlePath || '')
+      runtime.articlePath = ''
+      const shareable = canShareFile()
       this.setData({
         detailShow: true,
         detailTitle: result.title,
@@ -94,6 +126,43 @@ Component({
         detailFavicon: result.favicon,
         detailPics: result.pics,
         detailDeeplinks: result.deeplinks,
+        canShareArticle: shareable,
+        articleReady: false,
+        articleError: false,
+      })
+      if (!shareable) {
+        return
+      }
+
+      /* 分享必须由 tap 同步触发，因此在详情打开时预写文章 txt */
+      const article = toArticleExport(result)
+      prepareExport({ filename: article.filename, content: article.content, format: 'txt' }).then(
+        (prepared) => {
+          if (seq !== runtime.articleSeq) {
+            return
+          }
+          if (prepared.ok) {
+            runtime.articlePath = prepared.path
+            this.setData({ articleReady: true })
+            return
+          }
+          this.setData({ articleError: true })
+        },
+      )
+    },
+
+    onExportArticle() {
+      const runtime = this as unknown as ResultRuntime
+      if (!runtime.articlePath) {
+        toast('文章正在准备，请稍后再试')
+        return
+      }
+      void sharePrepared(runtime.articlePath).then((outcome) => {
+        if (outcome === 'unsupported') {
+          toast('当前版本不支持文件导出')
+        } else if (outcome === 'failed') {
+          toast('导出失败，可复制原文链接')
+        }
       })
     },
 
