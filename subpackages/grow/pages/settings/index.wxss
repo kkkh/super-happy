@@ -523,6 +523,18 @@
   line-height: 1.55;
 }
 
+/* ---- 隐私中心 ---- */
+.settings-privacy__actions {
+  display: flex;
+  gap: 16rpx;
+  padding: 0 24rpx 22rpx;
+}
+
+.settings-privacy__action {
+  flex: 1;
+  min-width: 0;
+}
+
 /* ---- 实验室 ---- */
 .settings-lab {
   position: relative;

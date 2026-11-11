@@ -106,7 +106,7 @@
           <text class="legal-body">第三方服务：全息气象接入高德开放平台 Web 服务 API，汇率换算接入中国外汇交易中心公开中间价接口。请求由微信客户端直接发出，服务方可获取请求 IP、调用时间与请求参数；汇率请求不包含金额或币种选择。本程序不向其发送微信身份信息、手机号或本机存储内容。高德隐私政策：https://lbs.amap.com/pages/privacy/</text>
           <text class="legal-body">您可在微信「设置 → 小程序 → 超欢 → 权限管理」中撤回相册或位置权限。撤回相册仅影响保存图片；撤回位置后气象站改用 IP 定位或手动选城；设备方向随「省电模式」关闭，剪贴板仅在您点击对应按钮时读取，不影响其他工具。</text>
           <text class="legal-body">本程序不面向未成年人定向收集信息，也不提供付费、打赏、社交、抽奖或虚拟支付功能。</text>
-          <text class="legal-body">本页为小程序内说明；微信后台公示的《用户隐私保护指引》与本页不一致时，以后台公示版本为准。</text>
+          <text class="legal-body">本页为小程序内说明；微信后台公示的《用户隐私保护指引》与本页不一致时，以后台公示版本为准。当前隐私保护指引版本 v{{privacyVersion}}；版本变化时设置页「隐私中心」会提示一次，确认后仅在本机记录版本号。</text>
         </glass-card>
       </view>
 
@@ -168,6 +168,10 @@
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
               <text class="legal-list__text">app:prefs.v1：震动、音效、光效、动画与自动清理天数等全局偏好；app:prefs.v0 仅在升级时读取一次。</text>
+            </view>
+            <view class="legal-list__item">
+              <view class="legal-list__dot" aria-hidden="true"></view>
+              <text class="legal-list__text">app:privacy.version：已确认的隐私保护指引版本（当前 v{{privacyVersion}}），仅存本机；仅在「重置全部本机数据」时清除。</text>
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
@@ -238,6 +242,7 @@
           <text class="legal-body">所有数据只保存在本机；除按您设置的自动清理规则裁剪最近使用外，保留至您主动清除、清理小程序缓存或卸载小程序。本程序不提供云同步，也没有任何云端数据恢复服务。</text>
           <text class="legal-body">「我的 → 清空工具数据」只删除上述 tbx: 前缀数据（含本机计算轨迹），并同步清除 cyber: 快照中的轨迹副本，但不会影响简历内容、作品数据、作品收藏、外观与偏好设置、专注记录、天气缓存与诊断日志。</text>
           <text class="legal-body">「设置 → 存储与数据 → 备份与恢复」生成的备份文件保存在本地 backups 目录，不会被「清空工具数据」删除；如需删除，请在备份与恢复中手动删除，删除后同步清除 app:backup.at。</text>
+          <text class="legal-body">「设置 → 隐私中心 → 重置全部本机数据」会删除 tbx:、weather:、focus:、cyber:、diag:、app:prefs.v1、app:privacy.version、app:backup.at 与本地 backups / exports 目录；保留 gallery.*（主题与作品收藏）与 app:storage.version（迁移判断），不会删除系统相册中已保存的图片。</text>
           <text class="legal-body">天气数据清除：在气象站城市抽屉移除城市即删除该城市缓存；下拉刷新会用最新官方数据覆盖旧缓存。专注数据清除：「设置 → 存储与数据 → 清空专注数据」会同时清理会话、偏好、记录、统计、校验密钥与亮度恢复标记。</text>
           <text class="legal-body">自动清理仅按偏好裁剪 tbx:recent 与时间戳，不会影响收藏、轨迹、专注记录、天气缓存与作品收藏。外观设置使用 gallery.theme.mode，全局偏好使用 app:prefs.v1，均由超欢整体共用，不属于工具数据。诊断日志只用于定位本机异常，可在微信「设置 → 通用 → 存储空间 → 小程序缓存」中随小程序缓存一并清除。</text>
           <text class="legal-body">若功能变化导致本地数据处理方式变化，我们会更新本页内容与生效日期；继续使用即表示您知悉更新后的说明。</text>

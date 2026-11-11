@@ -5,7 +5,7 @@
    ========================================================================== */
 import { createStoreBindings } from 'mobx-miniprogram-bindings'
 import { uiStore } from '../../core/stores/ui'
-import { APP_VERSION, TIMING } from '../../core/constants/index'
+import { APP_VERSION, PRIVACY_VERSION, TIMING } from '../../core/constants/index'
 import { TOOLS } from '../../core/toolbox/registry'
 import { tapSuccess, tapTick, tapWarn } from '../../core/utils/haptics'
 import { showGlassToast } from '../../components/glass-toast/toast'
@@ -55,6 +55,7 @@ Page({
     effectiveDate: EFFECTIVE_DATE,
     toolCount: TOOLS.length,
     version: APP_VERSION,
+    privacyVersion: PRIVACY_VERSION,
   },
 
   onLoad(query: Record<string, string | undefined>) {

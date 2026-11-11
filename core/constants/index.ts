@@ -36,6 +36,8 @@ export const ROUTES = {
 
 /** 当前版本号：设置中心、我的页与更新日志共用同一真相源 */
 export const APP_VERSION = '1.1.0'
+/** 隐私保护指引版本：仅在数据处理方式变化时递增，与 app:privacy.version 比对 */
+export const PRIVACY_VERSION = 1
 
 /** 模态弹窗动作色：破坏性操作必须红/绿分明，避免误触 */
 export const ACTION_COLORS = {
@@ -151,6 +153,8 @@ export const STORAGE_KEYS = {
   preferenceLegacy: 'app:prefs.v0',
   /** 最近一次备份导出时间：删除备份或重置全部时清除 */
   backupAt: 'app:backup.at',
+  /** 已确认的隐私保护指引版本：仅重置全部清除 */
+  privacyVersion: 'app:privacy.version',
   /** 会议倒计时悬浮胶囊位置：只存 left / top，跨启动恢复 */
   meetingTimerHud: 'toolbox:meeting-timer.hud.v1',
   /** 官方汇率中间价缓存：只存最近一次牌价与更新时间，用于离线回退 */

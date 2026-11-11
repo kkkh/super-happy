@@ -9,6 +9,7 @@
 import { createStoreBindings } from 'mobx-miniprogram-bindings'
 import { uiStore } from '../../../../core/stores/ui'
 import {
+  DEFAULT_PREFERENCE,
   MOTION_LABELS,
   MOTION_LEVELS,
   preferenceStore,
@@ -25,6 +26,15 @@ import {
 import { applyAutoClean, readCacheSummary } from '../../../../core/services/storage-governor'
 import { sharePrepared } from '../../../../core/services/export'
 import {
+  ackPrivacyVersion,
+  openPrivacyContract,
+  openPrivacySetting,
+  permissionSnapshot,
+  resetAllLocalData,
+  type PrivacyPermissionItem,
+  type PrivacyPermissionKey,
+} from '../../../../core/services/privacy-center'
+import {
   applyBackup,
   deleteBackupFiles,
   exportBackup,
@@ -37,7 +47,7 @@ import {
 } from '../../../../core/services/backup'
 import { useSound } from '../../../../core/services/sound'
 import { ambientTheme } from '../../../../core/theme/ambient-theme'
-import { APP_VERSION, ROUTES } from '../../../../core/constants/index'
+import { APP_VERSION, PRIVACY_VERSION, ROUTES } from '../../../../core/constants/index'
 import { readUpdatePending } from '../../../../core/services/update'
 import { historyStore } from '../../../../core/stores/history'
 import { isDevtools } from '../../../../core/utils/platform'
@@ -233,6 +243,8 @@ interface SettingsRuntime {
   backupName: string
   pendingBackup?: BackupFile
   backupDestroyed: boolean
+  /** 隐私中心：页面卸载后忽略迟到的权限快照 */
+  privacyDestroyed: boolean
 }
 
 interface CyberCanvasNode {
@@ -536,6 +548,17 @@ Page({
     backupConfirmTitle: '',
     backupConfirmDesc: '',
 
+    /* ---- 隐私中心 ---- */
+    privacyPermissions: [] as PrivacyPermissionItem[],
+    privacyContractName: '',
+    privacyVersion: PRIVACY_VERSION,
+    privacyAckedVersion: 0,
+    privacyVersionChanged: false,
+    privacyConfirmShow: false,
+    privacyConfirmKind: 'toolbox' as 'toolbox' | 'all',
+    privacyConfirmTitle: '',
+    privacyConfirmDesc: '',
+
     /* ---- Cyber Space OS · 数据星系 ---- */
     geekLabOpen: false,
     geekGuideOpen: false,
@@ -648,6 +671,7 @@ Page({
     runtime.backupName = ''
     runtime.pendingBackup = undefined
     runtime.backupDestroyed = false
+    runtime.privacyDestroyed = false
     this.setupInsets()
 
     runtime.themeBindings = createStoreBindings(this, {
@@ -693,6 +717,7 @@ Page({
     this.refreshPendingUpdate()
     this.refreshFocusEntry()
     this.refreshBackupInfo()
+    this.refreshPrivacyCenter()
     this.pushCyberEvent('lifecycle', 'onShow', '设置页回到前台 · 恢复渲染与调度')
     this.startGalaxyLoop()
     const runtime = this as unknown as SettingsRuntime
@@ -711,6 +736,7 @@ Page({
   onUnload() {
     const runtime = this as unknown as SettingsRuntime
     runtime.backupDestroyed = true
+    runtime.privacyDestroyed = true
     this.teardownCyberSpace()
     if (runtime.themeBindings) {
       runtime.themeBindings.destroyStoreBindings()
@@ -2736,6 +2762,137 @@ Page({
     } else {
       this.showToast('清空失败，请稍后重试', 'error')
     }
+  },
+
+  /* ---- 隐私中心 ---- */
+  refreshPrivacyCenter(): void {
+    const runtime = this as unknown as SettingsRuntime
+    if (runtime.privacyDestroyed) {
+      return
+    }
+    permissionSnapshot()
+      .then((snapshot) => {
+        if (runtime.privacyDestroyed) {
+          return
+        }
+        this.setData({
+          privacyPermissions: snapshot.permissions,
+          privacyContractName: snapshot.contractName,
+          privacyVersion: snapshot.version,
+          privacyAckedVersion: snapshot.ackedVersion,
+          privacyVersionChanged: snapshot.versionChanged,
+        })
+      })
+      .catch(() => {
+        if (!runtime.privacyDestroyed) {
+          this.setData({ privacyPermissions: [] })
+        }
+      })
+  },
+
+  onPrivacyPermissionTap(event: WechatMiniprogram.TouchEvent): void {
+    const key = String(event.currentTarget.dataset.key || '') as PrivacyPermissionKey
+    if (!key) {
+      return
+    }
+    if (key === 'privacy') {
+      this.onPrivacyContract()
+      return
+    }
+    tapTick()
+    openPrivacySetting()
+      .then((ok) => {
+        if (!ok) {
+          this.showToast('请在系统设置中手动调整权限', 'warning')
+          return
+        }
+        this.refreshPrivacyCenter()
+      })
+      .catch(() => this.showToast('打开系统设置失败', 'error'))
+  },
+
+  onPrivacyContract(): void {
+    tapTick()
+    openPrivacyContract()
+      .then((ok) => {
+        if (ok) {
+          return
+        }
+        this.showToast('当前版本不支持打开指引，已跳转隐私说明', 'info')
+        wx.navigateTo({
+          url: `${ROUTES.legal}?section=privacy`,
+          fail: () => undefined,
+        })
+      })
+      .catch(() => this.showToast('打开隐私指引失败', 'error'))
+  },
+
+  onPrivacyVersionAck(): void {
+    tapTick()
+    const version = this.data.privacyVersion
+    if (!ackPrivacyVersion(version)) {
+      this.showToast('确认记录失败，请重试', 'error')
+      return
+    }
+    this.setData({ privacyVersionChanged: false, privacyAckedVersion: version })
+    this.showToast(`已确认隐私保护指引 v${version}`, 'success')
+  },
+
+  onPrivacyExport(): void {
+    this.onBackupTap()
+  },
+
+  onPrivacyClearTap(): void {
+    tapTick()
+    this.setData({
+      privacyConfirmShow: true,
+      privacyConfirmKind: 'toolbox',
+      privacyConfirmTitle: '清除工具数据？',
+      privacyConfirmDesc:
+        '将删除本机工具收藏、最近使用、搜索历史、计算轨迹与工具草稿等 tbx: 数据；不影响简历、作品收藏、备份文件、天气与专注记录。',
+    })
+  },
+
+  onPrivacyResetTap(): void {
+    tapTick()
+    this.setData({
+      privacyConfirmShow: true,
+      privacyConfirmKind: 'all',
+      privacyConfirmTitle: '重置全部本机数据？',
+      privacyConfirmDesc:
+        '将删除工具数据、天气缓存、专注记录、诊断日志、本机备份与导出文件、全局偏好与隐私指引确认；保留主题、作品收藏与本地数据版本号。此操作不可恢复。',
+    })
+  },
+
+  onPrivacyConfirmClose(): void {
+    this.setData({ privacyConfirmShow: false })
+  },
+
+  onPrivacyConfirm(): void {
+    if (!this.data.privacyConfirmShow) {
+      return
+    }
+    if (this.data.privacyConfirmKind === 'toolbox') {
+      const removed = toolboxStore.clearAll()
+      this.setData({ privacyConfirmShow: false, recentCount: toolboxStore.recents.length })
+      this.refreshCache()
+      this.refreshBackupInfo()
+      this.showToast(
+        removed > 0 ? `已清除 ${removed} 项工具数据` : '没有可清除的工具数据',
+        removed > 0 ? 'success' : 'info',
+      )
+      return
+    }
+    const result = resetAllLocalData()
+    toolboxStore.reload()
+    historyStore.clearMemory()
+    preferenceStore.applySnapshot(DEFAULT_PREFERENCE)
+    preferenceStore.persist()
+    this.setData({ privacyConfirmShow: false })
+    this.showToast(`已重置本机数据（${result.removedKeys} 项）`, 'success')
+    setTimeout(() => {
+      wx.reLaunch({ url: ROUTES.home, fail: () => undefined })
+    }, 600) as unknown as number
   },
 
   /* ---- 备份与恢复 ---- */

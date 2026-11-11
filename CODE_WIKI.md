@@ -6,7 +6,7 @@
 > 渲染引擎：Skyline + glass-easel
 > 基础库：`3.17.6`
 > 文档基线：2026-11-11（已按当前源码全量核验）
-> 校验状态：`tsc --noEmit` 通过；`npm test` 771/771 通过（复核于 2026-11-11，100 个测试文件）
+> 校验状态：`tsc --noEmit` 通过；`npm test` 778/778 通过（复核于 2026-11-11，101 个测试文件）
 
 本文是面向开发者的完整 Code Wiki，覆盖项目定位、技术栈、整体架构、启动编排、核心 Store、Workflow 流转引擎、63 个工具算法、全息气象站、全息专注引擎、组件库、81 个页面、设计令牌、存储迁移、隐私与更新机制、依赖关系、运行方式、部署发布流程和扩展指南。文中路径均为仓库相对路径，关键公式与常量标注来源文件。
 
@@ -56,7 +56,7 @@
 | 工具分包依赖 | 2 | `crypto-js`、`diff-match-patch`（仅 tools-core；grow 内有 crypto-js 副本） |
 | AI SKILL 原子接口 | 12 | `core/skill/registry.ts` |
 | 作品数据 | 11 | `core/data/resume-data.ts` 的 `projects` |
-| 单元 / 集成测试 | 771 | 100 个 `.test.js` 文件，全部通过 |
+| 单元 / 集成测试 | 778 | 101 个 `.test.js` 文件，全部通过 |
 | 存储结构版本 | 1 | `app:storage.version` |
 | Spatial Glass 元数据版本 | 2 | `gallery.glass.meta` |
 
@@ -216,7 +216,7 @@ flowchart TB
 | `build:icon` | `npx fantasticon .icon-src -o .icon-dist -n gicon --font-types ttf --asset-types json` | 生成图标字体到 `.icon-dist/` |
 | `pretypecheck` / `pretest` | `node scripts/ensure-weather-config.js` | 自动生成 `weather/config.local.ts`（若缺失），避免 Key 缺失导致编译失败 |
 | `typecheck` | `tsc --noEmit` | 严格类型检查 |
-| `test` | `node --experimental-strip-types --test tests/*.test.js` | 100 个测试文件、771 项全部单元 / 集成测试 |
+| `test` | `node --experimental-strip-types --test tests/*.test.js` | 101 个测试文件、778 项全部单元 / 集成测试 |
 | `test:hologram` | 仅 `tests/spatial-hologram.test.js` | 空间全息单测 |
 | `test:integration` | `tests/*.integration.test.js` | 集成测试 |
 | `test:integration:hologram` | 仅空间全息集成测试 | 集成测试 |
@@ -520,7 +520,7 @@ sequenceDiagram
 ├── store/index.ts             # glassStore 全局门面
 ├── styles/                    # Design Tokens / V3 / 旧工具箱样式
 ├── workers/compute.js         # Worker 计算入口
-├── tests/                     # 771 项测试 + 视觉 / E2E
+├── tests/                     # 778 项测试 + 视觉 / E2E
 ├── assets/                    # 头像、二维码、作品封面
 └── CODE_WIKI.md               # 本文档
 ```
@@ -767,6 +767,24 @@ export const privacyStore = observable({
 - 不持久化任何状态，授权由微信基础库记忆。
 - 同意按钮必须是原生 `<button open-type="agreePrivacyAuthorization">`。
 
+### 5.5.1 隐私中心（`core/services/privacy-center.ts`）
+
+```ts
+permissionSnapshot(): Promise<PrivacySnapshot>
+openPrivacySetting(): Promise<boolean>
+openPrivacyContract(): Promise<boolean>
+readPrivacyVersion(): number
+ackPrivacyVersion(version?): boolean
+privacyVersionChanged(version?): boolean
+resetAllLocalData(): { removedKeys: number; backups: number }
+```
+
+- 权限快照：`wx.getSetting` 读取 `scope.userLocation` / `scope.writePhotosAlbum`，`wx.getPrivacySetting` 读取 `needAuthorization` 与 `privacyContractName`；API 不可用时统一降级为 `unavailable`。
+- 版本：`PRIVACY_VERSION`（当前 1）与 `app:privacy.version` 比对；设置页隐私中心首次进入提示，用户确认后写回，清空工具数据不重置，只有重置全部才清除。
+- 重置全部：删除 `tbx:` / `weather:` / `focus:` / `diag:` / `cyber:`、`app:prefs.v1`、`app:prefs.v0`、`app:backup.at`、`app:privacy.version` 与 `USER_DATA_PATH/backups`、`exports`；保留 `gallery.*` 与 `app:storage.version`。
+- 设置页入口：权限状态与跳转、查看隐私指引、导出本机数据（复用备份）、清除工具数据、重置全部；`tests/privacy-center.test.js` 7 条契约测试。
+- 隐私版本与重置范围在 legal 页同步披露。
+
 ### 5.6 DeepLink Store（`core/stores/deeplink.ts`）
 
 ```ts
@@ -965,6 +983,7 @@ send<T>(request: TransportRequest<T>): Promise<Result<T>>
 | `core/services/meetingTimer.ts` | `startMeetingTimer`、`startMeetingTimerAt`、`pauseMeetingTimer`、`resumeMeetingTimer`、`resetMeetingTimer`、`syncMeetingTimer`、`suspendMeetingTimer`、`subscribeMeetingTimer`、`meetingTimerStore` | 会议倒计时全局单例：跨页面按 deadline 计时、暂停冻结剩余、结束前 5 秒与结束时震动 + 声音；页面与 HUD 共用 |
 | `core/services/backup.ts` | `exportBackup`、`validateBackup`、`parseBackupText`、`pickBackupFile`、`applyBackup`、`applyBackupToStorage`、`deleteBackupFiles`、`readBackupAt`、`hasBackupFile` | 本机 JSON 备份：写 `USER_DATA_PATH/backups`、固定文件名、只保留 1 份、≤256KB；导入先全量校验再原子写入，失败逆序回滚；覆盖收藏 / 最近 / 搜索 / 天气城市 / 专注记录（含校验密钥）/ `app:prefs.v1` |
 | `core/services/diagnostics.ts` | `redactDiagnosticText`、`shouldDropDiagnosticMessage`、`sanitizeDiagnosticEntries`、`buildDiagnosticPreview`、`collectDiagnosticEnvironment`、`prepareDiagnosticFile` | 本地诊断包：版本 / 基础库 / 机型 / 路由 / 黑匣 20 条；路径、Key、Bearer、邮箱、手机号、证件号脱敏；残留用户输入整条丢弃；≤50KB；复用 `prepareExport` 写 `.txt` |
+| `core/services/privacy-center.ts` | `permissionSnapshot`、`openPrivacySetting`、`openPrivacyContract`、`readPrivacyVersion`、`ackPrivacyVersion`、`privacyVersionChanged`、`resetAllLocalData` | 隐私中心：定位 / 相册 / 隐私指引状态；`PRIVACY_VERSION` ↔ `app:privacy.version`；重置全部删除 tbx / weather / focus / diag / cyber / 备份 / 偏好，保留 `gallery.*` 与 `app:storage.version` |
 | `core/toolbox/engines/money.ts` | `parseCents`、`roundHalfUp`、`formatCents`、`parseBasisPoints` | 金额 / 利率唯一实现，tools-core 与 tools-daily 共享 |
 | `core/toolbox/engines/date.ts` | `serialOf`、`serialOfISO`、`isoOf`、`dayDiff`、`countWeekdays`、`addWorkdays`、`countWorkdays`、`addDays`、`addMonths`、`addDate`、`dateAddSummary`、`parseDateAddWorkflow`、`isoWeekOf`、`dayOfYear`、`formatAll`、`dateSummaryText` 等 46 个导出 | 日期唯一实现：UTC 零点日序号、ISO 周、闰年 / 闰日 / 生日推进、工作日推进、月末钳制、日期加减；`tools-core/lib/date.ts` 只做薄 re-export，跨分包共享 |
 | `core/toolbox/engines/color.ts` | `parseColor`、`formatColor`、`rgbToHsl`、`hslToRgb`、`relativeLuminance`、`contrastRatio`、`contrastReport`、`simulateCvd`、`cvdResults`、`colorSummary` | 颜色唯一实现：HEX / RGB / HSL 互转、WCAG 对比度与 AA/AAA、Machado 色觉模拟；页面与 silent 共用 |
@@ -2817,7 +2836,7 @@ glass-tool-shell.onGeneratePoster()
 |---|---|---|
 | `/pages/index/index` | `pages/index/` | 工具箱首页：Hero 数据、搜索、最近使用、收藏、魔法棒指令面板、深链、分享 |
 | `/pages/favorites/index` | `pages/favorites/` | 工具收藏列表、取消收藏、空态 CTA、TabBar 选中 |
-| `/pages/mine/index` | `pages/mine/` | 外观切换、关于作者、隐私说明、设置中心、数据驾驶舱、邮箱复制、清空工具数据、版本号 |
+| `/pages/mine/index` | `pages/mine/` | 外观切换、关于作者、隐私说明、设置中心、数据驾驶舱、邮箱复制、清空工具数据、版本号；隐私中心与重置全部已迁入设置页 |
 | `/pages/legal/index` | `pages/legal/` | 隐私说明 / 本机数据 / 免责声明 / 开源许可；隐私授权弹窗 |
 | `/pages/lab/index` | `pages/lab/` | 组件样板间：空间全息、玻璃输入、底部抽屉、数字滚动 |
 
@@ -2883,7 +2902,7 @@ glass-tool-shell.onGeneratePoster()
 | `/subpackages/grow/pages/profile/index` | 个人简介、社交坐标、Canvas 名片生成器 |
 | `/subpackages/grow/pages/about/index` | 关于我、成长时间线 |
 | `/subpackages/grow/pages/skills/index` | 技能矩阵、分段控件、量表重播 |
-| `/subpackages/grow/pages/settings/index` | 全局设置 + Cyber Space OS 极客实验室 + 专注引擎入口 / 清空 |
+| `/subpackages/grow/pages/settings/index` | 全局设置 + 隐私中心（权限 / 版本 / 重置）+ Cyber Space OS 极客实验室 + 专注引擎入口 / 清空 |
 | `/subpackages/grow/pages/cockpit/index` | 数据驾驶舱：轨迹 / 周报 / 环形图 / 折线图 / 隐私盾 |
 | `/subpackages/grow/pages/help/index` | 使用指南：覆盖 63 个工具的步骤 / 提示 / FAQ，搜索复用 `searchTools`；底部「问题未解决？」可复制反馈邮箱、预览并导出脱敏诊断包 |
 
@@ -2896,8 +2915,9 @@ glass-tool-shell.onGeneratePoster()
 | 感官体验 `SENSORY / 01` | 系统音效、物理震动（关闭 / 轻震 / 重震） |
 | 视觉与性能 `VISION / 02` | 动态光效、动画强度（全效 / 精简 / 省电） |
 | 存储与数据 `STORAGE / 03` | 数据驾驶舱入口、全息专注入口 / 清空专注数据、本机缓存、备份与恢复（导出 / 导入 / 删除 JSON 备份）、自动清理最近使用（7 / 30 / 永不）、仅清空最近使用 |
-| 实验室 `LAB / 04` | 保留分区 |
-| 创新实验席位 `MYSTERY / 05` | `enable_ai_assist` Feature Flag，仅登记意向 |
+| 隐私中心 `PRIVACY / 04` | 定位 / 相册 / 隐私指引状态、跳转系统设置与微信指引、版本变更提示、导出本机数据、清除工具数据、重置全部 |
+| 实验室 `LAB / 05` | 保留分区 |
+| 创新实验席位 `MYSTERY / 06` | `enable_ai_assist` Feature Flag，仅登记意向 |
 | 版本与说明 `CHANGELOG` | 版本号、更新日志、更新就绪提示 |
 
 设置页原则：
@@ -2906,7 +2926,8 @@ glass-tool-shell.onGeneratePoster()
 - 高频滑块只在 `touchend` 落盘，`onInput` 只做文案预览。
 - 清理 / 阈值 / Feature Flag 全部有边界兜底与玻璃 Toast 反馈。
 - 极客实验室默认收起；展开后才挂载 Canvas 与对应模块。
-- 高危操作（AES、Time Travel、分片传输、Auto-Pilot、抽屉）会阻塞全局更新弹窗。
+- 高危操作（AES、Time Travel、分片传输、Auto-Pilot、抽屉、重置全部）会阻塞全局更新弹窗。
+- 隐私中心只读取权限状态，不主动申请权限；拒绝后由各工具自行降级。
 
 #### 10.4.2 数据驾驶舱能力
 
@@ -3108,6 +3129,8 @@ buildContrastVars(result): string
 | `app:prefs.v1` | app | 全局偏好 v1 | `preferenceStore` |
 | `app:prefs.v0` | app | 旧偏好（只读） | 迁移 |
 | `app:backup.at` | app | 最近一次备份导出时间 | `core/services/backup.ts` |
+| `app:privacy.version` | app | 已确认的隐私保护指引版本 | `core/services/privacy-center.ts` |
+| `tbx:draft.<id>` | tbx | 单工具草稿（输入 + 模式，≤4KB） | `core/toolbox/draft.ts` |
 | `tbx:recent` | tbx | 最近使用 | `toolboxStore` |
 | `tbx:recent.at` | tbx | 最近使用时间戳 | `toolboxStore` |
 | `tbx:favorites` | tbx | 工具收藏 | `toolboxStore` |
@@ -3439,7 +3462,7 @@ flowchart LR
 |---|---|---|
 | 1 | 安装 Node.js `>= 22.6`，在仓库根目录执行 `npm ci` 与 `npm ci --prefix subpackages/tools-core` | 无报错，根包与 tools-core 的 `node_modules/` 均生成 |
 | 2 | `npm run build:style` | 生成 `styles/generated/tailwind.wxss`，文件非空 |
-| 3 | `npm run typecheck && npm test` | 类型检查无输出；测试 `771 pass / 0 fail` |
+| 3 | `npm run typecheck && npm test` | 类型检查无输出；测试 `778 pass / 0 fail` |
 | 4 | 微信开发者工具「导入项目」选择仓库根目录，AppID 填 `wx0f5c60d97c1ce6e2`（无权限可用测试号） | 能识别为小程序项目，基础库 `3.17.6` |
 | 5 | 工具 → 构建 npm，分别构建根包与 `subpackages/tools-core` | 根包与 tools-core 两处 `miniprogram_npm/` 均生成 |
 | 6 | 编译 `pages/index/index` | 首页显示 63 个工具、Hero 数据、搜索与 Dock 正常 |
@@ -3615,7 +3638,7 @@ npm test
 预期：
 
 - `tsc --noEmit` 无输出即为通过。
-- `npm test` 输出 `tests 771`、`pass 771`、`fail 0`。
+- `npm test` 输出 `tests 778`、`pass 778`、`fail 0`。
 
 说明：
 
@@ -3959,7 +3982,7 @@ npm test
 | 项 | 要求 |
 |---|---|
 | 类型检查 | `npm run typecheck` 通过 |
-| 单元 / 集成测试 | `npm test` 771/771 通过 |
+| 单元 / 集成测试 | `npm test` 778/778 通过 |
 | 样式产物 | `styles/generated/tailwind.wxss` 存在且为最新 |
 | npm 产物 | 根包与 tools-core 的 `miniprogram_npm` 均存在 |
 | 版本号 | `APP_VERSION` 与后台版本说明一致 |
@@ -4006,7 +4029,7 @@ npm run plan            # 81 项能力 / 63 张工具卡与注册表一致
 | `budget` | `✔ 包体预算通过` | 主包 1824.4 KB / 1900 KB；tools-core 1363.0 KB |
 | `plan` | `✔ 方案自检通过` | 能力 81 项 / 卡片 63 张 |
 | `typecheck` | 无输出 | 通过 |
-| `test` | `tests 771`、`pass 771`、`fail 0` | 771/771 |
+| `test` | `tests 778`、`pass 778`、`fail 0` | 778/778 |
 
 任一项失败时的处理顺序：
 
@@ -4342,7 +4365,7 @@ npm test
 | 依赖安装 | `npm ci`（根包 + tools-core） | 无报错，`node_modules` 与分包依赖齐全 |
 | Tailwind 产物 | `npm run build:style` | `styles/generated/tailwind.wxss` 存在且为最新 |
 | 类型检查 | `npm run typecheck` | `tsc --noEmit` 无输出 |
-| 单元 / 集成测试 | `npm test` | `tests 771`、`pass 771`、`fail 0` |
+| 单元 / 集成测试 | `npm test` | `tests 778`、`pass 778`、`fail 0` |
 | Workflow 覆盖 | `tests/workflow-coverage.test.js` | 63 个工具全部注册，适配器 / 来源 / 收发端完整 |
 | 分包路由 | `tests/subpackage-routing.test.js` | 通过 |
 | npm 产物 | 开发者工具「构建 npm」 | 根包 2 个依赖 + tools-core 2 个依赖均生成 |
@@ -4691,7 +4714,7 @@ MP_CI_PRIVATE_KEY_PATH="$MP_CI_KEY_FILE" npm run ci:upload
 
 ### 15.1 测试构成
 
-`npm test` 当前 **771 项全部通过**。
+`npm test` 当前 **778 项全部通过**。
 
 | 测试组 | 文件 | 覆盖主题 |
 |---|---|---|
@@ -4720,7 +4743,7 @@ MP_CI_PRIVATE_KEY_PATH="$MP_CI_KEY_FILE" npm run ci:upload
 | 门禁 | 命令 | 当前状态 |
 |---|---|---|
 | 类型检查 | `npm run typecheck` | 通过 |
-| 单元 / 集成 | `npm test` | 771/771 通过 |
+| 单元 / 集成 | `npm test` | 778/778 通过 |
 | Workflow 覆盖率 | `tests/workflow-coverage.test.js` | 63 工具全部注册 / 适配器 / 来源 / 收发端；15 silent + 48 jump |
 | 分包路由 | `tests/subpackage-routing.test.js` | 通过 |
 | 视觉验收 | `npm run test:visual:hologram` | 需开发者工具 |
@@ -5092,7 +5115,7 @@ MP_CI_PRIVATE_KEY_PATH="$MP_CI_KEY_FILE" npm run ci:upload
 | 工具 | 63 / 63，全部在 6.1 与 8.4 中列出 |
 | `core/` TypeScript 模块 | 69 / 69，均在 5.x、6.x、7.x、8.x、11.x、12.x 或 5.11 中出现 |
 | `subpackages/` TypeScript 模块 | 176 / 176，页面 / 组件在 10.x、9.10 中按路由列出，lib / utils / weather 在 8.x、5.11、18.3 中说明 |
-| 测试文件 | 100 个 `.test.js`；`npm test` 771 项通过 |
+| 测试文件 | 101 个 `.test.js`；`npm test` 778 项通过 |
 | 运行时依赖 | 根包 2 个 + tools-core 2 个，均在 2.1 / 13.2 中列出 |
 | 配置文件 | `app.json`、`app.ts`、`theme.json`、`project.config.json`、`project.private.config.json`、`tsconfig.json`、`package.json`、`postcss.config.js`、`sitemap.json` |
 | 存储键 | 42 个运行期键（含 `weather:*` 动态后缀），见 12.1 |
