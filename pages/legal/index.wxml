@@ -167,7 +167,7 @@
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
-              <text class="legal-list__text">app:prefs.v1：震动、音效、光效、动画与自动清理天数等全局偏好；app:prefs.v0 仅在升级时读取一次。</text>
+              <text class="legal-list__text">app:prefs.v1：震动、音效、光效、动画、字号与自动清理天数等全局偏好；app:prefs.v0 仅在升级时读取一次。</text>
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>

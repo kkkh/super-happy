@@ -14,6 +14,7 @@ import {
   sharePayloadForCurrentPage,
   timelinePayloadForCurrentPage,
 } from '../../core/toolbox/share'
+import { fontScaleClass, syncFontScaleClass } from '../../core/services/font-scale'
 
 interface FavoriteState {
   themeBindings?: { destroyStoreBindings: () => void }
@@ -37,6 +38,7 @@ Page({
   data: {
     themeClass: uiStore.themeClass,
     themeSwitching: false,
+    fsClass: fontScaleClass(),
     tools: toolboxStore.favoriteTools(),
   },
 
@@ -64,6 +66,7 @@ Page({
   onShow() {
     const state = this as unknown as FavoriteState
     state.navigating = false
+    this.setData({ fsClass: syncFontScaleClass() })
     selectTabBar(this, 1)
     uiStore.syncNativeChrome()
   },

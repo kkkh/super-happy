@@ -19,6 +19,10 @@ import {
   sharePayloadForCurrentPage,
   timelinePayloadForCurrentPage,
 } from '../../../../core/toolbox/share'
+import {
+  fontScaleClass,
+  syncFontScaleClass,
+} from '../../../../core/services/font-scale'
 
 interface HelpEntryView extends ToolMeta {
   summary: string
@@ -68,6 +72,18 @@ function buildGroups(expanded: Set<string>): HelpGroupView[] {
   }))
 }
 
+/** 搜索也产出分组结构，与浏览共用同一套卡片模板 */
+function buildSearchGroups(keyword: string, expanded: Set<string>): HelpGroupView[] {
+  return [
+    {
+      key: 'search',
+      title: '搜索结果',
+      hint: '',
+      entries: searchTools(keyword).map((tool) => toEntryView(tool, expanded)),
+    },
+  ]
+}
+
 Page({
   onShareAppMessage() {
     return sharePayloadForCurrentPage()
@@ -79,9 +95,11 @@ Page({
 
   data: {
     themeClass: '',
+    fsClass: fontScaleClass(),
     keyword: '',
     groups: [] as HelpGroupView[],
-    results: [] as HelpEntryView[],
+    /* 搜索结果为空：卡片区走统一 groups 渲染，空态单独标记 */
+    searchEmpty: false,
     /* 空结果推荐：取权重最高的 3 个工具 */
     recommended: [] as Array<{ id: string; name: string; route: string }>,
     /* 反馈与诊断包 */
@@ -121,6 +139,10 @@ Page({
     })
   },
 
+  onShow() {
+    this.setData({ fsClass: syncFontScaleClass() })
+  },
+
   onUnload() {
     const runtime = this as unknown as HelpRuntime
     runtime.destroyed = true
@@ -140,12 +162,14 @@ Page({
     const runtime = this as unknown as HelpRuntime
     if (!keyword.trim()) {
       /* 清空搜索：重建分组，保持展开态与 expanded 集合一致 */
-      this.setData({ keyword: '', results: [], groups: buildGroups(runtime.expanded) })
+      this.setData({ keyword: '', groups: buildGroups(runtime.expanded), searchEmpty: false })
       return
     }
+    const groups = buildSearchGroups(keyword, runtime.expanded)
     this.setData({
       keyword,
-      results: searchTools(keyword).map((tool) => toEntryView(tool, runtime.expanded)),
+      groups,
+      searchEmpty: groups[0].entries.length === 0,
     })
   },
 
@@ -160,11 +184,10 @@ Page({
     } else {
       runtime.expanded.add(id)
     }
-    const groups = this.data.keyword ? this.data.groups : buildGroups(runtime.expanded)
-    const results = this.data.keyword
-      ? searchTools(this.data.keyword).map((tool) => toEntryView(tool, runtime.expanded))
-      : this.data.results
-    this.setData({ groups, results })
+    const groups = this.data.keyword
+      ? buildSearchGroups(this.data.keyword, runtime.expanded)
+      : buildGroups(runtime.expanded)
+    this.setData({ groups })
   },
 
   onOpenTool(event: WechatMiniprogram.TouchEvent) {

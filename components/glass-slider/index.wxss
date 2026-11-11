@@ -22,12 +22,14 @@
 .glass-slider__caption {
   color: var(--glass-text-2, rgba(255, 255, 255, 0.8));
   font-size: 24rpx;
+  font-size: calc(24rpx * var(--fs-scale, 1));
 }
 
 .glass-slider__value {
   color: var(--glass-text, #ffffff);
   font-family: var(--glass-font-mono, monospace);
   font-size: 24rpx;
+  font-size: calc(24rpx * var(--fs-scale, 1));
   font-weight: 600;
 }
 
@@ -142,6 +144,7 @@
   color: var(--glass-text-3, rgba(255, 255, 255, 0.46));
   font-family: var(--glass-font-mono, monospace);
   font-size: 20rpx;
+  font-size: calc(20rpx * var(--fs-scale, 1));
   letter-spacing: 0.06em;
   transition: color var(--glass-duration-base, 280ms)
     cubic-bezier(0.25, 0.8, 0.25, 1);

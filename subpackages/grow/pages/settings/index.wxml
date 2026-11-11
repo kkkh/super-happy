@@ -1,5 +1,5 @@
 <view
-  class="settings-page sg-ambient-surface sg-ambient-iris {{themeClass}} {{themeSwitching ? 'theme-breathing' : ''}}"
+  class="settings-page sg-ambient-surface sg-ambient-iris {{themeClass}} {{fsClass}} {{themeSwitching ? 'theme-breathing' : ''}}"
 >
   <!-- 极光背景：light-off 时由 app.wxss 统一降级 -->
   <view class="settings-aurora" aria-hidden="true">
@@ -83,7 +83,7 @@
             </view>
           </view>
 
-          <text class="settings-hero__statusline">{{statusText}}</text>
+          <text class="settings-hero__statusline" aria-role="status">{{statusText}}</text>
         </glass-card>
       </view>
 
@@ -771,6 +771,28 @@
             <text class="settings-hint">
               省电模式会关闭陀螺仪视差、动态极光与大部分过渡，仅保留必要状态反馈。
             </text>
+          </view>
+
+          <view class="settings-divider"></view>
+
+          <view
+            class="settings-row settings-row--action"
+            hover-class="settings-row--press"
+            hover-start-time="0"
+            hover-stay-time="80"
+            aria-role="button"
+            aria-label="选择字号大小"
+            bindtap="onFontScaleTap"
+          >
+            <view class="settings-row__icon">
+              <g-icon name="sliders" size="{{30}}" tone="iris" />
+            </view>
+            <view class="settings-row__copy">
+              <text class="settings-row__title">字号大小</text>
+              <text class="settings-row__sub">标准 / 大 / 特大；只放大文字与行高，不缩放图标与画布</text>
+            </view>
+            <text class="settings-row__value">{{fontScaleLabel}}</text>
+            <g-icon name="chevron" size="{{22}}" tone="ink4" />
           </view>
         </glass-card>
       </view>

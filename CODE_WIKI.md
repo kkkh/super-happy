@@ -6,7 +6,7 @@
 > 渲染引擎：Skyline + glass-easel
 > 基础库：`3.17.6`
 > 文档基线：2026-11-11（已按当前源码全量核验）
-> 校验状态：`tsc --noEmit` 通过；`npm test` 778/778 通过（复核于 2026-11-11，101 个测试文件）
+> 校验状态：`tsc --noEmit` 通过；`npm test` 792/792 通过（复核于 2026-11-11，103 个测试文件）
 
 本文是面向开发者的完整 Code Wiki，覆盖项目定位、技术栈、整体架构、启动编排、核心 Store、Workflow 流转引擎、63 个工具算法、全息气象站、全息专注引擎、组件库、81 个页面、设计令牌、存储迁移、隐私与更新机制、依赖关系、运行方式、部署发布流程和扩展指南。文中路径均为仓库相对路径，关键公式与常量标注来源文件。
 
@@ -56,7 +56,7 @@
 | 工具分包依赖 | 2 | `crypto-js`、`diff-match-patch`（仅 tools-core；grow 内有 crypto-js 副本） |
 | AI SKILL 原子接口 | 12 | `core/skill/registry.ts` |
 | 作品数据 | 11 | `core/data/resume-data.ts` 的 `projects` |
-| 单元 / 集成测试 | 778 | 101 个 `.test.js` 文件，全部通过 |
+| 单元 / 集成测试 | 792 | 103 个 `.test.js` 文件，全部通过 |
 | 存储结构版本 | 1 | `app:storage.version` |
 | Spatial Glass 元数据版本 | 2 | `gallery.glass.meta` |
 
@@ -76,7 +76,7 @@
          core/toolbox/store（收藏 / 最近使用 / 累计打开）
          core/workflow/workflowStore（流转会话 / 流水线 / 撤销）
          store/index.ts（glassStore 门面）
-服务层   core/services（request / resume / sound / motion / update / storage-governor）
+服务层   core/services（request / resume / sound / motion / update / storage-governor / backup / diagnostics / privacy-center / font-scale）
 算法层   core/toolbox + core/workflow + 各分包 lib/utils
 基础层   core/utils（logger / blackbox / haptics / album / privacy / guards / migration）
 样式层   app.wxss + styles/v3.wxss + styles/generated/tailwind.wxss
@@ -216,7 +216,7 @@ flowchart TB
 | `build:icon` | `npx fantasticon .icon-src -o .icon-dist -n gicon --font-types ttf --asset-types json` | 生成图标字体到 `.icon-dist/` |
 | `pretypecheck` / `pretest` | `node scripts/ensure-weather-config.js` | 自动生成 `weather/config.local.ts`（若缺失），避免 Key 缺失导致编译失败 |
 | `typecheck` | `tsc --noEmit` | 严格类型检查 |
-| `test` | `node --experimental-strip-types --test tests/*.test.js` | 101 个测试文件、778 项全部单元 / 集成测试 |
+| `test` | `node --experimental-strip-types --test tests/*.test.js` | 103 个测试文件、792 项全部单元 / 集成测试 |
 | `test:hologram` | 仅 `tests/spatial-hologram.test.js` | 空间全息单测 |
 | `test:integration` | `tests/*.integration.test.js` | 集成测试 |
 | `test:integration:hologram` | 仅空间全息集成测试 | 集成测试 |
@@ -500,7 +500,7 @@ sequenceDiagram
 ├── core/
 │   ├── constants/             # 路由、常量、Canvas 调色板
 │   ├── data/                  # 简历 / 作品静态数据
-│   ├── services/              # request / resume / sound / motion / update / storage-governor / backup / diagnostics
+│   ├── services/              # request / resume / sound / motion / update / storage-governor / backup / diagnostics / privacy-center / font-scale
 │   ├── skill/                 # AI SKILL 原子接口
 │   ├── stores/                # ui / preference / history / privacy / deeplink / resume
 │   ├── theme/                 # ambient-theme / contrast-guardian
@@ -520,7 +520,7 @@ sequenceDiagram
 ├── store/index.ts             # glassStore 全局门面
 ├── styles/                    # Design Tokens / V3 / 旧工具箱样式
 ├── workers/compute.js         # Worker 计算入口
-├── tests/                     # 778 项测试 + 视觉 / E2E
+├── tests/                     # 792 项测试 + 视觉 / E2E
 ├── assets/                    # 头像、二维码、作品封面
 └── CODE_WIKI.md               # 本文档
 ```
@@ -623,6 +623,7 @@ export const uiStore = observable({
 type HapticLevel = 'off' | 'light' | 'heavy'
 type MotionLevel = 'full' | 'lite' | 'saver'
 type AutoCleanDays = 0 | 7 | 30
+type FontScale = 'standard' | 'large' | 'xlarge'
 
 interface PreferenceSnapshot {
   version: 1
@@ -633,6 +634,7 @@ interface PreferenceSnapshot {
   autoCleanDays: AutoCleanDays
   isPrivacyMasked: boolean
   isHistoryTrackingEnabled: boolean
+  fontScale: FontScale
   flags: { enable_ai_assist: boolean }
 }
 ```
@@ -649,6 +651,7 @@ interface PreferenceSnapshot {
   autoCleanDays: 30,
   isPrivacyMasked: true,
   isHistoryTrackingEnabled: true,
+  fontScale: 'standard',
   flags: { enable_ai_assist: false }
 }
 ```
@@ -665,6 +668,8 @@ interface PreferenceSnapshot {
 | `setAutoCleanDays()` | 设置最近使用清理阈值 |
 | `setPrivacyMasked()` / `togglePrivacyMasked()` | 驾驶舱隐私盾 |
 | `setHistoryTrackingEnabled()` | 计算轨迹总开关 |
+| `setFontScale(scale)` | 字号档 standard / large / xlarge，写 `app:prefs.v1.fontScale` |
+| `fontScaleLabel` | “标准 / 大 / 特大” |
 | `setFlag(key, value)` | 仅允许白名单 Feature Flag |
 | `statusText` | “全效模式 · 光效开启 · 音效开启” |
 
@@ -673,6 +678,7 @@ interface PreferenceSnapshot {
 - 布尔 / 数字 / 旧字符串三套 `haptics` 写法。
 - `motion` 兼容 `reduceMotion`、`animation`、`motionLevel`。
 - `autoCleanDays` 兼容 `autoClearDays`、`cleanDays`、`retentionDays`。
+- `fontScale` 兼容 `normal / default / 标准`、`big / 大`、`huge / 特大` 与 `1 / 1.15 / 1.3` 数值。
 - 未知 Feature Flag 不会注入运行时。
 
 ### 5.3 Toolbox Store（`core/toolbox/store.ts`）
@@ -984,6 +990,7 @@ send<T>(request: TransportRequest<T>): Promise<Result<T>>
 | `core/services/backup.ts` | `exportBackup`、`validateBackup`、`parseBackupText`、`pickBackupFile`、`applyBackup`、`applyBackupToStorage`、`deleteBackupFiles`、`readBackupAt`、`hasBackupFile` | 本机 JSON 备份：写 `USER_DATA_PATH/backups`、固定文件名、只保留 1 份、≤256KB；导入先全量校验再原子写入，失败逆序回滚；覆盖收藏 / 最近 / 搜索 / 天气城市 / 专注记录（含校验密钥）/ `app:prefs.v1` |
 | `core/services/diagnostics.ts` | `redactDiagnosticText`、`shouldDropDiagnosticMessage`、`sanitizeDiagnosticEntries`、`buildDiagnosticPreview`、`collectDiagnosticEnvironment`、`prepareDiagnosticFile` | 本地诊断包：版本 / 基础库 / 机型 / 路由 / 黑匣 20 条；路径、Key、Bearer、邮箱、手机号、证件号脱敏；残留用户输入整条丢弃；≤50KB；复用 `prepareExport` 写 `.txt` |
 | `core/services/privacy-center.ts` | `permissionSnapshot`、`openPrivacySetting`、`openPrivacyContract`、`readPrivacyVersion`、`ackPrivacyVersion`、`privacyVersionChanged`、`resetAllLocalData` | 隐私中心：定位 / 相册 / 隐私指引状态；`PRIVACY_VERSION` ↔ `app:privacy.version`；重置全部删除 tbx / weather / focus / diag / cyber / 备份 / 偏好，保留 `gallery.*` 与 `app:storage.version` |
+| `core/services/font-scale.ts` | `FONT_SCALE_OPTIONS`、`scaleFor`、`currentFontScale`、`fontScaleClass`、`syncFontScaleClass`、`applyFontScale` | 字号档：standard / large / xlarge 映射 `fs-standard / fs-large / fs-xlarge`；页面 `onShow`、组件 `pageLifetimes.show` 一行同步；只改字号与行高，不缩放间距 / 图标 / Canvas |
 | `core/toolbox/engines/money.ts` | `parseCents`、`roundHalfUp`、`formatCents`、`parseBasisPoints` | 金额 / 利率唯一实现，tools-core 与 tools-daily 共享 |
 | `core/toolbox/engines/date.ts` | `serialOf`、`serialOfISO`、`isoOf`、`dayDiff`、`countWeekdays`、`addWorkdays`、`countWorkdays`、`addDays`、`addMonths`、`addDate`、`dateAddSummary`、`parseDateAddWorkflow`、`isoWeekOf`、`dayOfYear`、`formatAll`、`dateSummaryText` 等 46 个导出 | 日期唯一实现：UTC 零点日序号、ISO 周、闰年 / 闰日 / 生日推进、工作日推进、月末钳制、日期加减；`tools-core/lib/date.ts` 只做薄 re-export，跨分包共享 |
 | `core/toolbox/engines/color.ts` | `parseColor`、`formatColor`、`rgbToHsl`、`hslToRgb`、`relativeLuminance`、`contrastRatio`、`contrastReport`、`simulateCvd`、`cvdResults`、`colorSummary` | 颜色唯一实现：HEX / RGB / HSL 互转、WCAG 对比度与 AA/AAA、Machado 色觉模拟；页面与 silent 共用 |
@@ -3099,6 +3106,10 @@ buildContrastVars(result): string
 | `--glass-text` | `#f5f7fc` | `#151a24` |
 | `--glass-accent` | `#8f9bff` | `#5367ff` |
 | `--glass-accent-glow` | `rgba(143,155,255,0.3)` | `rgba(83,103,255,0.26)` |
+| `--glass-accent-text` | `#8f9bff` | `#4453e0` |
+| `--glass-danger-text` | `#ff7a63` | `#b83a26` |
+| `--glass-accent-2-text` | `#6ee7c8` | `#067a68` |
+| `--glass-accent-warm-text` | `#ffcf8a` | `#8a5a0a` |
 
 按压态：
 
@@ -3462,7 +3473,7 @@ flowchart LR
 |---|---|---|
 | 1 | 安装 Node.js `>= 22.6`，在仓库根目录执行 `npm ci` 与 `npm ci --prefix subpackages/tools-core` | 无报错，根包与 tools-core 的 `node_modules/` 均生成 |
 | 2 | `npm run build:style` | 生成 `styles/generated/tailwind.wxss`，文件非空 |
-| 3 | `npm run typecheck && npm test` | 类型检查无输出；测试 `778 pass / 0 fail` |
+| 3 | `npm run typecheck && npm test` | 类型检查无输出；测试 `792 pass / 0 fail` |
 | 4 | 微信开发者工具「导入项目」选择仓库根目录，AppID 填 `wx0f5c60d97c1ce6e2`（无权限可用测试号） | 能识别为小程序项目，基础库 `3.17.6` |
 | 5 | 工具 → 构建 npm，分别构建根包与 `subpackages/tools-core` | 根包与 tools-core 两处 `miniprogram_npm/` 均生成 |
 | 6 | 编译 `pages/index/index` | 首页显示 63 个工具、Hero 数据、搜索与 Dock 正常 |
@@ -3638,7 +3649,7 @@ npm test
 预期：
 
 - `tsc --noEmit` 无输出即为通过。
-- `npm test` 输出 `tests 778`、`pass 778`、`fail 0`。
+- `npm test` 输出 `tests 792`、`pass 792`、`fail 0`。
 
 说明：
 
@@ -3982,7 +3993,7 @@ npm test
 | 项 | 要求 |
 |---|---|
 | 类型检查 | `npm run typecheck` 通过 |
-| 单元 / 集成测试 | `npm test` 778/778 通过 |
+| 单元 / 集成测试 | `npm test` 792/792 通过 |
 | 样式产物 | `styles/generated/tailwind.wxss` 存在且为最新 |
 | npm 产物 | 根包与 tools-core 的 `miniprogram_npm` 均存在 |
 | 版本号 | `APP_VERSION` 与后台版本说明一致 |
@@ -4029,7 +4040,7 @@ npm run plan            # 81 项能力 / 63 张工具卡与注册表一致
 | `budget` | `✔ 包体预算通过` | 主包 1824.4 KB / 1900 KB；tools-core 1363.0 KB |
 | `plan` | `✔ 方案自检通过` | 能力 81 项 / 卡片 63 张 |
 | `typecheck` | 无输出 | 通过 |
-| `test` | `tests 778`、`pass 778`、`fail 0` | 778/778 |
+| `test` | `tests 792`、`pass 792`、`fail 0` | 792/792 |
 
 任一项失败时的处理顺序：
 
@@ -4071,6 +4082,7 @@ npm run build:style
 | `check-version.js` | `npm run check:version` | 校验 `package.json`、`package-lock.json`、`APP_VERSION`、设置页 `CHANGELOG[0]` 四源一致 | 四处版本漂移 |
 | `check-budget.js` | `npm run budget` | 主包 1900KB 警戒线与各分包体积 | 资源误放主包或分包膨胀 |
 | `check-plan.js` | `npm run plan` | 校验 81 项能力 / 63 张工具卡与注册表、路由、帮助文案一致 | 新增工具后清单未同步 |
+| `check-contrast.js` | `npm run check:contrast` | 校验 `app.wxss` 深 / 浅主题文字令牌：正文 ≥4.5:1、accent / danger ≥3:1；按钮填充白字只输出 warning | 正文或文字令牌对比度不足 |
 | `ci-upload.js` | `npm run ci:upload` | 构建两处 `miniprogram_npm` 并上传开发版本 | 缺密钥 / 依赖 / Tailwind 产物 |
 | `e2e-tools.js` | `npm run test:e2e` | 通过 automator 跑批 1 十卡端到端 | 开发者工具未开服务端口 |
 
@@ -4365,7 +4377,7 @@ npm test
 | 依赖安装 | `npm ci`（根包 + tools-core） | 无报错，`node_modules` 与分包依赖齐全 |
 | Tailwind 产物 | `npm run build:style` | `styles/generated/tailwind.wxss` 存在且为最新 |
 | 类型检查 | `npm run typecheck` | `tsc --noEmit` 无输出 |
-| 单元 / 集成测试 | `npm test` | `tests 778`、`pass 778`、`fail 0` |
+| 单元 / 集成测试 | `npm test` | `tests 792`、`pass 792`、`fail 0` |
 | Workflow 覆盖 | `tests/workflow-coverage.test.js` | 63 个工具全部注册，适配器 / 来源 / 收发端完整 |
 | 分包路由 | `tests/subpackage-routing.test.js` | 通过 |
 | npm 产物 | 开发者工具「构建 npm」 | 根包 2 个依赖 + tools-core 2 个依赖均生成 |
@@ -4714,13 +4726,13 @@ MP_CI_PRIVATE_KEY_PATH="$MP_CI_KEY_FILE" npm run ci:upload
 
 ### 15.1 测试构成
 
-`npm test` 当前 **778 项全部通过**。
+`npm test` 当前 **792 项全部通过**。
 
 | 测试组 | 文件 | 覆盖主题 |
 |---|---|---|
 | 应用 / 更新 | `app-brightness`、`app-update`、`update-guard`、`update-guard-flow`、`privacy-update-blocker` | 启动亮度兜底、更新运行时、待更新标记、全局阻塞互斥 |
-| 状态 / 存储 | `preference`、`theme-engines`、`storage-governor`、`history`、`history-snapshots`、`export`、`budget`、`plan` | 偏好归一化、主题引擎、自动清理、轨迹防抖、导出清理、体积与计划门禁 |
-| 注册 / 路由 / 搜索 | `tool-registry`、`subpackage-routing`、`magic-wand-palette`、`help-search` | 63 工具元数据、分包路由、指令面板、帮助搜索 |
+| 状态 / 存储 | `preference`、`font-scale`、`theme-engines`、`storage-governor`、`history`、`history-snapshots`、`export`、`budget`、`plan` | 偏好归一化、字号档三档与降级契约、主题引擎、自动清理、轨迹防抖、导出清理、体积与计划门禁 |
+| 注册 / 路由 / 搜索 | `tool-registry`、`subpackage-routing`、`magic-wand-palette`、`help-search`、`help-page` | 63 工具元数据、分包路由、指令面板、帮助搜索、帮助页单一 groups 渲染 |
 | 工具算法 | `hash-engine`、`text-diff`、`money-engine`、`date-engine`、`text-engine`、`random-engine`、`tools-batch1`、`tools-ledger`、`tools-date-format`、`tools-timezone`、`tools-schedule`、`tools-fuel`、`tools-power`、`tools-resolution`、`tools-carloan`、`tools-quote`、`tools-meeting-timer`、`meeting-timer-service`、`tools-bodyfat`、`tools-avatar`、`tools-collage`、`tools-idphoto`、`tools-qrdecode`、`tools-lunar`、`tools-zh-convert`、`tools-pinyin`、`tools-fx-manual`、`tools-salary-inverse`、`tools-percent`、`tools-size-convert`、`tools-severance`、`tools-id-validate`、`tools-image-pdf`、`tools-barcode`、`tools-exif`、`tools-unit-extended`、`tools-password`、`tools-date-add`、`tools-color`、`tools-json-csv`、`tools-text-convert`、`tools-regex`、`tools-photo-edit`、`tools-worktime`、`tools-wellness`、`tools-random-pick`、`tools-vcard`、`span-watermark-workflow`、`watermark-gesture` | Hash/HMAC、Diff、金额分/基点、日期日序号与闰日、时区墙钟与手动夏令时、工作日推进、油耗与油费、阶梯电费、分辨率化简 / 打印像素、车贷月供 / 方案对比 / 提前还款、报价守恒与 CSV 转义、倒计时跨日与后台补算、体脂围度公式、拼图布局与跳过摘要、证件照纯色检测 / 换底 / 羽化 / 复杂背景拒绝、二维码 8 掩码 / 中文 / 模糊 / 截断、农历春节 / 闰月 / 节气 / 边界、简繁词组优先 / 一词多繁 / 方向切换 / 20k 截断、拼音多音词消歧 / 去声调 / 逐字对照 / 2k 截断、官方中间价解析 / 交叉汇率 / 缓存回退 / 手动牌价双向一致、个税月度 / 年度黄金值、薪资反算误差 / 边界 / 不收敛、百分比三模式 / 除零 / 1000% / silent 解析、日期加减月末 / 闰日 / 跨年 / 超范围 / silent 解析、颜色解析 / 黑白 21:1 / 红绿 / 3 位 HEX / 透明度忽略 / AA-AAA 阈值 / 色觉模拟、JSON 与 CSV 往返 / 字段并集 / 嵌套有损 / 引号换行 / 2MB、尺码男鞋 / 女装 / 戒指 / 半码 / 超范围、离职补偿 N / N+1 / 封顶 / 年假 / 年限 0、证件号身份证 / 银行卡 / 末位 X / 15 位旧证 / 超长 / 脱敏、PDF JPEG 解析 / 结构 / xref / 页面尺寸 / 9 页与 2MB、条形码 CODE128B 黄金值 / 校验位 / 静区 / 80 字符 / PNG 尺寸、图片信息尺寸 / 体积 / 格式 / 方向 / 损坏拒绝、单位扩展 13 类黄金值 / 解析格式化、文本转换与清洗四组合 / 空行 / 不可见 / 中文标点 / 中英文去空格 / 保留段落、密码强度阈值 / 空密码 / 熵公式、随机抽签、工具批测、算账、日期格式、文本转换卡、正则 Worker、图片几何、工时请假、每日健康、随机决定、vCard 折行、跨工具 Workflow、水印手势 |
 | 全息专注 | `focus-fsm`、`focus-storage`、`focus-crypto`、`focus-level`、`focus-audio`、`focus-nebula`、`focus-page`、`focus-page-flow`、`focus-copy`、`cockpit-focus` | 状态机、6 键存储 / 验签、等级、音频、星云、页面流程、文案、驾驶舱专注卡 |
 | 全息气象 | `weather-parse`、`weather-cache`、`weather-chart-audio`、`weather-astro-hourly`、`weather-page` | 字段解析、缓存 TTL、图表/音频、日出日落/逐小时、页面状态 |
@@ -4743,7 +4755,8 @@ MP_CI_PRIVATE_KEY_PATH="$MP_CI_KEY_FILE" npm run ci:upload
 | 门禁 | 命令 | 当前状态 |
 |---|---|---|
 | 类型检查 | `npm run typecheck` | 通过 |
-| 单元 / 集成 | `npm test` | 778/778 通过 |
+| 单元 / 集成 | `npm test` | 792/792 通过 |
+| 文字对比度 | `npm run check:contrast` | 通过（正文全绿，按钮 6 条 warning 设计债） |
 | Workflow 覆盖率 | `tests/workflow-coverage.test.js` | 63 工具全部注册 / 适配器 / 来源 / 收发端；15 silent + 48 jump |
 | 分包路由 | `tests/subpackage-routing.test.js` | 通过 |
 | 视觉验收 | `npm run test:visual:hologram` | 需开发者工具 |
@@ -5115,7 +5128,7 @@ MP_CI_PRIVATE_KEY_PATH="$MP_CI_KEY_FILE" npm run ci:upload
 | 工具 | 63 / 63，全部在 6.1 与 8.4 中列出 |
 | `core/` TypeScript 模块 | 69 / 69，均在 5.x、6.x、7.x、8.x、11.x、12.x 或 5.11 中出现 |
 | `subpackages/` TypeScript 模块 | 176 / 176，页面 / 组件在 10.x、9.10 中按路由列出，lib / utils / weather 在 8.x、5.11、18.3 中说明 |
-| 测试文件 | 101 个 `.test.js`；`npm test` 778 项通过 |
+| 测试文件 | 103 个 `.test.js`；`npm test` 792 项通过 |
 | 运行时依赖 | 根包 2 个 + tools-core 2 个，均在 2.1 / 13.2 中列出 |
 | 配置文件 | `app.json`、`app.ts`、`theme.json`、`project.config.json`、`project.private.config.json`、`tsconfig.json`、`package.json`、`postcss.config.js`、`sitemap.json` |
 | 存储键 | 42 个运行期键（含 `weather:*` 动态后缀），见 12.1 |

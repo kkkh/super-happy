@@ -52,6 +52,6 @@ test('页脚哲理：外壳按页面随机展示，旧长文案已移除', () =>
   assert.match(wxml, /aria-label="人生哲理：\{\{footerQuote\}\}"/)
   assert.equal(/LOCAL ONLY \/ 本机计算/.test(wxml), false)
   assert.equal(/轨迹摘要仅存本机/.test(wxml), false)
-  assert.match(wxss, /\.tool-shell__footer\s*\{[^}]*font-size:\s*19rpx/s)
+  assert.match(wxss, /\.tool-shell__footer\s*\{[^}]*font-size:\s*calc\(19rpx \* var\(--fs-scale/s)
   assert.match(wxss, /\.tool-shell__footer\s*\{[^}]*letter-spacing:\s*0\.18em/s)
 })

@@ -100,6 +100,7 @@
   color: var(--glass-text-3);
   font-family: var(--glass-font-mono);
   font-size: 19rpx;
+  font-size: calc(19rpx * var(--fs-scale, 1));
   letter-spacing: 0.14em;
 }
 
@@ -107,6 +108,7 @@
   margin-top: 14rpx;
   color: var(--glass-text);
   font-size: 56rpx;
+  font-size: calc(56rpx * var(--fs-scale, 1));
   font-weight: 700;
   line-height: 1.12;
 }
@@ -115,6 +117,7 @@
   margin-top: 12rpx;
   color: var(--glass-text-2);
   font-size: 24rpx;
+  font-size: calc(24rpx * var(--fs-scale, 1));
   line-height: 1.55;
 }
 
@@ -167,6 +170,7 @@
 .mine-profile__name {
   color: var(--glass-text);
   font-size: 34rpx;
+  font-size: calc(34rpx * var(--fs-scale, 1));
   font-weight: 700;
   line-height: 1.25;
 }
@@ -176,8 +180,9 @@
   color: var(--glass-text-3);
   font-family: var(--glass-font-mono);
   font-size: 18rpx;
+  font-size: calc(18rpx * var(--fs-scale, 1));
   letter-spacing: 0.08em;
-  line-height: 1.4;
+  line-height: 1.5;
 }
 
 /* ---- 分组标题 ---- */
@@ -192,6 +197,7 @@
 .mine-group-head__title {
   color: var(--glass-text);
   font-size: 30rpx;
+  font-size: calc(30rpx * var(--fs-scale, 1));
   font-weight: 700;
 }
 
@@ -199,6 +205,7 @@
   color: var(--glass-text-3);
   font-family: var(--glass-font-mono);
   font-size: 18rpx;
+  font-size: calc(18rpx * var(--fs-scale, 1));
   letter-spacing: 0.08em;
 }
 
@@ -270,13 +277,14 @@
   background-color: transparent;
   color: var(--glass-text-3);
   font-size: 23rpx;
+  font-size: calc(23rpx * var(--fs-scale, 1));
   font-weight: 600;
   box-sizing: border-box;
   transition: color 220ms var(--glass-ease-out);
 }
 
 .mine-seg__item--active {
-  color: var(--glass-accent);
+  color: var(--glass-accent-text);
   text-shadow:
     0 0 12rpx var(--glass-accent-glow),
     0 0 28rpx var(--glass-accent-glow);
@@ -310,6 +318,7 @@
   margin: 12rpx 8rpx 20rpx;
   color: var(--glass-text-3);
   font-size: 20rpx;
+  font-size: calc(20rpx * var(--fs-scale, 1));
   line-height: 1.5;
 }
 
@@ -341,6 +350,7 @@
   color: var(--glass-text);
   font-family: var(--glass-font-mono);
   font-size: 40rpx;
+  font-size: calc(40rpx * var(--fs-scale, 1));
   font-weight: 700;
   line-height: 1.1;
 }
@@ -348,6 +358,7 @@
 .mine-stat__label {
   color: var(--glass-text-3);
   font-size: 20rpx;
+  font-size: calc(20rpx * var(--fs-scale, 1));
 }
 
 /* ---- 功能列表 ---- */
@@ -398,7 +409,7 @@
 }
 
 .mine-row--danger .mine-row__title {
-  color: var(--glass-danger);
+  color: var(--glass-danger-text);
 }
 
 .mine-row__copy {
@@ -411,6 +422,7 @@
 .mine-row__title {
   color: var(--glass-text);
   font-size: 27rpx;
+  font-size: calc(27rpx * var(--fs-scale, 1));
   font-weight: 600;
   line-height: 1.35;
 }
@@ -419,7 +431,8 @@
   margin-top: 6rpx;
   color: var(--glass-text-3);
   font-size: 21rpx;
-  line-height: 1.45;
+  font-size: calc(21rpx * var(--fs-scale, 1));
+  line-height: 1.5;
 }
 
 .mine-row__tag {
@@ -427,6 +440,7 @@
   color: var(--glass-text-3);
   font-family: var(--glass-font-mono);
   font-size: 18rpx;
+  font-size: calc(18rpx * var(--fs-scale, 1));
   letter-spacing: 0.08em;
 }
 
@@ -440,6 +454,7 @@
   color: var(--glass-text-3);
   font-family: var(--glass-font-mono);
   font-size: 17rpx;
+  font-size: calc(17rpx * var(--fs-scale, 1));
   letter-spacing: 0.06em;
   line-height: 1.7;
 }

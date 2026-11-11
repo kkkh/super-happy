@@ -16,6 +16,7 @@ import {
   sharePayloadForCurrentPage,
   timelinePayloadForCurrentPage,
 } from '../../core/toolbox/share'
+import { fontScaleClass, syncFontScaleClass } from '../../core/services/font-scale'
 
 const FEEDBACK_EMAIL = '56967916@qq.com'
 
@@ -61,6 +62,7 @@ Page({
   data: {
     themeClass: uiStore.themeClass,
     themeSwitching: false,
+    fsClass: fontScaleClass(),
     isDark: uiStore.resolvedTheme === 'dark',
     themeMode: uiStore.themeMode,
     themeIndex: THEME_INDEX[uiStore.themeMode],
@@ -101,6 +103,7 @@ Page({
   },
 
   onShow() {
+    this.setData({ fsClass: syncFontScaleClass() })
     selectTabBar(this, 2)
     uiStore.syncNativeChrome()
   },

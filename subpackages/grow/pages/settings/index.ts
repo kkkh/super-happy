@@ -45,6 +45,12 @@ import {
   type BackupFailReason,
   type BackupFile,
 } from '../../../../core/services/backup'
+import {
+  FONT_SCALE_OPTIONS,
+  applyFontScale,
+  fontScaleClass,
+  syncFontScaleClass,
+} from '../../../../core/services/font-scale'
 import { useSound } from '../../../../core/services/sound'
 import { ambientTheme } from '../../../../core/theme/ambient-theme'
 import { APP_VERSION, PRIVACY_VERSION, ROUTES } from '../../../../core/constants/index'
@@ -169,7 +175,7 @@ function formatFocusClock(ms: number): string {
 }
 
 type SettingsToastType = 'info' | 'success' | 'error' | 'warning'
-type PickerKind = 'haptics' | 'clean' | ''
+type PickerKind = 'haptics' | 'clean' | 'font' | ''
 
 interface PickerOption {
   value: string
@@ -504,6 +510,8 @@ Page({
   data: {
     themeClass: uiStore.themeClass,
     themeSwitching: false,
+    fsClass: fontScaleClass(),
+    fontScaleLabel: preferenceStore.fontScaleLabel,
     sound: preferenceStore.sound,
     lightEffects: preferenceStore.lightEffects,
     hapticsLabel: preferenceStore.hapticsLabel,
@@ -689,6 +697,7 @@ Page({
         sound: () => preferenceStore.sound,
         lightEffects: () => preferenceStore.lightEffects,
         hapticsLabel: () => preferenceStore.hapticsLabel,
+        fontScaleLabel: () => preferenceStore.fontScaleLabel,
         motionIndex: () => preferenceStore.motionIndex,
         motionLabel: () => preferenceStore.motionLabel,
         autoCleanLabel: () => preferenceStore.autoCleanLabel,
@@ -712,6 +721,10 @@ Page({
   },
 
   onShow() {
+    this.setData({
+      fsClass: syncFontScaleClass(),
+      fontScaleLabel: preferenceStore.fontScaleLabel,
+    })
     uiStore.syncNativeChrome()
     this.refreshCache()
     this.refreshPendingUpdate()
@@ -2086,6 +2099,10 @@ Page({
         this.showToast(result.message, 'error')
         return
       }
+      this.setData({
+        fsClass: syncFontScaleClass(),
+        fontScaleLabel: preferenceStore.fontScaleLabel,
+      })
       this.refreshCache()
       this.refreshGalaxyNodes()
       this.refreshTimeline(index)
@@ -2658,6 +2675,19 @@ Page({
     this.captureFrame('动画强度切换')
   },
 
+  /* ---- 字号 ---- */
+  onFontScaleTap(): void {
+    const runtime = this as unknown as SettingsRuntime
+    runtime.pickerKind = 'font'
+    tapTick()
+    this.setData({
+      pickerShow: true,
+      pickerTitle: '字号大小',
+      pickerDesc: '只放大文字与行高，不缩放图标与画布；切换后立即生效。',
+      pickerOptions: buildPickerOptions(FONT_SCALE_OPTIONS, preferenceStore.fontScale),
+    })
+  },
+
   /* ---- 存储 ---- */
   onCleanTap(): void {
     const runtime = this as unknown as SettingsRuntime
@@ -2684,8 +2714,31 @@ Page({
     }
 
     /* 只接受当前抽屉数据源内的值，防止脏 dataset 改变 Store */
-    const source = runtime.pickerKind === 'haptics' ? HAPTIC_OPTIONS : CLEAN_OPTIONS
+    const source =
+      runtime.pickerKind === 'haptics'
+        ? HAPTIC_OPTIONS
+        : runtime.pickerKind === 'clean'
+          ? CLEAN_OPTIONS
+          : FONT_SCALE_OPTIONS
     if (!source.some((option) => option.value === value)) {
+      return
+    }
+
+    if (runtime.pickerKind === 'font') {
+      const result = applyFontScale(value)
+      this.setData({
+        fsClass: result.className,
+        fontScaleLabel: result.label,
+        pickerOptions: buildPickerOptions(FONT_SCALE_OPTIONS, result.scale),
+        pickerShow: false,
+      })
+      runtime.pickerKind = ''
+      tapTick()
+      this.showToast(
+        result.persisted ? `字号已调整为${result.label}` : '偏好仅在本次会话生效',
+        result.persisted ? 'success' : 'warning',
+      )
+      this.captureFrame('字号切换')
       return
     }
 
@@ -2888,7 +2941,7 @@ Page({
     historyStore.clearMemory()
     preferenceStore.applySnapshot(DEFAULT_PREFERENCE)
     preferenceStore.persist()
-    this.setData({ privacyConfirmShow: false })
+    this.setData({ privacyConfirmShow: false, fsClass: fontScaleClass('standard') })
     this.showToast(`已重置本机数据（${result.removedKeys} 项）`, 'success')
     setTimeout(() => {
       wx.reLaunch({ url: ROUTES.home, fail: () => undefined })
@@ -3200,6 +3253,8 @@ Page({
     ambientTheme.refresh()
     this.startGalaxyLoop()
     this.setData({
+      fsClass: syncFontScaleClass(),
+      fontScaleLabel: preferenceStore.fontScaleLabel,
       sound: preferenceStore.sound,
       lightEffects: preferenceStore.lightEffects,
       hapticsLabel: preferenceStore.hapticsLabel,

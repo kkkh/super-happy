@@ -93,7 +93,7 @@
 }
 
 .reader__kicker {
-  color: var(--glass-accent);
+  color: var(--glass-accent-text);
   font-family: var(--glass-font-mono);
   font-size: 20rpx;
   letter-spacing: 0.16em;

@@ -11,6 +11,7 @@
     "pretest": "node scripts/ensure-weather-config.js",
     "test": "node --experimental-strip-types --test tests/*.test.js",
     "budget": "node scripts/check-budget.js",
+    "check:contrast": "node scripts/check-contrast.js",
     "plan": "node scripts/check-plan.js",
     "check:version": "node scripts/check-version.js",
     "test:hologram": "node --experimental-strip-types --test tests/spatial-hologram.test.js",

@@ -53,6 +53,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 34rpx;
+  font-size: calc(34rpx * var(--fs-scale, 1));
   font-weight: 600;
   color: var(--g-ink);
   letter-spacing: 2rpx;

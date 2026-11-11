@@ -39,6 +39,7 @@ import { showGlassToast } from '../../components/glass-toast/toast'
 import { TBX_KEYS, readStorage, writeStorage } from '../../core/toolbox/storage'
 import { tapTick } from '../../core/utils/haptics'
 import { logger } from '../../core/utils/logger'
+import { fontScaleClass, syncFontScaleClass } from '../../core/services/font-scale'
 
 interface HomeToolView extends ToolMeta {
   favorite: boolean
@@ -145,6 +146,7 @@ Component({
   data: {
     themeClass: glassStore.themeClass,
     themeSwitching: false,
+    fsClass: fontScaleClass(),
     favoriteCount: 0,
     toolTotal: TOOLS.length,
     usageCount: 0,
@@ -249,6 +251,7 @@ Component({
     onShow() {
       const runtime = this as unknown as HomeRuntime
       runtime.navigating = false
+      this.setData({ fsClass: syncFontScaleClass() })
       /* 先进先出：任何深链跳转落定前，update-guard 都要保持排队 */
       this.setData({ updateNavHold: true })
       selectTabBar(this, 0)

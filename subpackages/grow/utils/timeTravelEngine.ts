@@ -7,7 +7,7 @@
    - 热备 3 槽 / 自动快照 5 槽，全部走现有 main 包 Storage 封装
    ========================================================================== */
 
-import { preferenceStore } from '../../../core/stores/preference'
+import { FONT_SCALE_LABELS, preferenceStore } from '../../../core/stores/preference'
 import type { PreferenceSnapshot } from '../../../core/stores/preference'
 import { uiStore } from '../../../core/stores/ui'
 import { toolboxStore } from '../../../core/toolbox/store'
@@ -89,9 +89,10 @@ function preferenceSummary(snapshot: PreferenceSnapshot): string {
   const flagCount = Object.keys(snapshot.flags).filter(
     (key) => key === 'enable_ai_assist' && snapshot.flags.enable_ai_assist,
   ).length
+  const fontLabel = FONT_SCALE_LABELS[snapshot.fontScale] || '标准'
   return `${snapshot.motion} · ${snapshot.haptics} · 音效${snapshot.sound ? '开' : '关'} · 光效${
     snapshot.lightEffects ? '开' : '关'
-  } · ${flagCount} flag`
+  } · 字号${fontLabel} · ${flagCount} flag`
 }
 
 export class TimeTravelEngine {

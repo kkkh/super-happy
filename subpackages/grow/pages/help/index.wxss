@@ -28,6 +28,7 @@
   background: var(--glass-bg);
   border: 1rpx solid var(--glass-border);
   font-size: 26rpx;
+  font-size: calc(26rpx * var(--fs-scale, 1));
   color: var(--glass-text);
 }
 
@@ -64,6 +65,7 @@
 
 .help-block__title {
   font-size: 26rpx;
+  font-size: calc(26rpx * var(--fs-scale, 1));
   font-weight: 600;
   letter-spacing: 2rpx;
   color: var(--glass-text);
@@ -71,6 +73,7 @@
 
 .help-block__count {
   font-size: 21rpx;
+  font-size: calc(21rpx * var(--fs-scale, 1));
   color: var(--glass-text-3);
 }
 
@@ -117,6 +120,7 @@
 
 .help-card__name {
   font-size: 27rpx;
+  font-size: calc(27rpx * var(--fs-scale, 1));
   font-weight: 600;
   color: var(--glass-text);
 }
@@ -124,7 +128,8 @@
 .help-card__summary {
   margin-top: 6rpx;
   font-size: 22rpx;
-  line-height: 1.45;
+  font-size: calc(22rpx * var(--fs-scale, 1));
+  line-height: 1.5;
   color: var(--glass-text-3);
 }
 
@@ -154,6 +159,7 @@
 
 .help-card__label {
   font-size: 20rpx;
+  font-size: calc(20rpx * var(--fs-scale, 1));
   letter-spacing: 2rpx;
   color: var(--glass-text-3);
 }
@@ -161,6 +167,7 @@
 .help-card__step,
 .help-card__tip {
   font-size: 23rpx;
+  font-size: calc(23rpx * var(--fs-scale, 1));
   line-height: 1.55;
   color: var(--glass-text-2);
 }
@@ -176,12 +183,14 @@
 
 .help-card__faq-q {
   font-size: 23rpx;
+  font-size: calc(23rpx * var(--fs-scale, 1));
   font-weight: 600;
   color: var(--glass-text-2);
 }
 
 .help-card__faq-a {
   font-size: 22rpx;
+  font-size: calc(22rpx * var(--fs-scale, 1));
   line-height: 1.55;
   color: var(--glass-text-3);
 }
@@ -194,6 +203,7 @@
   background: var(--glass-bg-strong);
   border: 1rpx solid var(--glass-border);
   font-size: 22rpx;
+  font-size: calc(22rpx * var(--fs-scale, 1));
   color: var(--glass-text);
 }
 
@@ -211,11 +221,13 @@
 
 .help-empty__title {
   font-size: 26rpx;
+  font-size: calc(26rpx * var(--fs-scale, 1));
   color: var(--glass-text-2);
 }
 
 .help-empty__sub {
   font-size: 22rpx;
+  font-size: calc(22rpx * var(--fs-scale, 1));
   color: var(--glass-text-3);
 }
 
@@ -233,6 +245,7 @@
   background: var(--glass-bg);
   border: 1rpx solid var(--glass-border);
   font-size: 22rpx;
+  font-size: calc(22rpx * var(--fs-scale, 1));
   color: var(--glass-text-2);
 }
 
@@ -270,13 +283,15 @@
 
 .help-feedback__title {
   font-size: 26rpx;
+  font-size: calc(26rpx * var(--fs-scale, 1));
   font-weight: 600;
   color: var(--glass-text);
 }
 
 .help-feedback__sub {
   font-size: 22rpx;
-  line-height: 1.45;
+  font-size: calc(22rpx * var(--fs-scale, 1));
+  line-height: 1.5;
   color: var(--glass-text-3);
 }
 
@@ -298,6 +313,7 @@
   word-break: break-all;
   font-family: var(--glass-font-mono);
   font-size: 20rpx;
+  font-size: calc(20rpx * var(--fs-scale, 1));
   line-height: 1.55;
   color: var(--glass-text-2);
 }
@@ -329,6 +345,7 @@
   border-radius: 18rpx;
   background: var(--glass-bg);
   font-size: 21rpx;
+  font-size: calc(21rpx * var(--fs-scale, 1));
   color: var(--glass-text-2);
   text-align: center;
 }

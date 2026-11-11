@@ -23,6 +23,7 @@ import {
   type ExportFormat,
 } from '../../core/services/export'
 import { copyText } from '../../core/services/feedback'
+import { fontScaleClass, syncFontScaleClass } from '../../core/services/font-scale'
 import { normalizePosterData, resolvePosterCategory } from '../../core/toolbox/poster'
 import { pickFooterQuote } from '../../core/toolbox/quotes'
 import { recordToolResult } from '../../core/toolbox/tracker'
@@ -132,6 +133,8 @@ Component({
   data: {
     themeClass: uiStore.themeClass,
     themeSwitching: false,
+    /** 全局字号档：根节点挂类，共享外壳文字与按钮跟随缩放 */
+    fsClass: fontScaleClass(),
     isFavorite: false,
     privacyText: '',
     codeLabel: '',
@@ -198,6 +201,7 @@ Component({
 
   lifetimes: {
     attached() {
+      this.setData({ fsClass: syncFontScaleClass() })
       const holder = this as unknown as ShellState
       holder.scrollTimer = 0
       holder.posterStartTimer = 0
@@ -313,6 +317,8 @@ Component({
 
   pageLifetimes: {
     show() {
+      /* 从设置页返回时字号档可能已变化，先同步根类再处理其它页面逻辑 */
+      this.setData({ fsClass: syncFontScaleClass() })
       uiStore.syncNativeChrome()
       const self = this as unknown as { scheduleDraftPrompt: () => void }
       self.scheduleDraftPrompt()

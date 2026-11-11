@@ -1,4 +1,4 @@
-<view class="fav-page sg-ambient-surface sg-ambient-iris {{themeClass}} {{themeSwitching ? 'theme-breathing' : ''}}">
+<view class="fav-page sg-ambient-surface sg-ambient-iris {{themeClass}} {{fsClass}} {{themeSwitching ? 'theme-breathing' : ''}}">
   <view class="fav-aurora" aria-hidden="true">
     <view class="sg-aurora-a fav-aurora__a"></view>
     <view class="sg-aurora-b fav-aurora__b"></view>
@@ -18,7 +18,7 @@
         <text class="fav-kicker">COLLECTION / 本机</text>
         <view class="fav-title-line">
           <text class="fav-title">收藏</text>
-          <text class="fav-count">{{tools.length}} SAVED</text>
+          <text class="fav-count" aria-role="status" aria-label="已收藏 {{tools.length}} 个工具">{{tools.length}} SAVED</text>
         </view>
         <text wx:if="{{tools.length}}" class="fav-sub">只收藏工具本身，不保存任何输入与结果。当前 {{tools.length}} 个常用工具。</text>
         <text wx:else class="fav-sub">还没有收藏，先把顺手的那个工具留下。</text>
