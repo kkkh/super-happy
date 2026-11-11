@@ -1315,7 +1315,8 @@ Page({
           labelTop - gap > other.bottom
         )
       })
-      const showLabel = !engine.isDegraded() && inBounds && !overlaps
+      /* 文字是核心信息：降级只影响光效与粒子数，标签始终参与排布 */
+      const showLabel = inBounds && !overlaps
       if (showLabel) {
         placedLabels.push({
           left: labelLeft,
