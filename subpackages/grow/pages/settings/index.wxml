@@ -939,12 +939,12 @@
               <g-icon name="compass" size="{{30}}" tone="amber" />
             </view>
             <view class="settings-row__copy">
-              <text class="settings-row__title">AI 实验席位</text>
+              <text class="settings-row__title">创新实验席位</text>
               <text class="settings-row__sub">未来功能，敬请期待；开启仅登记意向</text>
             </view>
             <glass-switch
               checked="{{flagAi}}"
-              aria-label="AI 实验席位"
+              aria-label="创新实验席位"
               bind:change="onAiFlagChange"
             />
           </view>

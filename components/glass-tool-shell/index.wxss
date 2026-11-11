@@ -225,11 +225,14 @@
 }
 
 .tool-shell__footer {
-  padding-top: 8rpx;
+  padding-top: 14rpx;
+  padding-bottom: 4rpx;
   color: var(--glass-text-3);
-  font-family: var(--glass-font-mono);
-  font-size: 16rpx;
-  letter-spacing: 0.08em;
+  font-family: var(--glass-font-sans);
+  font-size: 19rpx;
+  font-weight: 400;
+  letter-spacing: 0.18em;
+  line-height: 1.6;
   text-align: center;
 }
 

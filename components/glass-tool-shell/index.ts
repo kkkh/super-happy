@@ -24,6 +24,7 @@ import {
 } from '../../core/services/export'
 import { copyText } from '../../core/services/feedback'
 import { normalizePosterData, resolvePosterCategory } from '../../core/toolbox/poster'
+import { pickFooterQuote } from '../../core/toolbox/quotes'
 import { recordToolResult } from '../../core/toolbox/tracker'
 import { workflowStore } from '../../core/workflow/workflowStore'
 import type { PosterPayload } from '../poster-generator/index'
@@ -57,6 +58,15 @@ const POSTER_SAVER_DELAY = 240
 const TRACK_DEBOUNCE_MS = 160
 const EXPORT_DEBOUNCE_MS = 300
 const EXPORT_FORMATS: ExportFormat[] = ['txt', 'md', 'csv', 'json']
+
+/** 跨页面连续打开工具时，避免页脚出现同一条哲理 */
+let lastFooterQuote = ''
+
+function nextFooterQuote(): string {
+  const quote = pickFooterQuote(Math.random, lastFooterQuote)
+  lastFooterQuote = quote
+  return quote
+}
 
 Component({
   options: {
@@ -121,6 +131,7 @@ Component({
     exportPending: false,
     exportHint: '',
     exportShareSupported: true,
+    footerQuote: '',
   },
 
   observers: {
@@ -188,6 +199,7 @@ Component({
         headInset,
         navRight,
         exportShareSupported: canShareFile(),
+        footerQuote: nextFooterQuote(),
       })
 
       holder.themeBindings = createStoreBindings(this, {

@@ -181,8 +181,8 @@
         <text class="tool-shell__help-text">查看使用说明</text>
       </view>
 
-      <view class="tool-shell__footer">
-        LOCAL ONLY / 本机计算 · 不上传 · 轨迹摘要仅存本机 · {{codeLabel}}
+      <view class="tool-shell__footer" aria-label="人生哲理：{{footerQuote}}">
+        「{{footerQuote}}」
       </view>
     </view>
   </scroll-view>
