@@ -6,7 +6,7 @@
 > 渲染引擎：Skyline + glass-easel
 > 基础库：`3.17.6`
 > 文档基线：2026-11-11（已按当前源码全量核验）
-> 校验状态：`tsc --noEmit` 通过；`npm test` 734/734 通过（复核于 2026-11-11，95 个测试文件）
+> 校验状态：`tsc --noEmit` 通过；`npm test` 740/740 通过（复核于 2026-11-11，96 个测试文件）
 
 本文是面向开发者的完整 Code Wiki，覆盖项目定位、技术栈、整体架构、启动编排、核心 Store、Workflow 流转引擎、63 个工具算法、全息气象站、全息专注引擎、组件库、81 个页面、设计令牌、存储迁移、隐私与更新机制、依赖关系、运行方式、部署发布流程和扩展指南。文中路径均为仓库相对路径，关键公式与常量标注来源文件。
 
@@ -56,7 +56,7 @@
 | 工具分包依赖 | 2 | `crypto-js`、`diff-match-patch`（仅 tools-core；grow 内有 crypto-js 副本） |
 | AI SKILL 原子接口 | 12 | `core/skill/registry.ts` |
 | 作品数据 | 11 | `core/data/resume-data.ts` 的 `projects` |
-| 单元 / 集成测试 | 701 | 95 个 `.test.js` 文件，全部通过 |
+| 单元 / 集成测试 | 740 | 96 个 `.test.js` 文件，全部通过 |
 | 存储结构版本 | 1 | `app:storage.version` |
 | Spatial Glass 元数据版本 | 2 | `gallery.glass.meta` |
 
@@ -216,7 +216,7 @@ flowchart TB
 | `build:icon` | `npx fantasticon .icon-src -o .icon-dist -n gicon --font-types ttf --asset-types json` | 生成图标字体到 `.icon-dist/` |
 | `pretypecheck` / `pretest` | `node scripts/ensure-weather-config.js` | 自动生成 `weather/config.local.ts`（若缺失），避免 Key 缺失导致编译失败 |
 | `typecheck` | `tsc --noEmit` | 严格类型检查 |
-| `test` | `node --experimental-strip-types --test tests/*.test.js` | 95 个测试文件、734 项全部单元 / 集成测试 |
+| `test` | `node --experimental-strip-types --test tests/*.test.js` | 96 个测试文件、740 项全部单元 / 集成测试 |
 | `test:hologram` | 仅 `tests/spatial-hologram.test.js` | 空间全息单测 |
 | `test:integration` | `tests/*.integration.test.js` | 集成测试 |
 | `test:integration:hologram` | 仅空间全息集成测试 | 集成测试 |
@@ -518,7 +518,7 @@ sequenceDiagram
 ├── store/index.ts             # glassStore 全局门面
 ├── styles/                    # Design Tokens / V3 / 旧工具箱样式
 ├── workers/compute.js         # Worker 计算入口
-├── tests/                     # 734 项测试 + 视觉 / E2E
+├── tests/                     # 740 项测试 + 视觉 / E2E
 ├── assets/                    # 头像、二维码、作品封面
 └── CODE_WIKI.md               # 本文档
 ```
@@ -958,7 +958,7 @@ send<T>(request: TransportRequest<T>): Promise<Result<T>>
 | `core/utils/storage-migration.ts` | `runStorageMigrations()` | v0 → v1 本地数据迁移 |
 | `core/services/motion.ts` | `useMotion()`、`MotionProfile` | 动效等级 / 光效 / 模糊倍率读取 |
 | `core/services/storage-governor.ts` | `readCacheSummary()`、`applyAutoClean()` | 本机缓存摘要、最近使用自动清理 |
-| `core/services/export.ts` | `prepareExport`、`sharePrepared`、`cleanupExport`、`utf8ByteLength`、`sanitizeExportName`、`escapeCsvCell` | 本机 `USER_DATA_PATH/exports` 预写 txt / md / csv / json（CSV 加 UTF-8 BOM），单文件上限 `MAX_EXPORT_BYTES = 2MB`；分享必须由用户 tap 同步触发 |
+| `core/services/export.ts` | `prepareExport`、`sharePrepared`、`cleanupExport`、`cleanupAllExports`、`cleanupStaleExports`、`canShareFile`、`utf8ByteLength`、`sanitizeExportName`、`escapeCsvCell` | 本机 `USER_DATA_PATH/exports` 预写 txt / md / csv / json（CSV 加 UTF-8 BOM），单文件上限 `MAX_EXPORT_BYTES = 2MB`；分享必须由用户 tap 同步触发；启动清理超过 24h 或总量超过 10MB 的旧导出 |
 | `core/services/feedback.ts` | `copyText(text, message?): Promise<boolean>`、`toast(message)` | 全项目剪贴板写入唯一入口：内部前置 `ensurePrivacyAuthorized()`，拒绝时不写并提示；三份分包 `lib/ui.ts` 只做 re-export |
 | `core/services/meetingTimer.ts` | `startMeetingTimer`、`startMeetingTimerAt`、`pauseMeetingTimer`、`resumeMeetingTimer`、`resetMeetingTimer`、`syncMeetingTimer`、`suspendMeetingTimer`、`subscribeMeetingTimer`、`meetingTimerStore` | 会议倒计时全局单例：跨页面按 deadline 计时、暂停冻结剩余、结束前 5 秒与结束时震动 + 声音；页面与 HUD 共用 |
 | `core/toolbox/engines/money.ts` | `parseCents`、`roundHalfUp`、`formatCents`、`parseBasisPoints` | 金额 / 利率唯一实现，tools-core 与 tools-daily 共享 |
@@ -2583,6 +2583,10 @@ flowchart LR
 | `posterValue` / `posterSub` | String | 海报主值 / 说明（旧字段兜底） |
 | `posterData` | Object | `IPosterData`，优先于旧字段 |
 | `updateBlocked` | Boolean | 页面自有弹窗 / 输入态时挂起更新弹窗 |
+| `exportEnabled` | Boolean | 是否显示结果导出入口，默认关闭 |
+| `exportName` | String | 导出文件名（外壳统一清洗与截断） |
+| `exportContent` | String | 导出正文；为空时用 `posterData` 拼兜底文本 |
+| `exportType` | String | `txt` / `md` / `csv` / `json`，非法值回退 `txt` |
 
 插槽：
 
@@ -2605,6 +2609,7 @@ flowchart LR
 - 返回 / 收藏 / 示例 / 运行 / 重置。
 - 输入卡片、结果卡片、空态、错误提示。
 - 结果下方「流转到其他工具」与「生成专属海报」。
+- 结果导出：`exportContent` 变化后 300ms 防抖预写；tap「导出结果文件」同步分享；低版本 / 准备失败 / 分享失败降级为复制；结果变化与卸载清理本页文件；`quote` CSV 与 `image-pdf` PDF 保留专用导出。
 - 自动埋点：`hasResult` / `posterData` 变化后 160ms 防抖写入轨迹。
 - 自动挂载 `workflow-receiver`、`workflow-panel`、`poster-generator`、`poster-preview`、`privacy-guard`、`meeting-timer-hud`、`update-guard`。
 - `update-guard` 的 `blocked` 绑定 `state === 'running' || workflowPanelVisible || posterVisible || isGenerating || updateBlocked`。
@@ -3459,7 +3464,7 @@ npm test
 预期：
 
 - `tsc --noEmit` 无输出即为通过。
-- `npm test` 输出 `tests 734`、`pass 734`、`fail 0`。
+- `npm test` 输出 `tests 740`、`pass 740`、`fail 0`。
 
 说明：
 
@@ -3748,7 +3753,7 @@ npm test
 | 项 | 要求 |
 |---|---|
 | 类型检查 | `npm run typecheck` 通过 |
-| 单元 / 集成测试 | `npm test` 734/734 通过 |
+| 单元 / 集成测试 | `npm test` 740/740 通过 |
 | 样式产物 | `styles/generated/tailwind.wxss` 存在且为最新 |
 | npm 产物 | 根包与 tools-core 的 `miniprogram_npm` 均存在 |
 | 版本号 | `APP_VERSION` 与后台版本说明一致 |
@@ -4000,7 +4005,7 @@ npm test
 | 依赖安装 | `npm ci`（根包 + tools-core） | 无报错，`node_modules` 与分包依赖齐全 |
 | Tailwind 产物 | `npm run build:style` | `styles/generated/tailwind.wxss` 存在且为最新 |
 | 类型检查 | `npm run typecheck` | `tsc --noEmit` 无输出 |
-| 单元 / 集成测试 | `npm test` | `tests 734`、`pass 734`、`fail 0` |
+| 单元 / 集成测试 | `npm test` | `tests 740`、`pass 740`、`fail 0` |
 | Workflow 覆盖 | `tests/workflow-coverage.test.js` | 63 个工具全部注册，适配器 / 来源 / 收发端完整 |
 | 分包路由 | `tests/subpackage-routing.test.js` | 通过 |
 | npm 产物 | 开发者工具「构建 npm」 | 根包 2 个依赖 + tools-core 2 个依赖均生成 |
@@ -4345,7 +4350,7 @@ MP_CI_PRIVATE_KEY_PATH="$MP_CI_KEY_FILE" npm run ci:upload
 
 ### 15.1 测试构成
 
-`npm test` 当前 **734 项全部通过**。
+`npm test` 当前 **740 项全部通过**。
 
 | 测试组 | 文件 | 覆盖主题 |
 |---|---|---|
@@ -4374,7 +4379,7 @@ MP_CI_PRIVATE_KEY_PATH="$MP_CI_KEY_FILE" npm run ci:upload
 | 门禁 | 命令 | 当前状态 |
 |---|---|---|
 | 类型检查 | `npm run typecheck` | 通过 |
-| 单元 / 集成 | `npm test` | 734/734 通过 |
+| 单元 / 集成 | `npm test` | 740/740 通过 |
 | Workflow 覆盖率 | `tests/workflow-coverage.test.js` | 63 工具全部注册 / 适配器 / 来源 / 收发端；15 silent + 48 jump |
 | 分包路由 | `tests/subpackage-routing.test.js` | 通过 |
 | 视觉验收 | `npm run test:visual:hologram` | 需开发者工具 |
@@ -4725,7 +4730,7 @@ MP_CI_PRIVATE_KEY_PATH="$MP_CI_KEY_FILE" npm run ci:upload
 | 分包组件 | 13 / 13，全部在 9.10 中列出 |
 | 工具 | 63 / 63，全部在 6.1 与 8.4 中列出 |
 | `core/` TypeScript 模块 | 66 / 66，均在 5.x、6.x、7.x、8.x、11.x、12.x 或 5.11 中出现 |
-| 测试文件 | 95 个 `.test.js`；`npm test` 734 项通过 |
+| 测试文件 | 96 个 `.test.js`；`npm test` 740 项通过 |
 | 运行时依赖 | 根包 2 个 + tools-core 2 个，均在 2.1 / 13.2 中列出 |
 | 配置文件 | `app.json`、`app.ts`、`theme.json`、`project.config.json`、`project.private.config.json`、`tsconfig.json`、`package.json`、`postcss.config.js`、`sitemap.json` |
 | 存储键 | 41 个运行期键（含 `weather:*` 动态后缀），见 12.1 |

@@ -106,6 +106,26 @@
         <slot name="result"></slot>
       </glass-tool-card>
 
+      <!-- 结果区下方：导出文件；准备失败或低版本时降级为复制 -->
+      <view wx:if="{{hasResult && exportEnabled}}" class="tool-shell__export">
+        <glass-button
+          variant="ghost"
+          size="md"
+          block
+          loading="{{exportPending}}"
+          loading-text="准备文件"
+          disabled="{{exportPending}}"
+          aria-label="{{exportReady && exportShareSupported ? '导出结果文件' : '复制结果内容'}}"
+          bind:tap="onExportTap"
+        >
+          <view class="tool-shell__export-inner">
+            <text class="tool-shell__export-glyph" aria-hidden="true">⇩</text>
+            <text>{{exportReady && exportShareSupported ? '导出结果文件' : '复制结果内容'}}</text>
+          </view>
+        </glass-button>
+        <text wx:if="{{exportHint}}" class="tool-shell__export-hint">{{exportHint}}</text>
+      </view>
+
       <!-- 结果区下方：一键流转到其他工具（呼吸微光 + 触觉反馈） -->
       <view wx:if="{{hasResult}}" class="tool-shell__workflow">
         <view class="tool-shell__workflow-halo" aria-hidden="true"></view>

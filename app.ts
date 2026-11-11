@@ -21,6 +21,7 @@ import {
   syncMeetingTimer,
 } from './core/services/meetingTimer'
 import { applyAutoClean } from './core/services/storage-governor'
+import { cleanupStaleExports } from './core/services/export'
 import {
   clearUpdatePending,
   notifyUpdateGuards,
@@ -120,6 +121,8 @@ App({
     historyStore.init()
     /* 启动即按偏好裁剪过期最近使用；threshold=0 时内部直接返回 */
     applyAutoClean()
+    /* 导出目录：删除超过 24 小时或总量超过 10MB 的旧文件 */
+    cleanupStaleExports()
 
     // 3) 领域数据：本地域瞬回；云图片由各页面按需加载
     resumeStore

@@ -4,6 +4,8 @@
   kicker="{{kicker}}"
   desc="{{desc}}"
   poster-data="{{posterData}}"
+  export-enabled="{{true}}"
+  export-name="{{toolName}}"
   state="{{shellState}}"
   run-label="计算本息"
   has-result="{{hasResult}}"

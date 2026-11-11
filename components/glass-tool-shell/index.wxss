@@ -250,6 +250,34 @@
   text-shadow: 0 0 14rpx rgba(159, 124, 255, 0.9);
 }
 
+/* ---- 结果导出：次级动作，失败降级复制 ---- */
+.tool-shell__export {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+  margin-top: 4rpx;
+  margin-bottom: 8rpx;
+}
+
+.tool-shell__export-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10rpx;
+}
+
+.tool-shell__export-glyph {
+  font-size: 28rpx;
+  line-height: 1;
+}
+
+.tool-shell__export-hint {
+  color: var(--glass-text-3);
+  font-size: 18rpx;
+  line-height: 1.5;
+  text-align: center;
+}
+
 /* ---- 流转入口：呼吸微光 ---- */
 .tool-shell__workflow {
   position: relative;

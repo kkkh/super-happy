@@ -14,6 +14,15 @@ import { tapTick, tapWarn } from '../../core/utils/haptics'
 import { useMotion } from '../../core/services/motion'
 import { useSound } from '../../core/services/sound'
 import { showGlassToast } from '../glass-toast/toast'
+import {
+  canShareFile,
+  cleanupExport,
+  prepareExport,
+  sanitizeExportName,
+  sharePrepared,
+  type ExportFormat,
+} from '../../core/services/export'
+import { copyText } from '../../core/services/feedback'
 import { normalizePosterData, resolvePosterCategory } from '../../core/toolbox/poster'
 import { recordToolResult } from '../../core/toolbox/tracker'
 import { workflowStore } from '../../core/workflow/workflowStore'
@@ -30,6 +39,10 @@ interface ShellState {
   pendingTrackSig: string
   lastTrackSig: string
   lastTrackAt: number
+  /** 结果导出：300ms 预写防抖、序列号防旧结果回填 */
+  exportTimer: number
+  exportSeq: number
+  exportPath: string
 }
 
 interface PosterGeneratorInstance {
@@ -42,6 +55,8 @@ const POSTER_START_DELAY = 560
 const POSTER_SAVER_DELAY = 240
 /** 结果埋点短防抖：只合并同一结果的多路触发，160ms 内连续计算仍分别记录 */
 const TRACK_DEBOUNCE_MS = 160
+const EXPORT_DEBOUNCE_MS = 300
+const EXPORT_FORMATS: ExportFormat[] = ['txt', 'md', 'csv', 'json']
 
 Component({
   options: {
@@ -76,6 +91,11 @@ Component({
     posterData: { type: Object, value: null },
     /** 页面自有弹窗 / 输入态占用时，挂起全局更新弹窗 */
     updateBlocked: { type: Boolean, value: false },
+    /** 结果导出：页面显式开启；默认关闭 */
+    exportEnabled: { type: Boolean, value: false },
+    exportName: { type: String, value: '' },
+    exportContent: { type: String, value: '' },
+    exportType: { type: String, value: 'txt' },
   },
 
   data: {
@@ -96,6 +116,11 @@ Component({
     posterSaver: false,
     /** 流转面板开关：由结果区按钮打开，面板关闭时反向复位 */
     workflowPanelVisible: false,
+    /** 结果导出状态 */
+    exportReady: false,
+    exportPending: false,
+    exportHint: '',
+    exportShareSupported: true,
   },
 
   observers: {
@@ -111,10 +136,20 @@ Component({
         if (this.data.workflowPanelVisible) {
           this.setData({ workflowPanelVisible: false })
         }
+        this.resetExport()
         return
       }
-      const self = this as unknown as { scheduleResultTrack: () => void }
+      const self = this as unknown as {
+        scheduleResultTrack: () => void
+        scheduleExportPrepare: () => void
+      }
       self.scheduleResultTrack()
+      self.scheduleExportPrepare()
+    },
+
+    'exportEnabled, exportContent, exportName, exportType'() {
+      const self = this as unknown as { scheduleExportPrepare: () => void }
+      self.scheduleExportPrepare()
     },
 
     /** 同一页面重复计算 / 输入型工具结果变化：重新防抖 */
@@ -137,6 +172,9 @@ Component({
       holder.pendingTrackSig = ''
       holder.lastTrackSig = ''
       holder.lastTrackAt = 0
+      holder.exportTimer = 0
+      holder.exportSeq = 0
+      holder.exportPath = ''
       const session = resolveToolSession(this.data.toolId)
       const codeLabel = (this.data.toolId || 'local').toUpperCase()
       const windowInfo = wx.getWindowInfo()
@@ -149,6 +187,7 @@ Component({
         kickerLabel: this.data.kicker || session.kicker,
         headInset,
         navRight,
+        exportShareSupported: canShareFile(),
       })
 
       holder.themeBindings = createStoreBindings(this, {
@@ -189,6 +228,15 @@ Component({
       }
       if (holder.posterStartTimer) {
         clearTimeout(holder.posterStartTimer)
+      }
+      if (holder.exportTimer) {
+        clearTimeout(holder.exportTimer)
+        holder.exportTimer = 0
+      }
+      holder.exportSeq = (holder.exportSeq || 0) + 1
+      if (holder.exportPath) {
+        cleanupExport(holder.exportPath)
+        holder.exportPath = ''
       }
       /* 页面已卸载：让在途生成结果失效，避免卸载后回填 setData */
       holder.posterSeq = (holder.posterSeq || 0) + 1
@@ -372,6 +420,141 @@ Component({
         toolId: this.data.toolId,
         toolName: this.data.title || poster.toolName,
         poster,
+      })
+    },
+
+    /* ---- 结果导出：预写文件、tap 内同步分享、失败降级复制 ---- */
+    resolveExportFormat(): ExportFormat {
+      const raw = String(this.data.exportType || '').toLowerCase() as ExportFormat
+      return EXPORT_FORMATS.includes(raw) ? raw : 'txt'
+    },
+
+    /** 页面显式 exportContent 优先；未传时用海报数据拼最小文本 */
+    resolveExportContent(): string {
+      const raw = String(this.data.exportContent || '')
+      if (raw.trim()) {
+        return raw
+      }
+      const poster = normalizePosterData(this.data.posterData)
+      if (!poster) {
+        return ''
+      }
+      return [
+        poster.toolName,
+        `${poster.resultLabel}：${poster.mainResult}`,
+        ...poster.params.map((item) => `${item.label}：${item.value}`),
+        ...poster.extras,
+      ].join('\n')
+    },
+
+    exportDisplayName(): string {
+      const raw = this.data.exportName || this.data.title || '超欢结果'
+      return `${sanitizeExportName(raw)}.${this.resolveExportFormat()}`
+    },
+
+    scheduleExportPrepare() {
+      const holder = this as unknown as ShellState
+      if (holder.exportTimer) {
+        clearTimeout(holder.exportTimer)
+        holder.exportTimer = 0
+      }
+      if (!this.data.exportEnabled || !this.data.hasResult) {
+        this.resetExport()
+        return
+      }
+      holder.exportTimer = setTimeout(() => {
+        holder.exportTimer = 0
+        this.prepareExportFile()
+      }, EXPORT_DEBOUNCE_MS) as unknown as number
+    },
+
+    prepareExportFile() {
+      if (!this.data.exportEnabled || !this.data.hasResult) {
+        this.resetExport()
+        return
+      }
+      const content = this.resolveExportContent()
+      if (!content.trim()) {
+        this.setData({ exportReady: false, exportPending: false, exportHint: '' })
+        return
+      }
+      const holder = this as unknown as ShellState
+      holder.exportSeq = (holder.exportSeq || 0) + 1
+      const seq = holder.exportSeq
+      this.setData({ exportPending: true, exportHint: '' })
+      prepareExport({
+        filename: this.data.exportName || this.data.title || '超欢结果',
+        content,
+        format: this.resolveExportFormat(),
+      }).then((result) => {
+        if (seq !== holder.exportSeq) {
+          /* 结果已变化或页面已卸载：回收迟到的预写文件 */
+          if (result.ok) {
+            cleanupExport(result.path)
+          }
+          return
+        }
+        if (!result.ok) {
+          const hint =
+            result.reason === 'too-large'
+              ? '内容超过 2MB，仅支持复制'
+              : result.reason === 'empty'
+                ? ''
+                : '文件准备失败，可复制内容'
+          this.setData({ exportReady: false, exportPending: false, exportHint: hint })
+          return
+        }
+        if (holder.exportPath && holder.exportPath !== result.path) {
+          cleanupExport(holder.exportPath)
+        }
+        holder.exportPath = result.path
+        this.setData({ exportReady: true, exportPending: false, exportHint: '' })
+      })
+    },
+
+    resetExport() {
+      const holder = this as unknown as ShellState
+      if (holder.exportTimer) {
+        clearTimeout(holder.exportTimer)
+        holder.exportTimer = 0
+      }
+      holder.exportSeq = (holder.exportSeq || 0) + 1
+      if (holder.exportPath) {
+        cleanupExport(holder.exportPath)
+        holder.exportPath = ''
+      }
+      if (this.data.exportReady || this.data.exportPending || this.data.exportHint) {
+        this.setData({ exportReady: false, exportPending: false, exportHint: '' })
+      }
+    },
+
+    copyExportContent() {
+      const content = this.resolveExportContent()
+      if (!content.trim()) {
+        showGlassToast('暂无可导出的内容')
+        return
+      }
+      void copyText(content, '结果内容已复制')
+    },
+
+    onExportTap() {
+      if (!this.data.exportEnabled || !this.data.hasResult) {
+        return
+      }
+      tapTick()
+      const holder = this as unknown as ShellState
+      if (!this.data.exportReady || !holder.exportPath || !this.data.exportShareSupported) {
+        this.copyExportContent()
+        return
+      }
+      sharePrepared(holder.exportPath, this.exportDisplayName()).then((outcome) => {
+        if (outcome === 'cancelled') {
+          showGlassToast({ message: '已取消', type: 'info' })
+          return
+        }
+        if (outcome !== 'shared') {
+          this.copyExportContent()
+        }
       })
     },
 

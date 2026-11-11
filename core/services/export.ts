@@ -21,6 +21,9 @@ export type ExportPrepareResult =
 
 /** 单文件上限 2MB */
 export const MAX_EXPORT_BYTES = 2 * 1024 * 1024
+/** 启动清理：超过 24 小时或总量超过 10MB 的旧导出 */
+export const EXPORT_MAX_AGE_MS = 24 * 60 * 60 * 1000
+export const EXPORT_MAX_TOTAL_BYTES = 10 * 1024 * 1024
 
 const EXPORT_DIR = 'exports'
 const TRUNCATED_NAME = 32
@@ -165,6 +168,73 @@ export function cleanupAllExports(): void {
     }
   } catch {
     /* 目录不存在即无需清理 */
+  }
+}
+
+interface ExportFileInfo {
+  path: string
+  size: number
+  modifiedAt: number
+}
+
+function statsOf(raw: unknown): WechatMiniprogram.Stats | null {
+  if (!raw || typeof raw !== 'object') {
+    return null
+  }
+  const holder = raw as { stats?: WechatMiniprogram.Stats }
+  if (holder.stats && typeof holder.stats === 'object') {
+    return holder.stats
+  }
+  return raw as WechatMiniprogram.Stats
+}
+
+/**
+ * 启动清理：删除超过 24 小时的导出文件，并在总量超过 10MB 时从最旧开始删除。
+ * 同步执行、失败静默；不阻塞首页。
+ */
+export function cleanupStaleExports(now = Date.now()): void {
+  const manager = fsManager()
+  if (!manager) {
+    return
+  }
+  const dir = exportDirPath()
+  let names: string[] = []
+  try {
+    names = manager.readdirSync(dir)
+  } catch {
+    return
+  }
+  const files: ExportFileInfo[] = []
+  for (const name of names) {
+    const filePath = `${dir}/${name}`
+    try {
+      const stats = statsOf(manager.statSync(filePath))
+      if (!stats || (typeof stats.isFile === 'function' && !stats.isFile())) {
+        continue
+      }
+      const rawModified = Number(stats.lastModifiedTime)
+      const modifiedAt = Number.isFinite(rawModified)
+        ? rawModified < 1e12
+          ? rawModified * 1000
+          : rawModified
+        : 0
+      files.push({
+        path: filePath,
+        size: Number(stats.size) || 0,
+        modifiedAt,
+      })
+    } catch {
+      /* 单个文件读取失败不阻断清理 */
+    }
+  }
+
+  let total = files.reduce((sum, file) => sum + file.size, 0)
+  for (const file of files.sort((left, right) => left.modifiedAt - right.modifiedAt)) {
+    const expired = file.modifiedAt > 0 && now - file.modifiedAt > EXPORT_MAX_AGE_MS
+    if (expired || total > EXPORT_MAX_TOTAL_BYTES) {
+      cleanupExport(file.path)
+      total -= file.size
+    }
   }
 }
 
