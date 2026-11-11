@@ -1,0 +1,55 @@
+/* ==========================================================================
+   日期格式 · 日期选择
+   - 只使用 --glass-* 令牌，无硬编码色值
+   ========================================================================== */
+
+.tool-date {
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+}
+
+.tool-date__label {
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 19rpx;
+  letter-spacing: 0.08em;
+}
+
+.tool-date__trigger {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8rpx;
+  box-sizing: border-box;
+  padding: 20rpx 18rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: var(--glass-radius-md);
+  background-color: var(--glass-bg-soft);
+  box-shadow: inset 0 1rpx 0 var(--glass-highlight);
+  transition:
+    border-color var(--glass-duration-fast) var(--glass-ease-out),
+    background-color var(--glass-duration-fast) var(--glass-ease-out);
+}
+
+.tool-date__trigger_pressed {
+  border-color: var(--glass-border-strong);
+  background-color: var(--glass-bg-strong);
+}
+
+.tool-date__text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--glass-text);
+  font-family: var(--glass-font-mono);
+  font-size: 24rpx;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tool-date__hint {
+  color: var(--glass-text-3);
+  font-size: 19rpx;
+}

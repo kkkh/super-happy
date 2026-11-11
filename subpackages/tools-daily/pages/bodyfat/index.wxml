@@ -1,0 +1,135 @@
+<glass-tool-shell
+  tool-id="bodyfat"
+  title="{{toolName}}"
+  kicker="{{kicker}}"
+  desc="{{desc}}"
+  run-label="计算体脂率"
+  state="{{shellState}}"
+  has-result="{{hasResult}}"
+  error="{{error}}"
+  empty-title="填写围度，估算体脂率"
+  empty-sub="海军围度公式只在本机计算，结果仅供参考"
+  bind:run="onRun"
+  bind:example="onExample"
+  bind:reset="onReset"
+>
+  <view slot="input" class="sg-tool-fields">
+    <view class="bf-gender">
+      <view
+        class="bf-gender__item {{gender === 'male' ? 'is-active' : ''}}"
+        data-gender="male"
+        bindtap="onGender"
+        aria-role="button"
+        aria-label="选择男性"
+      >男</view>
+      <view
+        class="bf-gender__item {{gender === 'female' ? 'is-active' : ''}}"
+        data-gender="female"
+        bindtap="onGender"
+        aria-role="button"
+        aria-label="选择女性"
+      >女</view>
+    </view>
+
+    <view class="bf-grid">
+      <view class="bf-col">
+        <glass-input
+          label="身高（cm）"
+          type="digit"
+          maxlength="{{5}}"
+          value="{{height}}"
+          placeholder="例如 175"
+          data-field="height"
+          aria-label="身高，厘米"
+          bind:input="onInput"
+        />
+      </view>
+      <view class="bf-col">
+        <glass-input
+          label="体重（kg）"
+          type="digit"
+          maxlength="{{5}}"
+          value="{{weight}}"
+          placeholder="例如 70"
+          data-field="weight"
+          aria-label="体重，公斤"
+          bind:input="onInput"
+        />
+      </view>
+    </view>
+
+    <view class="bf-grid">
+      <view class="bf-col">
+        <glass-input
+          label="颈围（cm）"
+          type="digit"
+          maxlength="{{5}}"
+          value="{{neck}}"
+          placeholder="例如 38"
+          data-field="neck"
+          aria-label="颈围，厘米"
+          bind:input="onInput"
+        />
+      </view>
+      <view class="bf-col">
+        <glass-input
+          label="腰围（cm）"
+          type="digit"
+          maxlength="{{5}}"
+          value="{{waist}}"
+          placeholder="例如 85"
+          data-field="waist"
+          aria-label="腰围，厘米"
+          bind:input="onInput"
+        />
+      </view>
+    </view>
+
+    <glass-input
+      wx:if="{{isFemale}}"
+      label="臀围（cm）"
+      type="digit"
+      maxlength="{{5}}"
+      value="{{hip}}"
+      placeholder="例如 95"
+      data-field="hip"
+      aria-label="臀围，厘米"
+      bind:input="onInput"
+    />
+
+    <view class="bf-hint">围度用软尺水平贴肤测量，单位为厘米；男性需腰围大于颈围，女性需腰围加臀围大于颈围。</view>
+  </view>
+
+  <view slot="result" class="sg-tool-result">
+    <view class="bf-stage">
+      <view class="bf-percent" aria-role="status">{{percentText}}</view>
+      <view class="bf-chip">{{categoryText}}</view>
+      <view class="bf-caption">{{categoryHint}}</view>
+    </view>
+
+    <view class="sg-tool-rows">
+      <view
+        wx:for="{{resultRows}}"
+        wx:key="k"
+        class="sg-tool-row"
+      >
+        <text class="sg-tool-row__k">{{item.k}}</text>
+        <text class="sg-tool-row__v">{{item.v}}</text>
+      </view>
+    </view>
+
+    <view wx:if="{{reviewText}}" class="bf-review">{{reviewText}}</view>
+
+    <view
+      class="bf-copy"
+      bindtap="onCopy"
+      aria-role="button"
+      aria-label="复制体脂率结果"
+    >点击复制结果</view>
+
+    <view class="sg-tool-note">
+      <text class="sg-tool-note__title">说明</text>
+      <text class="sg-tool-note__text">体脂率按美国海军围度公式估算，不适用于未成年人、孕妇与专业运动员。结果仅供参考，不构成医疗建议；如有健康问题请咨询专业医生。</text>
+    </view>
+  </view>
+</glass-tool-shell>

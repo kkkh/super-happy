@@ -89,7 +89,12 @@ export function decryptVault(cipherText: string, passphrase: string): string | n
       padding: CryptoJS.pad.Pkcs7,
     })
     const plain = decrypted.toString(CryptoJS.enc.Utf8)
-    return plain || null
+    /* CBC 无 MAC：错口令可能恰好通过 padding。控制字符/替换符作为轻量兜底，
+       避免把乱码当成有效冷备还原；真正的完整性仍由密文格式与口令强度保证。 */
+    if (!plain || /[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFD]/.test(plain)) {
+      return null
+    }
+    return plain
   } catch {
     return null
   }

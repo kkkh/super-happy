@@ -20,7 +20,7 @@ import {
   writeIdList,
   writeTimestampMap,
 } from './storage'
-import type { ToolMeta } from './types'
+import type { FavoriteToggleResult, ToolMeta } from './types'
 
 function sanitize(ids: string[]): string[] {
   const seen = new Set<string>()
@@ -79,21 +79,56 @@ export const toolboxStore = observable({
     return this.favorites.includes(id)
   },
 
-  /** 新收藏置顶；乐观更新，持久化失败回滚并返回 null */
-  toggleFavorite(id: string): boolean | null {
+  /** 新收藏置顶；满额返回 full，不挤出旧项；落盘失败回滚并返回 failed */
+  toggleFavorite(id: string): FavoriteToggleResult {
     if (!TOOL_IDS.has(id)) {
-      return false
+      return 'invalid'
     }
     const previous = this.favorites
     const hit = previous.includes(id)
+    if (!hit && previous.length >= MAX_FAVORITES) {
+      return 'full'
+    }
     this.favorites = hit
       ? previous.filter((item) => item !== id)
-      : [id, ...previous].slice(0, MAX_FAVORITES)
+      : [id, ...previous]
     if (!writeIdList(TBX_KEYS.favorites, this.favorites, MAX_FAVORITES)) {
       this.favorites = previous
-      return null
+      return 'failed'
     }
-    return !hit
+    return hit ? 'removed' : 'added'
+  },
+
+  /** 批量移除收藏；返回是否落盘成功 */
+  removeFavorites(ids: string[]): boolean {
+    if (ids.length === 0) {
+      return true
+    }
+    const next = this.favorites.filter((item) => !ids.includes(item))
+    if (next.length === this.favorites.length) {
+      return true
+    }
+    const previous = this.favorites
+    this.favorites = next
+    if (!writeIdList(TBX_KEYS.favorites, next, MAX_FAVORITES)) {
+      this.favorites = previous
+      return false
+    }
+    return true
+  },
+
+  /** 清空收藏；返回是否落盘成功 */
+  clearFavorites(): boolean {
+    if (this.favorites.length === 0) {
+      return true
+    }
+    const previous = this.favorites
+    this.favorites = []
+    if (!writeIdList(TBX_KEYS.favorites, [], MAX_FAVORITES)) {
+      this.favorites = previous
+      return false
+    }
+    return true
   },
 
   recordRecent(id: string): void {

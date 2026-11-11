@@ -1,0 +1,132 @@
+/* ==========================================================================
+   进制转换 · 页面专属布局
+   - 输入框 / 进制选择 / 结果行；只消费 --glass-* 令牌
+   ========================================================================== */
+.tool-field {
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+  padding-bottom: 8rpx;
+}
+
+.tool-field__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.tool-field__label {
+  color: var(--glass-text-2);
+  font-size: 24rpx;
+  font-weight: 600;
+}
+
+.tool-field__hint {
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 20rpx;
+}
+
+.radix-input {
+  width: 100%;
+  height: 92rpx;
+  padding: 0 24rpx;
+  box-sizing: border-box;
+  border-radius: 24rpx;
+  background: var(--glass-bg);
+  border: 1rpx solid var(--glass-border);
+  font-family: var(--glass-font-mono);
+  font-size: 30rpx;
+  color: var(--glass-text);
+}
+
+.radix-input__placeholder {
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-sans);
+  font-size: 24rpx;
+}
+
+.radix-bases {
+  display: flex;
+  gap: 12rpx;
+}
+
+.radix-base {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4rpx;
+  flex: 1;
+  height: 96rpx;
+  border-radius: 22rpx;
+  background: var(--glass-bg);
+  border: 1rpx solid var(--glass-border);
+  transition: transform 140ms var(--glass-ease-out), background 140ms var(--glass-ease-out);
+}
+
+.radix-base--on {
+  background: var(--glass-bg-strong);
+  border-color: var(--glass-border-strong);
+}
+
+.radix-base:active {
+  transform: scale(0.96);
+}
+
+.radix-base__num {
+  font-family: var(--glass-font-mono);
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--glass-text);
+}
+
+.radix-base__label {
+  font-size: 18rpx;
+  color: var(--glass-text-3);
+}
+
+.radix-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.radix-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 18rpx 20rpx;
+  border-radius: 20rpx;
+  background: var(--glass-bg);
+  border: 1rpx solid var(--glass-border);
+}
+
+.radix-row--press {
+  background: var(--glass-bg-strong);
+}
+
+.radix-row__k {
+  flex: none;
+  width: 116rpx;
+  font-size: 21rpx;
+  color: var(--glass-text-3);
+}
+
+.radix-row__v {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--glass-font-mono);
+  font-size: 25rpx;
+  color: var(--glass-text);
+  word-break: break-all;
+}
+
+.radix-row__copy {
+  flex: none;
+  padding: 6rpx 16rpx;
+  border-radius: 999rpx;
+  background: var(--glass-bg-soft);
+  font-size: 19rpx;
+  color: var(--glass-text-3);
+}

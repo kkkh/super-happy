@@ -1,0 +1,88 @@
+<glass-tool-shell
+  tool-id="exif"
+  title="{{toolName}}"
+  kicker="{{kicker}}"
+  desc="{{desc}}"
+  poster-data="{{posterData}}"
+  state="{{shellState}}"
+  show-run="{{false}}"
+  show-example="{{false}}"
+  has-result="{{hasResult}}"
+  error="{{error}}"
+  empty-title="选择一张图片，读取尺寸与格式"
+  empty-sub="相册单图 · 只读元信息 · 不上传"
+  bind:reset="onReset"
+>
+  <view slot="input" class="sg-tool-fields">
+    <view
+      wx:if="{{!imagePath}}"
+      class="ex-blank"
+      bindtap="onChoose"
+      aria-role="button"
+      aria-label="从相册选择一张图片"
+    >
+      <view class="ex-blank__icon">
+        <g-icon name="image" size="{{44}}" tone="media" />
+      </view>
+      <text class="ex-blank__title">从相册选择图片</text>
+      <text class="ex-blank__sub">支持 JPG / PNG / WebP；只读取尺寸、体积、格式与方向</text>
+    </view>
+
+    <view wx:else class="ex-source">
+      <image
+        class="ex-source__img"
+        src="{{imagePath}}"
+        mode="aspectFit"
+        bindtap="onPreview"
+        aria-role="button"
+        aria-label="预览已选图片"
+      />
+      <view class="ex-source__meta">
+        <text class="ex-source__title">{{fileName || '已选择图片'}}</text>
+        <text class="ex-source__sub">{{reading ? '正在读取图片信息…' : '点击图片可放大查看'}}</text>
+      </view>
+      <glass-button variant="ghost" size="sm" bind:tap="onChoose">重新选择</glass-button>
+    </view>
+
+    <view class="ex-hint">
+      只读取微信原生图片信息与文件大小；不解析 GPS、设备型号、拍摄时间等隐私字段，不上传服务器。
+    </view>
+  </view>
+
+  <view slot="result" class="sg-tool-result">
+    <view class="sg-tool-result__head">
+      <text class="sg-tool-result__label">图片信息</text>
+      <text class="sg-tool-result__meta">{{typeLabel}} · {{orientationLabel}}</text>
+    </view>
+
+    <view class="ex-stage">
+      <text class="ex-stage__label">图片尺寸 / PIXELS</text>
+      <text class="ex-stage__main">{{widthText}}</text>
+      <text class="ex-stage__caption">{{typeLabel}} · {{sizeText}} · {{ratioText}}</text>
+    </view>
+
+    <view class="sg-tool-rows">
+      <view wx:for="{{resultRows}}" wx:key="k" class="sg-tool-row">
+        <text class="sg-tool-row__k">{{item.k}}</text>
+        <text class="sg-tool-row__v">{{item.v}}</text>
+      </view>
+    </view>
+
+    <view class="sg-tool-result__actions">
+      <glass-button
+        variant="primary"
+        size="md"
+        block
+        aria-label="复制图片信息"
+        bind:tap="onCopy"
+      >
+        复制图片信息
+      </glass-button>
+    </view>
+
+    <view class="sg-tool-note">
+      <text class="sg-tool-note__title">读取口径</text>
+      <text class="sg-tool-note__text">尺寸与方向来自微信原生 getImageInfo，体积来自本机文件大小；只读取您主动选择的那张图片，不扫描相册、不上传。本工具不解析 EXIF 中的 GPS、设备型号、拍摄时间等字段。</text>
+    </view>
+  </view>
+</glass-tool-shell>

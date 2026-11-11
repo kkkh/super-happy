@@ -1,0 +1,85 @@
+<glass-tool-shell
+  tool-id="qr-decode"
+  title="{{toolName}}"
+  kicker="{{kicker}}"
+  desc="{{desc}}"
+  run-label="识别二维码"
+  poster-data="{{posterData}}"
+  show-example="{{false}}"
+  state="{{shellState}}"
+  has-result="{{hasResult}}"
+  error="{{error}}"
+  empty-title="选择一张二维码图片"
+  empty-sub="相册单图 · 本机解码 · 链接只复制不打开"
+  bind:run="onRun"
+  bind:reset="onReset"
+>
+  <view slot="input" class="sg-tool-fields">
+    <view wx:if="{{devtools}}" class="qr-notice">
+      <text class="qr-notice__text">开发者工具暂不支持 Skyline 画布，请扫码在真机预览中识别二维码。</text>
+    </view>
+
+    <view wx:if="{{!imagePath}}" class="qr-blank" bindtap="onChoose" aria-role="button" aria-label="从相册选择一张二维码图片">
+      <text class="qr-blank__title">从相册选择图片</text>
+      <text class="qr-blank__sub">支持 JPG / PNG；图片只在本机解码，不会上传</text>
+    </view>
+
+    <view wx:else class="qr-source">
+      <image
+        class="qr-source__img"
+        src="{{imagePath}}"
+        mode="aspectFit"
+        bindtap="onPreview"
+        aria-role="button"
+        aria-label="预览已选二维码图片"
+      />
+      <view class="qr-source__meta">
+        <text class="qr-source__title">已选二维码图片</text>
+        <text class="qr-source__sub">{{sourceMeta}}</text>
+        <text class="qr-source__sub">点击图片可放大检查</text>
+      </view>
+      <glass-button variant="ghost" size="sm" bind:tap="onChoose">重新选择</glass-button>
+    </view>
+
+    <view class="qr-hint">选图后点击「识别二维码」开始解码；图片只在本机读取，外链只复制，不会自动打开。</view>
+  </view>
+
+  <view slot="result" class="sg-tool-result">
+    <view class="sg-tool-result__head">
+      <text class="sg-tool-result__label">识别结果</text>
+      <text class="sg-tool-result__meta">{{charCount}} 字</text>
+    </view>
+
+    <view class="sg-tool-result__main" aria-role="status">{{kindLabel}}</view>
+
+    <scroll-view class="qr-text" scroll-y enhanced show-scrollbar="{{false}}">
+      <text class="qr-text__value" user-select>{{displayText}}</text>
+    </scroll-view>
+
+    <view wx:if="{{truncated}}" class="qr-truncated">已截断展示前 2000 字，复制仍保留全文。</view>
+
+    <view class="sg-tool-rows">
+      <view wx:for="{{resultRows}}" wx:key="k" class="sg-tool-row">
+        <text class="sg-tool-row__k">{{item.k}}</text>
+        <text class="sg-tool-row__v">{{item.v}}</text>
+      </view>
+    </view>
+
+    <view class="qr-actions">
+      <glass-button variant="primary" size="md" block bind:tap="onCopy">复制全文</glass-button>
+    </view>
+
+    <view class="sg-tool-note">
+      <text class="sg-tool-note__title">说明</text>
+      <text class="sg-tool-note__text">二维码在画布中按长边 1024px 采样后本机解码；外链只复制文本并提示在浏览器打开，不会直接跳转。图片只在本机处理，退出页面即清理临时文件。</text>
+    </view>
+  </view>
+</glass-tool-shell>
+
+<canvas
+  wx:if="{{!devtools}}"
+  id="qr-canvas"
+  type="2d"
+  class="qr-canvas"
+  style="width: {{canvasCss}}px; height: {{canvasCss}}px;"
+></canvas>

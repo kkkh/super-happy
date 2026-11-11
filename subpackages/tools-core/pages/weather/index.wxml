@@ -1,0 +1,408 @@
+<view class="weather-page {{themeClass}} {{lowMemory ? 'weather-page--low' : ''}}">
+  <view class="weather-aurora" aria-hidden="true">
+    <view class="weather-aurora__blob weather-aurora__blob--a"></view>
+    <view class="weather-aurora__blob weather-aurora__blob--b"></view>
+    <view class="weather-aurora__grid"></view>
+  </view>
+
+  <view class="weather-fx-veil weather-fx-veil--{{weatherFamily}} {{isNight ? 'is-night' : ''}}" aria-hidden="true"></view>
+  <canvas
+    wx:if="{{fxCanvasMounted}}"
+    id="weather-fx"
+    type="2d"
+    class="weather-fx"
+    style="{{fxPxW ? 'width:' + fxPxW + 'px;height:' + fxPxH + 'px;' : ''}}"
+    aria-hidden="true"
+  ></canvas>
+
+  <view class="weather-nav" style="padding-top: {{navTopPx}}px;">
+    <view class="weather-nav__row" style="height: {{navRowHeightPx}}px;">
+      <view
+        class="weather-nav__back"
+        hover-class="weather-nav__back--press"
+        hover-stay-time="80"
+        bindtap="onBackTap"
+        aria-role="button"
+        aria-label="返回"
+      >
+        <text class="weather-nav__back-glyph">‹</text>
+      </view>
+      <view
+        class="weather-nav__title-wrap"
+        bindtap="onHeaderTap"
+        aria-role="button"
+        aria-label="气象数据标题，双击回到定位城市，连续点击五次打开诊断"
+      >
+        <text class="weather-nav__title">全息气象</text>
+        <text class="weather-nav__sub">数据发布 {{reporttimeText}}</text>
+      </view>
+      <view class="weather-nav__actions" style="right: {{navRightInsetPx}}px;">
+        <view
+          class="weather-nav__action"
+          hover-class="weather-nav__action--press"
+          hover-stay-time="80"
+          bindtap="onOpenCities"
+          aria-role="button"
+          aria-label="城市管理"
+        >
+          <g-icon name="pin" size="{{26}}" tone="ink2" />
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <scroll-view
+    class="weather-scroll"
+    scroll-y
+    enhanced
+    show-scrollbar="{{false}}"
+    refresher-enabled="{{true}}"
+    refresher-triggered="{{refreshing}}"
+    bindrefresherrefresh="onRefresherRefresh"
+  >
+    <view
+      class="weather-content"
+      bindtouchstart="onTouchStart"
+      bindtouchmove="onTouchMove"
+      bindtouchend="onTouchEnd"
+    >
+      <view wx:if="{{loading && !hasResult}}" class="weather-loading" aria-live="polite">
+        <view class="weather-loading__bar"></view>
+        <text>{{ready ? '正在获取天气…' : '正在初始化…'}}</text>
+      </view>
+
+      <view class="weather-hero {{hasResult ? '' : 'weather-hero--empty'}}">
+        <view class="weather-hero__head">
+          <view class="weather-hero__place">
+            <text class="weather-hero__city">{{cityName}}</text>
+            <text class="weather-hero__meta">{{province}}{{adcode ? ' · ' + adcode : ''}}{{citySourceLabel ? ' · ' + citySourceLabel : ''}}</text>
+          </view>
+          <view class="weather-hero__badges">
+            <text wx:if="{{stale}}" class="weather-badge weather-badge--stale">可能已过期 · {{cacheAgeText}}</text>
+            <text wx:elif="{{offline}}" class="weather-badge weather-badge--offline">离线</text>
+            <text wx:if="{{reporttimeText !== '—'}}" class="weather-badge weather-badge--time">发布 {{reporttimeText}}</text>
+          </view>
+        </view>
+
+        <view class="weather-hero__main">
+          <view class="weather-hero__visual">
+            <weather-glyph wx:if="{{hasResult}}" family="{{weatherFamily}}" size="lg" tone="{{themeTone}}" night="{{isNight}}" />
+            <view wx:else class="weather-hero__empty-state">数据待接入</view>
+          </view>
+          <view class="weather-hero__temp">
+            <text class="weather-hero__num">{{temperatureText}}</text>
+            <text class="weather-hero__unit">{{temperatureUnit}}</text>
+          </view>
+          <text class="weather-hero__condition">{{weatherName}}</text>
+        </view>
+
+        <view class="weather-metrics">
+          <view class="weather-metric">
+            <text class="weather-metric__label">风向</text>
+            <text class="weather-metric__value">{{winddirection}}</text>
+          </view>
+          <view class="weather-metric">
+            <text class="weather-metric__label">风力</text>
+            <text class="weather-metric__value">{{windpower}} 级</text>
+          </view>
+          <view class="weather-metric">
+            <text class="weather-metric__label">湿度</text>
+            <text class="weather-metric__value">{{humidityText}}{{humidityUnit}}</text>
+          </view>
+          <view class="weather-metric">
+            <text class="weather-metric__label">区域编码</text>
+            <text class="weather-metric__value">{{adcodeText}}</text>
+          </view>
+        </view>
+      </view>
+
+      <scroll-view scroll-x enhanced show-scrollbar="{{false}}" class="weather-cities-strip" bindtouchstart="onStripTouchStart" bindtouchend="onStripTouchEnd">
+        <view class="weather-cities-strip__inner">
+          <view
+            wx:for="{{cities}}"
+            wx:key="adcode"
+            class="weather-city-chip {{index === currentIndex ? 'is-active' : ''}} {{item.source === 'fuzzy' ? 'is-located' : ''}}"
+            data-index="{{index}}"
+            bindtap="onCityTap"
+            bindlongpress="onCityLongPress"
+            aria-role="button"
+            aria-label="{{item.name}}，长按可移除"
+          >
+            <text class="weather-city-chip__name">{{item.name}}</text>
+            <text wx:if="{{item.source === 'fuzzy'}}" class="weather-city-chip__tag">定位</text>
+          </view>
+          <view class="weather-city-chip weather-city-chip--add" bindtap="onAddCity" aria-role="button" aria-label="添加城市">＋</view>
+        </view>
+      </scroll-view>
+
+      <view wx:if="{{errorText}}" class="weather-alert weather-alert--error" aria-live="polite">
+        <text class="weather-alert__title">{{errorText}}</text>
+        <text wx:if="{{errorHint}}" class="weather-alert__desc">{{errorHint}}</text>
+        <view wx:if="{{showRetry}}" class="weather-alert__actions">
+          <glass-button variant="frost" size="sm" bind:tap="onRetry">重试</glass-button>
+          <glass-button variant="ghost" size="sm" bind:tap="onOpenDiagnostics">诊断</glass-button>
+        </view>
+      </view>
+
+      <view class="weather-section weather-card">
+        <view class="weather-section__head">
+          <view class="weather-section__title-wrap">
+            <text class="weather-section__title">{{forecastTitle}}</text>
+            <text class="weather-section__meta">预报发布 {{forecastReport}}</text>
+          </view>
+          <text class="weather-tag">官方 4 天</text>
+        </view>
+
+        <view wx:if="{{!forecastEmpty}}" class="weather-forecast">
+          <view wx:for="{{forecastDays}}" wx:key="date" class="weather-day">
+            <view class="weather-day__top">
+              <text class="weather-day__date">{{item.date}}</text>
+              <text class="weather-day__week">{{item.weekLabel}}</text>
+            </view>
+            <view class="weather-day__row">
+              <weather-glyph family="{{item.dayFamily}}" size="sm" tone="{{themeTone}}" />
+              <view class="weather-day__copy">
+                <text class="weather-day__label">白天</text>
+                <text class="weather-day__weather">{{item.dayweather}}</text>
+              </view>
+              <text class="weather-day__temp">{{item.daytempText === '—' ? '—' : item.daytempText + '°'}}</text>
+            </view>
+            <view class="weather-day__row weather-day__row--night">
+              <weather-glyph family="{{item.nightFamily}}" size="sm" tone="{{themeTone}}" night="{{true}}" />
+              <view class="weather-day__copy">
+                <text class="weather-day__label">夜间</text>
+                <text class="weather-day__weather">{{item.nightweather}}</text>
+              </view>
+              <text class="weather-day__temp">{{item.nighttempText === '—' ? '—' : item.nighttempText + '°'}}</text>
+            </view>
+            <view class="weather-day__wind">
+              <text>昼 {{item.daywind}} {{item.daypower}} 级</text>
+              <text>夜 {{item.nightwind}} {{item.nightpower}} 级</text>
+            </view>
+          </view>
+        </view>
+        <view wx:else class="weather-empty-inline">暂无预报数据，请下拉刷新</view>
+
+        <block wx:if="{{!forecastEmpty}}">
+          <view class="weather-chart-shell" aria-label="{{chartAria}}">
+            <canvas
+              wx:if="{{chartCanvasMounted}}"
+              id="weather-chart"
+              type="2d"
+              class="weather-chart"
+              style="{{chartPxW ? 'width:' + chartPxW + 'px;height:' + chartPxH + 'px;' : ''}}"
+              aria-hidden="true"
+            ></canvas>
+            <view wx:if="{{chartCanvasMounted && !chartReady}}" class="weather-chart-placeholder weather-chart-placeholder--overlay">图表在真机渲染 · 4 天温度趋势</view>
+            <view wx:if="{{!chartCanvasMounted}}" class="weather-chart-placeholder">图表在真机渲染 · 4 天温度趋势</view>
+          </view>
+        </block>
+      </view>
+
+      <view wx:if="{{hourlyPoints.length > 0}}" class="weather-section weather-card">
+        <view class="weather-section__head">
+          <view class="weather-section__title-wrap">
+            <text class="weather-section__title">24 小时温度推算</text>
+            <text class="weather-section__meta">由 4 天预报插值，不是逐小时实况</text>
+          </view>
+          <text class="weather-tag">基于预报推算</text>
+        </view>
+        <view class="weather-chart-shell weather-chart-shell--hourly" aria-label="{{hourlyAria}}">
+          <canvas
+            wx:if="{{hourlyCanvasMounted}}"
+            id="weather-hourly"
+            type="2d"
+            class="weather-chart weather-chart--hourly"
+            style="{{hourlyPxW ? 'width:' + hourlyPxW + 'px;height:' + hourlyPxH + 'px;' : ''}}"
+            aria-hidden="true"
+          ></canvas>
+          <view wx:if="{{hourlyCanvasMounted && !hourlyReady}}" class="weather-chart-placeholder weather-chart-placeholder--overlay weather-chart-placeholder--hourly">真机渲染 24 小时曲线</view>
+          <view wx:if="{{!hourlyCanvasMounted}}" class="weather-chart-placeholder weather-chart-placeholder--hourly">{{hourlyPoints.length > 0 ? '真机渲染 24 小时曲线' : '暂无足够预报数据'}}</view>
+        </view>
+        <scroll-view scroll-x enhanced show-scrollbar="{{false}}" class="weather-hourly-strip" bindtouchstart="onStripTouchStart" bindtouchend="onStripTouchEnd">
+          <view class="weather-hourly-strip__inner">
+            <view
+              wx:for="{{hourlyPoints}}"
+              wx:key="label"
+              class="weather-hourly-chip {{item.isNight ? 'is-night' : ''}}"
+            >
+              <text class="weather-hourly-chip__time">{{item.label}}</text>
+              <text class="weather-hourly-chip__temp">{{item.tempText}}°</text>
+              <text class="weather-hourly-chip__weather">{{item.weather}}</text>
+            </view>
+          </view>
+        </scroll-view>
+      </view>
+
+      <view class="weather-card weather-sun">
+        <view class="weather-sun__head">
+          <text class="weather-sun__title">日出日落</text>
+          <text class="weather-tag">{{sunKind === 'polar-day' ? '极昼' : sunKind === 'polar-night' ? '极夜' : '本地计算'}}</text>
+        </view>
+        <view class="weather-sun__row">
+          <view class="weather-sun__item">
+            <text class="weather-sun__label">日出</text>
+            <text class="weather-sun__value">{{sunrise}}</text>
+          </view>
+          <view class="weather-sun__item">
+            <text class="weather-sun__label">日落</text>
+            <text class="weather-sun__value">{{sunset}}</text>
+          </view>
+        </view>
+        <text class="weather-note">{{sunNote}}</text>
+      </view>
+
+      <view class="weather-section weather-card weather-extensions">
+        <view class="weather-extension">
+          <view class="weather-extension__head">
+            <text class="weather-extension__title">AQI 与生活指数</text>
+            <text class="weather-extension__tag">扩展接口预留</text>
+          </view>
+          <text class="weather-extension__desc">{{aqiText}}</text>
+          <view class="weather-extension__skeleton" aria-hidden="true">
+            <view class="weather-extension__bar"></view>
+            <view class="weather-extension__bar weather-extension__bar--short"></view>
+          </view>
+        </view>
+
+        <view class="weather-extension">
+          <view class="weather-extension__head">
+            <text class="weather-extension__title">气象预警</text>
+            <text class="weather-extension__tag">诚实降级</text>
+          </view>
+          <text class="weather-extension__desc">{{alertText}}</text>
+        </view>
+
+        <view wx:if="{{minutelyVisible}}" class="weather-extension">
+          <view class="weather-extension__head">
+            <text class="weather-extension__title">分钟级降水</text>
+            <text class="weather-extension__tag">实验能力</text>
+          </view>
+          <text class="weather-extension__desc">{{minutelyText}}</text>
+        </view>
+      </view>
+
+      <view class="weather-footer">
+        <text class="weather-footer__source">数据来源 高德开放平台 · 仅展示标准天气字段 · 不伪造 AQI / 预警 / 逐小时实况</text>
+        <glass-button variant="frost" size="sm" bind:tap="onOpenWorkflow">流转天气摘要</glass-button>
+      </view>
+    </view>
+  </scroll-view>
+
+  <glass-bottom-sheet
+    show="{{citySheetOpen}}"
+    title="城市"
+    description="最多 5 个城市 · 定位城市不可移除 · 长按其他城市可删除"
+    size="tall"
+    bind:close="onCloseCities"
+  >
+    <view class="weather-city-sheet">
+      <view
+        wx:for="{{cities}}"
+        wx:key="adcode"
+        class="weather-city-row {{index === currentIndex ? 'is-active' : ''}}"
+        data-index="{{index}}"
+        bindtap="onCityTap"
+        bindlongpress="onCityLongPress"
+      >
+        <view class="weather-city-row__copy">
+          <text class="weather-city-row__name">{{item.name}}</text>
+          <text class="weather-city-row__meta">{{item.province}}{{item.source === 'fuzzy' ? ' · 定位城市' : item.source === 'ip' ? ' · IP 定位' : ' · 手动添加'}}</text>
+        </view>
+        <text class="weather-city-row__code">{{item.adcode}}</text>
+      </view>
+
+      <glass-button variant="primary" block bind:tap="onAddCity">添加城市</glass-button>
+
+      <view class="weather-ambient">
+        <view class="weather-ambient__copy">
+          <text class="weather-ambient__title">环境音 · {{ambientSceneLabel}}</text>
+          <text class="weather-ambient__desc">{{ambientHint}}</text>
+        </view>
+        <switch
+          checked="{{ambientEnabled}}"
+          disabled="{{!ambientAvailable || !ambientScene}}"
+          color="#8F9BFF"
+          bindchange="onToggleAmbient"
+        />
+      </view>
+      <text class="weather-note">定位仅用于获取城市与日出日落，精确坐标不上传；天气数据由高德开放平台提供。</text>
+    </view>
+  </glass-bottom-sheet>
+
+  <glass-bottom-sheet
+    show="{{searchOpen}}"
+    title="添加城市"
+    description="输入省 / 市 / 区名称，选择后加入城市列表"
+    size="tall"
+    bind:close="onSearchClose"
+  >
+    <view class="weather-search">
+      <glass-input
+        value="{{searchKeyword}}"
+        placeholder="例如 杭州 / 西湖"
+        clearable
+        focus="{{searchFocus}}"
+        bind:input="onSearchInput"
+        bind:confirm="onSearchConfirm"
+      />
+      <view wx:if="{{searchLoading}}" class="weather-search__state">正在搜索行政区…</view>
+      <view wx:elif="{{searchError}}" class="weather-search__state weather-search__state--error">{{searchError}}</view>
+      <view wx:elif="{{searchEmpty}}" class="weather-search__state">未找到匹配的行政区</view>
+      <view
+        wx:for="{{searchResults}}"
+        wx:key="adcode"
+        class="weather-search-row"
+        data-adcode="{{item.adcode}}"
+        bindtap="onSearchSelect"
+        aria-role="button"
+        aria-label="添加 {{item.name}}"
+      >
+        <view class="weather-search-row__copy">
+          <text class="weather-search-row__name">{{item.name}}</text>
+          <text class="weather-search-row__level">{{item.level}}</text>
+        </view>
+        <text class="weather-search-row__code">{{item.adcode}}</text>
+      </view>
+    </view>
+  </glass-bottom-sheet>
+
+  <glass-bottom-sheet
+    show="{{diagnosticsOpen}}"
+    title="极客诊断"
+    description="Key 已脱敏 · 仅本机可见 · 不含经纬度"
+    size="tall"
+    bind:close="onCloseDiagnostics"
+  >
+    <view class="weather-diagnostics">
+      <view class="weather-diag__row">
+        <text class="weather-diag__label">Key</text>
+        <text class="weather-diag__value">{{diagnosticsKey}}</text>
+      </view>
+      <text class="weather-diag__text">{{diagnosticsText}}</text>
+
+      <view class="weather-lab">
+        <view class="weather-lab__copy">
+          <text class="weather-lab__title">实验室 · 分钟级降水</text>
+          <text class="weather-lab__desc">开启只展示扩展位，不发起任何请求</text>
+        </view>
+        <switch checked="{{labEnabled}}" color="#8F9BFF" bindchange="onToggleLab" />
+      </view>
+
+      <view class="weather-diag__actions">
+        <glass-button variant="frost" size="sm" bind:tap="onCopyDiagnostics">复制诊断</glass-button>
+        <glass-button variant="ghost" size="sm" bind:tap="onCloseDiagnostics">关闭</glass-button>
+      </view>
+    </view>
+  </glass-bottom-sheet>
+
+  <workflow-receiver tool-id="weather" />
+  <workflow-panel
+    show="{{workflowPanelVisible}}"
+    source-tool-id="weather"
+    bind:close="onWorkflowPanelClose"
+  />
+  <glass-toast />
+  <privacy-guard />
+  <update-guard blocked="{{citySheetOpen || searchOpen || diagnosticsOpen}}" />
+</view>

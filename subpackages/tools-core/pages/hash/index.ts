@@ -10,6 +10,10 @@ import { uiStore } from '../../../../core/stores/ui'
 import { tapSuccess, tapTick, tapWarn } from '../../../../core/utils/haptics'
 import type { IWorkflowData } from '../../../../core/workflow/types'
 import type { IPosterData } from '../../../../core/toolbox/poster'
+import {
+  sharePayloadForCurrentPage,
+  timelinePayloadForCurrentPage,
+} from '../../../../core/toolbox/share'
 import { copyText } from '../../lib/ui'
 import {
   HASH_ALGORITHMS,
@@ -106,6 +110,14 @@ function buildHashPoster(input: {
 }
 
 Page({
+  onShareAppMessage() {
+    return sharePayloadForCurrentPage()
+  },
+
+  onShareTimeline() {
+    return timelinePayloadForCurrentPage()
+  },
+
   data: {
     toolName: 'Hash 加密',
     kicker: '安全工具',

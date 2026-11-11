@@ -23,6 +23,7 @@ import {
 import { readWorkflowSource, summarizeWorkflowSource } from '../../core/workflow/workflowSource'
 import { TOOLS } from '../../core/toolbox/registry'
 import { tapSuccess, tapTick, tapWarn } from '../../core/utils/haptics'
+import { copyText } from '../../core/services/feedback'
 import { showGlassToast } from '../glass-toast/toast'
 import type {
   IWorkflowData,
@@ -963,33 +964,12 @@ Component({
         runtime.partialCopyTimer = setTimeout(release, COPY_LOCK_MS) as unknown as number
       }
 
-      try {
-        wx.setClipboardData({
-          data: text,
-          success: () => {
-            if (runtime.destroyed) {
-              return
-            }
-            tapSuccess()
-            showGlassToast({ message: '已复制到剪贴板', type: 'success' })
-          },
-          fail: () => {
-            if (runtime.destroyed) {
-              return
-            }
-            release()
-            tapWarn()
-            showGlassToast({ message: '复制失败，请重试', type: 'error' })
-          },
-        })
-      } catch {
-        if (runtime.destroyed) {
+      void copyText(text, '已复制到剪贴板').then((ok) => {
+        if (runtime.destroyed || ok) {
           return
         }
         release()
-        tapWarn()
-        showGlassToast({ message: '当前环境不支持剪贴板', type: 'error' })
-      }
+      })
     },
 
     onViewFull(): void {

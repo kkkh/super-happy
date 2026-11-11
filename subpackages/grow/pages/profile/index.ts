@@ -19,6 +19,7 @@ import {
   type DrawCtx,
 } from '../../lib/card'
 import { logger } from '../../../../core/utils/logger'
+import { copyText } from '../../../../core/services/feedback'
 import { isDevtools } from '../../../../core/utils/platform'
 import { tapSuccess, tapTick, tapWarn } from '../../../../core/utils/haptics'
 import { albumFailureMessage, saveImageToAlbum } from '../../../../core/utils/album'
@@ -174,15 +175,7 @@ Page<ProfileData, ProfileState>({
       return
     }
     tapTick()
-    wx.setClipboardData({
-      data: this.data.profile.email,
-      success: () => {
-        /* 收起系统自带的「内容已复制」，避免与品牌 Toast 叠层 */
-        wx.hideToast()
-        uiStore.showToast('邮箱已复制')
-      },
-      fail: () => uiStore.showToast('复制未完成'),
-    })
+    void copyText(this.data.profile.email, '邮箱已复制')
   },
 
   /* ---- 名片生成 ---- */

@@ -1,0 +1,126 @@
+/* ==========================================================================
+   图片信息 · 空间玻璃页面样式
+   - 只使用 --glass-* / --sg-* 令牌，无硬编码色值
+   ========================================================================== */
+
+/* ---- 选图 ---- */
+.ex-blank {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  box-sizing: border-box;
+  padding: 56rpx 24rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: var(--glass-radius-md);
+  background-color: var(--glass-bg-soft);
+  box-shadow: inset 0 1rpx 0 var(--glass-inner-glow);
+}
+
+.ex-blank__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 96rpx;
+  height: 96rpx;
+  border: 1rpx solid var(--glass-border-strong);
+  border-radius: 28rpx;
+  background-color: var(--glass-accent-soft);
+  box-shadow: var(--glass-shadow-soft);
+}
+
+.ex-blank__title {
+  color: var(--glass-text);
+  font-size: 27rpx;
+  font-weight: 700;
+}
+
+.ex-blank__sub {
+  color: var(--glass-text-3);
+  font-size: 21rpx;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.ex-source {
+  display: flex;
+  flex-direction: column;
+  gap: 14rpx;
+  box-sizing: border-box;
+  padding: 14rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: var(--glass-radius-md);
+  background-color: var(--glass-bg-soft);
+}
+
+.ex-source__img {
+  display: block;
+  width: 100%;
+  height: 420rpx;
+  border-radius: var(--glass-radius-xs);
+  background-color: var(--glass-bg);
+}
+
+.ex-source__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+  min-width: 0;
+}
+
+.ex-source__title {
+  color: var(--glass-text);
+  font-size: 24rpx;
+  font-weight: 600;
+  word-break: break-all;
+}
+
+.ex-source__sub {
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 19rpx;
+  line-height: 1.5;
+}
+
+.ex-hint {
+  color: var(--glass-text-3);
+  font-size: 20rpx;
+  line-height: 1.6;
+}
+
+/* ---- 结果 ---- */
+.ex-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+  box-sizing: border-box;
+  padding: 22rpx 20rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: var(--glass-radius-md);
+  background-color: var(--glass-bg-soft);
+}
+
+.ex-stage__label {
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 17rpx;
+  letter-spacing: 0.12em;
+}
+
+.ex-stage__main {
+  color: var(--glass-text);
+  font-family: var(--glass-font-mono);
+  font-size: 40rpx;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.ex-stage__caption {
+  color: var(--glass-text-2);
+  font-size: 21rpx;
+  line-height: 1.5;
+}
+
+/* ---- 注释 ---- */

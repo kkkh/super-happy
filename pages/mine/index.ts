@@ -9,6 +9,7 @@ import { toolboxStore } from '../../core/toolbox/store'
 import { selectTabBar } from '../../core/toolbox/tabbar'
 import { tapSuccess, tapTick, tapWarn } from '../../core/utils/haptics'
 import { ROUTES, ACTION_COLORS, APP_VERSION } from '../../core/constants/index'
+import { TOOLS } from '../../core/toolbox/registry'
 import { showGlassToast } from '../../components/glass-toast/toast'
 import type { ThemeMode } from '../../core/types/index'
 import {
@@ -65,6 +66,7 @@ Page({
     themeIndex: THEME_INDEX[uiStore.themeMode],
     themeHint: themeHintOf(),
     favoriteCount: toolboxStore.favoriteCount,
+    toolCount: TOOLS.length,
     version: APP_VERSION,
     email: FEEDBACK_EMAIL,
     themes: [
@@ -164,6 +166,16 @@ Page({
     })
   },
 
+  onOpenHelp() {
+    tapTick()
+    wx.navigateTo({
+      url: ROUTES.help,
+      fail: () => {
+        showMineToast('使用指南加载失败，请稍后重试', 'error')
+      },
+    })
+  },
+
   onCopyEmail() {
     wx.setClipboardData({
       data: FEEDBACK_EMAIL,
@@ -184,7 +196,7 @@ Page({
     tapWarn()
     wx.showModal({
       title: '清空工具数据',
-      content: '将清空最近使用、工具收藏、当前计算轨迹、快照中的历史轨迹与提示状态，操作不可恢复；简历、作品收藏与外观设置不受影响。',
+      content: '将清空最近使用、工具收藏、打开次数、当前计算轨迹、快照中的历史轨迹、快捷管道与提示状态，操作不可恢复；专注记录、天气缓存、简历、作品收藏、外观与偏好设置不受影响。',
       confirmText: '确认清空',
       confirmColor: ACTION_COLORS.danger,
       cancelText: '取消',

@@ -19,9 +19,9 @@
   >
     <view class="legal-inner">
       <view class="legal-head">
-        <text class="legal-kicker">LEGAL / LOCAL ONLY</text>
+        <text class="legal-kicker">LEGAL / LOCAL FIRST</text>
         <text class="legal-title">先说清楚，再开始</text>
-        <text class="legal-desc">超欢不登录、不联网请求、不上传任何内容。以下说明生效于 {{effectiveDate}}。</text>
+        <text class="legal-desc">超欢不登录、不设账号、不上传您的内容；除「全息气象」按需向高德开放平台请求天气、以及「汇率换算」按需向中国外汇交易中心请求人民币汇率中间价外，其余功能全部在本机完成。以下说明生效于 {{effectiveDate}}。</text>
       </view>
 
       <view class="legal-seg" aria-role="tablist" aria-label="说明章节">
@@ -50,11 +50,11 @@
             </view>
             <view class="legal-card__head-main">
               <text class="legal-card__title">隐私说明</text>
-              <text class="legal-card__kicker">PRIVACY / NO CLOUD</text>
+              <text class="legal-card__kicker">PRIVACY / LOCAL FIRST</text>
             </view>
           </view>
 
-          <text class="legal-body">本小程序是一款纯本机效率工具合集，没有账号体系、没有后端服务、没有广告 SDK、没有第三方统计 SDK。我们不收集、不上传您的姓名、手机号、邮箱、位置、设备标识或任何输入内容；工具输入只在本机参与计算，轨迹摘要按下方说明保存在本机。</text>
+          <text class="legal-body">本小程序是 {{toolCount}} 个效率工具的合集，没有账号体系、没有自建后端、没有广告 SDK、没有第三方统计 SDK。除「全息气象」按需向高德开放平台请求天气数据外，我们不向任何服务器上传您的姓名、手机号、邮箱、设备标识或工具输入内容；除您主动产生的轨迹摘要、专注记录、时间旅行快照与天气/城市缓存外，工具输入只在本机参与计算。</text>
 
           <view class="legal-list">
             <view class="legal-list__item">
@@ -63,7 +63,7 @@
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
-              <text class="legal-list__text">图片只在您主动选择时读取该张图片，并在本机处理，临时文件在页面退出时清理。</text>
+              <text class="legal-list__text">图片只在您主动选择时读取该张图片，并在本机处理；临时文件由页面退出、系统清理或快捷管道的回收队列处理，不上传。证件照换底只做像素级背景替换，不做人脸识别、不提取人脸特征。</text>
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
@@ -71,12 +71,42 @@
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
-              <text class="legal-list__text">不申请位置、通讯录、相机或麦克风权限，也不读取剪贴板内容；仅在您点击复制时写入剪贴板。</text>
+              <text class="legal-list__text">隐私授权：首次使用定位、相册、剪贴板等敏感能力前，会通过 wx.requirePrivacyAuthorize 弹出微信《用户隐私保护指引》；您同意后才继续，拒绝则相关功能降级，其余工具不受影响。</text>
+            </view>
+            <view class="legal-list__item">
+              <view class="legal-list__dot" aria-hidden="true"></view>
+              <text class="legal-list__text">全息气象：仅在您打开气象站并同意隐私授权后，申请城市级模糊定位（wx.getFuzzyLocation）；经纬度仅用于向高德逆地理编码换取 adcode 并请求天气，微信返回的模糊坐标会作为城市中心点保存在本机（仅用于日出日落估算），不保存设备精确坐标。拒绝授权时自动降级为 IP 定位或手动选择城市。</text>
+            </view>
+            <view class="legal-list__item">
+              <view class="legal-list__dot" aria-hidden="true"></view>
+              <text class="legal-list__text">汇率换算：仅在您打开汇率页时向中国外汇交易中心请求人民币汇率中间价；请求不包含金额、币种选择或其他输入。官方中间价按交易日 9:15 发布，返回的牌价与更新时间仅缓存本机用于网络失败时回退。</text>
+            </view>
+            <view class="legal-list__item">
+              <view class="legal-list__dot" aria-hidden="true"></view>
+              <text class="legal-list__text">IP 定位：仅在模糊定位不可用或被拒绝时调用高德 IP 定位，获取城市级省市与 adcode；局域网、非法或高德无法识别的 IP 会跳过并转手动选城。</text>
+            </view>
+            <view class="legal-list__item">
+              <view class="legal-list__dot" aria-hidden="true"></view>
+              <text class="legal-list__text">网络请求：气象站仅向 https://restapi.amap.com 发送模糊经纬度、adcode、城市搜索关键词与高德 Web服务 Key，用于实况、4 天预报、逆地理编码、IP 定位与行政区搜索；汇率换算仅向 https://www.chinamoney.com.cn 请求公开的中间价 JSON。两者都不发送通讯录、相册、剪贴板或其他工具的输入内容。</text>
+            </view>
+            <view class="legal-list__item">
+              <view class="legal-list__dot" aria-hidden="true"></view>
+              <text class="legal-list__text">剪贴板只在您点击「复制」时写入，只在「设置 → Sliced Transport」点击「从剪贴板追加」时读取一次，不后台读取、不保存剪贴板内容。</text>
+            </view>
+            <view class="legal-list__item">
+              <view class="legal-list__dot" aria-hidden="true"></view>
+              <text class="legal-list__text">设备能力：震动只调用系统短震动；界面音效只播放内嵌 WAV；全息视差在支持机型上读取设备姿态（加速度/陀螺仪）仅用于画面阻尼，开启「省电模式」即关闭；专注「翻转黑屏」会读取设备姿态，仅在本机判断手机是否面朝下，可在专注设置关闭；专注模式会读取当前亮度并临时调暗、计时期间保持屏幕常亮，退出即恢复原亮度，亮度值只在本机用于恢复；专注后台提示音为本机生成的 1 秒低振幅 WAV；以上均不录音、不采集声音。</text>
+            </view>
+            <view class="legal-list__item">
+              <view class="legal-list__dot" aria-hidden="true"></view>
+              <text class="legal-list__text">不申请通讯录、相机或麦克风权限；位置权限仅用于气象站的城市级模糊定位，可拒绝并自动降级。</text>
             </view>
           </view>
 
-          <text class="legal-body">您可在微信「设置 → 小程序 → 超欢 → 权限管理」中撤回相册权限。撤回后仅影响保存图片，不影响本机计算。</text>
+          <text class="legal-body">第三方服务：全息气象接入高德开放平台 Web 服务 API，汇率换算接入中国外汇交易中心公开中间价接口。请求由微信客户端直接发出，服务方可获取请求 IP、调用时间与请求参数；汇率请求不包含金额或币种选择。本程序不向其发送微信身份信息、手机号或本机存储内容。高德隐私政策：https://lbs.amap.com/pages/privacy/</text>
+          <text class="legal-body">您可在微信「设置 → 小程序 → 超欢 → 权限管理」中撤回相册或位置权限。撤回相册仅影响保存图片；撤回位置后气象站改用 IP 定位或手动选城；设备方向随「省电模式」关闭，剪贴板仅在您点击对应按钮时读取，不影响其他工具。</text>
           <text class="legal-body">本程序不面向未成年人定向收集信息，也不提供付费、打赏、社交、抽奖或虚拟支付功能。</text>
+          <text class="legal-body">本页为小程序内说明；微信后台公示的《用户隐私保护指引》与本页不一致时，以后台公示版本为准。</text>
         </glass-card>
       </view>
 
@@ -92,12 +122,12 @@
             </view>
           </view>
 
-          <text class="legal-body">为了记住您的常用工具与定位本机异常，本机只保存以下轻量数据，分别位于 tbx:、gallery: 与 diag: 命名空间：</text>
+          <text class="legal-body">为了记住您的常用工具、天气城市、专注记录并定位本机异常，本机只保存以下轻量数据，主要位于 tbx:、app:、gallery.、weather:、focus:、cyber: 与 diag: 命名空间。全部数据仅存于微信小程序本地缓存与本地文件目录，不含账号、身份或设备精确位置。</text>
 
           <view class="legal-list">
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
-              <text class="legal-list__text">tbx:recent：最近使用的工具 id，最多 12 个。</text>
+              <text class="legal-list__text">tbx:recent 与 tbx:recent.at：最近使用的工具 id（最多 12 个）与对应时间戳，仅用于首页排序和自动清理。</text>
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
@@ -105,11 +135,51 @@
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
+              <text class="legal-list__text">tbx:searchHistory：最近搜索的关键词文本，最多 8 条，仅用于搜索框历史提示；不含输入内容、不做统计、不上传，可随时在搜索框清空。</text>
+            </view>
+            <view class="legal-list__item">
+              <view class="legal-list__dot" aria-hidden="true"></view>
+              <text class="legal-list__text">tbx:fx.official.v1：最近一次中国外汇交易中心人民币汇率中间价与更新时间，仅用于网络失败时离线回退；不含金额、币种选择或其他输入，可随「清空工具数据」删除。</text>
+            </view>
+            <view class="legal-list__item">
+              <view class="legal-list__dot" aria-hidden="true"></view>
+              <text class="legal-list__text">tbx:usage：累计打开工具的次数（单个整数），仅用于首页数字看板；清空工具数据时一并删除。</text>
+            </view>
+            <view class="legal-list__item">
+              <view class="legal-list__dot" aria-hidden="true"></view>
               <text class="legal-list__text">tbx:history：本机计算轨迹摘要，最多 100 条，超限自动淘汰最旧；含工具名称、时间、输入/输出摘要与白昼/夜航主题快照，默认在数据驾驶舱脱敏显示，可一键清空。</text>
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
-              <text class="legal-list__text">tbx:legacy-tip-home：旧简历迁移提示的关闭状态。</text>
+              <text class="legal-list__text">tbx:workflow.pipes：快捷管道 A → B 的工具配对与成功流转次数，最多 6 条，仅用于推荐排序。</text>
+            </view>
+            <view class="legal-list__item">
+              <view class="legal-list__dot" aria-hidden="true"></view>
+              <text class="legal-list__text">tbx:workflow.garbage：待回收的临时图片路径队列，用于跨启动清理 saveFile 产物；只存路径，不含图片内容。</text>
+            </view>
+            <view class="legal-list__item">
+              <view class="legal-list__dot" aria-hidden="true"></view>
+              <text class="legal-list__text">tbx:prefs、tbx:ack.finance.v1、tbx:ack.health.v1、tbx:legacy-tip、tbx:legacy-tip-home：旧版偏好仅在升级时读取；其余只保存金融、健康、收藏提示的确认或关闭状态（布尔值）。</text>
+            </view>
+            <view class="legal-list__item">
+              <view class="legal-list__dot" aria-hidden="true"></view>
+              <text class="legal-list__text">tbx:helpBannerDismissed：首页帮助横幅的关闭状态（布尔值），仅用于避免重复提示，可随「清空工具数据」删除。</text>
+            </view>
+            <view class="legal-list__item">
+              <view class="legal-list__dot" aria-hidden="true"></view>
+              <text class="legal-list__text">app:prefs.v1：震动、音效、光效、动画与自动清理天数等全局偏好；app:prefs.v0 仅在升级时读取一次。</text>
+            </view>
+            <view class="legal-list__item">
+              <view class="legal-list__dot" aria-hidden="true"></view>
+              <text class="legal-list__text">app:storage.version：本地数据版本号，仅用于升级时安全迁移旧数据；hasPendingUpdate：更新提示红点标记（布尔值），更新生效或确认无更新后自动清除。</text>
+            </view>
+            <view class="legal-list__item">
+              <view class="legal-list__dot" aria-hidden="true"></view>
+              <text class="legal-list__text">gallery.theme.mode：白昼 / 夜航 / 跟随系统，由超欢整体共用。</text>
+            </view>
+            <view class="legal-list__item">
+              <view class="legal-list__dot" aria-hidden="true"></view>
+              <text class="legal-list__text">gallery.glass.meta：Spatial Glass 界面元数据，含版本号、迁移时间、外观模式与环境预设，不含身份信息或设备标识。</text>
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
@@ -117,22 +187,52 @@
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
-              <text class="legal-list__text">diag:errors.v1：本机错误诊断日志，最多 20 条，含发生时间、错误摘要、堆栈与页面路径；仅在崩溃或未处理异常时写入，不联网、不上传。</text>
+              <text class="legal-list__text">weather:cities:v1：气象站城市列表，最多 5 个；保存城市名、省份、6 位 adcode、城市级中心点（来自模糊定位、IP 区域中心或高德行政区数据）、来源标记（模糊 / IP / 手动）与更新时间，不保存您设备的精确坐标。</text>
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
-              <text class="legal-list__text">app:storage.version：本地数据版本号，仅用于升级时安全迁移旧数据。</text>
+              <text class="legal-list__text">weather:current:v1：当前选中城市的 adcode。</text>
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
-              <text class="legal-list__text">不保存任何图片、完整输入原文或搜索词；轨迹只保留摘要。</text>
+              <text class="legal-list__text">weather:live:v1:* 与 weather:forecast:v1:*：按城市保存的实况与 4 天预报缓存，分别 15 分钟、30 分钟过期；缓存内容为版本号、官方天气字段、城市名称/编码、发布时间与缓存时间，可在城市抽屉重新定位或下拉刷新覆盖。</text>
+            </view>
+            <view class="legal-list__item">
+              <view class="legal-list__dot" aria-hidden="true"></view>
+              <text class="legal-list__text">weather:fail:v1:*：请求失败后的 60 秒负缓存，只含失败时间戳与版本号，用于避免重复请求。</text>
+            </view>
+            <view class="legal-list__item">
+              <view class="legal-list__dot" aria-hidden="true"></view>
+              <text class="legal-list__text">weather:ambient:v1、weather:lab:v1、weather:manual-refresh:v1：环境音开关、实验开关与上次手动刷新时间；环境音由本机 WebAudio 合成，不含任何音频文件。</text>
+            </view>
+            <view class="legal-list__item">
+              <view class="legal-list__dot" aria-hidden="true"></view>
+              <text class="legal-list__text">focus:session:v1、focus:prefs:v1、focus:ledger:v1、focus:stats:v1、focus:key:v1、focus:brightness:v1：全息专注的会话、偏好、最多 50 条专注记录（含您可选的专注标签）、统计、本机校验密钥与亮度恢复标记（含原始亮度值）；会话、记录与统计带本机签名，不上传。专注记录可在「设置 → 存储与数据 → 清空专注数据」中删除。</text>
+            </view>
+            <view class="legal-list__item">
+              <view class="legal-list__dot" aria-hidden="true"></view>
+              <text class="legal-list__text">本地文件：专注后台提示音会在小程序本地文件目录生成 focus-bgm-v1.wav（约 16KB，1 秒低振幅）；界面音效预加载会写入 4 个极短 WAV 缓存；工具导出会写入本地 exports 目录，单文件 ≤2MB，结果变更或卸载时清理；以上均保留在小程序本地文件目录，随小程序缓存清除，均为本机生成，不含录音、不上传。</text>
+            </view>
+            <view class="legal-list__item">
+              <view class="legal-list__dot" aria-hidden="true"></view>
+              <text class="legal-list__text">cyber:auto:v1 与 cyber:hot:v1：时间旅行的自动快照（最多 5 个）与手动热备（最多 3 个），含当时的收藏、最近使用、打开次数、外观、偏好与轨迹副本；cyber:pilot:v1 只保存自动任务开关与表达式。快照不是云备份，卸载或清理缓存即丢失。</text>
+            </view>
+            <view class="legal-list__item">
+              <view class="legal-list__dot" aria-hidden="true"></view>
+              <text class="legal-list__text">diag:errors.v1：本机错误诊断日志，最多 20 条，含发生时间、错误类型、错误摘要、堆栈与页面路径；仅在未捕获异常、未处理 Promise 拒绝、页面丢失或内存告警时写入，不联网、不上传。</text>
+            </view>
+            <view class="legal-list__item">
+              <view class="legal-list__dot" aria-hidden="true"></view>
+              <text class="legal-list__text">不长期保存任何图片内容、完整输入原文或搜索词；轨迹只保留摘要，天气只保留官方字段，专注只保留标签、时长、中断次数与等级等摘要。</text>
             </view>
           </view>
 
-          <text class="legal-body">「我的 → 清空工具数据」只删除上述 tbx: 前缀数据（含本机计算轨迹），不会影响简历内容、作品数据、作品收藏、外观设置与诊断日志。外观设置沿用旧版的 gallery.theme.mode，由超欢整体共用，不属于工具数据。</text>
-          <text class="legal-body">诊断日志只用于定位本机异常，可在微信「设置 → 通用 → 存储空间 → 小程序缓存」中随小程序缓存一并清除。</text>
+          <text class="legal-body">所有数据只保存在本机；除按您设置的自动清理规则裁剪最近使用外，保留至您主动清除、清理小程序缓存或卸载小程序。本程序不提供云同步，也没有任何云端数据恢复服务。</text>
+          <text class="legal-body">「我的 → 清空工具数据」只删除上述 tbx: 前缀数据（含本机计算轨迹），并同步清除 cyber: 快照中的轨迹副本，但不会影响简历内容、作品数据、作品收藏、外观与偏好设置、专注记录、天气缓存与诊断日志。</text>
+          <text class="legal-body">天气数据清除：在气象站城市抽屉移除城市即删除该城市缓存；下拉刷新会用最新官方数据覆盖旧缓存。专注数据清除：「设置 → 存储与数据 → 清空专注数据」会同时清理会话、偏好、记录、统计、校验密钥与亮度恢复标记。</text>
+          <text class="legal-body">自动清理仅按偏好裁剪 tbx:recent 与时间戳，不会影响收藏、轨迹、专注记录、天气缓存与作品收藏。外观设置使用 gallery.theme.mode，全局偏好使用 app:prefs.v1，均由超欢整体共用，不属于工具数据。诊断日志只用于定位本机异常，可在微信「设置 → 通用 → 存储空间 → 小程序缓存」中随小程序缓存一并清除。</text>
           <text class="legal-body">若功能变化导致本地数据处理方式变化，我们会更新本页内容与生效日期；继续使用即表示您知悉更新后的说明。</text>
-          <text class="legal-body">23 个工具页面与简历页面按功能拆分为多个分包，首次打开某个工具或简历时微信会按需下载对应分包，下载完成后可离线使用；作品图集同样位于独立分包。这是微信分包机制，不是本程序上传数据。</text>
+          <text class="legal-body">{{toolCount}} 个工具页面、专注页、数据驾驶舱与简历页面按功能拆分为多个分包，首次打开某个页面时微信会按需下载对应分包，下载完成后除在线气象服务外可离线使用；作品图集同样位于独立分包。这是微信分包机制，不是本程序上传数据。</text>
         </glass-card>
       </view>
 
@@ -151,7 +251,11 @@
           <text class="legal-body">个税、房贷、存款复利等金融类试算结果仅供参考，不构成税务、投资、贷款或法律建议；实际金额以税务、银行等官方机构的最终结果为准。</text>
           <text class="legal-body">BMI 等健康类结果仅依据公开公式估算，不构成医疗诊断或健康建议；如有健康问题请咨询专业医生。</text>
           <text class="legal-body">日期间隔、年龄、倒数日按设备本地日期计算，不含法定节假日与调休；跨时区或系统时间异常时结果可能变化。</text>
-          <text class="legal-body">因输入错误、政策调整、设备时间异常或依赖上述结果作出的决定，开发者不承担由此产生的责任。</text>
+          <text class="legal-body">天气数据由高德开放平台提供，可能存在延迟、缺测或区域差异，仅供参考，不构成气象预警、防灾减灾、航空、航海、农业或出行安全决策依据；请以中国气象局等官方发布为准。本程序未接入气象预警、AQI、生活指数与分钟级降水接口，相关位置为扩展占位。</text>
+          <text class="legal-body">日出日落为基于经纬度的本地近似算法（误差约数分钟）；24 小时温度曲线由官方 4 天预报插值推算，不是逐小时实况；两者均标注「仅供参考」。</text>
+          <text class="legal-body">全息专注的计时以设备系统时间为准，锁屏、后台运行、系统省电策略或手动修改系统时间可能影响显示与提醒；后台提示音仅用于避免计时中断，不构成医疗、治疗或健康建议，长时间使用时请自行控制音量。</text>
+          <text class="legal-body">全息视差、极光与粒子动效仅用于视觉呈现；专注翻转检测仅用于判断手机是否面朝下并触发黑屏，不用于专业姿态测量、运动分析或任何专业用途；设备传感器不可用时将自动降级为静态画面或隐藏翻转功能。</text>
+          <text class="legal-body">因输入错误、政策调整、设备时间异常、网络中断、第三方接口变更或依赖上述结果作出的决定，开发者不承担由此产生的责任。</text>
         </glass-card>
       </view>
 
@@ -167,7 +271,7 @@
             </view>
           </view>
 
-          <text class="legal-body">本小程序在以下开源项目与资源的基础上构建，谨致谢意：</text>
+          <text class="legal-body">本小程序在以下开源项目与第三方数据服务的基础上构建，谨致谢意：</text>
 
           <view class="legal-list">
             <view class="legal-list__item">
@@ -180,15 +284,51 @@
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
-              <text class="legal-list__text">MobX / mobx-miniprogram · MIT License · 状态管理。</text>
+              <text class="legal-list__text">MobX / mobx-miniprogram / mobx-miniprogram-bindings · MIT License · 状态管理与页面绑定。</text>
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
-              <text class="legal-list__text">Tailwind CSS · MIT License · 样式工具链（仅构建期）。</text>
+              <text class="legal-list__text">CryptoJS · MIT License · MD5 / SHA / HMAC 摘要与 AES 本地保险箱；tools-core 与 grow 分包各内置一份，不跨分包引用。</text>
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
-              <text class="legal-list__text">二维码编码器 · MIT License · 纯本地生成二维码。</text>
+              <text class="legal-list__text">diff-match-patch · Apache License 2.0 · 字符级文本差异与行级优化。</text>
+            </view>
+            <view class="legal-list__item">
+              <view class="legal-list__dot" aria-hidden="true"></view>
+              <text class="legal-list__text">qrcode-generator 2.0.4 · Copyright (c) 2009-2011 Kazuhiko Arase · MIT License · 纯本地二维码编码；QR Code 为 DENSO WAVE INCORPORATED 的注册商标。</text>
+            </view>
+            <view class="legal-list__item">
+              <view class="legal-list__dot" aria-hidden="true"></view>
+              <text class="legal-list__text">jsQR 1.4.0 · Cosmo Wolfe & contributors · Apache License 2.0 · 纯本地二维码解码，不访问网络。</text>
+            </view>
+            <view class="legal-list__item">
+              <view class="legal-list__dot" aria-hidden="true"></view>
+              <text class="legal-list__text">solarlunar 3.1.0 · Copyright (c) 2015 yize · ISC License · 1900–2100 农历与节气词库，纯本地换算。</text>
+            </view>
+            <view class="legal-list__item">
+              <view class="legal-list__dot" aria-hidden="true"></view>
+              <text class="legal-list__text">OpenCC 1.4.2 字典 · Apache License 2.0 · 简繁字符与常用词组映射，经 opencc-js 1.4.2（MIT AND Apache-2.0）提取为本地词库。</text>
+            </view>
+            <view class="legal-list__item">
+              <view class="legal-list__dot" aria-hidden="true"></view>
+              <text class="legal-list__text">pinyin-pro 3.29.5 · MIT License · 单字读音与常用多音词消歧数据，生成本地拼音词库。</text>
+            </view>
+            <view class="legal-list__item">
+              <view class="legal-list__dot" aria-hidden="true"></view>
+              <text class="legal-list__text">Tailwind CSS / weapp-tailwindcss · MIT License · 样式工具链，仅构建期使用，不进入运行时代码。</text>
+            </view>
+            <view class="legal-list__item">
+              <view class="legal-list__dot" aria-hidden="true"></view>
+              <text class="legal-list__text">TypeScript · Apache License 2.0 · 仅构建期类型检查，不进入运行时代码。</text>
+            </view>
+            <view class="legal-list__item">
+              <view class="legal-list__dot" aria-hidden="true"></view>
+              <text class="legal-list__text">构建期工具：fantasticon、PostCSS、miniprogram-ci、miniprogram-automator、miniprogram-api-typings、@types/*（MIT）与 lightningcss（MPL-2.0）仅用于资源编译、类型声明与自动化测试，不随小程序分发。</text>
+            </view>
+            <view class="legal-list__item">
+              <view class="legal-list__dot" aria-hidden="true"></view>
+              <text class="legal-list__text">高德开放平台 Web 服务 API · 天气、逆地理编码、IP 定位与行政区查询；数据版权归高德及原始权利人，本程序仅在本机展示，不二次分发、不用于训练或商业转售。</text>
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
@@ -196,7 +336,8 @@
             </view>
           </view>
 
-          <text class="legal-body">本程序不包含广告 SDK、统计 SDK、推送 SDK，也不接入任何网络接口。</text>
+          <text class="legal-body">除「全息气象」按需直连 https://restapi.amap.com、以及「汇率换算」按需直连 https://www.chinamoney.com.cn 获取官方汇率中间价外，本程序不包含广告 SDK、统计 SDK、推送 SDK，其余功能不发起任何网络请求。</text>
+          <text class="legal-body">开源许可证全文可在各项目官方仓库查看；如对署名或授权有疑问，可通过下方邮箱联系，我们会在核实后更正。</text>
         </glass-card>
       </view>
 
@@ -222,7 +363,7 @@
       </glass-card>
 
       <view class="legal-footer">
-        <text>超欢 · 纯本机 · 无广告 · 无登录</text>
+        <text>超欢 · 本机优先 · 无广告 · 无登录</text>
         <text class="legal-footer__meta">VERSION {{version}} · EFFECTIVE {{effectiveDate}}</text>
       </view>
     </view>

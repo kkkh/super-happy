@@ -1,0 +1,176 @@
+<glass-tool-shell
+  tool-id="random-pick"
+  title="{{toolName}}"
+  kicker="{{kicker}}"
+  desc="{{desc}}"
+  poster-data="{{posterData}}"
+  run-label="{{runLabel}}"
+  can-run="{{canRun}}"
+  state="{{shellState}}"
+  has-result="{{hasResult}}"
+  error="{{error}}"
+  empty-title="{{stale ? '输入已变更，请重新生成' : emptyTitle}}"
+  empty-sub="{{emptySub}}"
+  bind:run="onRun"
+  bind:example="onExample"
+  bind:reset="onReset"
+>
+  <view slot="input" class="sg-tool-fields">
+    <view class="rp-modes" aria-role="tablist">
+      <view
+        wx:for="{{modes}}"
+        wx:key="key"
+        class="rp-mode {{item.key === mode ? 'rp-mode--on' : ''}}"
+        data-mode="{{item.key}}"
+        bindtap="onMode"
+        aria-role="tab"
+        aria-selected="{{item.key === mode}}"
+      >{{item.label}}</view>
+    </view>
+
+    <block wx:if="{{mode === 'pick'}}">
+      <view class="rp-seps" aria-role="tablist">
+        <view
+          wx:for="{{separators}}"
+          wx:key="key"
+          class="rp-sep {{item.key === separator ? 'rp-sep--on' : ''}}"
+          data-key="{{item.key}}"
+          bindtap="onSeparator"
+          aria-role="tab"
+          aria-selected="{{item.key === separator}}"
+        >{{item.label}}</view>
+      </view>
+
+      <glass-input
+        label="选项"
+        hint="每行一个或按所选分隔符拆分，最多 100 项"
+        multiline
+        auto-height
+        show-count
+        value="{{optionsText}}"
+        maxlength="{{2000}}"
+        placeholder="例如：牛肉面、麻辣烫、沙拉"
+        cursor-spacing="{{120}}"
+        data-field="optionsText"
+        aria-label="待抽取的选项"
+        bind:input="onFieldInput"
+      />
+
+      <glass-input
+        label="抽取数量"
+        type="number"
+        maxlength="{{2}}"
+        value="{{pickCount}}"
+        placeholder="1"
+        data-field="pickCount"
+        aria-label="抽取数量，1 到 10"
+        bind:input="onFieldInput"
+      />
+
+      <view class="rp-switch-row">
+        <view class="rp-switch-row__text">
+          <text class="rp-switch-row__title">允许重复</text>
+          <text class="rp-switch-row__sub">抽中后放回，可重复抽到同一项</text>
+        </view>
+        <switch checked="{{allowRepeat}}" color="var(--glass-accent)" aria-label="是否允许重复抽取" bindchange="onRepeat" />
+      </view>
+    </block>
+
+    <block wx:elif="{{mode === 'number'}}">
+      <glass-input
+        label="最小值"
+        type="number"
+        maxlength="{{11}}"
+        value="{{numberMin}}"
+        placeholder="1"
+        data-field="numberMin"
+        aria-label="随机数最小值"
+        bind:input="onFieldInput"
+      />
+      <glass-input
+        label="最大值"
+        type="number"
+        maxlength="{{11}}"
+        value="{{numberMax}}"
+        placeholder="100"
+        data-field="numberMax"
+        aria-label="随机数最大值"
+        bind:input="onFieldInput"
+      />
+      <view class="rp-hint">包含最小值与最大值；请输入 ±10 亿内的整数，且最小值不大于最大值。</view>
+    </block>
+
+    <block wx:elif="{{mode === 'dice'}}">
+      <glass-input
+        label="骰子数量"
+        type="number"
+        maxlength="{{1}}"
+        value="{{diceCount}}"
+        placeholder="2"
+        data-field="diceCount"
+        aria-label="骰子数量，1 到 6"
+        bind:input="onFieldInput"
+      />
+      <view class="rp-field">
+        <text class="rp-field__label">骰子面数</text>
+        <view class="rp-seps">
+          <view
+            wx:for="{{diceSideOptions}}"
+            wx:key="*this"
+            class="rp-sep {{diceSides === item ? 'rp-sep--on' : ''}}"
+            data-sides="{{item}}"
+            bindtap="onSides"
+            aria-role="button"
+            aria-label="选择 D{{item}}"
+          >D{{item}}</view>
+        </view>
+      </view>
+      <view class="rp-hint">支持 D4 / D6 / D8 / D10 / D12 / D20；结果包含每一颗骰子的点数与合计。</view>
+    </block>
+
+    <block wx:else>
+      <glass-input
+        label="硬币数量"
+        type="number"
+        maxlength="{{2}}"
+        value="{{coinCount}}"
+        placeholder="3"
+        data-field="coinCount"
+        aria-label="硬币数量，1 到 10"
+        bind:input="onFieldInput"
+      />
+      <view class="rp-hint">每枚硬币独立 50% 正反；最多抛 10 枚。</view>
+    </block>
+  </view>
+
+  <view slot="result" class="sg-tool-result">
+    <view class="sg-tool-result__head">
+      <text class="sg-tool-result__label">{{resultLabel}}</text>
+      <text class="sg-tool-result__meta" bindtap="onCopy">点击复制摘要</text>
+    </view>
+
+    <view class="sg-tool-result__main" aria-role="status">{{resultMain}}</view>
+
+    <view class="sg-tool-rows">
+      <view wx:for="{{resultRows}}" wx:key="k" class="sg-tool-row">
+        <text class="sg-tool-row__k">{{item.k}}</text>
+        <text class="sg-tool-row__v">{{item.v}}</text>
+      </view>
+    </view>
+
+    <view wx:if="{{pickedRows.length}}" class="rp-list">
+      <text class="rp-list__title">抽中列表</text>
+      <view wx:for="{{pickedRows}}" wx:key="*this" class="rp-list__item">{{item}}</view>
+    </view>
+
+    <view wx:if="{{remainingRows.length}}" class="rp-list">
+      <text class="rp-list__title">剩余选项</text>
+      <view wx:for="{{remainingRows}}" wx:key="*this" class="rp-list__item">{{item}}</view>
+    </view>
+
+    <view class="sg-tool-note">
+      <text class="sg-tool-note__title">说明</text>
+      <text class="sg-tool-note__text">抽签使用 Fisher-Yates；随机数、骰子、硬币共用同一随机序列，每枚骰子 / 硬币独立生成。全部只在本机完成，不上传输入或结果。</text>
+    </view>
+  </view>
+</glass-tool-shell>

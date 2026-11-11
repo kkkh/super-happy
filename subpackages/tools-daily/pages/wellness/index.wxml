@@ -1,0 +1,147 @@
+<glass-tool-shell
+  tool-id="wellness"
+  title="{{toolName}}"
+  kicker="{{kicker}}"
+  desc="{{desc}}"
+  poster-data="{{posterData}}"
+  run-label="开始计算"
+  can-run="{{canRun}}"
+  state="{{shellState}}"
+  has-result="{{hasResult}}"
+  error="{{error}}"
+  empty-title="{{stale ? '输入已变更，请重新计算' : '选择模式并填写信息'}}"
+  empty-sub="饮水、热量换算与保质期，全部在本机计算"
+  bind:run="onRun"
+  bind:example="onExample"
+  bind:reset="onReset"
+>
+  <view slot="input" class="sg-tool-fields">
+    <view class="wl-modes" aria-role="tablist">
+      <view
+        wx:for="{{modeOptions}}"
+        wx:key="key"
+        class="wl-mode {{item.key === activeMode ? 'wl-mode--on' : ''}}"
+        data-mode="{{item.key}}"
+        bindtap="onModeTap"
+        aria-role="tab"
+        aria-selected="{{item.key === activeMode}}"
+      >{{item.label}}</view>
+    </view>
+
+    <block wx:if="{{activeMode === 'water'}}">
+      <glass-input
+        label="体重"
+        type="digit"
+        maxlength="{{5}}"
+        value="{{waterWeight}}"
+        placeholder="60"
+        data-field="waterWeight"
+        aria-label="体重公斤"
+        bind:input="onFieldInput"
+      >
+        <text slot="suffix" class="sg-tool-unit">kg</text>
+      </glass-input>
+      <view class="wl-section">
+        <text class="wl-label">活动量</text>
+        <view class="wl-chips">
+          <view
+            wx:for="{{activityOptions}}"
+            wx:key="key"
+            class="wl-chip {{item.key === waterActivity ? 'wl-chip--on' : ''}}"
+            data-key="{{item.key}}"
+            bindtap="onActivity"
+            aria-role="button"
+            aria-label="活动量 {{item.label}}"
+          >{{item.label}}</view>
+        </view>
+      </view>
+    </block>
+
+    <block wx:elif="{{activeMode === 'calorie'}}">
+      <glass-input
+        label="数值"
+        type="digit"
+        maxlength="{{10}}"
+        value="{{calorieValue}}"
+        placeholder="1000"
+        data-field="calorieValue"
+        aria-label="热量数值"
+        bind:input="onFieldInput"
+      />
+      <view class="wl-section">
+        <text class="wl-label">换算方向</text>
+        <view class="wl-chips">
+          <view
+            class="wl-chip {{calorieDirection === 'kcal-kj' ? 'wl-chip--on' : ''}}"
+            data-key="kcal-kj"
+            bindtap="onDirection"
+            aria-role="button"
+          >千卡 → 千焦</view>
+          <view
+            class="wl-chip {{calorieDirection === 'kj-kcal' ? 'wl-chip--on' : ''}}"
+            data-key="kj-kcal"
+            bindtap="onDirection"
+            aria-role="button"
+          >千焦 → 千卡</view>
+        </view>
+      </view>
+    </block>
+
+    <block wx:else>
+      <view class="wl-date">
+        <text class="wl-label">生产日期</text>
+        <picker mode="date" value="{{shelfProduction}}" start="1900-01-01" end="2100-12-31" bindchange="onProductionChange">
+          <view class="wl-date__trigger" hover-class="wl-date__trigger_pressed" hover-stay-time="80" aria-role="button" aria-label="生产日期，当前 {{shelfProduction}}">
+            <text class="wl-date__text">{{shelfProduction}}</text>
+            <g-icon name="chevron" size="{{24}}" tone="ink4" />
+          </view>
+        </picker>
+      </view>
+      <glass-input
+        label="保质期"
+        type="number"
+        maxlength="{{5}}"
+        value="{{shelfAmount}}"
+        placeholder="1"
+        data-field="shelfAmount"
+        aria-label="保质期数量"
+        bind:input="onFieldInput"
+      />
+      <view class="wl-section">
+        <text class="wl-label">单位</text>
+        <view class="wl-chips">
+          <view
+            wx:for="{{unitOptions}}"
+            wx:key="key"
+            class="wl-chip {{item.key === shelfUnit ? 'wl-chip--on' : ''}}"
+            data-key="{{item.key}}"
+            bindtap="onUnit"
+            aria-role="button"
+            aria-label="保质期单位 {{item.label}}"
+          >{{item.label}}</view>
+        </view>
+      </view>
+    </block>
+  </view>
+
+  <view slot="result" class="sg-tool-result">
+    <view class="sg-tool-result__head">
+      <text class="sg-tool-result__label">{{resultLabel}}</text>
+      <text class="sg-tool-result__meta" bindtap="onCopy">点击复制摘要</text>
+    </view>
+
+    <view class="sg-tool-result__main" aria-role="status">{{resultMain}}</view>
+
+    <view class="sg-tool-rows">
+      <view wx:for="{{resultRows}}" wx:key="k" class="sg-tool-row">
+        <text class="sg-tool-row__k">{{item.k}}</text>
+        <text class="sg-tool-row__v">{{item.v}}</text>
+      </view>
+    </view>
+
+    <view class="sg-tool-note">
+      <text class="sg-tool-note__title">说明</text>
+      <text class="sg-tool-note__text">健康建议仅供参考，不构成医疗意见；热量按 1 kcal = 4.184 kJ 换算，保质期按月计算时月末自动钳制。只在本机计算。</text>
+    </view>
+  </view>
+</glass-tool-shell>

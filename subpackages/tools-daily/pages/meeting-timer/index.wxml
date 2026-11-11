@@ -1,0 +1,134 @@
+<glass-tool-shell
+  tool-id="meeting-timer"
+  title="{{toolName}}"
+  kicker="{{kicker}}"
+  desc="{{desc}}"
+  run-label="开始倒计时"
+  state="{{shellState}}"
+  has-result="{{hasResult}}"
+  error="{{error}}"
+  empty-title="设定时长或结束时间点"
+  empty-sub="剩余时间由本机时间戳推导，切后台再回来也不会跳秒"
+  bind:run="onRun"
+  bind:example="onExample"
+  bind:reset="onReset"
+>
+  <view slot="input" class="sg-tool-fields">
+    <view class="timer-modes">
+      <view
+        class="timer-modes__item {{mode === 'duration' ? 'is-active' : ''}}"
+        data-mode="duration"
+        bindtap="onMode"
+        aria-role="button"
+        aria-label="按时长倒计时"
+      >按时长</view>
+      <view
+        class="timer-modes__item {{mode === 'deadline' ? 'is-active' : ''}}"
+        data-mode="deadline"
+        bindtap="onMode"
+        aria-role="button"
+        aria-label="按结束时间点倒计时"
+      >按结束时间</view>
+    </view>
+
+    <block wx:if="{{mode === 'duration'}}">
+      <view class="timer-quick">
+        <view
+          wx:for="{{quickMinutes}}"
+          wx:key="*this"
+          class="timer-quick__item {{durationText == item ? 'is-active' : ''}}"
+          data-minutes="{{item}}"
+          bindtap="onQuick"
+          aria-role="button"
+          aria-label="选择 {{item}} 分钟"
+        >{{item}} 分钟</view>
+      </view>
+      <glass-input
+        label="自定义时长（分钟）"
+        hint="1–1440 的整数分钟"
+        type="number"
+        maxlength="{{5}}"
+        value="{{durationText}}"
+        placeholder="例如 25"
+        aria-label="自定义时长，分钟"
+        bind:input="onDurationInput"
+      />
+    </block>
+
+    <block wx:else>
+      <picker
+        mode="time"
+        value="{{deadlineTime}}"
+        bindchange="onTimeChange"
+        class="timer-picker"
+      >
+        <view class="timer-picker__row">
+          <text class="timer-picker__label">结束时间</text>
+          <text class="timer-picker__value">{{deadlineTime || '选择时间'}}</text>
+        </view>
+      </picker>
+      <view class="timer-hint">结束时间早于当前时按次日计算，并在结果区标注「次日」。</view>
+    </block>
+
+    <view class="timer-hint">倒计时只在本机运行，不发送订阅消息，也不做后台提醒。</view>
+  </view>
+
+  <view slot="result" class="sg-tool-result">
+    <view class="timer-stage">
+      <view class="timer-ring" style="width: {{ringPx}}px; height: {{ringPx}}px;">
+        <canvas
+          id="timer-ring"
+          type="2d"
+          class="timer-ring__canvas"
+          style="width: {{ringPx}}px; height: {{ringPx}}px;"
+        ></canvas>
+        <view class="timer-ring__center">
+          <text class="timer-time" aria-role="timer" aria-label="剩余 {{remainingText}}">{{remainingText}}</text>
+          <view class="timer-status timer-status--{{phase}}">
+            <view class="timer-status__dot"></view>
+            <text class="timer-state">{{statusText}}</text>
+          </view>
+        </view>
+      </view>
+      <view class="timer-meta">
+        <text class="timer-meta__item">{{deadlineLabel}}</text>
+        <text class="timer-meta__dot">·</text>
+        <text class="timer-meta__item">{{progressText}}</text>
+      </view>
+    </view>
+
+    <view class="sg-tool-rows">
+      <view
+        wx:for="{{resultRows}}"
+        wx:key="k"
+        class="sg-tool-row"
+      >
+        <text class="sg-tool-row__k">{{item.k}}</text>
+        <text class="sg-tool-row__v">{{item.v}}</text>
+      </view>
+    </view>
+
+    <view wx:if="{{hasResult}}" class="timer-actions">
+      <glass-button
+        variant="ghost"
+        size="md"
+        block
+        disabled="{{phase === 'finished' || phase === 'idle'}}"
+        bind:tap="onTogglePause"
+      >{{pauseLabel}}</glass-button>
+      <glass-button variant="ghost" size="md" block bind:tap="onReset">重置</glass-button>
+    </view>
+
+    <view
+      class="timer-copy"
+      bindtap="onCopy"
+      aria-role="button"
+      aria-label="复制倒计时摘要"
+    >点击复制摘要</view>
+
+    <view class="sg-tool-note">
+      <text class="sg-tool-note__title">说明</text>
+      <text class="sg-tool-note__text">倒计时由本机时间戳推导，离开页面后仍会继续；其他页面的悬浮胶囊可查看剩余时间。结束前 5 秒与结束时都会震动并播放提示音。{{nextDay ? '结束时间早于当前，已按次日计算。' : ''}}不发送订阅消息，也不做后台提醒。</text>
+    </view>
+  </view>
+</glass-tool-shell>

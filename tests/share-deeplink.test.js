@@ -1,6 +1,6 @@
 /* ==========================================================================
    分享与深链 · 单元测试
-   - 分享载荷：23 个已注册工具、非法 id 回退首页、朋友圈 query
+   - 分享载荷：24 个已注册工具、非法 id 回退首页、朋友圈 query
    - 深链解析：trim / 单次解码 / 白名单校验 / 非法编码与路径穿越拦截
    - 当前页反查：路由匹配、空栈、异常与脏数据兜底
    - 深链暂存：takePending 只消费一次
@@ -14,7 +14,7 @@ const { registerHooks } = require('node:module')
 
 const ROOT = path.resolve(__dirname, '..')
 const HOME_PATH = '/pages/index/index'
-const GENERIC_TITLE = '超欢 · 23 个本机工具，离线也能用'
+const genericTitle = (count) => `超欢 · ${count} 个实用工具，气象实时在线`
 
 /* 源码使用 bundler 风格的无扩展名相对导入；Node 侧补 .ts 后再解析 */
 registerHooks({
@@ -63,10 +63,10 @@ function withCurrentPages(getter, run) {
   }
 }
 
-test('分享：23 个已注册工具全部生成首页深链', async () => {
+test('分享：已注册工具全部生成首页深链', async () => {
   const { TOOLS } = await loadRegistry()
   const share = await loadShare()
-  assert.equal(TOOLS.length, 23)
+  assert.ok(TOOLS.length >= 24)
 
   for (const tool of TOOLS) {
     const payload = share.sharePayloadForTool(tool.id)
@@ -83,6 +83,7 @@ test('分享：23 个已注册工具全部生成首页深链', async () => {
 })
 
 test('分享：非法 id 一律回退首页且不携带参数', async () => {
+  const { TOOLS } = await loadRegistry()
   const share = await loadShare()
   const invalidIds = [
     '',
@@ -99,7 +100,7 @@ test('分享：非法 id 一律回退首页且不携带参数', async () => {
 
   for (const id of invalidIds) {
     assert.deepEqual(share.sharePayloadForTool(id), {
-      title: GENERIC_TITLE,
+      title: genericTitle(TOOLS.length),
       path: HOME_PATH,
     })
   }
@@ -118,11 +119,12 @@ test('朋友圈：合法工具生成 tool= query', async () => {
 })
 
 test('朋友圈：非法工具清空 query 并回退通用标题', async () => {
+  const { TOOLS } = await loadRegistry()
   const share = await loadShare()
 
   for (const id of ['', 'unknown', 'UNIT', 'unit?x=1']) {
     assert.deepEqual(share.timelinePayloadForTool(id), {
-      title: GENERIC_TITLE,
+      title: genericTitle(TOOLS.length),
       query: '',
     })
   }
@@ -186,13 +188,13 @@ test('当前页分享：工具页生成对应深链，非工具页回退首页',
     () => [{ route: 'pages/index/index' }],
     () => share.sharePayloadForCurrentPage(),
   )
-  assert.deepEqual(fallback, { title: GENERIC_TITLE, path: HOME_PATH })
+  assert.deepEqual(fallback, { title: genericTitle(TOOLS.length), path: HOME_PATH })
 
   const fallbackTimeline = withCurrentPages(
     () => [{ route: 'pages/mine/index' }],
     () => share.timelinePayloadForCurrentPage(),
   )
-  assert.deepEqual(fallbackTimeline, { title: GENERIC_TITLE, query: '' })
+  assert.deepEqual(fallbackTimeline, { title: genericTitle(TOOLS.length), query: '' })
 })
 
 test('深链解析：合法 id、空白包裹与百分号编码全部通过', async () => {

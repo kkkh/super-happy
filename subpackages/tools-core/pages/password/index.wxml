@@ -159,11 +159,8 @@
   <view slot="note">
     <glass-card tone="amber" radius="lg" padding="md" depth="soft">
       <view class="sg-tool-note">
-        <text class="sg-tool-note__title">随机与隐私</text>
-        <text class="sg-tool-note__text">
-          优先调用 wx.getRandomValues 获取密码学安全随机数，并用拒绝采样避免取模偏差；接口不可用时回退 Math.random。
-          密码只在当前页面内存中显示，不写入本地存储，关闭页面即清空。
-        </text>
+        <text class="sg-tool-note__title">随机与强度</text>
+        <text class="sg-tool-note__text">优先调用 wx.getRandomValues 获取密码学安全随机数，并用拒绝采样避免取模偏差；接口不可用时回退 Math.random。强度按「长度 × log2(字符集大小)」计算信息熵：低于 40 位熵为弱，40–79 为中，80 及以上为强；只在本机计算，不联网查询泄漏。密码只在当前页面内存中显示，不写入本地存储，关闭页面即清空。</text>
       </view>
     </glass-card>
   </view>

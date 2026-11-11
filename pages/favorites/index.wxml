@@ -102,4 +102,5 @@
 
   <glass-toast />
   <update-guard />
+  <meeting-timer-hud />
 </view>

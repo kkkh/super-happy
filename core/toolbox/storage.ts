@@ -22,6 +22,10 @@ export const TBX_KEYS = {
   /** Workflow 孤儿图片回收队列：跨启动恢复，防止 saveFile 产物永久残留 */
   workflowGarbage: `${NS}workflow.garbage`,
   prefs: `${NS}prefs`,
+  /** 搜索历史：最多 8 条纯文本关键词，仅本机 */
+  searchHistory: `${NS}searchHistory`,
+  /** 首页使用指南横幅关闭状态 */
+  helpBannerDismissed: `${NS}helpBannerDismissed`,
   ackFinance: `${NS}ack.finance.v1`,
   ackHealth: `${NS}ack.health.v1`,
   legacyTip: `${NS}legacy-tip`,
@@ -32,6 +36,8 @@ export const TBX_KEYS = {
 export const MAX_FAVORITES = 100
 /** 最近使用上限 */
 export const MAX_RECENTS = 12
+/** 搜索历史上限 */
+export const MAX_SEARCH_HISTORY = 8
 
 export function readStorage(key: string): unknown {
   try {

@@ -1,0 +1,217 @@
+/* ==========================================================================
+   汇率换算 · 来源切换 / 币种选择 / 牌价 / 结果
+   - 真机 WXSS 禁止裸伪类
+   ========================================================================== */
+
+.fx-pair {
+  display: flex;
+  align-items: stretch;
+  gap: 14rpx;
+}
+
+.fx-source {
+  display: flex;
+  gap: 12rpx;
+}
+
+.fx-source__chip {
+  padding: 12rpx 24rpx;
+  border-radius: 999rpx;
+  border: 1rpx solid var(--glass-border);
+  background: var(--glass-bg-soft);
+  color: var(--glass-text-2);
+  font-size: 23rpx;
+  line-height: 1.3;
+}
+
+.fx-source__chip_active {
+  background: var(--glass-text);
+  border-color: var(--glass-text);
+  color: var(--glass-canvas);
+  font-weight: 600;
+}
+
+.fx-official {
+  display: flex;
+  flex-direction: column;
+  padding: 22rpx 24rpx;
+  border-radius: 26rpx;
+  border: 1rpx solid var(--glass-border);
+  background: var(--glass-bg-soft);
+}
+
+.fx-official__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12rpx;
+}
+
+.fx-official__title {
+  color: var(--glass-text);
+  font-size: 23rpx;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.fx-official__time {
+  color: var(--glass-text-3);
+  font-size: 20rpx;
+  line-height: 1.4;
+}
+
+.fx-official__hint {
+  margin-top: 14rpx;
+  color: var(--glass-text-3);
+  font-size: 24rpx;
+  line-height: 1.5;
+}
+
+.fx-official__error {
+  margin-top: 14rpx;
+  color: var(--glass-text-2);
+  font-size: 22rpx;
+  line-height: 1.5;
+}
+
+.fx-official__rate {
+  margin-top: 14rpx;
+  color: var(--glass-text);
+  font-size: 30rpx;
+  font-weight: 600;
+  line-height: 1.4;
+  word-break: break-all;
+}
+
+.fx-official__actions {
+  display: flex;
+  gap: 14rpx;
+  margin-top: 18rpx;
+}
+
+.fx-official__note {
+  margin-top: 14rpx;
+  color: var(--glass-text-3);
+  font-size: 20rpx;
+  line-height: 1.5;
+}
+
+.fx-pair__picker {
+  flex: 1;
+  min-width: 0;
+}
+
+.fx-currency {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 112rpx;
+  padding: 18rpx 20rpx;
+  border-radius: 24rpx;
+  border: 1rpx solid var(--glass-border);
+  background: var(--glass-bg-soft);
+}
+
+.fx-currency__label {
+  color: var(--glass-text-3);
+  font-size: 20rpx;
+  line-height: 1.3;
+}
+
+.fx-currency__value {
+  margin-top: 8rpx;
+  color: var(--glass-text);
+  font-size: 26rpx;
+  font-weight: 600;
+  line-height: 1.3;
+  word-break: break-all;
+}
+
+.fx-swap {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 64rpx;
+  border-radius: 20rpx;
+  border: 1rpx solid var(--glass-border);
+  background: var(--glass-bg);
+  color: var(--glass-text-2);
+  font-size: 30rpx;
+  line-height: 1;
+}
+
+.fx-date {
+  display: flex;
+  flex-direction: column;
+  padding: 20rpx 22rpx;
+  border-radius: 24rpx;
+  border: 1rpx solid var(--glass-border);
+  background: var(--glass-bg-soft);
+}
+
+.fx-date__label {
+  color: var(--glass-text-3);
+  font-size: 20rpx;
+  line-height: 1.3;
+}
+
+.fx-date__value {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 10rpx;
+  color: var(--glass-text);
+  font-size: 28rpx;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.fx-date__arrow {
+  color: var(--glass-text-3);
+  font-size: 21rpx;
+  font-weight: 400;
+}
+
+.fx-notice {
+  padding: 16rpx 18rpx;
+  border-radius: 20rpx;
+  background: rgba(255, 159, 10, 0.1);
+  color: var(--glass-text-2);
+  font-size: 21rpx;
+  line-height: 1.55;
+}
+
+.fx-rate-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+  margin-top: 18rpx;
+  padding: 18rpx 20rpx;
+  border-radius: 22rpx;
+  border: 1rpx solid var(--glass-border);
+  background: var(--glass-bg-soft);
+}
+
+.fx-rate-block__line {
+  color: var(--glass-text-2);
+  font-size: 23rpx;
+  line-height: 1.5;
+  word-break: break-all;
+}
+
+.fx-warning {
+  margin-top: 14rpx;
+  padding: 14rpx 18rpx;
+  border-radius: 18rpx;
+  background: rgba(255, 159, 10, 0.12);
+  color: var(--glass-text-2);
+  font-size: 21rpx;
+  line-height: 1.5;
+}
+
+.fx-actions {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 24rpx;
+}

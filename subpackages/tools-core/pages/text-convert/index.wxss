@@ -1,0 +1,89 @@
+/* ==========================================================================
+   文本转换 · 模式 chips / 子选项 / 结果滚动区
+   - 只使用 --glass-* 与 --sg-* 令牌
+   ========================================================================== */
+
+.convert-modes,
+.convert-subs {
+  display: flex;
+  gap: 12rpx;
+}
+
+.convert-subs {
+  flex-wrap: wrap;
+}
+
+.convert-subs--wrap .convert-sub {
+  flex: 0 1 auto;
+  min-width: 130rpx;
+  padding: 0 14rpx;
+}
+
+.convert-chip {
+  flex: 1;
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 20rpx;
+  background: var(--glass-bg);
+  border: 1rpx solid var(--glass-border);
+  color: var(--glass-text-3);
+  font-size: 23rpx;
+  transition: transform 140ms var(--glass-ease-out), background 140ms var(--glass-ease-out);
+}
+
+.convert-chip--on {
+  background: var(--glass-bg-strong);
+  border-color: var(--glass-border-strong);
+  color: var(--glass-text);
+  font-weight: 600;
+}
+
+.convert-chip:active,
+.convert-sub:active {
+  transform: scale(0.97);
+}
+
+.convert-sub {
+  flex: 1;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999rpx;
+  background: var(--glass-bg-soft);
+  color: var(--glass-text-3);
+  font-size: 21rpx;
+}
+
+.convert-sub--on {
+  background: var(--glass-bg-strong);
+  color: var(--glass-text);
+  border: 1rpx solid var(--glass-border-strong);
+}
+
+.convert-hint {
+  color: var(--glass-text-3);
+  font-size: 20rpx;
+  line-height: 1.5;
+}
+
+.convert-output {
+  height: 240rpx;
+  box-sizing: border-box;
+  padding: 20rpx 22rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: var(--glass-radius-md);
+  background-color: var(--glass-bg-soft);
+  color: var(--glass-text);
+  font-family: var(--glass-font-mono);
+  font-size: 24rpx;
+  line-height: 1.6;
+  word-break: break-all;
+}
+
+.convert-warn {
+  color: var(--glass-warn, #d97706);
+  font-size: 20rpx;
+}

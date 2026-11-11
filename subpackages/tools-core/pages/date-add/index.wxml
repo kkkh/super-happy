@@ -1,0 +1,112 @@
+<glass-tool-shell
+  tool-id="date-add"
+  title="{{toolName}}"
+  kicker="{{kicker}}"
+  desc="{{desc}}"
+  run-label="开始计算"
+  poster-data="{{posterData}}"
+  state="{{shellState}}"
+  has-result="{{hasResult}}"
+  can-run="{{canRun}}"
+  error="{{error}}"
+  empty-title="选择日期，输入加减数量"
+  empty-sub="支持天 / 周 / 月 / 年，自动处理月末与闰日"
+  bind:run="onRun"
+  bind:reset="onReset"
+  bind:example="onExample"
+>
+  <view slot="input" class="sg-tool-fields">
+    <view class="tool-date">
+      <text class="tool-date__label">起始日期</text>
+      <picker
+        mode="date"
+        value="{{dateValue}}"
+        start="1900-01-01"
+        end="2100-12-31"
+        bindchange="onDateChange"
+      >
+        <view
+          class="tool-date__trigger"
+          hover-class="tool-date__trigger_pressed"
+          hover-stay-time="80"
+          aria-role="button"
+          aria-label="选择起始日期，当前 {{dateValue}}"
+        >
+          <text class="tool-date__text">{{dateValue}}</text>
+          <g-icon name="chevron" size="{{24}}" tone="ink4" />
+        </view>
+      </picker>
+    </view>
+
+    <view class="da-field">
+      <text class="da-label">方向</text>
+      <view class="da-chips" aria-role="tablist" aria-label="加减方向">
+        <view
+          wx:for="{{directionOptions}}"
+          wx:key="key"
+          class="da-chip {{item.key === direction ? 'da-chip--on' : ''}}"
+          data-direction="{{item.key}}"
+          bindtap="onDirection"
+          aria-role="tab"
+          aria-selected="{{item.key === direction}}"
+        >{{item.label}}</view>
+      </view>
+    </view>
+
+    <glass-input
+      label="数量"
+      type="number"
+      maxlength="{{6}}"
+      value="{{amountValue}}"
+      placeholder="例如 30"
+      hint="0–100000 的整数；减号由上方方向切换"
+      aria-label="加减数量"
+      bind:input="onAmountInput"
+    />
+
+    <view class="da-field">
+      <text class="da-label">单位</text>
+      <view class="da-chips" aria-role="tablist" aria-label="加减单位">
+        <view
+          wx:for="{{unitOptions}}"
+          wx:key="key"
+          class="da-chip {{item.key === unit ? 'da-chip--on' : ''}}"
+          data-unit="{{item.key}}"
+          bindtap="onUnit"
+          aria-role="tab"
+          aria-selected="{{item.key === unit}}"
+        >{{item.label}}</view>
+      </view>
+      <text class="da-hint">{{unitHint}}</text>
+    </view>
+  </view>
+
+  <view slot="result" class="sg-tool-result">
+    <view class="sg-tool-result__head">
+      <text class="sg-tool-result__label">{{resultLabel}}</text>
+      <text class="sg-tool-result__meta" bindtap="onCopy">点击复制摘要</text>
+    </view>
+
+    <view class="sg-tool-result__main" aria-role="status">{{resultMain}}</view>
+
+    <view class="sg-tool-rows">
+      <view
+        wx:for="{{resultRows}}"
+        wx:key="k"
+        class="sg-tool-row"
+        data-value="{{item.v}}"
+        bindtap="onCopyRow"
+        aria-role="button"
+        aria-label="复制 {{item.k}}"
+      >
+        <text class="sg-tool-row__k">{{item.k}}</text>
+        <text class="sg-tool-row__v">{{item.v}}</text>
+      </view>
+    </view>
+
+    <view class="sg-tool-note">
+      <text class="sg-tool-note__title">说明</text>
+      <text class="sg-tool-note__text">天 / 周按自然日推进；月 / 年按日历推进，目标月天数不足时自动取月末，2 月 29 日在平年落到 2 月 28 日。结果只在本机计算。</text>
+    </view>
+  </view>
+</glass-tool-shell>

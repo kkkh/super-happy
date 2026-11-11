@@ -3,47 +3,15 @@
    - 金额全部转分；税率用整数百分比；结果 roundHalfUp 到分
    - 仅作试算，不构成税务建议
    ========================================================================== */
-import { formatCents, parseCents, roundHalfUp } from '../../lib/money'
+import { formatCents, parseCents } from '../../lib/money'
 import { copyText } from '../../lib/ui'
 import { tapTick } from '../../../../core/utils/haptics'
+import { calcTax, type TaxMode } from '../../../../core/toolbox/engines/tax'
 import {
   sharePayloadForCurrentPage,
   timelinePayloadForCurrentPage,
 } from '../../../../core/toolbox/share'
 import type { IPosterData } from '../../../../core/toolbox/poster'
-
-type TaxMode = 'monthly' | 'annual'
-
-interface Bracket {
-  minCents: number
-  maxCents: number
-  rate: number
-  quickCents: number
-  label: string
-}
-
-const MONTHLY_BRACKETS: Bracket[] = [
-  { minCents: 0, maxCents: 300000, rate: 3, quickCents: 0, label: '不超过 3,000 元' },
-  { minCents: 300000, maxCents: 1200000, rate: 10, quickCents: 21000, label: '3,000 至 12,000 元' },
-  { minCents: 1200000, maxCents: 2500000, rate: 20, quickCents: 141000, label: '12,000 至 25,000 元' },
-  { minCents: 2500000, maxCents: 3500000, rate: 25, quickCents: 266000, label: '25,000 至 35,000 元' },
-  { minCents: 3500000, maxCents: 5500000, rate: 30, quickCents: 441000, label: '35,000 至 55,000 元' },
-  { minCents: 5500000, maxCents: 8000000, rate: 35, quickCents: 716000, label: '55,000 至 80,000 元' },
-  { minCents: 8000000, maxCents: Number.MAX_SAFE_INTEGER, rate: 45, quickCents: 1516000, label: '超过 80,000 元' },
-]
-
-const ANNUAL_BRACKETS: Bracket[] = [
-  { minCents: 0, maxCents: 3600000, rate: 3, quickCents: 0, label: '不超过 36,000 元' },
-  { minCents: 3600000, maxCents: 14400000, rate: 10, quickCents: 252000, label: '36,000 至 144,000 元' },
-  { minCents: 14400000, maxCents: 30000000, rate: 20, quickCents: 1692000, label: '144,000 至 300,000 元' },
-  { minCents: 30000000, maxCents: 42000000, rate: 25, quickCents: 3192000, label: '300,000 至 420,000 元' },
-  { minCents: 42000000, maxCents: 66000000, rate: 30, quickCents: 5292000, label: '420,000 至 660,000 元' },
-  { minCents: 66000000, maxCents: 96000000, rate: 35, quickCents: 8592000, label: '660,000 至 960,000 元' },
-  { minCents: 96000000, maxCents: Number.MAX_SAFE_INTEGER, rate: 45, quickCents: 18192000, label: '超过 960,000 元' },
-]
-
-const MONTHLY_THRESHOLD = 500000
-const ANNUAL_THRESHOLD = 6000000
 
 Page({
   /* 此处是处理工具页分享与深链参数校验的边界 */
@@ -199,22 +167,28 @@ Page({
       return
     }
 
-    const threshold = monthly ? MONTHLY_THRESHOLD : ANNUAL_THRESHOLD
-    const taxable = Math.max(0, income - insurance - special - other - threshold)
-    const brackets = monthly ? MONTHLY_BRACKETS : ANNUAL_BRACKETS
-    const bracket =
-      brackets.find((item) => taxable <= item.maxCents) ?? brackets[brackets.length - 1]
-    const tax = Math.max(0, roundHalfUp(taxable * bracket.rate / 100) - bracket.quickCents)
-    const net = income - insurance - tax
-    const rate = income > 0 ? (tax / income) * 100 : 0
+    const result = calcTax({
+      mode: this.data.mode,
+      incomeCents: income,
+      insuranceCents: insurance,
+      specialCents: special,
+      otherCents: other,
+    })
+    if (!result) {
+      this.setData({ shellState: 'invalid', hasResult: false, error: '收入或扣除金额不合法' })
+      return
+    }
 
+    const taxable = result.taxableCents
+    const tax = result.taxCents
+    const net = result.netCents
     const taxText = `¥${formatCents(tax)}`
     const netText = `¥${formatCents(net)}`
     const taxableText = `¥${formatCents(taxable)}`
-    const rateText = `${rate.toFixed(2)}%`
-    const bracketLabel = taxable === 0 ? '未达起征点' : bracket.label
-    const bracketIndex = taxable === 0 ? -1 : brackets.indexOf(bracket)
-    const quickText = taxable === 0 ? '—' : `¥${formatCents(bracket.quickCents)}`
+    const rateText = `${result.ratePercent.toFixed(2)}%`
+    const bracketLabel = taxable === 0 ? '未达起征点' : result.bracket.label
+    const bracketIndex = result.bracketIndex
+    const quickText = taxable === 0 ? '—' : `¥${formatCents(result.quickCents)}`
     const copy = [
       monthly ? '月度个税试算' : '年度个税试算',
       `应纳税所得额：${taxableText}`,

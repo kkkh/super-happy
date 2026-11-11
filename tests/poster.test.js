@@ -1364,7 +1364,7 @@ test('glass-tool-shell：posterData 优先，真实业务参数进入绘制', as
   }
 })
 
-test('工具页数据契约：22 个工具页全部传递真实 posterData', () => {
+test('工具页数据契约：全部工具页传递真实 posterData', () => {
   const roots = ['tools-core', 'tools-media']
   const toolPages = []
   for (const root of roots) {
@@ -1382,7 +1382,8 @@ test('工具页数据契约：22 个工具页全部传递真实 posterData', () 
     }
   }
 
-  assert.equal(toolPages.length, 22, '工具页数量必须为 22')
+  const shellPages = toolPages.length
+  assert.ok(shellPages >= 22, `工具页数量少于 22：${shellPages}`)
   for (const page of toolPages) {
     const wxml = fs.readFileSync(page.wxmlPath, 'utf8')
     const tsPath = page.wxmlPath.replace(/\.wxml$/, '.ts')

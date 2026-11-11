@@ -1,0 +1,169 @@
+<glass-tool-shell
+  tool-id="fx-manual"
+  title="{{toolName}}"
+  kicker="{{kicker}}"
+  desc="{{desc}}"
+  run-label="开始换算"
+  poster-data="{{posterData}}"
+  state="{{shellState}}"
+  has-result="{{hasResult}}"
+  error="{{error}}"
+  empty-title="输入金额，按官方中间价换算"
+  empty-sub="中国外汇交易中心官方中间价 · 8 个固定币种 · 双向换算"
+  bind:run="onRun"
+  bind:example="onExample"
+  bind:reset="onReset"
+>
+  <view slot="input" class="sg-tool-fields">
+    <glass-input
+      label="金额"
+      hint="单位：源币种；最多两位小数，上限 1,000,000.00"
+      type="digit"
+      maxlength="{{11}}"
+      value="{{amountText}}"
+      placeholder="例如 1000"
+      data-field="amountText"
+      aria-label="换算金额"
+      bind:input="onFieldInput"
+    />
+
+    <view class="fx-source">
+      <view
+        class="fx-source__chip {{rateSource === 'official' ? 'fx-source__chip_active' : ''}}"
+        data-source="official"
+        bindtap="onSourceChange"
+        aria-role="button"
+        aria-label="使用官方中间价"
+      >官方中间价</view>
+      <view
+        class="fx-source__chip {{rateSource === 'manual' ? 'fx-source__chip_active' : ''}}"
+        data-source="manual"
+        bindtap="onSourceChange"
+        aria-role="button"
+        aria-label="使用手动牌价"
+      >手动牌价</view>
+    </view>
+
+    <view class="fx-pair">
+      <picker
+        class="fx-pair__picker"
+        mode="selector"
+        range="{{currencyLabels}}"
+        value="{{fromIndex}}"
+        bindchange="onFromChange"
+      >
+        <view class="fx-currency" aria-role="button" aria-label="源币种，当前 {{fromLabel}}">
+          <text class="fx-currency__label">源币种</text>
+          <text class="fx-currency__value">{{fromLabel}}</text>
+        </view>
+      </picker>
+
+      <view class="fx-swap" bindtap="onSwap" aria-role="button" aria-label="交换源币种与目标币种">⇅</view>
+
+      <picker
+        class="fx-pair__picker"
+        mode="selector"
+        range="{{currencyLabels}}"
+        value="{{toIndex}}"
+        bindchange="onToChange"
+      >
+        <view class="fx-currency" aria-role="button" aria-label="目标币种，当前 {{toLabel}}">
+          <text class="fx-currency__label">目标币种</text>
+          <text class="fx-currency__value">{{toLabel}}</text>
+        </view>
+      </picker>
+    </view>
+
+    <view wx:if="{{rateSource === 'official'}}" class="fx-official">
+      <view class="fx-official__head">
+        <text class="fx-official__title">中国外汇交易中心（CFETS）</text>
+        <text wx:if="{{officialUpdatedAt}}" class="fx-official__time">更新 {{officialUpdatedAt}}</text>
+      </view>
+      <text wx:if="{{officialLoading}}" class="fx-official__hint">正在获取官方中间价…</text>
+      <text wx:elif="{{officialError}}" class="fx-official__error">{{officialError}}</text>
+      <text wx:else class="fx-official__rate">1 {{fromCode}} = {{officialRateText}} {{toCode}}</text>
+      <view class="fx-official__actions">
+        <glass-button
+          variant="ghost"
+          size="sm"
+          loading="{{officialLoading}}"
+          loading-text="刷新中"
+          bind:tap="onRefreshOfficial"
+        >刷新官方牌价</glass-button>
+        <glass-button
+          wx:if="{{officialError}}"
+          variant="ghost"
+          size="sm"
+          data-source="manual"
+          bind:tap="onSourceChange"
+        >改用手动</glass-button>
+      </view>
+      <text class="fx-official__note">官方中间价按交易日 9:15 发布，不是逐秒行情；仅用于日常估算。</text>
+    </view>
+
+    <view wx:if="{{rateSource === 'manual'}}">
+      <glass-input
+        label="手动牌价"
+        hint="1 {{fromCode}} = ? {{toCode}}；0.000001–1,000,000，最多 6 位小数"
+        type="digit"
+        maxlength="{{12}}"
+        value="{{rateText}}"
+        placeholder="例如 7.200000"
+        data-field="rateText"
+        aria-label="手动牌价"
+        bind:input="onFieldInput"
+      />
+
+      <view class="fx-date">
+        <text class="fx-date__label">牌价日期</text>
+        <picker
+          mode="date"
+          value="{{rateDate}}"
+          start="1900-01-01"
+          end="2100-12-31"
+          bindchange="onRateDateChange"
+        >
+          <view class="fx-date__value" aria-role="button" aria-label="选择牌价日期，当前 {{rateDate}}">
+            <text>{{rateDate}}</text>
+            <text class="fx-date__arrow">选择</text>
+          </view>
+        </picker>
+      </view>
+    </view>
+
+    <view wx:if="{{rateSource === 'official'}}" class="fx-notice">官方中间价来自中国外汇交易中心（CFETS）；请求不包含金额、币种选择或其他输入。</view>
+    <view wx:else class="fx-notice">手动牌价由你填写，不接入行情源；结果仅供参考。</view>
+  </view>
+
+  <view slot="result" class="sg-tool-result">
+    <view class="sg-tool-result__head">
+      <text class="sg-tool-result__label">换算结果</text>
+      <text class="sg-tool-result__meta">{{resultPair}}</text>
+    </view>
+
+    <view class="sg-tool-result__main" aria-role="status">{{convertedText}}</view>
+
+    <view class="fx-rate-block">
+      <text class="fx-rate-block__line">{{rateTextDisplay}}</text>
+      <text class="fx-rate-block__line">{{inverseRateText}}</text>
+    </view>
+
+    <view wx:if="{{rateDateWarning}}" class="fx-warning">{{rateDateWarning}}</view>
+
+    <view class="sg-tool-rows">
+      <view wx:for="{{resultRows}}" wx:key="k" class="sg-tool-row">
+        <text class="sg-tool-row__k">{{item.k}}</text>
+        <text class="sg-tool-row__v">{{item.v}}</text>
+      </view>
+    </view>
+
+    <view class="fx-actions">
+      <glass-button variant="primary" size="md" block bind:tap="onCopy">复制换算摘要</glass-button>
+    </view>
+
+    <view class="sg-tool-note">
+      <text class="sg-tool-note__title">说明</text>
+      <text class="sg-tool-note__text">{{sourceNote}}</text>
+    </view>
+  </view>
+</glass-tool-shell>

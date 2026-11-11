@@ -1,0 +1,6 @@
+/* 占位符模板 · 结果输出 / 未填充变量 */
+.tpl-output{height:240rpx;box-sizing:border-box;padding:20rpx 22rpx;border:1rpx solid var(--glass-border);border-radius:var(--glass-radius-md);background-color:var(--glass-bg-soft);color:var(--glass-text);font-family:var(--glass-font-mono);font-size:24rpx;line-height:1.6;word-break:break-all}
+.tpl-missing{display:flex;flex-direction:column;gap:8rpx}
+.tpl-missing__title{color:var(--glass-warn,#d97706);font-size:20rpx}
+.tpl-missing__chips{display:flex;flex-wrap:wrap;gap:8rpx}
+.tpl-missing__chip{padding:4rpx 14rpx;border:1rpx solid var(--glass-warn,#d97706);border-radius:999rpx;color:var(--glass-warn,#d97706);font-family:var(--glass-font-mono);font-size:20rpx}

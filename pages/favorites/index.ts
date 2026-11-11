@@ -108,13 +108,18 @@ Page({
     if (!id) {
       return
     }
-    const added = toolboxStore.toggleFavorite(id)
-    if (added === null) {
+    const result = toolboxStore.toggleFavorite(id)
+    if (result === 'full') {
+      tapWarn()
+      showGlassToast('收藏已满（最多 100 个）')
+      return
+    }
+    if (result === 'failed' || result === 'invalid') {
       tapWarn()
       showGlassToast('收藏失败，请重试')
       return
     }
-    showGlassToast(added ? '已收藏工具' : '已取消收藏')
+    showGlassToast(result === 'added' ? '已收藏工具' : '已取消收藏')
   },
 
   onUnfavorite(event: WechatMiniprogram.TouchEvent) {
@@ -123,7 +128,8 @@ Page({
       return
     }
     tapTick()
-    if (toolboxStore.toggleFavorite(id) === null) {
+    const result = toolboxStore.toggleFavorite(id)
+    if (result === 'failed' || result === 'invalid') {
       tapWarn()
       showGlassToast('收藏失败，请重试')
       return

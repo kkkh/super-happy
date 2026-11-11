@@ -1,0 +1,1164 @@
+/* ==========================================================================
+   weather · 全息气象站
+   - 只消费 --glass-* 令牌；全屏层一律纯渐变，不用 backdrop-filter
+   - FX 画布置于内容之下，pointer-events:none，不拦截任何手势
+   - chart / hourly 为静态 Canvas，DPR 变换由页面统一 setTransform
+   ========================================================================== */
+.weather-page {
+  --weather-text: var(--glass-text);
+  --weather-text-2: var(--glass-text-2);
+  --weather-text-3: var(--glass-text-3);
+  --weather-line: var(--glass-border);
+  --weather-surface: var(--glass-bg-strong);
+  --weather-surface-soft: var(--glass-bg);
+  --weather-accent: var(--glass-accent);
+  --weather-mint: var(--glass-accent-2);
+  --weather-warm: var(--glass-accent-warm);
+  --weather-danger: var(--glass-danger);
+  --weather-glow: var(--glass-accent-soft);
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  box-sizing: border-box;
+  background-color: var(--glass-canvas);
+  color: var(--weather-text);
+  font-family: var(--glass-font-sans);
+}
+
+/* ---- 背景极光：纯渐变 ---- */
+.weather-aurora {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.weather-aurora__blob {
+  position: absolute;
+  width: 760rpx;
+  height: 760rpx;
+  border-radius: 50%;
+  opacity: 0.9;
+}
+
+.weather-aurora__blob--a {
+  top: -360rpx;
+  left: -240rpx;
+  background: radial-gradient(circle, var(--glass-aurora-1) 0%, transparent 68%);
+}
+
+.weather-aurora__blob--b {
+  right: -300rpx;
+  top: 260rpx;
+  background: radial-gradient(circle, var(--glass-aurora-2) 0%, transparent 70%);
+}
+
+.weather-aurora__grid {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  opacity: 0.08;
+  background-image:
+    linear-gradient(var(--glass-border) 1rpx, transparent 1rpx),
+    linear-gradient(90deg, var(--glass-border) 1rpx, transparent 1rpx);
+  background-size: 96rpx 96rpx;
+}
+
+/* ---- 天气色罩：全部 pointer-events:none ---- */
+.weather-fx-veil {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.9;
+  background: transparent;
+}
+
+.weather-fx-veil--clear {
+  background: radial-gradient(120% 80% at 78% 8%, rgba(255, 196, 107, 0.16) 0%, transparent 62%);
+}
+
+.weather-fx-veil--partly,
+.weather-fx-veil--cloudy,
+.weather-fx-veil--overcast {
+  background: linear-gradient(180deg, rgba(150, 170, 215, 0.12), transparent 52%);
+}
+
+.weather-fx-veil--rain,
+.weather-fx-veil--heavyRain {
+  background: linear-gradient(180deg, rgba(70, 120, 210, 0.18), transparent 70%);
+}
+
+.weather-fx-veil--thunder {
+  background: linear-gradient(180deg, rgba(128, 100, 220, 0.2), transparent 72%);
+}
+
+.weather-fx-veil--snow,
+.weather-fx-veil--sleet {
+  background: linear-gradient(180deg, rgba(200, 225, 255, 0.14), transparent 70%);
+}
+
+.weather-fx-veil--haze {
+  background: linear-gradient(180deg, rgba(210, 180, 110, 0.18), transparent 70%);
+}
+
+.weather-fx-veil--dust {
+  background: linear-gradient(180deg, rgba(210, 150, 80, 0.2), transparent 72%);
+}
+
+.weather-fx-veil--fog {
+  background: linear-gradient(180deg, rgba(170, 180, 200, 0.16), transparent 68%);
+}
+
+.weather-fx-veil--wind {
+  background: linear-gradient(120deg, rgba(110, 231, 200, 0.1), transparent 64%);
+}
+
+.weather-fx-veil--hot {
+  background: linear-gradient(180deg, rgba(255, 130, 80, 0.16), transparent 68%);
+}
+
+.weather-fx-veil--cold {
+  background: linear-gradient(180deg, rgba(110, 160, 255, 0.14), transparent 68%);
+}
+
+.weather-fx-veil.is-night {
+  background: linear-gradient(180deg, rgba(10, 18, 40, 0.35), transparent 78%);
+}
+
+.weather-fx {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.92;
+}
+
+.weather-page--low .weather-fx {
+  display: none;
+}
+
+/* ---- 导航 ---- */
+.weather-nav {
+  position: relative;
+  z-index: 20;
+  flex: none;
+  /* padding-top 由页面按胶囊实测值注入，禁止在这里写死安全高度 */
+  padding-left: 16rpx;
+  padding-right: 24rpx;
+  box-sizing: border-box;
+}
+
+.weather-nav__row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  /* height 由页面按胶囊实测值注入 */
+}
+
+.weather-nav__back {
+  position: relative;
+  left: auto;
+  top: auto;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72rpx;
+  height: 72rpx;
+  margin: 0 0 0 8rpx;
+  border-radius: 50%;
+  background: var(--glass-bg);
+  border: 1rpx solid var(--glass-border);
+  transition: transform 160ms var(--glass-ease-out), background 160ms var(--glass-ease-out);
+}
+
+.weather-nav__back--press {
+  transform: scale(0.94);
+  background: var(--glass-bg-strong);
+}
+
+.weather-nav__back-glyph {
+  font-size: 46rpx;
+  line-height: 1;
+  color: var(--weather-text-2);
+  transform: translateY(-2rpx);
+}
+
+.weather-nav__title-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  margin-left: 12rpx;
+  padding: 6rpx 16rpx;
+  border-radius: 20rpx;
+}
+
+.weather-nav__title {
+  font-size: 30rpx;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 2rpx;
+  color: var(--weather-text);
+}
+
+.weather-nav__sub {
+  margin-top: 4rpx;
+  font-size: 19rpx;
+  line-height: 1.2;
+  letter-spacing: 1rpx;
+  color: var(--weather-text-3);
+}
+
+.weather-nav__actions {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  /* right 由页面按胶囊 left 实测值注入，保证按钮落在胶囊左侧 */
+}
+
+.weather-nav__action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  background: var(--glass-bg);
+  border: 1rpx solid var(--glass-border);
+  transition: transform 160ms var(--glass-ease-out), background 160ms var(--glass-ease-out);
+}
+
+.weather-nav__action--press {
+  transform: scale(0.94);
+  background: var(--glass-bg-strong);
+}
+
+/* ---- 滚动区 ---- */
+.weather-scroll {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  height: 0;
+  min-height: 0;
+}
+
+.weather-content {
+  display: flex;
+  flex-direction: column;
+  padding: 8rpx 28rpx calc(var(--glass-safe-bottom) + 36rpx);
+  box-sizing: border-box;
+}
+
+/* ---- Loading ---- */
+.weather-loading {
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+  padding: 12rpx 24rpx;
+  margin-bottom: 14rpx;
+  border-radius: 999rpx;
+  background: var(--glass-bg);
+  border: 1rpx solid var(--glass-border);
+  font-size: 21rpx;
+  color: var(--weather-text-3);
+}
+
+.weather-loading__bar {
+  width: 18rpx;
+  height: 18rpx;
+  border-radius: 50%;
+  border: 3rpx solid var(--weather-accent);
+  border-top-color: transparent;
+  animation: weather-spin 900ms linear infinite;
+}
+
+@keyframes weather-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---- Hero ---- */
+.weather-hero {
+  position: relative;
+  overflow: hidden;
+  padding: 30rpx 30rpx 26rpx;
+  border-radius: 46rpx;
+  background:
+    radial-gradient(120% 100% at 82% 0%, var(--glass-accent-soft) 0%, transparent 58%),
+    linear-gradient(160deg, var(--glass-bg-strong), var(--glass-bg));
+  border: 1rpx solid var(--glass-border);
+  box-shadow: var(--glass-shadow-soft);
+}
+
+.weather-hero__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20rpx;
+}
+
+.weather-hero__place {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.weather-hero__city {
+  font-size: 44rpx;
+  font-weight: 700;
+  letter-spacing: 1rpx;
+  line-height: 1.15;
+  color: var(--weather-text);
+}
+
+.weather-hero__meta {
+  margin-top: 8rpx;
+  font-size: 21rpx;
+  letter-spacing: 1rpx;
+  color: var(--weather-text-3);
+}
+
+.weather-hero__badges {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8rpx;
+  flex: none;
+}
+
+.weather-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 40rpx;
+  padding: 0 14rpx;
+  border-radius: 999rpx;
+  font-size: 18rpx;
+  letter-spacing: 0.5rpx;
+  color: var(--weather-text-2);
+  background: var(--glass-bg-soft);
+  border: 1rpx solid var(--glass-border);
+}
+
+.weather-badge--stale {
+  color: var(--weather-warm);
+  border-color: var(--glass-accent-warm-soft);
+  background: var(--glass-accent-warm-soft);
+}
+
+.weather-badge--offline {
+  color: var(--weather-danger);
+  border-color: var(--glass-accent-warm-soft);
+}
+
+.weather-badge--time {
+  color: var(--weather-text-3);
+}
+
+.weather-hero__main {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+  margin-top: 18rpx;
+}
+
+.weather-hero__visual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 190rpx;
+  flex: none;
+}
+
+.weather-hero__temp {
+  display: flex;
+  align-items: flex-start;
+  color: var(--weather-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.weather-hero__num {
+  font-size: 138rpx;
+  font-weight: 200;
+  line-height: 0.95;
+  letter-spacing: -6rpx;
+}
+
+.weather-hero__unit {
+  margin-top: 12rpx;
+  font-size: 38rpx;
+  font-weight: 300;
+  color: var(--weather-text-2);
+}
+
+.weather-hero__condition {
+  align-self: flex-end;
+  margin-bottom: 10rpx;
+  font-size: 30rpx;
+  font-weight: 600;
+  color: var(--weather-text-2);
+}
+
+.weather-hero--empty .weather-hero__num {
+  font-size: 76rpx;
+  font-weight: 300;
+  letter-spacing: 0;
+  color: var(--weather-text-3);
+}
+
+.weather-hero--empty .weather-hero__unit {
+  display: none;
+}
+
+.weather-hero--empty .weather-hero__condition {
+  color: var(--weather-text-3);
+}
+
+.weather-hero__empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 168rpx;
+  border-radius: 30rpx;
+  border: 1rpx dashed var(--glass-border-strong);
+  background: var(--glass-bg-soft);
+  font-size: 21rpx;
+  letter-spacing: 1rpx;
+  color: var(--weather-text-3);
+}
+
+.weather-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 24rpx;
+  border-top: 1rpx solid var(--glass-border);
+  padding-top: 18rpx;
+}
+
+.weather-metric {
+  display: flex;
+  flex-direction: column;
+  width: 50%;
+  padding: 10rpx 0;
+  box-sizing: border-box;
+}
+
+.weather-metric:nth-child(2n) {
+  padding-left: 16rpx;
+}
+
+.weather-metric__label {
+  font-size: 19rpx;
+  letter-spacing: 1rpx;
+  color: var(--weather-text-3);
+}
+
+.weather-metric__value {
+  margin-top: 4rpx;
+  font-size: 27rpx;
+  font-weight: 600;
+  color: var(--weather-text);
+}
+
+/* ---- 城市条 ---- */
+.weather-cities-strip {
+  margin-top: 18rpx;
+  width: 100%;
+  height: 76rpx;
+  flex: none;
+}
+
+.weather-cities-strip__inner {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  height: 76rpx;
+  padding: 2rpx 0;
+  white-space: nowrap;
+}
+
+.weather-city-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8rpx;
+  flex: none;
+  height: 60rpx;
+  padding: 0 20rpx;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+  color: var(--weather-text-2);
+  background: var(--glass-bg);
+  border: 1rpx solid var(--glass-border);
+}
+
+.weather-city-chip.is-active {
+  color: var(--weather-text);
+  background: var(--glass-accent-soft);
+  border-color: var(--glass-accent-glow);
+  box-shadow: 0 0 0 1rpx var(--glass-accent-soft);
+}
+
+.weather-city-chip.is-located .weather-city-chip__tag {
+  color: var(--weather-mint);
+}
+
+.weather-city-chip__tag {
+  font-size: 16rpx;
+  letter-spacing: 1rpx;
+  color: var(--weather-text-3);
+}
+
+.weather-city-chip--add {
+  justify-content: center;
+  width: 60rpx;
+  padding: 0;
+  font-size: 30rpx;
+  color: var(--weather-text-3);
+}
+
+/* ---- 错误条 ---- */
+.weather-alert {
+  margin-top: 18rpx;
+  padding: 22rpx 24rpx;
+  border-radius: 28rpx;
+  background: var(--glass-accent-warm-soft);
+  border: 1rpx solid var(--glass-accent-warm-soft);
+}
+
+.weather-alert--error {
+  background: rgba(255, 122, 99, 0.1);
+  border-color: rgba(255, 122, 99, 0.22);
+}
+
+.weather-alert__title {
+  display: block;
+  font-size: 24rpx;
+  font-weight: 600;
+  color: var(--weather-text);
+}
+
+.weather-alert__desc {
+  display: block;
+  margin-top: 6rpx;
+  font-size: 21rpx;
+  line-height: 1.5;
+  color: var(--weather-text-2);
+}
+
+.weather-alert__actions {
+  display: flex;
+  gap: 14rpx;
+  margin-top: 16rpx;
+}
+
+/* ---- 通用卡片 / 分区 ---- */
+.weather-card {
+  margin-top: 22rpx;
+  padding: 28rpx 26rpx;
+  border-radius: 38rpx;
+  background: var(--glass-bg);
+  border: 1rpx solid var(--glass-border);
+  box-shadow: var(--glass-shadow-soft);
+  box-sizing: border-box;
+}
+
+.weather-section__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18rpx;
+}
+
+.weather-section__title-wrap {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.weather-section__title {
+  font-size: 30rpx;
+  font-weight: 650;
+  color: var(--weather-text);
+}
+
+.weather-section__meta {
+  margin-top: 4rpx;
+  font-size: 19rpx;
+  color: var(--weather-text-3);
+}
+
+.weather-tag {
+  flex: none;
+  height: 38rpx;
+  padding: 0 14rpx;
+  border-radius: 999rpx;
+  font-size: 17rpx;
+  line-height: 38rpx;
+  letter-spacing: 0.5rpx;
+  color: var(--weather-mint);
+  background: var(--glass-accent-2-soft);
+  border: 1rpx solid var(--glass-accent-2-soft);
+}
+
+/* ---- 4 天预报 ---- */
+.weather-forecast {
+  margin-top: 18rpx;
+}
+
+.weather-day {
+  padding: 18rpx 0;
+  border-top: 1rpx solid var(--glass-border);
+}
+
+.weather-day:first-child {
+  border-top: none;
+  padding-top: 6rpx;
+}
+
+.weather-day__top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.weather-day__date {
+  font-size: 22rpx;
+  color: var(--weather-text-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.weather-day__week {
+  font-size: 20rpx;
+  color: var(--weather-text-3);
+}
+
+.weather-day__row {
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+  margin-top: 8rpx;
+}
+
+.weather-day__copy {
+  display: flex;
+  align-items: baseline;
+  gap: 10rpx;
+  flex: 1;
+  min-width: 0;
+}
+
+.weather-day__label {
+  font-size: 18rpx;
+  color: var(--weather-text-3);
+}
+
+.weather-day__weather {
+  font-size: 23rpx;
+  color: var(--weather-text);
+}
+
+.weather-day__temp {
+  font-size: 30rpx;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--weather-text);
+}
+
+.weather-day__row--night .weather-day__weather {
+  color: var(--weather-text-2);
+}
+
+.weather-day__wind {
+  display: flex;
+  justify-content: space-between;
+  gap: 12rpx;
+  margin-top: 8rpx;
+  padding-left: 78rpx;
+  font-size: 19rpx;
+  color: var(--weather-text-3);
+}
+
+.weather-empty-inline {
+  margin-top: 16rpx;
+  padding: 24rpx;
+  border-radius: 24rpx;
+  text-align: center;
+  font-size: 22rpx;
+  color: var(--weather-text-3);
+  background: var(--glass-bg-soft);
+}
+
+/* ---- 图表 ---- */
+.weather-chart-shell {
+  position: relative;
+  width: 100%;
+  margin-top: 18rpx;
+  border-radius: 26rpx;
+  background: linear-gradient(180deg, var(--glass-bg-soft), transparent);
+  overflow: hidden;
+}
+
+.weather-chart {
+  display: block;
+  width: 100%;
+  height: 300rpx;
+}
+
+.weather-chart--hourly {
+  height: 190rpx;
+}
+
+.weather-chart-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 220rpx;
+  padding: 24rpx;
+  text-align: center;
+  font-size: 21rpx;
+  line-height: 1.5;
+  color: var(--weather-text-3);
+}
+
+.weather-chart-placeholder--hourly {
+  min-height: 150rpx;
+}
+
+.weather-chart-placeholder--overlay {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  min-height: 0;
+  pointer-events: none;
+}
+
+/* ---- 24h 列表 ---- */
+.weather-hourly-strip {
+  margin-top: 14rpx;
+  width: 100%;
+  height: 112rpx;
+  flex: none;
+}
+
+.weather-hourly-strip__inner {
+  display: flex;
+  gap: 10rpx;
+  height: 112rpx;
+  white-space: nowrap;
+  padding-bottom: 4rpx;
+}
+
+.weather-hourly-chip {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 92rpx;
+  padding: 12rpx 0;
+  border-radius: 22rpx;
+  background: var(--glass-bg-soft);
+  border: 1rpx solid var(--glass-border);
+}
+
+.weather-hourly-chip.is-night {
+  background: var(--glass-accent-soft);
+}
+
+.weather-hourly-chip__time {
+  font-size: 18rpx;
+  color: var(--weather-text-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.weather-hourly-chip__temp {
+  margin-top: 2rpx;
+  font-size: 24rpx;
+  font-weight: 600;
+  color: var(--weather-text);
+}
+
+.weather-hourly-chip__weather {
+  margin-top: 2rpx;
+  max-width: 84rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 16rpx;
+  color: var(--weather-text-3);
+}
+
+/* ---- 日出日落 ---- */
+.weather-sun {
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+}
+
+.weather-sun__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.weather-sun__title {
+  font-size: 28rpx;
+  font-weight: 650;
+  color: var(--weather-text);
+}
+
+.weather-sun__row {
+  display: flex;
+  gap: 18rpx;
+  margin-top: 8rpx;
+}
+
+.weather-sun__item {
+  display: flex;
+  flex: 1;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 18rpx 22rpx;
+  border-radius: 24rpx;
+  background: var(--glass-bg-soft);
+  border: 1rpx solid var(--glass-border);
+}
+
+.weather-sun__label {
+  font-size: 19rpx;
+  color: var(--weather-text-3);
+}
+
+.weather-sun__value {
+  font-size: 32rpx;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--weather-text);
+}
+
+.weather-note {
+  display: block;
+  margin-top: 12rpx;
+  font-size: 19rpx;
+  line-height: 1.5;
+  color: var(--weather-text-3);
+}
+
+/* ---- 扩展占位 ---- */
+.weather-extensions {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.weather-extension {
+  padding: 20rpx;
+  border-radius: 26rpx;
+  border: 1rpx dashed var(--glass-border-strong);
+  background: linear-gradient(160deg, var(--glass-bg-soft), transparent);
+}
+
+.weather-extension__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12rpx;
+}
+
+.weather-extension__title {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: var(--weather-text-2);
+}
+
+.weather-extension__tag {
+  font-size: 16rpx;
+  letter-spacing: 0.5rpx;
+  color: var(--weather-text-3);
+}
+
+.weather-extension__desc {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 20rpx;
+  line-height: 1.55;
+  color: var(--weather-text-3);
+}
+
+.weather-extension__skeleton {
+  margin-top: 14rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.weather-extension__bar {
+  height: 14rpx;
+  width: 74%;
+  border-radius: 999rpx;
+  background: linear-gradient(90deg, var(--glass-bg-soft), var(--glass-accent-soft), var(--glass-bg-soft));
+  opacity: 0.7;
+}
+
+.weather-extension__bar--short {
+  width: 42%;
+}
+
+/* ---- 页脚 ---- */
+.weather-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14rpx;
+  margin-top: 26rpx;
+  padding: 0 4rpx;
+}
+
+.weather-footer__source {
+  font-size: 18rpx;
+  line-height: 1.55;
+  color: var(--weather-text-3);
+}
+
+/* ---- 城市抽屉 ---- */
+.weather-city-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 14rpx;
+  padding-bottom: 20rpx;
+}
+
+.weather-city-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  padding: 22rpx 24rpx;
+  border-radius: 26rpx;
+  background: var(--glass-bg);
+  border: 1rpx solid var(--glass-border);
+}
+
+.weather-city-row.is-active {
+  background: var(--glass-accent-soft);
+  border-color: var(--glass-accent-glow);
+}
+
+.weather-city-row__copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.weather-city-row__name {
+  font-size: 27rpx;
+  font-weight: 600;
+  color: var(--weather-text);
+}
+
+.weather-city-row__meta {
+  margin-top: 4rpx;
+  font-size: 19rpx;
+  color: var(--weather-text-3);
+}
+
+.weather-city-row__code {
+  flex: none;
+  font-size: 20rpx;
+  font-variant-numeric: tabular-nums;
+  color: var(--weather-text-3);
+}
+
+.weather-ambient {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  margin-top: 8rpx;
+  padding: 22rpx 24rpx;
+  border-radius: 26rpx;
+  background: var(--glass-bg-soft);
+  border: 1rpx solid var(--glass-border);
+}
+
+.weather-ambient__copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.weather-ambient__title {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: var(--weather-text);
+}
+
+.weather-ambient__desc {
+  margin-top: 4rpx;
+  font-size: 19rpx;
+  line-height: 1.5;
+  color: var(--weather-text-3);
+}
+
+/* ---- 搜索抽屉 ---- */
+.weather-search {
+  display: flex;
+  flex-direction: column;
+  gap: 14rpx;
+  padding-bottom: 20rpx;
+}
+
+.weather-search__state {
+  padding: 20rpx;
+  text-align: center;
+  font-size: 21rpx;
+  color: var(--weather-text-3);
+}
+
+.weather-search__state--error {
+  color: var(--weather-danger);
+}
+
+.weather-search-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  padding: 20rpx 24rpx;
+  border-radius: 24rpx;
+  background: var(--glass-bg);
+  border: 1rpx solid var(--glass-border);
+}
+
+.weather-search-row__copy {
+  display: flex;
+  flex-direction: column;
+}
+
+.weather-search-row__name {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: var(--weather-text);
+}
+
+.weather-search-row__level {
+  margin-top: 4rpx;
+  font-size: 18rpx;
+  color: var(--weather-text-3);
+}
+
+.weather-search-row__code {
+  font-size: 20rpx;
+  font-variant-numeric: tabular-nums;
+  color: var(--weather-text-3);
+}
+
+/* ---- 诊断抽屉 ---- */
+.weather-diagnostics {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  padding-bottom: 20rpx;
+}
+
+.weather-diag__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18rpx 22rpx;
+  border-radius: 22rpx;
+  background: var(--glass-bg-soft);
+  border: 1rpx solid var(--glass-border);
+}
+
+.weather-diag__label {
+  font-size: 21rpx;
+  color: var(--weather-text-3);
+}
+
+.weather-diag__value {
+  font-size: 21rpx;
+  font-family: var(--glass-font-mono);
+  color: var(--weather-text-2);
+}
+
+.weather-diag__text {
+  display: block;
+  padding: 22rpx;
+  border-radius: 24rpx;
+  background: var(--glass-bg-soft);
+  border: 1rpx solid var(--glass-border);
+  font-family: var(--glass-font-mono);
+  font-size: 19rpx;
+  line-height: 1.7;
+  color: var(--weather-text-2);
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.weather-lab {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  padding: 22rpx;
+  border-radius: 24rpx;
+  background: var(--glass-accent-soft);
+  border: 1rpx solid var(--glass-accent-glow);
+}
+
+.weather-lab__copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.weather-lab__title {
+  font-size: 23rpx;
+  font-weight: 600;
+  color: var(--weather-text);
+}
+
+.weather-lab__desc {
+  margin-top: 4rpx;
+  font-size: 18rpx;
+  line-height: 1.5;
+  color: var(--weather-text-3);
+}
+
+.weather-diag__actions {
+  display: flex;
+  gap: 14rpx;
+}
+
+/* ---- 减动效 ---- */
+@media (prefers-reduced-motion: reduce) {
+  .weather-loading__bar {
+    animation: none;
+  }
+
+  .weather-nav__back {
+    transition: none;
+  }
+}

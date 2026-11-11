@@ -1,0 +1,111 @@
+/* ==========================================================================
+   正则测试 · flags chips / 高亮预览 / 匹配列表
+   - 只使用 --glass-* 令牌，无硬编码色值
+   ========================================================================== */
+
+.regex-flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.regex-flag {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  box-sizing: border-box;
+  padding: 10rpx 18rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: 999rpx;
+  background-color: var(--glass-bg-soft);
+  color: var(--glass-text-3);
+  font-size: 20rpx;
+  transition: transform 140ms var(--glass-ease-out), background 140ms var(--glass-ease-out);
+}
+
+.regex-flag--on {
+  border-color: var(--glass-border-strong);
+  background-color: var(--glass-bg-strong);
+  color: var(--glass-text);
+}
+
+.regex-flag:active {
+  transform: scale(0.96);
+}
+
+.regex-flag__key {
+  font-family: var(--glass-font-mono);
+  font-size: 22rpx;
+  font-weight: 600;
+}
+
+.regex-flag__desc {
+  font-size: 19rpx;
+}
+
+.regex-preview {
+  max-height: 420rpx;
+  overflow-y: auto;
+  box-sizing: border-box;
+  padding: 20rpx 22rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: var(--glass-radius-md);
+  background-color: var(--glass-bg-soft);
+  color: var(--glass-text);
+  font-family: var(--glass-font-mono);
+  font-size: 23rpx;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.regex-hit {
+  border-bottom: 2rpx solid var(--glass-accent);
+  background-color: var(--glass-bg-strong);
+  font-weight: 600;
+}
+
+.regex-match {
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+  padding: 14rpx 0;
+  border-bottom: 1rpx solid var(--glass-border);
+}
+
+.regex-match__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.regex-match__title {
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 19rpx;
+}
+
+.regex-match__value {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--glass-text);
+  font-family: var(--glass-font-mono);
+  font-size: 22rpx;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.regex-match__groups {
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 19rpx;
+  word-break: break-all;
+}
+
+.regex-note {
+  color: var(--glass-text-3);
+  font-size: 19rpx;
+}

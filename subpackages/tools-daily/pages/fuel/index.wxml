@@ -1,0 +1,84 @@
+<glass-tool-shell
+  tool-id="fuel"
+  title="{{toolName}}"
+  kicker="{{kicker}}"
+  desc="{{desc}}"
+  poster-data="{{posterData}}"
+  run-label="计算油耗"
+  state="{{shellState}}"
+  has-result="{{hasResult}}"
+  error="{{error}}"
+  empty-title="填写里程与加油量，算出百公里油耗"
+  empty-sub="油价可选；留空时只显示油耗，不计算费用"
+  bind:run="onRun"
+  bind:example="onExample"
+  bind:reset="onReset"
+>
+  <view slot="input" class="sg-tool-fields">
+    <glass-input
+      label="行驶里程"
+      type="digit"
+      maxlength="{{9}}"
+      value="{{distanceText}}"
+      placeholder="例如 500"
+      data-field="distanceText"
+      aria-label="行驶里程，公里"
+      bind:input="onFieldInput"
+    />
+
+    <glass-input
+      label="加油量"
+      type="digit"
+      maxlength="{{8}}"
+      value="{{litersText}}"
+      placeholder="例如 40"
+      data-field="litersText"
+      aria-label="加油量，升"
+      bind:input="onFieldInput"
+    />
+
+    <glass-input
+      label="油价（可空）"
+      hint="留空时只计算百公里油耗"
+      type="digit"
+      maxlength="{{8}}"
+      value="{{priceText}}"
+      placeholder="例如 8.00"
+      data-field="priceText"
+      aria-label="油价，元每升"
+      bind:input="onFieldInput"
+    />
+  </view>
+
+  <view slot="result" class="sg-tool-result">
+    <view class="sg-tool-result__head">
+      <text class="sg-tool-result__label">{{resultLabel}}</text>
+      <text class="sg-tool-result__meta" bindtap="onCopy">点击复制摘要</text>
+    </view>
+
+    <view class="sg-tool-result__main" aria-role="status">{{resultMain}}</view>
+
+    <view wx:if="{{hasPrice}}" class="fuel-cost-note">已按本次油价计算油费</view>
+    <view wx:if="{{needsReview}}" class="fuel-review">里程超过 10,000 km，请复核输入</view>
+
+    <view class="sg-tool-rows">
+      <view
+        wx:for="{{resultRows}}"
+        wx:key="k"
+        class="sg-tool-row"
+        data-value="{{item.v}}"
+        bindtap="onCopyRow"
+        aria-role="button"
+        aria-label="复制 {{item.k}}"
+      >
+        <text class="sg-tool-row__k">{{item.k}}</text>
+        <text class="sg-tool-row__v">{{item.v}}</text>
+      </view>
+    </view>
+
+    <view class="sg-tool-note">
+      <text class="sg-tool-note__title">说明</text>
+      <text class="sg-tool-note__text">百公里油耗 = 加油量 ÷ 里程 × 100；每公里油费与本次油费只在填写油价时计算。结果只在本机生成，不保存里程、油量与油价。</text>
+    </view>
+  </view>
+</glass-tool-shell>

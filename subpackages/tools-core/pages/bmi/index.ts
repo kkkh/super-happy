@@ -3,7 +3,13 @@
    - BMI = 体重 / 身高²；区间标准仅作参考
    - 不构成医疗建议
    ========================================================================== */
-import { clamp, parseDecimal } from '../../lib/money'
+import { parseDecimal } from '../../lib/money'
+import {
+  bmiCategory,
+  bmiMarkerPercent,
+  bmiOf,
+  idealWeightRange,
+} from '../../../../core/toolbox/engines/body'
 import { copyText } from '../../lib/ui'
 import {
   sharePayloadForCurrentPage,
@@ -88,28 +94,18 @@ Page({
       return
     }
 
-    const meters = height / 100
-    const bmi = weight / (meters * meters)
-    const bmiText = bmi.toFixed(1)
-    let categoryText = ''
-    let categoryHint = ''
-    if (bmi < 18.5) {
-      categoryText = '偏瘦'
-      categoryHint = '低于 18.5，建议关注营养摄入与作息。'
-    } else if (bmi < 24) {
-      categoryText = '正常'
-      categoryHint = '18.5–23.9，保持规律作息与适量运动。'
-    } else if (bmi < 28) {
-      categoryText = '超重'
-      categoryHint = '24–27.9，建议控制热量并增加运动。'
-    } else {
-      categoryText = '肥胖'
-      categoryHint = '≥ 28，建议咨询专业医生制定计划。'
+    const bmi = bmiOf(height, weight)
+    if (bmi === null) {
+      this.setData({ shellState: 'invalid', hasResult: false, error: '身高或体重数值无效' })
+      return
     }
-    const idealMin = 18.5 * meters * meters
-    const idealMax = 23.9 * meters * meters
-    const idealText = `${idealMin.toFixed(1)} – ${idealMax.toFixed(1)} kg`
-    const markerPercent = clamp(((bmi - 14) / 22) * 100, 2, 98)
+    const bmiText = bmi.toFixed(1)
+    const category = bmiCategory(bmi)
+    const categoryText = category.label
+    const categoryHint = category.hint
+    const ideal = idealWeightRange(height)
+    const idealText = ideal ? `${ideal.minKg.toFixed(1)} – ${ideal.maxKg.toFixed(1)} kg` : '—'
+    const markerPercent = bmiMarkerPercent(bmi)
     const copy = [
       'BMI 试算',
       `身高：${height} cm`,

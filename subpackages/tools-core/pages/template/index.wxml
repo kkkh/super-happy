@@ -1,0 +1,80 @@
+<glass-tool-shell
+  tool-id="template"
+  title="{{toolName}}"
+  kicker="{{kicker}}"
+  desc="{{desc}}"
+  poster-data="{{posterData}}"
+  run-label="生成"
+  state="{{shellState}}"
+  has-result="{{hasResult}}"
+  error="{{error}}"
+  empty-title="填写模板与变量，批量替换"
+  empty-sub="用 &#123;&#123;key&#125;&#125; 标记变量；缺失变量会保留原样并单独提示"
+  bind:run="onRun"
+  bind:example="onExample"
+  bind:reset="onReset"
+>
+  <view slot="input" class="sg-tool-fields">
+    <glass-input
+      label="模板"
+      hint="用 &#123;&#123;key&#125;&#125; 标记变量，最多 20,000 字符"
+      multiline
+      auto-height
+      show-count
+      value="{{templateText}}"
+      maxlength="{{20000}}"
+      placeholder="例如：你好 &#123;&#123;name&#125;&#125;，欢迎来到 &#123;&#123;city&#125;&#125;"
+      cursor-spacing="{{120}}"
+      data-field="templateText"
+      aria-label="模板文本"
+      bind:input="onFieldInput"
+    />
+
+    <glass-input
+      label="变量表"
+      hint="每行 key=value；重复 key 取首值"
+      multiline
+      auto-height
+      show-count
+      value="{{variablesText}}"
+      maxlength="{{4000}}"
+      placeholder="例如：&#10;name=秦超&#10;city=杭州"
+      cursor-spacing="{{120}}"
+      data-field="variablesText"
+      aria-label="变量表"
+      bind:input="onFieldInput"
+    />
+  </view>
+
+  <view slot="result" class="sg-tool-result">
+    <view class="sg-tool-result__head">
+      <text class="sg-tool-result__label">替换结果</text>
+      <text class="sg-tool-result__meta" bindtap="onCopy">点击复制</text>
+    </view>
+
+    <view class="sg-tool-result__main" aria-role="status">{{resultMain}}</view>
+
+    <scroll-view scroll-y enhanced show-scrollbar="{{false}}" class="tpl-output">
+      <text selectable>{{resultText}}</text>
+    </scroll-view>
+
+    <view wx:if="{{missingCount > 0}}" class="tpl-missing">
+      <text class="tpl-missing__title">未填充变量</text>
+      <view class="tpl-missing__chips">
+        <text wx:for="{{missingKeys}}" wx:key="*this" class="tpl-missing__chip">{{item}}</text>
+      </view>
+    </view>
+
+    <view class="sg-tool-rows">
+      <view wx:for="{{resultRows}}" wx:key="k" class="sg-tool-row">
+        <text class="sg-tool-row__k">{{item.k}}</text>
+        <text class="sg-tool-row__v">{{item.v}}</text>
+      </view>
+    </view>
+
+    <view class="sg-tool-note">
+      <text class="sg-tool-note__title">说明</text>
+      <text class="sg-tool-note__text">变量名由字母、数字、下划线、点或短横线组成；缺失变量保留 &#123;&#123;key&#125;&#125; 原样；全部替换只在本机完成，不保存模板与变量。</text>
+    </view>
+  </view>
+</glass-tool-shell>

@@ -1,0 +1,227 @@
+<glass-tool-shell
+  tool-id="power"
+  title="{{toolName}}"
+  kicker="{{kicker}}"
+  desc="{{desc}}"
+  poster-data="{{posterData}}"
+  run-label="{{runLabel}}"
+  state="{{shellState}}"
+  has-result="{{hasResult}}"
+  error="{{error}}"
+  empty-title="{{emptyTitle}}"
+  empty-sub="{{emptySub}}"
+  bind:run="onRun"
+  bind:example="onExample"
+  bind:reset="onReset"
+>
+  <view slot="input" class="sg-tool-fields">
+    <view class="power-modes" aria-role="tablist">
+      <view
+        wx:for="{{modes}}"
+        wx:key="key"
+        class="power-mode {{item.key === mode ? 'power-mode--on' : ''}}"
+        data-mode="{{item.key}}"
+        bindtap="onMode"
+        aria-role="tab"
+        aria-selected="{{item.key === mode}}"
+      >{{item.label}}</view>
+    </view>
+
+    <block wx:if="{{mode === 'electric'}}">
+      <glass-input
+        label="功率"
+        hint="电器铭牌上的额定功率，单位 W"
+        type="digit"
+        maxlength="{{8}}"
+        value="{{powerText}}"
+        placeholder="例如 1000"
+        data-field="powerText"
+        aria-label="功率，瓦"
+        bind:input="onFieldInput"
+      />
+
+      <glass-input
+        label="每日时长"
+        type="digit"
+        maxlength="{{6}}"
+        value="{{hoursText}}"
+        placeholder="例如 1"
+        data-field="hoursText"
+        aria-label="每日使用时长，小时"
+        bind:input="onFieldInput"
+      />
+
+      <glass-input
+        label="天数"
+        type="digit"
+        maxlength="{{5}}"
+        value="{{daysText}}"
+        placeholder="例如 30"
+        data-field="daysText"
+        aria-label="使用天数"
+        bind:input="onFieldInput"
+      />
+    </block>
+
+    <block wx:else>
+      <glass-input
+        label="{{usageLabel}}"
+        type="digit"
+        maxlength="{{10}}"
+        value="{{usageText}}"
+        placeholder="例如 10"
+        data-field="usageText"
+        aria-label="{{usageLabel}}"
+        bind:input="onFieldInput"
+      />
+
+      <glass-input
+        label="基础费（元，可空）"
+        type="digit"
+        maxlength="{{8}}"
+        value="{{baseFeeText}}"
+        placeholder="例如 5"
+        data-field="baseFeeText"
+        aria-label="基础费，元"
+        bind:input="onFieldInput"
+      />
+    </block>
+
+    <glass-input
+      label="{{priceLabel}}"
+      hint="不填阶梯时使用；也可留空只看用量"
+      type="digit"
+      maxlength="{{8}}"
+      value="{{priceText}}"
+      placeholder="例如 0.6"
+      data-field="priceText"
+      aria-label="{{priceLabel}}"
+      bind:input="onFieldInput"
+    />
+
+    <view class="power-tier-block">
+      <text class="power-tier-title">{{tierTitle}}</text>
+      <text class="power-tier-hint">上限需严格递增；最后一档上限留空表示无上限；填写阶梯后忽略平价单价</text>
+
+      <view class="power-tier-row">
+        <view class="power-tier-col">
+          <glass-input
+            label="第 1 档上限（{{tierUnit}}）"
+            type="digit"
+            maxlength="{{8}}"
+            value="{{tier1Limit}}"
+            placeholder="例如 100"
+            data-field="tier1Limit"
+            aria-label="第一档上限"
+            bind:input="onFieldInput"
+          />
+        </view>
+        <view class="power-tier-col">
+          <glass-input
+            label="第 1 档单价"
+            type="digit"
+            maxlength="{{8}}"
+            value="{{tier1Price}}"
+            placeholder="例如 0.5"
+            data-field="tier1Price"
+            aria-label="第一档单价"
+            bind:input="onFieldInput"
+          />
+        </view>
+      </view>
+
+      <view class="power-tier-row">
+        <view class="power-tier-col">
+          <glass-input
+            label="第 2 档上限（{{tierUnit}}）"
+            type="digit"
+            maxlength="{{8}}"
+            value="{{tier2Limit}}"
+            placeholder="可空"
+            data-field="tier2Limit"
+            aria-label="第二档上限"
+            bind:input="onFieldInput"
+          />
+        </view>
+        <view class="power-tier-col">
+          <glass-input
+            label="第 2 档单价"
+            type="digit"
+            maxlength="{{8}}"
+            value="{{tier2Price}}"
+            placeholder="例如 0.8"
+            data-field="tier2Price"
+            aria-label="第二档单价"
+            bind:input="onFieldInput"
+          />
+        </view>
+      </view>
+
+      <view class="power-tier-row">
+        <view class="power-tier-col">
+          <glass-input
+            label="第 3 档上限（{{tierUnit}}）"
+            type="digit"
+            maxlength="{{8}}"
+            value="{{tier3Limit}}"
+            placeholder="留空 = 无上限"
+            data-field="tier3Limit"
+            aria-label="第三档上限"
+            bind:input="onFieldInput"
+          />
+        </view>
+        <view class="power-tier-col">
+          <glass-input
+            label="第 3 档单价"
+            type="digit"
+            maxlength="{{8}}"
+            value="{{tier3Price}}"
+            placeholder="例如 1.0"
+            data-field="tier3Price"
+            aria-label="第三档单价"
+            bind:input="onFieldInput"
+          />
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view slot="result" class="sg-tool-result">
+    <view class="sg-tool-result__head">
+      <text class="sg-tool-result__label">{{resultLabel}}</text>
+      <text class="sg-tool-result__meta" bindtap="onCopy">点击复制摘要</text>
+    </view>
+
+    <view class="sg-tool-result__main" aria-role="status">{{resultMain}}</view>
+
+    <view wx:if="{{aboveHighest}}" class="power-review">用量 / 电量超出最高档，已按末档单价计费</view>
+
+    <view class="sg-tool-rows">
+      <view
+        wx:for="{{resultRows}}"
+        wx:key="k"
+        class="sg-tool-row"
+        data-value="{{item.v}}"
+        bindtap="onCopyRow"
+        aria-role="button"
+        aria-label="复制 {{item.k}}"
+      >
+        <text class="sg-tool-row__k">{{item.k}}</text>
+        <text class="sg-tool-row__v">{{item.v}}</text>
+      </view>
+    </view>
+
+    <view wx:if="{{hasTiers}}" class="power-slices">
+      <text class="power-slices__title">阶梯分段</text>
+      <view wx:for="{{tierRows}}" wx:key="range" class="power-slices__row">
+        <text class="power-slices__range">{{item.range}}</text>
+        <text class="power-slices__detail">{{item.detail}}</text>
+      </view>
+    </view>
+
+    <view class="sg-tool-note">
+      <text class="sg-tool-note__title">说明</text>
+      <text class="sg-tool-note__text">电费按功率 × 时长；水费 / 燃气费按用量 × 单价 + 基础费；阶梯按累计用量分段计价，超出最高档按末档单价计算。结果只在本机生成。</text>
+    </view>
+  </view>
+</glass-tool-shell>

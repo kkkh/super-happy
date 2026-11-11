@@ -1,0 +1,124 @@
+<glass-tool-shell
+  tool-id="text-convert"
+  title="{{toolName}}"
+  kicker="{{kicker}}"
+  desc="{{desc}}"
+  poster-data="{{posterData}}"
+  show-run="{{false}}"
+  show-example
+  state="{{shellState}}"
+  has-result="{{hasResult}}"
+  error="{{error}}"
+  empty-title="输入文本，实时转换"
+  empty-sub="大小写、命名风格、HTML 实体、Unicode 转义与文本清洗"
+  bind:example="onExample"
+  bind:reset="onReset"
+>
+  <view slot="input" class="sg-tool-fields">
+    <view class="convert-modes" aria-role="tablist">
+      <view
+        wx:for="{{panelOptions}}"
+        wx:key="key"
+        class="convert-chip {{item.key === activeMode ? 'convert-chip--on' : ''}}"
+        data-mode="{{item.key}}"
+        bindtap="onModeTap"
+        aria-role="tab"
+        aria-selected="{{item.key === activeMode}}"
+      >
+        {{item.label}}
+      </view>
+    </view>
+
+    <view wx:if="{{activeMode === 'case'}}" class="convert-subs">
+      <view
+        wx:for="{{caseOptions}}"
+        wx:key="key"
+        class="convert-sub {{item.key === caseMode ? 'convert-sub--on' : ''}}"
+        data-mode="{{item.key}}"
+        bindtap="onCaseMode"
+        aria-role="button"
+      >{{item.label}}</view>
+    </view>
+
+    <view wx:elif="{{activeMode === 'naming'}}" class="convert-subs">
+      <view
+        wx:for="{{namingOptions}}"
+        wx:key="key"
+        class="convert-sub {{item.key === namingMode ? 'convert-sub--on' : ''}}"
+        data-mode="{{item.key}}"
+        bindtap="onNamingMode"
+        aria-role="button"
+      >{{item.label}}</view>
+    </view>
+
+    <view wx:elif="{{activeMode === 'html'}}" class="convert-subs">
+      <view
+        wx:for="{{htmlOptions}}"
+        wx:key="key"
+        class="convert-sub {{item.key === htmlMode ? 'convert-sub--on' : ''}}"
+        data-mode="{{item.key}}"
+        bindtap="onHtmlMode"
+        aria-role="button"
+      >{{item.label}}</view>
+    </view>
+
+    <view wx:elif="{{activeMode === 'clean'}}" class="convert-subs convert-subs--wrap">
+      <view
+        wx:for="{{cleanOptions}}"
+        wx:key="key"
+        class="convert-sub {{item.on ? 'convert-sub--on' : ''}}"
+        data-key="{{item.key}}"
+        bindtap="onCleanOption"
+        aria-role="switch"
+        aria-checked="{{item.on}}"
+      >{{item.label}}</view>
+    </view>
+
+    <text wx:if="{{activeMode === 'case'}}" class="convert-hint">英文大小写转换，中文与符号保持不变</text>
+    <text wx:elif="{{activeMode === 'naming'}}" class="convert-hint">按空格、下划线、短横线与大小写边界拆分单词</text>
+    <text wx:elif="{{activeMode === 'html'}}" class="convert-hint">编码仅转义 &amp; &lt; &gt; " '；解码还原命名与数字实体，中文保留</text>
+    <text wx:elif="{{activeMode === 'clean'}}" class="convert-hint">默认全角转半角、去空行、去不可见字符并保留段落；「去空格」会删除中英文所有空白与制表符，可再开启中文标点或并成一行</text>
+    <text wx:else class="convert-hint">非 ASCII 字符转 \uXXXX，ASCII 与换行保留</text>
+
+    <glass-input
+      label="输入文本"
+      hint="最多 20,000 字符"
+      multiline
+      auto-height
+      show-count
+      value="{{inputText}}"
+      maxlength="{{20000}}"
+      placeholder="输入或粘贴文本，结果实时更新"
+      cursor-spacing="{{120}}"
+      aria-label="待转换的文本"
+      bind:input="onInput"
+    />
+
+    <text wx:if="{{truncated}}" class="convert-warn">内容超过 20,000 字符，已按前 20,000 字符转换</text>
+  </view>
+
+  <view slot="result" class="sg-tool-result">
+    <view class="sg-tool-result__head">
+      <text class="sg-tool-result__label">{{resultLabel}}</text>
+      <text class="sg-tool-result__meta" bindtap="onCopy">点击复制</text>
+    </view>
+
+    <view class="sg-tool-result__main" aria-role="status">{{resultMain}}</view>
+
+    <scroll-view scroll-y enhanced show-scrollbar="{{false}}" class="convert-output">
+      <text selectable>{{resultText}}</text>
+    </scroll-view>
+
+    <view class="sg-tool-rows">
+      <view wx:for="{{resultRows}}" wx:key="k" class="sg-tool-row">
+        <text class="sg-tool-row__k">{{item.k}}</text>
+        <text class="sg-tool-row__v">{{item.v}}</text>
+      </view>
+    </view>
+
+    <view class="sg-tool-note">
+      <text class="sg-tool-note__title">说明</text>
+      <text class="sg-tool-note__text">变更字符数按输入与输出公共前后缀之外的码点数取最大值，仅作展示；清洗模式默认全角转半角、合并连续空白、去空行与不可见字符，并保留段落结构。「去空格」会删除半角、全角、窄空格、不换行空格与制表符，中英文均生效；只有开启「并成一行」才会合并换行（中英文边界智能补空格），开启「中文标点」才会把 。、【】等转英文标点。全部转换只在本机完成，不保存原文。</text>
+    </view>
+  </view>
+</glass-tool-shell>

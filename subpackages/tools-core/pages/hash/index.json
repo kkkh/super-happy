@@ -1,4 +1,5 @@
 {
+  "navigationBarTitleText": "Hash 加密",
   "usingComponents": {
     "glass-tool-shell": "../../../../components/glass-tool-shell/index",
     "glass-modal": "../../../../components/glass-modal/index",

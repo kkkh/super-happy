@@ -1,0 +1,16 @@
+{
+  "navigationBarTitleText": "全息气象",
+  "disableScroll": true,
+  "backgroundTextStyle": "dark",
+  "usingComponents": {
+    "weather-glyph": "../../components/weather-glyph/index",
+    "g-icon": "../../../../components/g-icon/index",
+    "glass-bottom-sheet": "../../../../components/glass-bottom-sheet/index",
+    "glass-button": "../../../../components/glass-button/index",
+    "glass-input": "../../../../components/glass-input/index",
+    "glass-toast": "../../../../components/glass-toast/index",
+    "privacy-guard": "../../../../components/privacy-guard/index",
+    "workflow-receiver": "../../../../components/workflow-receiver/index",
+    "workflow-panel": "../../../../components/workflow-panel/index"
+  }
+}

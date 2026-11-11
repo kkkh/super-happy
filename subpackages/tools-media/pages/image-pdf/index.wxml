@@ -1,0 +1,91 @@
+<glass-tool-shell
+  tool-id="image-pdf"
+  title="{{toolName}}"
+  kicker="{{kicker}}"
+  desc="{{desc}}"
+  run-label="生成 PDF"
+  poster-data="{{posterData}}"
+  state="{{shellState}}"
+  has-result="{{hasResult}}"
+  can-run="{{imageCount > 0 && !processing}}"
+  error="{{error}}"
+  empty-title="选择 1–9 张图片"
+  empty-sub="选好图片后点击「生成 PDF」；自动转 JPEG 并合成，A4 / Letter / 原图"
+  bind:run="onRun"
+  bind:reset="onReset"
+  bind:example="onExample"
+>
+  <view slot="input" class="sg-tool-fields">
+    <view class="pdf-pick" bindtap="onChoose" aria-role="button" aria-label="从相册添加图片">
+      <text class="pdf-pick__plus">＋</text>
+      <text class="pdf-pick__text">从相册添加图片</text>
+      <text class="pdf-pick__count">{{imageCount}} / {{maxImages}}</text>
+    </view>
+
+    <view wx:if="{{imageCount > 0}}" class="pdf-list">
+      <view wx:for="{{selected}}" wx:key="id" class="pdf-item">
+        <image class="pdf-item__img" src="{{item.path}}" mode="aspectFill" />
+        <view class="pdf-item__meta">
+          <text class="pdf-item__name">第 {{index + 1}} 页</text>
+          <text class="pdf-item__size">{{item.width}} × {{item.height}} · {{item.sizeText}}</text>
+        </view>
+        <view
+          class="pdf-item__remove"
+          data-id="{{item.id}}"
+          catchtap="onRemove"
+          aria-role="button"
+          aria-label="移除第 {{index + 1}} 张"
+        >×</view>
+      </view>
+    </view>
+
+    <view class="pdf-field">
+      <text class="pdf-label">页面尺寸</text>
+      <view class="pdf-chips" aria-role="tablist" aria-label="页面尺寸">
+        <view
+          wx:for="{{pageSizeOptions}}"
+          wx:key="key"
+          class="pdf-chip {{item.key === pageSize ? 'pdf-chip--on' : ''}}"
+          data-key="{{item.key}}"
+          bindtap="onPageSize"
+          aria-role="tab"
+          aria-selected="{{item.key === pageSize}}"
+        >{{item.label}}</view>
+      </view>
+    </view>
+
+    <canvas type="2d" id="pdf-canvas" class="pdf-canvas" style="width: {{canvasCss}}px; height: {{canvasCss}}px;"></canvas>
+  </view>
+
+  <view slot="result" class="sg-tool-result">
+    <view class="pdf-stage">
+      <view class="pdf-stage__label">PDF</view>
+      <view class="pdf-stage__main" aria-role="status">已生成 {{pageCountText}}</view>
+      <view class="pdf-stage__meta">{{outputSizeText}} · {{pageSizeLabel}}</view>
+    </view>
+
+    <view class="sg-tool-rows">
+      <view
+        wx:for="{{resultRows}}"
+        wx:key="k"
+        class="sg-tool-row"
+        aria-role="text"
+      >
+        <text class="sg-tool-row__k">{{item.k}}</text>
+        <text class="sg-tool-row__v">{{item.v}}</text>
+      </view>
+    </view>
+
+    <view
+      class="pdf-preview"
+      bindtap="onPreview"
+      aria-role="button"
+      aria-label="预览 PDF"
+    >预览 PDF</view>
+
+    <view class="sg-tool-note">
+      <text class="sg-tool-note__title">说明</text>
+      <text class="sg-tool-note__text">PDF 只在本机生成，保存在临时目录，退出页面后自动清理；通过系统预览菜单转发。不上传、不写入相册。PNG 会先铺白底转 JPEG；超过 2MB 会自动降低质量重试。</text>
+    </view>
+  </view>
+</glass-tool-shell>

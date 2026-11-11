@@ -6,6 +6,7 @@
    - 同时提取业务上下文：单位分类 / 时间戳方向 / 计税模式 / 图片参数
    - 返回值只含 primitive，context 交给 workflowStore 统一 sanitize
    ========================================================================== */
+import { isConvertMode } from '../toolbox/engines/text'
 import type {
   IWorkflowData,
   WorkflowContext,
@@ -18,6 +19,110 @@ export interface WorkflowSourceSnapshot {
   data: IWorkflowData
 }
 
+export interface WorkflowSourceKeys {
+  /** 文本结果字段优先级：第一个非空字符串即结果 */
+  text: string[]
+  /** 数值结果字段：优先于格式化文本，流入计算型工具时更精确 */
+  number: string[]
+  /** 图片结果字段：压缩图 / 二维码 / 水印预览 */
+  image: string[]
+}
+
+/**
+ * 63 个工具的来源字段唯一清单。
+ * - 运行时 `readWorkflowSource` 与测试 fixture 共用，禁止在测试里另写一份字段表。
+ * - `nine-grid` 走 `tiles` 数组回退，故 image 为空；新增卡必须在此登记。
+ */
+export const WORKFLOW_SOURCE_KEYS: Record<WorkflowToolId, WorkflowSourceKeys> = {
+  unit: { text: ['result', 'formula'], number: [], image: [] },
+  radix: { text: ['radixSummary', 'decimalText'], number: [], image: [] },
+  'date-format': { text: ['dateSummary'], number: [], image: [] },
+  'date-add': { text: ['dateAddSummary'], number: [], image: [] },
+  color: { text: ['colorSummary'], number: [], image: [] },
+  'json-csv': { text: ['csvSummary'], number: [], image: [] },
+  'size-convert': { text: ['sizeSummary'], number: [], image: [] },
+  severance: { text: ['severanceSummary'], number: [], image: [] },
+  'id-validate': { text: ['idSummary'], number: [], image: [] },
+  'image-pdf': { text: [], number: [], image: ['outputPath'] },
+  barcode: { text: [], number: [], image: ['outputPath'] },
+  exif: { text: ['exifSummary'], number: [], image: [] },
+  timezone: { text: ['timezoneSummary'], number: [], image: [] },
+  schedule: { text: ['scheduleSummary'], number: [], image: [] },
+  'text-convert': { text: ['convertSummary'], number: [], image: [] },
+  template: { text: ['templateSummary'], number: [], image: [] },
+  resolution: { text: ['resolutionSummary'], number: [], image: [] },
+  percent: { text: ['percentSummary'], number: [], image: [] },
+  regex: { text: ['regexSummary'], number: [], image: [] },
+  ledger: { text: ['ledgerSummary'], number: [], image: [] },
+  fuel: { text: ['fuelSummary'], number: [], image: [] },
+  power: { text: ['powerSummary'], number: [], image: [] },
+  carloan: { text: ['carloanSummary'], number: [], image: [] },
+  quote: { text: ['quoteSummary'], number: [], image: [] },
+  'meeting-timer': { text: ['timerText'], number: [], image: [] },
+  bodyfat: { text: ['bodyfatSummary'], number: [], image: [] },
+  avatar: { text: [], number: [], image: ['outputPath'] },
+  collage: { text: [], number: [], image: ['outputPath'] },
+  'id-photo': { text: [], number: [], image: ['outputPath'] },
+  'qr-decode': { text: ['qrSummary', 'resultText'], number: [], image: [] },
+  lunar: { text: ['lunarSummary'], number: [], image: [] },
+  'zh-convert': { text: ['zhSummary'], number: [], image: [] },
+  pinyin: { text: ['pinyinSummary'], number: [], image: [] },
+  'fx-manual': { text: ['fxSummary'], number: [], image: [] },
+  'salary-inverse': { text: ['salarySummary'], number: [], image: [] },
+  worktime: { text: ['worktimeSummary'], number: [], image: [] },
+  wellness: { text: ['wellnessSummary'], number: [], image: [] },
+  'random-pick': { text: ['pickSummary'], number: [], image: [] },
+  vcard: { text: ['vcardSummary'], number: [], image: [] },
+  tax: { text: ['taxText'], number: ['taxValue'], image: [] },
+  loan: { text: ['monthlyText'], number: ['monthlyValue'], image: [] },
+  deposit: { text: ['totalText'], number: ['totalValue'], image: [] },
+  span: { text: ['calendarText'], number: ['calendarDays'], image: [] },
+  age: { text: ['ageText'], number: ['ageValue'], image: [] },
+  countdown: { text: ['daysText'], number: ['daysValue'], image: [] },
+  timestamp: { text: ['localText', 'stampText'], number: [], image: [] },
+  rmb: { text: ['upperText', 'amountText'], number: [], image: [] },
+  'text-diff': { text: ['flowPayload', 'reportText', 'copyPayload'], number: [], image: [] },
+  hash: { text: ['flowPayload', 'displayHex', 'hashHex'], number: [], image: [] },
+  wordcount: { text: ['copyPayload', 'totalText'], number: [], image: [] },
+  dedupe: { text: ['outputText'], number: [], image: [] },
+  json: { text: ['outputText'], number: [], image: [] },
+  url: { text: ['outputText'], number: [], image: [] },
+  base64: { text: ['outputText'], number: [], image: [] },
+  password: { text: ['password'], number: [], image: [] },
+  bmi: { text: ['copyPayload'], number: ['bmiValue'], image: [] },
+  'photo-edit': { text: [], number: [], image: ['outputPath'] },
+  compress: { text: [], number: [], image: ['compressedPath', 'imagePath'] },
+  palette: { text: ['dominantHex', 'averageHex'], number: [], image: [] },
+  'nine-grid': { text: [], number: [], image: [] },
+  qr: { text: [], number: [], image: ['qrImagePath'] },
+  watermark: { text: [], number: [], image: ['previewSrc', 'imagePath'] },
+  weather: { text: ['weatherSummary', 'weatherText'], number: [], image: [] },
+}
+
+/** 文本类结果字段优先级：第一个非空字符串即结果 */
+const TEXT_RESULT_KEYS: Partial<Record<WorkflowToolId, string[]>> = Object.fromEntries(
+  (Object.keys(WORKFLOW_SOURCE_KEYS) as WorkflowToolId[]).map((id) => [
+    id,
+    WORKFLOW_SOURCE_KEYS[id].text,
+  ]),
+)
+
+/** 数值结果字段：优先于格式化文本，流入计算型工具时更精确 */
+const NUMBER_RESULT_KEYS: Partial<Record<WorkflowToolId, string[]>> = Object.fromEntries(
+  (Object.keys(WORKFLOW_SOURCE_KEYS) as WorkflowToolId[]).map((id) => [
+    id,
+    WORKFLOW_SOURCE_KEYS[id].number,
+  ]),
+)
+
+/** 图片类结果字段优先级：压缩图 / 二维码 / 水印预览；九宫格走 tiles 数组 */
+const IMAGE_RESULT_KEYS: Partial<Record<WorkflowToolId, string[]>> = Object.fromEntries(
+  (Object.keys(WORKFLOW_SOURCE_KEYS) as WorkflowToolId[]).map((id) => [
+    id,
+    WORKFLOW_SOURCE_KEYS[id].image,
+  ]),
+)
+
 const UNIT_CATEGORY_KEYS = [
   'length',
   'mass',
@@ -25,48 +130,14 @@ const UNIT_CATEGORY_KEYS = [
   'volume',
   'temperature',
   'speed',
+  'data',
+  'time',
+  'pressure',
+  'energy',
+  'power',
+  'angle',
+  'frequency',
 ] as const
-
-/** 文本类结果字段优先级：第一个非空字符串即结果 */
-const TEXT_RESULT_KEYS: Partial<Record<WorkflowToolId, string[]>> = {
-  unit: ['result', 'formula'],
-  tax: ['taxText'],
-  loan: ['monthlyText'],
-  deposit: ['totalText'],
-  span: ['calendarText'],
-  age: ['ageText'],
-  countdown: ['daysText'],
-  timestamp: ['localText', 'stampText'],
-  rmb: ['upperText', 'amountText'],
-  'text-diff': ['flowPayload', 'reportText', 'copyPayload'],
-  hash: ['flowPayload', 'displayHex', 'hashHex'],
-  wordcount: ['copyPayload', 'totalText'],
-  dedupe: ['outputText'],
-  json: ['outputText'],
-  url: ['outputText'],
-  base64: ['outputText'],
-  password: ['password'],
-  bmi: ['copyPayload'],
-  palette: ['dominantHex', 'averageHex'],
-}
-
-/** 数值结果字段：优先于格式化文本，流入计算型工具时更精确 */
-const NUMBER_RESULT_KEYS: Partial<Record<WorkflowToolId, string[]>> = {
-  tax: ['taxValue'],
-  loan: ['monthlyValue'],
-  deposit: ['totalValue'],
-  span: ['calendarDays'],
-  age: ['ageValue'],
-  countdown: ['daysValue'],
-  bmi: ['bmiValue'],
-}
-
-/** 图片类结果字段优先级：压缩图 / 二维码 / 水印预览；九宫格走 tiles 数组 */
-const IMAGE_RESULT_KEYS: Partial<Record<WorkflowToolId, string[]>> = {
-  compress: ['compressedPath', 'imagePath'],
-  qr: ['qrImagePath'],
-  watermark: ['previewSrc', 'imagePath'],
-}
 
 function readString(data: Record<string, unknown>, keys: string[]): string {
   for (const key of keys) {
@@ -226,6 +297,13 @@ function buildContext(toolId: WorkflowToolId, data: Record<string, unknown>): Wo
       putContext(context, 'timestampUnit', unit === 's' || unit === 'ms' ? unit : null)
       break
     }
+    case 'text-convert': {
+      const mode = data.convertMode
+      if (isConvertMode(mode)) {
+        context.convertMode = mode
+      }
+      break
+    }
     case 'qr': {
       const level = data.level
       putContext(context, 'qrLevel', level === 'L' || level === 'M' || level === 'Q' || level === 'H' ? level : null)
@@ -294,7 +372,7 @@ export function readWorkflowSource(
     return { toolId, data: { type: 'text', payload: text, context: buildContext(toolId, data) } }
   }
 
-  if (image && (toolId === 'compress' || toolId === 'nine-grid' || toolId === 'qr' || toolId === 'watermark')) {
+  if (image && (toolId === 'nine-grid' || (IMAGE_RESULT_KEYS[toolId]?.length ?? 0) > 0)) {
     return { toolId, data: { type: 'image', payload: image, context: buildContext(toolId, data) } }
   }
 

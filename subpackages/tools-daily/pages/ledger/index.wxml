@@ -1,0 +1,179 @@
+<glass-tool-shell
+  tool-id="ledger"
+  title="{{toolName}}"
+  kicker="{{kicker}}"
+  desc="{{desc}}"
+  poster-data="{{posterData}}"
+  state="{{shellState}}"
+  can-run="{{canRun}}"
+  run-label="开始算账"
+  has-result="{{hasResult}}"
+  error="{{error}}"
+  empty-title="{{stale ? '输入已变更，请重新计算' : '选择模式，填写金额'}}"
+  empty-sub="折扣、满减与 AA 分摊，全部以分为单位精确计算"
+  bind:run="onRun"
+  bind:example="onExample"
+  bind:reset="onReset"
+>
+  <view slot="input" class="sg-tool-fields">
+    <view class="ledger-modes" aria-role="tablist">
+      <view
+        wx:for="{{modeOptions}}"
+        wx:key="key"
+        class="ledger-mode {{item.key === activeMode ? 'ledger-mode--on' : ''}}"
+        data-mode="{{item.key}}"
+        bindtap="onModeTap"
+        aria-role="tab"
+        aria-selected="{{item.key === activeMode}}"
+      >
+        {{item.label}}
+      </view>
+    </view>
+
+    <block wx:if="{{activeMode === 'discount'}}">
+      <glass-input
+        label="原价"
+        type="digit"
+        maxlength="{{14}}"
+        value="{{discountPrice}}"
+        placeholder="例如 100"
+        data-field="discountPrice"
+        aria-label="折扣模式原价"
+        bind:input="onFieldInput"
+      >
+        <text slot="suffix" class="sg-tool-unit">元</text>
+      </glass-input>
+
+      <glass-input
+        label="折扣"
+        hint="{{discountUnit === 'zhe' ? '如 8 表示 8 折' : '如实付 80%'}}"
+        type="digit"
+        maxlength="{{6}}"
+        value="{{discountValue}}"
+        placeholder="{{discountUnit === 'zhe' ? '例如 8' : '例如 80'}}"
+        data-field="discountValue"
+        aria-label="折扣数值"
+        bind:input="onFieldInput"
+      />
+
+      <view class="ledger-units">
+        <view
+          class="ledger-unit {{discountUnit === 'zhe' ? 'ledger-unit--on' : ''}}"
+          data-unit="zhe"
+          bindtap="onUnitTap"
+          aria-role="button"
+          aria-label="按几折输入"
+        >几折</view>
+        <view
+          class="ledger-unit {{discountUnit === 'percent' ? 'ledger-unit--on' : ''}}"
+          data-unit="percent"
+          bindtap="onUnitTap"
+          aria-role="button"
+          aria-label="按百分比输入"
+        >百分比</view>
+      </view>
+    </block>
+
+    <block wx:elif="{{activeMode === 'threshold'}}">
+      <glass-input
+        label="原价"
+        type="digit"
+        maxlength="{{14}}"
+        value="{{thresholdPrice}}"
+        placeholder="例如 250"
+        data-field="thresholdPrice"
+        aria-label="满减模式原价"
+        bind:input="onFieldInput"
+      >
+        <text slot="suffix" class="sg-tool-unit">元</text>
+      </glass-input>
+
+      <view class="ledger-tiers">
+        <view class="ledger-tier">
+          <view class="ledger-tier__threshold">
+            <glass-input label="第 1 档门槛" type="digit" maxlength="{{10}}" value="{{tier1Threshold}}" placeholder="满 100" data-field="tier1Threshold" bind:input="onFieldInput" />
+          </view>
+          <view class="ledger-tier__off">
+            <glass-input label="减" type="digit" maxlength="{{10}}" value="{{tier1Off}}" placeholder="减 10" data-field="tier1Off" bind:input="onFieldInput" />
+          </view>
+        </view>
+        <view class="ledger-tier">
+          <view class="ledger-tier__threshold">
+            <glass-input label="第 2 档门槛（可空）" type="digit" maxlength="{{10}}" value="{{tier2Threshold}}" placeholder="满 200" data-field="tier2Threshold" bind:input="onFieldInput" />
+          </view>
+          <view class="ledger-tier__off">
+            <glass-input label="减" type="digit" maxlength="{{10}}" value="{{tier2Off}}" placeholder="减 30" data-field="tier2Off" bind:input="onFieldInput" />
+          </view>
+        </view>
+        <view class="ledger-tier">
+          <view class="ledger-tier__threshold">
+            <glass-input label="第 3 档门槛（可空）" type="digit" maxlength="{{10}}" value="{{tier3Threshold}}" placeholder="满 500" data-field="tier3Threshold" bind:input="onFieldInput" />
+          </view>
+          <view class="ledger-tier__off">
+            <glass-input label="减" type="digit" maxlength="{{10}}" value="{{tier3Off}}" placeholder="减 100" data-field="tier3Off" bind:input="onFieldInput" />
+          </view>
+        </view>
+      </view>
+    </block>
+
+    <block wx:else>
+      <glass-input
+        label="账单总额"
+        type="digit"
+        maxlength="{{14}}"
+        value="{{aaTotal}}"
+        placeholder="例如 300"
+        data-field="aaTotal"
+        aria-label="AA 账单总额"
+        bind:input="onFieldInput"
+      >
+        <text slot="suffix" class="sg-tool-unit">元</text>
+      </glass-input>
+
+      <glass-input
+        label="人数"
+        type="number"
+        maxlength="{{3}}"
+        value="{{aaPeople}}"
+        placeholder="例如 3"
+        data-field="aaPeople"
+        aria-label="AA 人数"
+        bind:input="onFieldInput"
+      />
+
+      <glass-input
+        label="小费比例"
+        type="digit"
+        maxlength="{{6}}"
+        value="{{aaTip}}"
+        placeholder="例如 10"
+        data-field="aaTip"
+        aria-label="小费百分比"
+        bind:input="onFieldInput"
+      >
+        <text slot="suffix" class="sg-tool-unit">%</text>
+      </glass-input>
+    </block>
+  </view>
+
+  <view slot="result" class="sg-tool-result">
+    <view class="sg-tool-result__head">
+      <text class="sg-tool-result__label">{{resultLabel}}</text>
+      <text class="sg-tool-result__meta" bindtap="onCopy">点击复制</text>
+    </view>
+
+    <view class="sg-tool-result__main" aria-role="status">{{resultMain}}</view>
+
+    <view class="sg-tool-rows">
+      <view wx:for="{{resultRows}}" wx:key="k" class="sg-tool-row">
+        <text class="sg-tool-row__k">{{item.k}}</text>
+        <text class="sg-tool-row__v">{{item.v}}</text>
+      </view>
+    </view>
+
+    <view class="sg-tool-note">
+      <text class="sg-tool-note__title">说明</text>
+      <text class="sg-tool-note__text">全部以分为单位整数计算，AA 余数从第一人起各 +1 分；结果只在本机计算，不上传。</text>
+    </view>
+  </view>
+</glass-tool-shell>

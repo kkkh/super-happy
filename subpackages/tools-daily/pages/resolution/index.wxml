@@ -1,0 +1,203 @@
+<glass-tool-shell
+  tool-id="resolution"
+  title="{{toolName}}"
+  kicker="{{kicker}}"
+  desc="{{desc}}"
+  poster-data="{{posterData}}"
+  run-label="计算尺寸"
+  state="{{shellState}}"
+  has-result="{{hasResult}}"
+  error="{{error}}"
+  empty-title="计算目标尺寸或打印像素"
+  empty-sub="按目标宽度 / 比例缩放，或按纸张与 DPI 估算打印像素"
+  bind:run="onRun"
+  bind:example="onExample"
+  bind:reset="onReset"
+>
+  <view slot="input" class="sg-tool-fields">
+    <block wx:if="{{mode !== 'print'}}">
+      <glass-input
+        label="原始宽度"
+        type="digit"
+        maxlength="{{6}}"
+        value="{{widthText}}"
+        placeholder="例如 1920"
+        data-field="widthText"
+        aria-label="原始宽度，像素"
+        bind:input="onFieldInput"
+      />
+
+      <glass-input
+        label="原始高度"
+        type="digit"
+        maxlength="{{6}}"
+        value="{{heightText}}"
+        placeholder="例如 1080"
+        data-field="heightText"
+        aria-label="原始高度，像素"
+        bind:input="onFieldInput"
+      />
+    </block>
+
+    <view class="res-block">
+      <text class="res-block__label">计算方式</text>
+      <view class="res-chips">
+        <view
+          class="res-chip {{mode === 'width' ? 'res-chip_active' : ''}}"
+          data-mode="width"
+          bindtap="onMode"
+          aria-role="button"
+          aria-label="按目标宽度计算"
+        >按目标宽度</view>
+        <view
+          class="res-chip {{mode === 'ratio' ? 'res-chip_active' : ''}}"
+          data-mode="ratio"
+          bindtap="onMode"
+          aria-role="button"
+          aria-label="按目标比例计算"
+        >按目标比例</view>
+        <view
+          class="res-chip {{mode === 'print' ? 'res-chip_active' : ''}}"
+          data-mode="print"
+          bindtap="onMode"
+          aria-role="button"
+          aria-label="按纸张与 DPI 计算"
+        >打印尺寸</view>
+      </view>
+    </view>
+
+    <view wx:if="{{mode === 'width'}}">
+      <glass-input
+        label="目标宽度"
+        hint="高度按原比例自动取整"
+        type="digit"
+        maxlength="{{6}}"
+        value="{{targetWidthText}}"
+        placeholder="例如 1280"
+        data-field="targetWidthText"
+        aria-label="目标宽度，像素"
+        bind:input="onFieldInput"
+      />
+    </view>
+
+    <view wx:if="{{mode === 'ratio'}}" class="res-block">
+      <text class="res-block__label">目标比例</text>
+      <view class="res-chips">
+        <view
+          wx:for="{{ratios}}"
+          wx:key="key"
+          class="res-chip {{ratioKey === item.key ? 'res-chip_active' : ''}}"
+          data-key="{{item.key}}"
+          bindtap="onRatio"
+          aria-role="button"
+          aria-label="选择目标比例 {{item.label}}"
+        >{{item.label}}</view>
+      </view>
+    </view>
+
+    <view wx:if="{{mode === 'ratio' && ratioKey === 'custom'}}" class="res-custom">
+      <view class="res-custom__col">
+        <glass-input
+          label="自定义比例宽"
+          type="digit"
+          maxlength="{{5}}"
+          value="{{customWText}}"
+          placeholder="例如 21"
+          data-field="customWText"
+          aria-label="自定义比例宽"
+          bind:input="onFieldInput"
+        />
+      </view>
+      <view class="res-custom__col">
+        <glass-input
+          label="自定义比例高"
+          type="digit"
+          maxlength="{{5}}"
+          value="{{customHText}}"
+          placeholder="例如 9"
+          data-field="customHText"
+          aria-label="自定义比例高"
+          bind:input="onFieldInput"
+        />
+      </view>
+    </view>
+
+    <block wx:if="{{mode === 'print'}}">
+      <view class="res-block">
+        <text class="res-block__label">纸张</text>
+        <view class="res-chips">
+          <view
+            wx:for="{{paperOptions}}"
+            wx:key="key"
+            class="res-chip {{paperKey === item.key ? 'res-chip_active' : ''}}"
+            data-key="{{item.key}}"
+            bindtap="onPaper"
+            aria-role="button"
+            aria-label="选择纸张 {{item.label}}"
+          >{{item.label}}</view>
+        </view>
+      </view>
+
+      <view class="res-block">
+        <text class="res-block__label">方向</text>
+        <view class="res-chips">
+          <view
+            wx:for="{{orientationOptions}}"
+            wx:key="key"
+            class="res-chip {{orientation === item.key ? 'res-chip_active' : ''}}"
+            data-key="{{item.key}}"
+            bindtap="onOrientation"
+            aria-role="button"
+            aria-label="选择{{item.label}}"
+          >{{item.label}}</view>
+        </view>
+      </view>
+
+      <view class="res-block">
+        <text class="res-block__label">打印分辨率</text>
+        <view class="res-chips">
+          <view
+            wx:for="{{dpiOptions}}"
+            wx:key="*this"
+            class="res-chip {{dpi === item ? 'res-chip_active' : ''}}"
+            data-dpi="{{item}}"
+            bindtap="onDpi"
+            aria-role="button"
+            aria-label="选择 {{item}} DPI"
+          >{{item}} DPI</view>
+        </view>
+      </view>
+
+      <text class="res-hint">像素尺寸 = 纸张毫米 ÷ 25.4 × DPI，四舍五入取整；横版会自动交换宽高。</text>
+    </block>
+  </view>
+
+  <view slot="result" class="sg-tool-result">
+    <view class="sg-tool-result__head">
+      <text class="sg-tool-result__label">{{resultLabel}}</text>
+      <text class="sg-tool-result__meta" bindtap="onCopy">点击复制摘要</text>
+    </view>
+
+    <view class="sg-tool-result__main" aria-role="status">{{resultMain}}</view>
+
+    <view class="sg-tool-rows">
+      <view
+        wx:for="{{resultRows}}"
+        wx:key="k"
+        class="sg-tool-row"
+        data-value="{{item.v}}"
+        bindtap="onCopyRow"
+        aria-role="button"
+        aria-label="复制 {{item.k}}"
+      >
+        <text class="sg-tool-row__k">{{item.k}}</text>
+        <text class="sg-tool-row__v">{{item.v}}</text>
+      </view>
+    </view>
+
+    <view class="sg-tool-note">
+      <text class="sg-tool-note__title">说明</text>
+      <text class="sg-tool-note__text">比例按最大公约数化简；目标高度按原比例四舍五入。打印像素 = 纸张毫米 ÷ 25.4 × DPI，四舍五入取整。结果只在本机计算，不保存尺寸。</text>
+    </view>
+  </view>
+</glass-tool-shell>

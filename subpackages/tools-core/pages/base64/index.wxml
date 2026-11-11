@@ -6,10 +6,11 @@
   poster-data="{{posterData}}"
   show-run="{{false}}"
   show-example
+  state="{{shellState}}"
   has-result="{{hasResult}}"
   error="{{error}}"
-  empty-title="输入文本，立即编解码"
-  empty-sub="支持中文、Emoji 与 URL-safe Base64"
+  empty-title="输入文本或选择图片"
+  empty-sub="文本编解码 · 图片转 Base64 · 本机处理"
   bind:example="onExample"
   bind:reset="onReset"
 >
@@ -37,9 +38,21 @@
       >
         解码
       </view>
+      <view
+        class="tool-seg__item {{mode === 'image' ? 'tool-seg__item--active' : ''}}"
+        hover-class="tool-press"
+        hover-stay-time="80"
+        data-mode="image"
+        aria-role="button"
+        aria-label="图片转 Base64"
+        bindtap="onMode"
+      >
+        图片
+      </view>
     </view>
 
     <glass-input
+      wx:if="{{mode !== 'image'}}"
       label="{{mode === 'encode' ? '原始文本' : 'Base64 内容'}}"
       multiline
       auto-height
@@ -51,16 +64,62 @@
       aria-label="{{mode === 'encode' ? '原始文本' : 'Base64 内容'}}"
       bind:input="onInput"
     />
+
+    <block wx:else>
+      <view
+        wx:if="{{!imagePath}}"
+        class="b64-blank"
+        bindtap="onChooseImage"
+        aria-role="button"
+        aria-label="从相册选择图片"
+      >
+        <text class="b64-blank__title">从相册选择图片</text>
+        <text class="b64-blank__sub">JPG / PNG / WebP，单张 ≤2MB；只在本机读取</text>
+      </view>
+
+      <view wx:else class="b64-source">
+        <image
+          class="b64-source__img"
+          src="{{imagePath}}"
+          mode="aspectFit"
+          aria-label="已选图片"
+        />
+        <view class="b64-source__meta">
+          <text class="b64-source__name">{{imageName}}</text>
+          <text class="b64-source__sub">{{imageReading ? '正在读取…' : imageMeta}}</text>
+        </view>
+        <glass-button variant="ghost" size="sm" bind:tap="onChooseImage">重新选择</glass-button>
+      </view>
+
+      <view class="b64-switch-row">
+        <view class="b64-switch-row__text">
+          <text class="b64-switch-row__title">data URL 前缀</text>
+          <text class="b64-switch-row__sub">data:image/...;base64,</text>
+        </view>
+        <switch
+          checked="{{imagePrefix}}"
+          color="var(--glass-accent)"
+          aria-label="data URL 前缀"
+          bindchange="onImagePrefix"
+        />
+      </view>
+
+      <view class="b64-hint">超过 2MB 请先压缩；图片只在本机转码，不上传服务器。</view>
+    </block>
   </view>
 
   <view slot="result" class="sg-tool-result">
     <view class="sg-tool-result__head">
-      <text class="sg-tool-result__label">{{mode === 'encode' ? 'Base64 结果' : '解码文本'}}</text>
+      <text class="sg-tool-result__label">{{resultLabel}}</text>
       <text class="sg-tool-result__meta">{{inputSizeText}} → {{outputSizeText}}</text>
     </view>
 
     <text class="tool-output" selectable>{{outputText}}</text>
-    <text class="tool-result__note">UTF-8 / {{mode === 'encode' ? 'ENCODE' : 'DECODE'}}</text>
+
+    <text wx:if="{{outputIsPreview}}" class="tool-result__note">已截断预览，点击复制获取完整内容</text>
+    <text wx:elif="{{mode === 'image'}}" class="tool-result__note">IMAGE / BASE64</text>
+    <text wx:elif="{{mode === 'encode'}}" class="tool-result__note">UTF-8 / ENCODE</text>
+    <text wx:else class="tool-result__note">UTF-8 / DECODE</text>
 
     <view class="tool-actions">
       <glass-button variant="ghost" size="md" block bind:tap="onCopy">
@@ -72,11 +131,8 @@
   <view slot="note">
     <glass-card tone="amber" radius="lg" padding="md" depth="soft">
       <view class="sg-tool-note">
-        <text class="sg-tool-note__title">文本编码</text>
-        <text class="sg-tool-note__text">
-          采用 UTF-8 + 标准 Base64，兼容 URL-safe 的 - 与 _ 字符。Base64 只是编码，不是加密，不能保护敏感内容。
-          不支持二进制文件与图片。
-        </text>
+        <text class="sg-tool-note__title">编码口径</text>
+        <text class="sg-tool-note__text">文本采用 UTF-8 + 标准 Base64，兼容 URL-safe 的 - 与 _ 字符；图片模式只读取你主动选择的一张图片，上限 2MB，可选 data URL 前缀，全程在本机完成、不上传。Base64 只是编码，不是加密，不能保护敏感内容。</text>
       </view>
     </glass-card>
   </view>

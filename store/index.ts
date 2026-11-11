@@ -660,7 +660,14 @@ export const glassStore = observable({
       if (!TOOL_IDS.has(id)) {
         return null
       }
-      return toolboxStore.toggleFavorite(id)
+      const result = toolboxStore.toggleFavorite(id)
+      if (result === 'added') {
+        return true
+      }
+      if (result === 'removed') {
+        return false
+      }
+      return null
     }
     if (kind === 'work') {
       if (resumeStore.projects.length > 0 && !resumeStore.projectById(id)) {

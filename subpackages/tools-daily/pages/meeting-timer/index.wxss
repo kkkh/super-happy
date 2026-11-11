@@ -1,0 +1,186 @@
+/* ==========================================================================
+   会议倒计时 · 模式切换 / 快捷时长 / 进度环
+   - 只使用 --glass-* 令牌，无裸伪类
+   ========================================================================== */
+
+.timer-modes {
+  display: flex;
+  flex-direction: row;
+  gap: 12rpx;
+}
+
+.timer-modes__item {
+  flex: 1;
+  box-sizing: border-box;
+  padding: 18rpx 12rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: var(--glass-radius-md);
+  background-color: var(--glass-bg-soft);
+  color: var(--glass-text-3);
+  font-size: 21rpx;
+  text-align: center;
+}
+
+.timer-modes__item.is-active {
+  border-color: var(--glass-border-strong);
+  background-color: var(--glass-bg-strong);
+  color: var(--glass-text);
+}
+
+.timer-quick {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.timer-quick__item {
+  box-sizing: border-box;
+  padding: 14rpx 20rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: 999rpx;
+  background-color: var(--glass-bg-soft);
+  color: var(--glass-text-3);
+  font-size: 20rpx;
+}
+
+.timer-quick__item.is-active {
+  border-color: var(--glass-border-strong);
+  background-color: var(--glass-bg-strong);
+  color: var(--glass-text);
+}
+
+.timer-picker {
+  box-sizing: border-box;
+  padding: 20rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: var(--glass-radius-md);
+  background-color: var(--glass-bg-soft);
+}
+
+.timer-picker__row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.timer-picker__label {
+  color: var(--glass-text-3);
+  font-size: 20rpx;
+}
+
+.timer-picker__value {
+  color: var(--glass-text);
+  font-family: var(--glass-font-mono);
+  font-size: 30rpx;
+  letter-spacing: 0.04em;
+}
+
+.timer-hint {
+  color: var(--glass-text-3);
+  font-size: 19rpx;
+  line-height: 1.6;
+}
+
+.timer-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18rpx;
+  padding: 12rpx 0 4rpx;
+}
+
+.timer-ring {
+  position: relative;
+}
+
+.timer-ring__canvas {
+  display: block;
+}
+
+.timer-ring__center {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10rpx;
+}
+
+.timer-time {
+  color: var(--glass-text);
+  font-family: var(--glass-font-mono);
+  font-size: 54rpx;
+  letter-spacing: 0.06em;
+}
+
+.timer-status {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.timer-status__dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  background-color: var(--glass-text-3);
+}
+
+.timer-status--running .timer-status__dot {
+  background-color: var(--glass-accent);
+}
+
+.timer-status--paused .timer-status__dot {
+  background-color: var(--glass-warn, #d97706);
+}
+
+.timer-status--finished .timer-status__dot {
+  background-color: var(--glass-warn, #d97706);
+}
+
+.timer-state {
+  color: var(--glass-text-3);
+  font-size: 19rpx;
+  letter-spacing: 0.12em;
+}
+
+.timer-actions {
+  display: flex;
+  flex-direction: row;
+  gap: 14rpx;
+}
+
+.timer-meta {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.timer-meta__item {
+  color: var(--glass-text-3);
+  font-size: 19rpx;
+}
+
+.timer-meta__dot {
+  color: var(--glass-text-3);
+  font-size: 19rpx;
+}
+
+.timer-copy {
+  box-sizing: border-box;
+  padding: 18rpx;
+  border: 1rpx solid var(--glass-border-strong);
+  border-radius: var(--glass-radius-md);
+  background-color: var(--glass-bg-strong);
+  color: var(--glass-text);
+  font-size: 21rpx;
+  text-align: center;
+}

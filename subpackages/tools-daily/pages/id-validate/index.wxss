@@ -1,0 +1,64 @@
+/* ==========================================================================
+   证件号校验 · 类型切换 / 结果
+   - 只使用 --glass-* 令牌，无硬编码色值
+   ========================================================================== */
+
+.iv-modes {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.iv-mode {
+  flex: 1;
+  min-width: 160rpx;
+  box-sizing: border-box;
+  padding: 16rpx 20rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: 999rpx;
+  background-color: var(--glass-bg-soft);
+  color: var(--glass-text-2);
+  font-size: 22rpx;
+  text-align: center;
+  transition:
+    border-color var(--glass-duration-fast) var(--glass-ease-out),
+    background-color var(--glass-duration-fast) var(--glass-ease-out),
+    color var(--glass-duration-fast) var(--glass-ease-out);
+}
+
+.iv-mode--on {
+  border-color: var(--glass-accent);
+  background-color: var(--glass-accent-soft);
+  color: var(--glass-text);
+}
+
+.iv-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.iv-stage__label {
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 19rpx;
+  letter-spacing: 0.08em;
+}
+
+.iv-stage__main {
+  color: var(--glass-text);
+  font-family: var(--glass-font-mono);
+  font-size: 52rpx;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.iv-copy {
+  padding: 18rpx 0;
+  border-top: 1rpx solid var(--glass-border);
+  border-bottom: 1rpx solid var(--glass-border);
+  color: var(--glass-text-2);
+  font-size: 21rpx;
+  text-align: center;
+}

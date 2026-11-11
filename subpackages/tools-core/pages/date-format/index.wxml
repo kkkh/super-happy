@@ -1,0 +1,69 @@
+<glass-tool-shell
+  tool-id="date-format"
+  title="{{toolName}}"
+  kicker="{{kicker}}"
+  desc="{{desc}}"
+  poster-data="{{posterData}}"
+  show-run="{{false}}"
+  state="{{shellState}}"
+  has-result="{{hasResult}}"
+  error="{{error}}"
+  empty-title="选择日期，立即查看完整格式"
+  empty-sub="格式、ISO 周、当年天序与闰年一次给出"
+  bind:example="onExample"
+  bind:reset="onReset"
+>
+  <view slot="input" class="sg-tool-fields">
+    <view class="tool-date">
+      <text class="tool-date__label">日期</text>
+      <picker
+        mode="date"
+        value="{{date}}"
+        start="1900-01-01"
+        end="2100-12-31"
+        bindchange="onDateChange"
+      >
+        <view
+          class="tool-date__trigger"
+          hover-class="tool-date__trigger_pressed"
+          hover-stay-time="80"
+          aria-role="button"
+          aria-label="选择日期，当前 {{date}}"
+        >
+          <text class="tool-date__text">{{date}}</text>
+          <g-icon name="chevron" size="{{24}}" tone="ink4" />
+        </view>
+      </picker>
+      <text class="tool-date__hint">可选范围 1900–2100 年，选择后自动计算</text>
+    </view>
+  </view>
+
+  <view slot="result" class="sg-tool-result">
+    <view class="sg-tool-result__head">
+      <text class="sg-tool-result__label">{{resultLabel}}</text>
+      <text class="sg-tool-result__meta" bindtap="onCopy">点击复制摘要</text>
+    </view>
+
+    <view class="sg-tool-result__main" aria-role="status">{{resultMain}}</view>
+
+    <view class="sg-tool-rows">
+      <view
+        wx:for="{{resultRows}}"
+        wx:key="k"
+        class="sg-tool-row"
+        data-value="{{item.v}}"
+        bindtap="onCopyRow"
+        aria-role="button"
+        aria-label="复制 {{item.k}}"
+      >
+        <text class="sg-tool-row__k">{{item.k}}</text>
+        <text class="sg-tool-row__v">{{item.v}}</text>
+      </view>
+    </view>
+
+    <view class="sg-tool-note">
+      <text class="sg-tool-note__title">说明</text>
+      <text class="sg-tool-note__text">Unix 秒/毫秒按本机时区当天 00:00:00 计算；ISO 周按 8601 周年口径；结果只在本机生成，不上传。</text>
+    </view>
+  </view>
+</glass-tool-shell>

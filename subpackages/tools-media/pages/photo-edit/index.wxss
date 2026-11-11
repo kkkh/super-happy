@@ -1,0 +1,24 @@
+/* 图片编辑 · 选图舞台 / 比例与旋转 chips / 结果预览 */
+.pe-notice{box-sizing:border-box;padding:16rpx 20rpx;border:1rpx solid var(--glass-border);border-radius:var(--glass-radius-sm);background-color:var(--glass-accent-warm-soft)}
+.pe-notice__text{color:var(--glass-text-2);font-size:21rpx;line-height:1.6}
+.pe-stage{position:relative;display:flex;align-items:center;justify-content:center;min-height:340rpx;overflow:hidden;box-sizing:border-box;padding:24rpx;border:1rpx dashed var(--glass-border-strong);border-radius:var(--glass-radius-lg);background-color:var(--glass-bg-soft)}
+.pe-stage__img{width:100%;height:300rpx}
+.pe-stage__blank{display:flex;flex-direction:column;align-items:center;gap:10rpx}
+.pe-stage__title{color:var(--glass-text);font-size:26rpx;font-weight:600}
+.pe-stage__sub{color:var(--glass-text-3);font-size:20rpx;text-align:center}
+.pe-stage__mask{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background-color:var(--glass-scrim,rgba(0,0,0,.35))}
+.pe-stage__mask-text{color:var(--glass-text-inverse,#fff);font-size:24rpx}
+.pe-meta-row{display:flex;flex-direction:column;gap:4rpx}
+.pe-meta{color:var(--glass-text-3);font-family:var(--glass-font-mono);font-size:19rpx}
+.pe-meta--warn{color:var(--glass-warn,#d97706)}
+.pe-section{display:flex;flex-direction:column;gap:12rpx}
+.pe-label{color:var(--glass-text-3);font-family:var(--glass-font-mono);font-size:19rpx;letter-spacing:.08em}
+.pe-chips{display:flex;flex-wrap:wrap;gap:12rpx}
+.pe-row{display:flex;align-items:center;gap:12rpx}
+.pe-row>.pe-chip{flex:1}
+.pe-angle{flex:0 0 auto;color:var(--glass-text);font-family:var(--glass-font-mono);font-size:22rpx;text-align:center}
+.pe-chip{flex:1;min-width:120rpx;height:64rpx;display:flex;align-items:center;justify-content:center;box-sizing:border-box;padding:0 18rpx;border:1rpx solid var(--glass-border);border-radius:999rpx;background-color:var(--glass-bg-soft);color:var(--glass-text-3);font-size:21rpx;transition:transform 140ms var(--glass-ease-out),background 140ms var(--glass-ease-out)}
+.pe-chip--on{border-color:var(--glass-border-strong);background-color:var(--glass-bg-strong);color:var(--glass-text);font-weight:600}
+.pe-chip:active{transform:scale(.97)}
+.pe-output{width:100%;height:320rpx;border-radius:var(--glass-radius-md);background-color:var(--glass-bg-soft)}
+.pe-canvas{position:fixed;left:-9999rpx;top:0;opacity:0;pointer-events:none}

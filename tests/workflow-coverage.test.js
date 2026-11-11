@@ -1,8 +1,8 @@
 /* ==========================================================================
    Workflow 全量接管 · 静态覆盖测试
-   - 23 个工具必须同时存在于 workflowConfig 的 routing / accepts
+   - 全部工具必须同时存在于 workflowConfig 的 routing / accepts
    - 所有 jump 工具必须有适配器，所有 silent 工具不得有页面适配器
-   - 23 个工具都必须能从页面数据提取到可流转结果
+   - 全部工具都必须能从页面数据提取到可流转结果
    - 所有工具页必须有发起端（壳层流转按钮）或接收端（receiver + panel）
    - 多字段工具必须暴露 onReceiveWorkflow
    - 运行：npm test
@@ -49,59 +49,39 @@ async function loadSource() {
   return import(moduleUrl('core/workflow/workflowSource.ts'))
 }
 
-/** 覆盖所有工具的来源字段，用于证明每个工具都能提取到流转结果 */
-function megaPageData() {
-  return {
-    result: '1',
-    formula: '1',
-    taxText: '1',
-    monthlyText: '1',
-    totalText: '1',
-    calendarText: '1 天',
-    calendarDays: 1,
-    ageText: '1 岁',
-    daysText: '1 天',
-    localText: '2026-01-01',
-    stampText: '1700000000',
-    upperText: '壹',
-    amountText: '1',
-    flowPayload: 'payload',
-    displayHex: 'abc',
-    hashHex: 'abc',
-    copyPayload: 'payload',
-    outputText: 'payload',
-    password: 'secret',
-    bmiValue: '22',
-    dominantHex: '#FFFFFF',
-    averageHex: '#FFFFFF',
-    colors: [{ hex: '#FFFFFF' }],
-    compressedPath: '/tmp/compressed.png',
-    qrImagePath: '/tmp/qr.png',
-    previewSrc: '/tmp/watermark.png',
-    imagePath: '/tmp/source.png',
-    tiles: [{ path: '/tmp/tile.png' }],
-    mode: 'to-date',
-    includeStart: true,
-    excludeWeekend: true,
-    ref: '2026-01-01',
-    target: '2026-01-01',
-    activeCategory: 0,
-    units: [{ key: 'm' }, { key: 'cm' }],
-    fromIndex: 0,
-    toIndex: 1,
-    level: 'M',
-    sizeKey: '280',
-    qualityKey: 'balanced',
-    edgeKey: '1920',
-    frequency: 'year',
+/**
+ * 由 workflowSource 的 WORKFLOW_SOURCE_KEYS 动态生成每个工具的页面数据。
+ * 禁止在测试里手写卡片字段清单：新增卡只需在共享引擎登记字段，测试自动覆盖。
+ */
+function sourceFixture(toolId, keys) {
+  const data = {}
+  for (const key of keys.text) {
+    data[key] = key === 'localText' ? '2026-01-01' : 'payload'
   }
+  for (const key of keys.number) {
+    data[key] = 1
+  }
+  for (const key of keys.image) {
+    data[key] = '/tmp/mock.png'
+  }
+  /* 九宫格走 tiles 数组回退；时间戳走 mode 分支；调色板优先读 colors */
+  if (toolId === 'nine-grid') {
+    data.tiles = [{ path: '/tmp/mock.png' }]
+  }
+  if (toolId === 'timestamp') {
+    data.mode = 'to-date'
+  }
+  if (toolId === 'palette') {
+    data.colors = [{ hex: '#FFFFFF' }]
+  }
+  return data
 }
 
-test('配置：23 个工具全部注册 routing / accepts，且无多余条目', async () => {
+test('配置：全部工具注册 routing / accepts，且无多余条目', async () => {
   const { TOOLS } = await loadRegistry()
   const config = await loadConfig()
 
-  assert.equal(TOOLS.length, 23)
+  assert.ok(TOOLS.length >= 24)
   for (const tool of TOOLS) {
     assert.ok(
       config.WORKFLOW_ROUTING[tool.id],
@@ -141,15 +121,27 @@ test('适配器：每个 jump 工具都有完整适配器，silent 工具不产�
   }
 })
 
-test('来源：23 个工具都能从页面数据提取到非空载荷', async () => {
+test('来源：全部工具都能从页面数据提取到非空载荷', async () => {
   const { TOOLS } = await loadRegistry()
   const source = await loadSource()
-  const data = megaPageData()
+
+  assert.equal(
+    Object.keys(source.WORKFLOW_SOURCE_KEYS).length,
+    TOOLS.length,
+    'WORKFLOW_SOURCE_KEYS 必须与 registry 工具数一致',
+  )
 
   for (const tool of TOOLS) {
-    const snapshot = source.readWorkflowSource(tool.id, data)
+    const keys = source.WORKFLOW_SOURCE_KEYS[tool.id]
+    assert.ok(keys, `${tool.id} 未登记 WORKFLOW_SOURCE_KEYS`)
+    assert.ok(
+      keys.text.length + keys.number.length + keys.image.length > 0 || tool.id === 'nine-grid',
+      `${tool.id} 的来源字段为空`,
+    )
+
+    const snapshot = source.readWorkflowSource(tool.id, sourceFixture(tool.id, keys))
     assert.ok(snapshot, `${tool.id} 无法提取流转来源`)
-    assert.equal(snapshot.data.type, snapshot.data.type)
+    assert.equal(snapshot.toolId, tool.id, `${tool.id} 来源工具 id 不一致`)
     assert.ok(snapshot.data.payload.trim(), `${tool.id} 提取了空载荷`)
     assert.ok(
       ['text', 'image', 'json'].includes(snapshot.data.type),
@@ -185,7 +177,7 @@ test('页面：每个工具都有发起端与接收端，watermark 不得只收�
 
 test('多字段工具：必须暴露 onReceiveWorkflow(data) 页面接口', async () => {
   const { TOOLS } = await loadRegistry()
-  const multiFieldTools = ['unit', 'span', 'hash', 'text-diff', 'palette', 'watermark']
+  const multiFieldTools = ['unit', 'ledger', 'span', 'hash', 'text-diff', 'palette', 'watermark']
 
   for (const id of multiFieldTools) {
     const tool = TOOLS.find((item) => item.id === id)

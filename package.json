@@ -1,13 +1,18 @@
 {
   "name": "qinchao-toolbox",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "description": "超欢 · Skyline 原生效率工具小程序（TypeScript strict + glass-easel + Tailwind v4）",
   "scripts": {
     "build:style": "weapp-tw -i styles/tokens.css -o styles/generated/tailwind.wxss --target weapp",
     "build:icon": "npx fantasticon .icon-src -o .icon-dist -n gicon --font-types ttf --asset-types json",
+    "pretypecheck": "node scripts/ensure-weather-config.js",
     "typecheck": "tsc --noEmit",
+    "pretest": "node scripts/ensure-weather-config.js",
     "test": "node --experimental-strip-types --test tests/*.test.js",
+    "budget": "node scripts/check-budget.js",
+    "plan": "node scripts/check-plan.js",
+    "check:version": "node scripts/check-version.js",
     "test:hologram": "node --experimental-strip-types --test tests/spatial-hologram.test.js",
     "test:integration": "node --experimental-strip-types --test tests/*.integration.test.js",
     "test:integration:hologram": "node --experimental-strip-types --test tests/spatial-hologram.integration.test.js",
@@ -16,6 +21,8 @@
     "test:visual:hologram:dry": "node tests/visual/spatial-hologram.visual.js --dry-run",
     "test:e2e:palette": "node tests/e2e/magic-wand-palette.e2e.js",
     "test:e2e:palette:connect": "node tests/e2e/magic-wand-palette.e2e.js --connect",
+    "test:e2e": "node scripts/e2e-tools.js",
+    "test:e2e:launch": "node scripts/e2e-tools.js --launch",
     "ci:upload": "node scripts/ci-upload.js"
   },
   "dependencies": {

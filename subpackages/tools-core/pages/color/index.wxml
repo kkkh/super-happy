@@ -1,0 +1,97 @@
+<glass-tool-shell
+  tool-id="color"
+  title="{{toolName}}"
+  kicker="{{kicker}}"
+  desc="{{desc}}"
+  run-label="开始计算"
+  poster-data="{{posterData}}"
+  state="{{shellState}}"
+  has-result="{{hasResult}}"
+  can-run="{{canRun}}"
+  error="{{error}}"
+  empty-title="输入前景色与背景色"
+  empty-sub="支持 HEX / RGB / HSL，自动给出对比度与 WCAG 结论"
+  bind:run="onRun"
+  bind:reset="onReset"
+  bind:example="onExample"
+>
+  <view slot="input" class="sg-tool-fields">
+    <glass-input
+      label="前景色"
+      value="{{fgValue}}"
+      maxlength="{{24}}"
+      placeholder="#FF0000 或 rgb(255, 0, 0)"
+      hint="支持 #RGB / #RRGGBB / rgb() / hsl()"
+      aria-label="前景色"
+      data-field="fg"
+      bind:input="onInput"
+    />
+    <glass-input
+      label="背景色"
+      value="{{bgValue}}"
+      maxlength="{{24}}"
+      placeholder="#FFFFFF 或 hsl(0, 0%, 100%)"
+      hint="透明度统一忽略，只按 RGB 计算"
+      aria-label="背景色"
+      data-field="bg"
+      bind:input="onInput"
+    />
+  </view>
+
+  <view slot="result" class="sg-tool-result">
+    <view class="cl-stage">
+      <view class="cl-stage__label">{{resultLabel}}</view>
+      <view class="cl-stage__main" aria-role="status">{{resultMain}}</view>
+    </view>
+
+    <view class="cl-swatches">
+      <view class="cl-swatch">
+        <view class="cl-swatch__block" style="background-color: {{fgPreview}}"></view>
+        <text class="cl-swatch__label">前景</text>
+        <text class="cl-swatch__value">{{fgPreview}}</text>
+      </view>
+      <view class="cl-swatch">
+        <view class="cl-swatch__block" style="background-color: {{bgPreview}}"></view>
+        <text class="cl-swatch__label">背景</text>
+        <text class="cl-swatch__value">{{bgPreview}}</text>
+      </view>
+    </view>
+
+    <view class="sg-tool-rows">
+      <view
+        wx:for="{{resultRows}}"
+        wx:key="k"
+        class="sg-tool-row"
+        data-value="{{item.v}}"
+        bindtap="onCopyRow"
+        aria-role="button"
+        aria-label="复制 {{item.k}}"
+      >
+        <text class="sg-tool-row__k">{{item.k}}</text>
+        <text class="sg-tool-row__v">{{item.v}}</text>
+      </view>
+    </view>
+
+    <view class="cl-cvd">
+      <text class="cl-cvd__title">色觉模拟（对当前背景）</text>
+      <view wx:for="{{cvdRows}}" wx:key="label" class="cl-cvd__row">
+        <view class="cl-cvd__dot" style="background-color: {{item.hex}}"></view>
+        <text class="cl-cvd__label">{{item.label}}</text>
+        <text class="cl-cvd__hex">{{item.hex}}</text>
+        <text class="cl-cvd__ratio">{{item.ratio}} · {{item.note}}</text>
+      </view>
+    </view>
+
+    <view
+      class="cl-copy"
+      bindtap="onCopy"
+      aria-role="button"
+      aria-label="复制颜色结果"
+    >点击复制结果</view>
+
+    <view class="sg-tool-note">
+      <text class="sg-tool-note__title">说明</text>
+      <text class="sg-tool-note__text">对比度按 WCAG 2.x 相对亮度公式计算：AA 正文 ≥4.5、AAA 正文 ≥7、AA 大字 ≥3、AAA 大字 ≥4.5。色觉模拟为近似效果，透明度统一忽略。结果只在本机计算。</text>
+    </view>
+  </view>
+</glass-tool-shell>

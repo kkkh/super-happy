@@ -1,0 +1,166 @@
+<glass-tool-shell
+  tool-id="worktime"
+  title="{{toolName}}"
+  kicker="{{kicker}}"
+  desc="{{desc}}"
+  poster-data="{{posterData}}"
+  run-label="开始计算"
+  can-run="{{canRun}}"
+  state="{{shellState}}"
+  has-result="{{hasResult}}"
+  error="{{error}}"
+  empty-title="{{stale ? '输入已变更，请重新计算' : '填写工时或请假信息'}}"
+  empty-sub="工时自动拆分正常 / 加班；请假先排除周末再扣半天"
+  bind:run="onRun"
+  bind:example="onExample"
+  bind:reset="onReset"
+>
+  <view slot="input" class="sg-tool-fields">
+    <view class="wt-modes" aria-role="tablist">
+      <view
+        wx:for="{{modeOptions}}"
+        wx:key="key"
+        class="wt-mode {{item.key === activeMode ? 'wt-mode--on' : ''}}"
+        data-mode="{{item.key}}"
+        bindtap="onModeTap"
+        aria-role="tab"
+        aria-selected="{{item.key === activeMode}}"
+      >{{item.label}}</view>
+    </view>
+
+    <block wx:if="{{activeMode === 'work'}}">
+      <glass-input
+        label="上班时间"
+        hint="HH:mm"
+        maxlength="{{5}}"
+        value="{{startTime}}"
+        placeholder="09:00"
+        data-field="startTime"
+        aria-label="上班时间"
+        bind:input="onFieldInput"
+      />
+      <glass-input
+        label="下班时间"
+        hint="早于上班按次日"
+        maxlength="{{5}}"
+        value="{{endTime}}"
+        placeholder="18:30"
+        data-field="endTime"
+        aria-label="下班时间"
+        bind:input="onFieldInput"
+      />
+      <glass-input
+        label="休息分钟"
+        type="number"
+        maxlength="{{4}}"
+        value="{{breakMinutes}}"
+        placeholder="60"
+        data-field="breakMinutes"
+        aria-label="休息分钟"
+        bind:input="onFieldInput"
+      />
+      <glass-input
+        label="标准工时"
+        hint="0–24 小时"
+        type="digit"
+        maxlength="{{4}}"
+        value="{{standardHours}}"
+        placeholder="8"
+        data-field="standardHours"
+        aria-label="标准工时"
+        bind:input="onFieldInput"
+      >
+        <text slot="suffix" class="sg-tool-unit">小时</text>
+      </glass-input>
+      <glass-input
+        label="加班倍率"
+        hint="1.5 表示 1.5 倍"
+        type="digit"
+        maxlength="{{4}}"
+        value="{{multiplier}}"
+        placeholder="1.5"
+        data-field="multiplier"
+        aria-label="加班倍率"
+        bind:input="onFieldInput"
+      />
+      <glass-input
+        label="时薪（选填）"
+        hint="仅本机试算，不写草稿"
+        type="digit"
+        maxlength="{{10}}"
+        value="{{hourlyWage}}"
+        placeholder="留空则只算工时"
+        data-field="hourlyWage"
+        aria-label="时薪，选填"
+        bind:input="onFieldInput"
+      >
+        <text slot="suffix" class="sg-tool-unit">元/小时</text>
+      </glass-input>
+    </block>
+
+    <block wx:else>
+      <view class="wt-dates">
+        <view class="wt-date">
+          <text class="wt-date__label">开始</text>
+          <picker mode="date" value="{{leaveStart}}" start="1900-01-01" end="2100-12-31" bindchange="onStartChange">
+            <view class="wt-date__trigger" hover-class="wt-date__trigger_pressed" hover-stay-time="80" aria-role="button" aria-label="请假开始日期，当前 {{leaveStart}}">
+              <text class="wt-date__text">{{leaveStart}}</text>
+              <g-icon name="chevron" size="{{24}}" tone="ink4" />
+            </view>
+          </picker>
+        </view>
+        <view class="wt-date">
+          <text class="wt-date__label">结束</text>
+          <picker mode="date" value="{{leaveEnd}}" start="1900-01-01" end="2100-12-31" bindchange="onEndChange">
+            <view class="wt-date__trigger" hover-class="wt-date__trigger_pressed" hover-stay-time="80" aria-role="button" aria-label="请假结束日期，当前 {{leaveEnd}}">
+              <text class="wt-date__text">{{leaveEnd}}</text>
+              <g-icon name="chevron" size="{{24}}" tone="ink4" />
+            </view>
+          </picker>
+        </view>
+      </view>
+
+      <view class="wt-switch-row">
+        <view class="wt-switch-row__text">
+          <text class="wt-switch-row__title">含周末</text>
+          <text class="wt-switch-row__sub">关闭时先排除周六 / 周日</text>
+        </view>
+        <switch checked="{{includeWeekend}}" color="var(--glass-accent)" aria-label="请假是否含周末" data-field="includeWeekend" bindchange="onToggle" />
+      </view>
+      <view class="wt-switch-row">
+        <view class="wt-switch-row__text">
+          <text class="wt-switch-row__title">半天</text>
+          <text class="wt-switch-row__sub">固定扣开始日 0.5 天</text>
+        </view>
+        <switch checked="{{halfDay}}" color="var(--glass-accent)" aria-label="是否请半天" data-field="halfDay" bindchange="onToggle" />
+      </view>
+    </block>
+  </view>
+
+  <view slot="result" class="sg-tool-result">
+    <view class="sg-tool-result__head">
+      <text class="sg-tool-result__label">{{resultLabel}}</text>
+      <text class="sg-tool-result__meta" bindtap="onCopy">点击复制摘要</text>
+    </view>
+
+    <view class="sg-tool-result__main" aria-role="status">{{resultMain}}</view>
+
+    <view class="sg-tool-rows">
+      <view wx:for="{{resultRows}}" wx:key="k" class="sg-tool-row">
+        <text class="sg-tool-row__k">{{item.k}}</text>
+        <text class="sg-tool-row__v">{{item.v}}</text>
+      </view>
+    </view>
+
+    <view wx:if="{{detailRows.length}}" class="wt-details">
+      <view wx:for="{{detailRows}}" wx:key="*this" class="wt-detail">{{item}}</view>
+    </view>
+
+    <view wx:if="{{wageNote}}" class="wt-wage-note">{{wageNote}}</view>
+
+    <view class="sg-tool-note">
+      <text class="sg-tool-note__title">说明</text>
+      <text class="sg-tool-note__text">下班早于或等于上班按次日计算并标注跨天；请假先按是否含周末计算工作日，再固定扣开始日 0.5 天。所有计算只在本机完成。</text>
+    </view>
+  </view>
+</glass-tool-shell>

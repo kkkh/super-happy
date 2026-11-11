@@ -1,0 +1,178 @@
+<glass-tool-shell
+  tool-id="id-photo"
+  title="{{toolName}}"
+  kicker="{{kicker}}"
+  desc="{{desc}}"
+  run-label="开始换底"
+  poster-data="{{posterData}}"
+  show-example="{{false}}"
+  state="{{shellState}}"
+  has-result="{{hasResult}}"
+  error="{{error}}"
+  empty-title="选择人像照片，智能替换背景"
+  empty-sub="纯色 / 渐变 / 纹理背景均可尝试；本机处理，不上传"
+  bind:run="onRun"
+  bind:reset="onReset"
+>
+  <view slot="input" class="sg-tool-fields">
+    <view wx:if="{{devtools}}" class="ip-notice">
+      <text class="ip-notice__text">开发者工具暂不支持 Skyline Canvas，请扫码在真机预览中使用证件照换底。</text>
+    </view>
+
+    <view
+      class="ip-stage"
+      bind:tap="onChoose"
+      aria-role="button"
+      aria-label="{{imagePath ? '重新选择人像照片' : '从相册选择人像照片'}}"
+    >
+      <image
+        wx:if="{{outputPath || imagePath}}"
+        class="ip-stage__img"
+        src="{{outputPath || imagePath}}"
+        mode="aspectFit"
+        aria-label="{{outputPath ? '换底结果预览' : '原图预览'}}"
+      />
+      <view wx:else class="ip-stage__blank">
+        <text class="ip-stage__title">从相册选择人像照片</text>
+        <text class="ip-stage__sub">建议人像居中、与背景边界清晰；复杂背景也可尝试</text>
+      </view>
+      <view wx:if="{{processing}}" class="ip-stage__mask">
+        <text class="ip-stage__mask-text">本机处理中</text>
+      </view>
+    </view>
+
+    <view wx:if="{{sourceMeta}}" class="ip-meta-row">
+      <text class="ip-meta">原图 {{sourceMeta}}</text>
+    </view>
+
+    <view class="ip-section">
+      <text class="ip-label">目标底色</text>
+      <view class="ip-chips">
+        <view
+          wx:for="{{backgroundOptions}}"
+          wx:key="key"
+          class="ip-chip {{background === item.key ? 'is-active' : ''}}"
+          data-background="{{item.key}}"
+          bindtap="onBackground"
+          aria-role="button"
+          aria-label="选择{{item.label}}"
+        >
+          <view class="ip-chip__dot ip-chip__dot--{{item.key}}"></view>
+          <text>{{item.label}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="ip-section">
+      <text class="ip-label">精细调整</text>
+      <view class="ip-slider-row">
+        <text class="ip-slider__name">背景容差</text>
+        <slider
+          class="ip-slider"
+          min="10"
+          max="60"
+          step="1"
+          value="{{tolerance}}"
+          active-color="var(--glass-accent)"
+          background-color="var(--glass-bg-soft)"
+          block-color="var(--glass-accent)"
+          block-size="{{22}}"
+          aria-label="背景容差"
+          bindchanging="onToleranceChanging"
+          bindchange="onToleranceChange"
+        />
+        <text class="ip-slider__value">{{tolerance}}</text>
+      </view>
+      <view class="ip-slider-row">
+        <text class="ip-slider__name">边缘保护</text>
+        <slider
+          class="ip-slider"
+          min="0"
+          max="100"
+          step="5"
+          value="{{edgeProtect}}"
+          active-color="var(--glass-accent)"
+          background-color="var(--glass-bg-soft)"
+          block-color="var(--glass-accent)"
+          block-size="{{22}}"
+          aria-label="边缘保护"
+          bindchanging="onEdgeProtectChanging"
+          bindchange="onEdgeProtectChange"
+        />
+        <text class="ip-slider__value">{{edgeProtect}}</text>
+      </view>
+      <view class="ip-slider-row">
+        <text class="ip-slider__name">边缘羽化</text>
+        <slider
+          class="ip-slider"
+          min="0"
+          max="4"
+          step="1"
+          value="{{feather}}"
+          active-color="var(--glass-accent)"
+          background-color="var(--glass-bg-soft)"
+          block-color="var(--glass-accent)"
+          block-size="{{22}}"
+          aria-label="边缘羽化"
+          bindchanging="onFeatherChanging"
+          bindchange="onFeatherChange"
+        />
+        <text class="ip-slider__value">{{feather}}px</text>
+      </view>
+    </view>
+
+    <view class="ip-hint">背景越花越调高容差；边缘保护越高越不容易吃到头发；羽化 0 为硬边。选择图片后点击“开始换底”。</view>
+  </view>
+
+  <view slot="result" class="sg-tool-result">
+    <view class="sg-tool-result__head">
+      <text class="sg-tool-result__label">换底结果</text>
+      <text class="sg-tool-result__meta">{{outputSizeText}}</text>
+    </view>
+
+    <view class="sg-tool-result__main" aria-role="status">{{outputTitle}}</view>
+
+    <image
+      class="ip-output"
+      src="{{outputPath}}"
+      mode="aspectFit"
+      bindtap="onPreview"
+      aria-role="button"
+      aria-label="预览换底结果"
+    />
+
+    <view class="sg-tool-rows">
+      <view wx:for="{{resultRows}}" wx:key="k" class="sg-tool-row">
+        <text class="sg-tool-row__k">{{item.k}}</text>
+        <text class="sg-tool-row__v">{{item.v}}</text>
+      </view>
+    </view>
+
+    <view wx:if="{{qualityHint}}" class="ip-quality">{{qualityHint}}</view>
+
+    <view class="ip-actions">
+      <glass-button variant="ghost" size="md" block bind:tap="onPreview">预览</glass-button>
+      <glass-button
+        variant="primary"
+        size="md"
+        block
+        loading="{{saving}}"
+        loading-text="保存中"
+        bind:tap="onSave"
+      >保存到相册</glass-button>
+    </view>
+
+    <view class="sg-tool-note">
+      <text class="sg-tool-note__title">说明</text>
+      <text class="sg-tool-note__text">采用边缘背景模型 + 漫水填充 + 边缘保护，纯色、渐变、纹理背景均可尝试；发丝、透明物体或与背景同色的衣物仍可能残留，可调整容差 / 边缘保护 / 羽化后重试。全程本机处理，不做人脸识别、不提取人脸特征、不上传照片。</text>
+    </view>
+  </view>
+</glass-tool-shell>
+
+<canvas
+  wx:if="{{!devtools}}"
+  id="id-photo-canvas"
+  type="2d"
+  class="ip-canvas"
+  style="width: {{canvasCss}}px; height: {{canvasCss}}px;"
+></canvas>

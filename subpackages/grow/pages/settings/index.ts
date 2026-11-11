@@ -29,6 +29,7 @@ import { APP_VERSION, ROUTES } from '../../../../core/constants/index'
 import { readUpdatePending } from '../../../../core/services/update'
 import { historyStore } from '../../../../core/stores/history'
 import { isDevtools } from '../../../../core/utils/platform'
+import { ensurePrivacyAuthorized } from '../../../../core/utils/privacy'
 import {
   buildGalaxyNodes,
   GalaxyEngine,
@@ -2113,22 +2114,30 @@ Page({
     }
     const index = this.data.transportIndex
     const total = this.data.transportTotal
-    wx.setClipboardData({
-      data: this.data.transportCurrent,
-      success: () => {
-        this.showToast(`第 ${index}/${total} 片已复制`, 'success')
-        this.pushCyberEvent('action', 'transport', `copy ${index}/${total}`)
-        if (index < total) {
-          setTimeout(() => {
-            if (!this.data.transportBusy && !(this as unknown as SettingsRuntime).cyberDestroyed) {
-              this.setTransportPart(index + 1)
-            }
-          }, 260)
-        }
-      },
-      fail: () => {
-        this.showToast('复制失败，请手动长按选择', 'error')
-      },
+    const part = this.data.transportCurrent
+    /* 剪贴板写入属于微信隐私接口：未同意指引时先弹授权，拒绝则只提示不改写 */
+    ensurePrivacyAuthorized().then((authorized) => {
+      if (!authorized) {
+        this.showToast('需同意隐私保护指引后使用剪贴板', 'warning')
+        return
+      }
+      wx.setClipboardData({
+        data: part,
+        success: () => {
+          this.showToast(`第 ${index}/${total} 片已复制`, 'success')
+          this.pushCyberEvent('action', 'transport', `copy ${index}/${total}`)
+          if (index < total) {
+            setTimeout(() => {
+              if (!this.data.transportBusy && !(this as unknown as SettingsRuntime).cyberDestroyed) {
+                this.setTransportPart(index + 1)
+              }
+            }, 260)
+          }
+        },
+        fail: () => {
+          this.showToast('复制失败，请手动长按选择', 'error')
+        },
+      })
     })
   },
 
@@ -2176,19 +2185,26 @@ Page({
   },
 
   onTransportPaste(): void {
-    wx.getClipboardData({
-      success: (res) => {
-        const text = String((res && res.data) || '').trim()
-        if (!text) {
-          this.showToast('剪贴板为空', 'warning')
-          return
-        }
-        this.setData({ transportInput: text })
-        this.onTransportAppend()
-      },
-      fail: () => {
-        this.showToast('读取剪贴板失败', 'error')
-      },
+    /* 剪贴板读取属于微信隐私接口：首次调用必须先拿到授权 */
+    ensurePrivacyAuthorized().then((authorized) => {
+      if (!authorized) {
+        this.showToast('需同意隐私保护指引后使用剪贴板', 'warning')
+        return
+      }
+      wx.getClipboardData({
+        success: (res) => {
+          const text = String((res && res.data) || '').trim()
+          if (!text) {
+            this.showToast('剪贴板为空', 'warning')
+            return
+          }
+          this.setData({ transportInput: text })
+          this.onTransportAppend()
+        },
+        fail: () => {
+          this.showToast('读取剪贴板失败', 'error')
+        },
+      })
     })
   },
 
@@ -2339,15 +2355,22 @@ Page({
       this.showToast('还没有备份码，请先加密导出或粘贴', 'warning')
       return
     }
-    wx.setClipboardData({
-      data: text,
-      success: () => {
-        this.showToast('AES 备份码已复制', 'success')
-        this.pushCyberEvent('action', 'vault', `copy ${text.length} chars`)
-      },
-      fail: () => {
-        this.showToast('复制失败，请长按文本框手动选择', 'error')
-      },
+    /* 剪贴板写入属于微信隐私接口：未同意指引时先弹授权 */
+    ensurePrivacyAuthorized().then((authorized) => {
+      if (!authorized) {
+        this.showToast('需同意隐私保护指引后使用剪贴板', 'warning')
+        return
+      }
+      wx.setClipboardData({
+        data: text,
+        success: () => {
+          this.showToast('AES 备份码已复制', 'success')
+          this.pushCyberEvent('action', 'vault', `copy ${text.length} chars`)
+        },
+        fail: () => {
+          this.showToast('复制失败，请长按文本框手动选择', 'error')
+        },
+      })
     })
   },
 

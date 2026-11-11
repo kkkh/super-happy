@@ -2,8 +2,11 @@ name: 超欢小程序 CI 上传
 
 on:
   push:
+    branches:
+      - main
     tags:
       - 'v*'
+  pull_request:
   workflow_dispatch:
     inputs:
       version:
@@ -24,8 +27,62 @@ permissions:
   contents: read
 
 jobs:
+  quality:
+    name: 质量门禁
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            subpackages/tools-core/package-lock.json
+
+      - name: 切换依赖源为 npmjs
+        shell: bash
+        run: |
+          node -e "const fs=require('fs');for(const f of ['package-lock.json','subpackages/tools-core/package-lock.json']){fs.writeFileSync(f,fs.readFileSync(f,'utf8').replaceAll('https://registry.npmmirror.com','https://registry.npmjs.org'))}"
+
+      - name: 安装根包依赖
+        timeout-minutes: 12
+        run: npm ci
+
+      - name: 安装 tools-core 依赖
+        timeout-minutes: 6
+        working-directory: subpackages/tools-core
+        run: npm ci
+
+      - name: 编译 Tailwind 样式
+        timeout-minutes: 5
+        run: npm run build:style
+
+      - name: 类型检查
+        timeout-minutes: 5
+        run: npm run typecheck
+
+      - name: 单元 / 集成测试
+        timeout-minutes: 8
+        run: npm test
+
+      - name: 包体预算
+        timeout-minutes: 3
+        run: npm run budget
+
+      - name: 版本四源一致性
+        timeout-minutes: 3
+        run: npm run check:version
+
   upload:
     name: 构建并上传开发版本
+    needs: quality
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     timeout-minutes: 30
 

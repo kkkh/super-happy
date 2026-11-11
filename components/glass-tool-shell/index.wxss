@@ -187,6 +187,43 @@
   margin-bottom: 8rpx;
 }
 
+/* 使用说明入口：放在页脚上方，低干扰但可达 */
+.tool-shell__help {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10rpx;
+  align-self: center;
+  margin-top: 18rpx;
+  padding: 10rpx 26rpx;
+  border-radius: 999rpx;
+  background: var(--glass-bg-soft);
+  border: 1rpx solid var(--glass-border);
+}
+
+.tool-shell__help:active {
+  background: var(--glass-bg);
+}
+
+.tool-shell__help-glyph {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30rpx;
+  height: 30rpx;
+  border-radius: 50%;
+  border: 1rpx solid var(--glass-border-strong);
+  font-size: 20rpx;
+  line-height: 1;
+  color: var(--glass-text-3);
+}
+
+.tool-shell__help-text {
+  font-size: 21rpx;
+  letter-spacing: 1rpx;
+  color: var(--glass-text-3);
+}
+
 .tool-shell__footer {
   padding-top: 8rpx;
   color: var(--glass-text-3);

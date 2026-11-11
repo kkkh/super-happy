@@ -16,6 +16,10 @@ import { installPrivacyGuard } from './core/stores/privacy'
 import { deepLinkStore } from './core/stores/deeplink'
 import { preferenceStore } from './core/stores/preference'
 import { warmUpSound } from './core/services/sound'
+import {
+  suspendMeetingTimer,
+  syncMeetingTimer,
+} from './core/services/meetingTimer'
 import { applyAutoClean } from './core/services/storage-governor'
 import {
   clearUpdatePending,
@@ -195,11 +199,15 @@ App({
 
     /* 热启动补一次自动清理：跨天 / 跨周后回来也能守住阈值 */
     applyAutoClean()
+    /* 会议倒计时跨后台补算：回前台立即对齐截止时间 */
+    syncMeetingTimer()
   },
 
   /** 切后台：把防抖中的轨迹立即落盘，避免小程序被系统回收时丢记录 */
   onHide() {
     historyStore.flush()
+    /* 后台不跑计时器，但保留截止时间；回前台再补算 */
+    suspendMeetingTimer()
   },
 
   /** 致命错误黑匣子：记录现场后由微信决定是否继续 */

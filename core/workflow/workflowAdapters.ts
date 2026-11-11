@@ -1,7 +1,7 @@
 // [经 Apple 级 Red Team 审查] 已消灭空指针、时序错乱、内存泄漏与业务耦合，确认 100% 无瑕疵、极度健壮。
 /* ==========================================================================
    workflowAdapters · 跳转类工具的安全注入适配层
-   - 绝不改动 23 个工具的核心业务逻辑：只调用页面既有方法或 onReceiveWorkflow
+   - 绝不改动 63 个工具的核心业务逻辑：只调用页面既有方法或 onReceiveWorkflow
    - 业务上下文：unit / timestamp / 税率模式等随载荷一起注入，避免只传裸值
    - 字段级撤销：注入前后 diff，只回滚仍保持“注入后状态”的字段
    - 所有外部输入、页面实例、wx API 均视为不可信，全路径 try-catch
@@ -401,6 +401,183 @@ const qrAdapter: WorkflowAdapter = {
   },
 }
 
+const photoEditAdapter: WorkflowAdapter = {
+  id: 'photo-edit',
+  hasInput: (page) => readText(page, 'imagePath') !== '',
+  isReady: (page) =>
+    typeof page?.setData === 'function' && typeof page?.render === 'function',
+  async apply(page, data) {
+    return applyImageCommand(page, data, 'render', (meta) => ({
+      imagePath: data.payload,
+      imageWidth: meta.width,
+      imageHeight: meta.height,
+      sourceMeta: `${meta.width} × ${meta.height} · ${formatBytes(meta.size)}`,
+      sourceNote: '',
+      outputPath: '',
+      outputWidth: 0,
+      outputHeight: 0,
+      outputSizeText: '',
+      outputMeta: '',
+      resultRows: [],
+      hasResult: false,
+      shellState: 'idle',
+      error: '',
+    }))
+  },
+}
+
+const avatarAdapter: WorkflowAdapter = {
+  id: 'avatar',
+  hasInput: (page) => readText(page, 'imagePath') !== '',
+  isReady: (page) =>
+    typeof page?.setData === 'function' && typeof page?.render === 'function',
+  async apply(page, data) {
+    return applyImageCommand(page, data, 'render', (meta) => ({
+      imagePath: data.payload,
+      imageWidth: meta.width,
+      imageHeight: meta.height,
+      sourceMeta: `${meta.width} × ${meta.height} · ${formatBytes(meta.size)}`,
+      sourceNote: '',
+      outputPath: '',
+      outputTitle: '',
+      outputSizeText: '',
+      outputMeta: '',
+      resultRows: [],
+      hasResult: false,
+      shellState: 'idle',
+      error: '',
+    }))
+  },
+}
+
+const collageAdapter: WorkflowAdapter = {
+  id: 'collage',
+  hasInput: (page) => {
+    const selected = page?.data?.selected
+    return Array.isArray(selected) && selected.length > 0
+  },
+  isReady: (page) =>
+    typeof page?.setData === 'function' && typeof page?.onReceiveWorkflow === 'function',
+  async apply(page, data) {
+    return callPageMethod(page, 'onReceiveWorkflow', data)
+  },
+}
+
+const imagePdfAdapter: WorkflowAdapter = {
+  id: 'image-pdf',
+  hasInput: (page) => {
+    const selected = page?.data?.selected
+    return Array.isArray(selected) && selected.length > 0
+  },
+  isReady: (page) =>
+    typeof page?.setData === 'function' && typeof page?.onReceiveWorkflow === 'function',
+  async apply(page, data) {
+    return callPageMethod(page, 'onReceiveWorkflow', data)
+  },
+}
+
+const idPhotoAdapter: WorkflowAdapter = {
+  id: 'id-photo',
+  hasInput: (page) => readText(page, 'imagePath') !== '',
+  isReady: (page) =>
+    typeof page?.setData === 'function' && typeof page?.render === 'function',
+  async apply(page, data) {
+    return applyImageCommand(page, data, 'render', (meta) => ({
+      imagePath: data.payload,
+      imageWidth: meta.width,
+      imageHeight: meta.height,
+      sourceMeta: `${meta.width} × ${meta.height} · ${formatBytes(meta.size)}`,
+      outputPath: '',
+      outputTitle: '',
+      outputSizeText: '',
+      outputMeta: '',
+      resultRows: [],
+      processing: false,
+      hasResult: false,
+      shellState: 'idle',
+      error: '',
+      posterData: null,
+    }))
+  },
+}
+
+const qrDecodeAdapter: WorkflowAdapter = {
+  id: 'qr-decode',
+  hasInput: (page) => readText(page, 'imagePath') !== '',
+  isReady: (page) =>
+    typeof page?.setData === 'function' && typeof page?.decode === 'function',
+  async apply(page, data) {
+    return applyImageCommand(page, data, 'decode', (meta) => ({
+      imagePath: data.payload,
+      imageWidth: meta.width,
+      imageHeight: meta.height,
+      sourceMeta: `${meta.width} × ${meta.height} · ${formatBytes(meta.size)}`,
+      processing: false,
+      hasResult: false,
+      shellState: 'idle',
+      error: '',
+      posterData: null,
+      resultText: '',
+      qrSummary: '',
+      displayText: '',
+      truncated: false,
+      charCount: 0,
+      kindLabel: '',
+      resultRows: [],
+    }))
+  },
+}
+
+const lunarAdapter: WorkflowAdapter = {
+  id: 'lunar',
+  hasInput: (page) => readText(page, 'dateValue') !== '',
+  isReady: (page) =>
+    typeof page?.setData === 'function' && typeof page?.onReceiveWorkflow === 'function',
+  async apply(page, data) {
+    return callPageMethod(page, 'onReceiveWorkflow', data)
+  },
+}
+
+const zhConvertAdapter: WorkflowAdapter = {
+  id: 'zh-convert',
+  hasInput: (page) => readText(page, 'inputText').trim() !== '',
+  isReady: (page) =>
+    typeof page?.setData === 'function' && typeof page?.onReceiveWorkflow === 'function',
+  async apply(page, data) {
+    return callPageMethod(page, 'onReceiveWorkflow', data)
+  },
+}
+
+const pinyinAdapter: WorkflowAdapter = {
+  id: 'pinyin',
+  hasInput: (page) => readText(page, 'inputText').trim() !== '',
+  isReady: (page) =>
+    typeof page?.setData === 'function' && typeof page?.onReceiveWorkflow === 'function',
+  async apply(page, data) {
+    return callPageMethod(page, 'onReceiveWorkflow', data)
+  },
+}
+
+const salaryInverseAdapter: WorkflowAdapter = {
+  id: 'salary-inverse',
+  hasInput: (page) => readText(page, 'targetNet').trim() !== '',
+  isReady: (page) =>
+    typeof page?.setData === 'function' && typeof page?.onReceiveWorkflow === 'function',
+  async apply(page, data) {
+    return callPageMethod(page, 'onReceiveWorkflow', data)
+  },
+}
+
+const fxManualAdapter: WorkflowAdapter = {
+  id: 'fx-manual',
+  hasInput: (page) => readText(page, 'amountText') !== '',
+  isReady: (page) =>
+    typeof page?.setData === 'function' && typeof page?.onReceiveWorkflow === 'function',
+  async apply(page, data) {
+    return callPageMethod(page, 'onReceiveWorkflow', data)
+  },
+}
+
 const compressAdapter: WorkflowAdapter = {
   id: 'compress',
   hasInput: (page) => readText(page, 'imagePath') !== '',
@@ -491,6 +668,64 @@ const watermarkAdapter: WorkflowAdapter = {
 
 const ADAPTERS: Partial<Record<WorkflowToolId, WorkflowAdapter>> = {
   unit: unitAdapter,
+  /* 算账助手是多模式表单：只接收可解析金额，由页面决定写入哪个模式字段 */
+  ledger: {
+    id: 'ledger',
+    hasInput: (page) =>
+      readText(page, 'discountPrice').trim() !== '' ||
+      readText(page, 'thresholdPrice').trim() !== '' ||
+      readText(page, 'aaTotal').trim() !== '',
+    isReady: (page) =>
+      typeof page?.setData === 'function' &&
+      typeof page?.onReceiveWorkflow === 'function',
+    async apply(page, data) {
+      return callPageMethod(page, 'onReceiveWorkflow', data)
+    },
+  },
+  /* 油耗计算：只注入里程，加油量与油价保持用户当前值 */
+  fuel: {
+    id: 'fuel',
+    hasInput: (page) => readTrue(page, 'formTouched'),
+    isReady: (page) =>
+      typeof page?.setData === 'function' &&
+      typeof page?.onReceiveWorkflow === 'function',
+    async apply(page, data) {
+      return callPageMethod(page, 'onReceiveWorkflow', data)
+    },
+  },
+  /* 电费估算：只注入功率，时长 / 天数 / 电价保持用户当前值 */
+  power: {
+    id: 'power',
+    hasInput: (page) => readTrue(page, 'formTouched'),
+    isReady: (page) =>
+      typeof page?.setData === 'function' &&
+      typeof page?.onReceiveWorkflow === 'function',
+    async apply(page, data) {
+      return callPageMethod(page, 'onReceiveWorkflow', data)
+    },
+  },
+  /* 车贷计算：只注入车价，首付 / 期限 / 利率保持用户当前值 */
+  carloan: {
+    id: 'carloan',
+    hasInput: (page) => readTrue(page, 'formTouched'),
+    isReady: (page) =>
+      typeof page?.setData === 'function' &&
+      typeof page?.onReceiveWorkflow === 'function',
+    async apply(page, data) {
+      return callPageMethod(page, 'onReceiveWorkflow', data)
+    },
+  },
+  /* 报价单：把上游文本追加为一条明细，数量 1，单价取首个金额 */
+  quote: {
+    id: 'quote',
+    hasInput: (page) => readTrue(page, 'formTouched'),
+    isReady: (page) =>
+      typeof page?.setData === 'function' &&
+      typeof page?.onReceiveWorkflow === 'function',
+    async apply(page, data) {
+      return callPageMethod(page, 'onReceiveWorkflow', data)
+    },
+  },
   tax: createTextAdapter('tax', 'income', 'compute', undefined, (data) => {
     const mode = readContextString(data.context, 'taxMode', ['monthly', 'annual'])
     return mode ? { mode } : {}
@@ -511,6 +746,27 @@ const ADAPTERS: Partial<Record<WorkflowToolId, WorkflowAdapter>> = {
     return frequency ? { frequency } : {}
   }),
   span: spanAdapter,
+  /* 时区换算：日期默认今天，只有手动改过表单才触发覆盖确认 */
+  timezone: {
+    id: 'timezone',
+    hasInput: (page) => readTrue(page, 'formTouched'),
+    isReady: (page) =>
+      typeof page?.setData === 'function' &&
+      typeof page?.onReceiveWorkflow === 'function',
+    async apply(page, data) {
+      return callPageMethod(page, 'onReceiveWorkflow', data)
+    },
+  },
+  schedule: {
+    id: 'schedule',
+    hasInput: (page) => readTrue(page, 'formTouched'),
+    isReady: (page) =>
+      typeof page?.setData === 'function' &&
+      typeof page?.onReceiveWorkflow === 'function',
+    async apply(page, data) {
+      return callPageMethod(page, 'onReceiveWorkflow', data)
+    },
+  },
   age: createTextAdapter('age', 'birth', 'recalculate', undefined, (data) => {
     const ref = readContextString(data.context, 'ageRef')
     return ref && isIsoDate(ref) ? { ref } : {}
@@ -520,6 +776,50 @@ const ADAPTERS: Partial<Record<WorkflowToolId, WorkflowAdapter>> = {
     return target && isIsoDate(target) ? { target, targetLabel: target } : {}
   }),
   timestamp: timestampAdapter,
+  /* 正则测试保留用户当前模式与 flags，只注入测试文本 */
+  regex: {
+    id: 'regex',
+    hasInput: (page) => readText(page, 'testText').trim() !== '',
+    isReady: (page) =>
+      typeof page?.setData === 'function' &&
+      typeof page?.onReceiveWorkflow === 'function',
+    async apply(page, data) {
+      return callPageMethod(page, 'onReceiveWorkflow', data)
+    },
+  },
+  /* 证件号校验：整段号码注入 value，由页面重新识别类型 */
+  'id-validate': {
+    id: 'id-validate',
+    hasInput: (page) => readText(page, 'value').trim() !== '',
+    isReady: (page) =>
+      typeof page?.setData === 'function' &&
+      typeof page?.onReceiveWorkflow === 'function',
+    async apply(page, data) {
+      return callPageMethod(page, 'onReceiveWorkflow', data)
+    },
+  },
+  /* 条形码：只注入可编码的 ASCII 文本，由页面重新编码并出图 */
+  barcode: {
+    id: 'barcode',
+    hasInput: (page) => readText(page, 'content').trim() !== '',
+    isReady: (page) =>
+      typeof page?.setData === 'function' &&
+      typeof page?.onReceiveWorkflow === 'function',
+    async apply(page, data) {
+      return callPageMethod(page, 'onReceiveWorkflow', data)
+    },
+  },
+  /* 图片信息：只注入图片路径，由页面读取元信息 */
+  exif: {
+    id: 'exif',
+    hasInput: (page) => readText(page, 'imagePath') !== '',
+    isReady: (page) =>
+      typeof page?.setData === 'function' &&
+      typeof page?.onReceiveWorkflow === 'function',
+    async apply(page, data) {
+      return callPageMethod(page, 'onReceiveWorkflow', data)
+    },
+  },
   rmb: createTextAdapter('rmb', 'amount', 'recalculate'),
   /* 文本对比是复杂双栏页：走页面 onReceiveWorkflow 接口，不直接改算法 */
   'text-diff': {
@@ -544,8 +844,27 @@ const ADAPTERS: Partial<Record<WorkflowToolId, WorkflowAdapter>> = {
     },
   },
   password: createUnsupportedAdapter('password'),
+  worktime: createUnsupportedAdapter('worktime'),
+  'meeting-timer': createUnsupportedAdapter('meeting-timer'),
+  bodyfat: createUnsupportedAdapter('bodyfat'),
+  'size-convert': createUnsupportedAdapter('size-convert'),
+  severance: createUnsupportedAdapter('severance'),
+  wellness: createUnsupportedAdapter('wellness'),
+  vcard: createUnsupportedAdapter('vcard'),
   bmi: createUnsupportedAdapter('bmi'),
+  weather: createUnsupportedAdapter('weather'),
   compress: compressAdapter,
+  'photo-edit': photoEditAdapter,
+  avatar: avatarAdapter,
+  collage: collageAdapter,
+  'image-pdf': imagePdfAdapter,
+  'id-photo': idPhotoAdapter,
+  'qr-decode': qrDecodeAdapter,
+  lunar: lunarAdapter,
+  'zh-convert': zhConvertAdapter,
+  pinyin: pinyinAdapter,
+  'fx-manual': fxManualAdapter,
+  'salary-inverse': salaryInverseAdapter,
   palette: paletteAdapter,
   'nine-grid': nineGridAdapter,
   qr: qrAdapter,

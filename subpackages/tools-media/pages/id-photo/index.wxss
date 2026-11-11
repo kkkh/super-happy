@@ -1,0 +1,205 @@
+/* ==========================================================================
+   证件照换底 · 选图舞台 / 底色 chips / 结果预览
+   - 只使用 --glass-* 令牌；真机 WXSS 禁止裸伪类
+   ========================================================================== */
+
+.ip-notice {
+  padding: 18rpx 20rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: var(--glass-radius-md);
+  background: var(--glass-bg-soft);
+}
+
+.ip-notice__text {
+  color: var(--glass-text-3);
+  font-size: 19rpx;
+  line-height: 1.6;
+}
+
+.ip-stage {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 420rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: var(--glass-radius-lg);
+  background: var(--glass-bg-soft);
+  overflow: hidden;
+}
+
+.ip-stage__img {
+  width: 100%;
+  height: 420rpx;
+}
+
+.ip-stage__blank {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12rpx;
+  padding: 40rpx;
+}
+
+.ip-stage__title {
+  color: var(--glass-text);
+  font-size: 26rpx;
+  font-weight: 600;
+}
+
+.ip-stage__sub {
+  color: var(--glass-text-3);
+  font-size: 20rpx;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.ip-stage__mask {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(8, 12, 22, 0.45);
+}
+
+.ip-stage__mask-text {
+  color: #fff;
+  font-size: 22rpx;
+  letter-spacing: 0.08em;
+}
+
+.ip-meta-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12rpx;
+}
+
+.ip-meta {
+  color: var(--glass-text-3);
+  font-size: 19rpx;
+  line-height: 1.5;
+}
+
+.ip-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.ip-label {
+  color: var(--glass-text-3);
+  font-size: 20rpx;
+  letter-spacing: 0.08em;
+}
+
+.ip-chips {
+  display: flex;
+  gap: 12rpx;
+}
+
+.ip-chip {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10rpx;
+  padding: 18rpx 12rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: var(--glass-radius-md);
+  background-color: var(--glass-bg-soft);
+  color: var(--glass-text-3);
+  font-size: 22rpx;
+}
+
+.ip-chip.is-active {
+  border-color: var(--glass-border-strong);
+  background-color: var(--glass-bg-strong);
+  color: var(--glass-text);
+  font-weight: 600;
+}
+
+.ip-chip__dot {
+  width: 26rpx;
+  height: 26rpx;
+  border-radius: 50%;
+  border: 1rpx solid rgba(255, 255, 255, 0.35);
+}
+
+.ip-chip__dot--white {
+  background: #ffffff;
+}
+
+.ip-chip__dot--blue {
+  background: #438edb;
+}
+
+.ip-chip__dot--red {
+  background: #d9001b;
+}
+
+.ip-hint {
+  color: var(--glass-text-3);
+  font-size: 19rpx;
+  line-height: 1.6;
+}
+
+.ip-slider-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 14rpx;
+}
+
+.ip-slider__name {
+  flex: 0 0 118rpx;
+  color: var(--glass-text-3);
+  font-size: 20rpx;
+}
+
+.ip-slider {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+}
+
+.ip-slider__value {
+  flex: 0 0 72rpx;
+  color: var(--glass-text);
+  font-family: var(--glass-font-mono);
+  font-size: 20rpx;
+  text-align: right;
+}
+
+.ip-quality {
+  margin-top: 18rpx;
+  padding: 14rpx 18rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: var(--glass-radius-sm);
+  background-color: var(--glass-accent-soft);
+  color: var(--glass-accent);
+  font-size: 20rpx;
+  line-height: 1.55;
+}
+
+.ip-output {
+  width: 100%;
+  height: 460rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: var(--glass-radius-md);
+  background: var(--glass-bg-soft);
+}
+
+.ip-actions {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 24rpx;
+}
+
+.ip-canvas {
+  position: fixed;
+  left: -9999px;
+  top: 0;
+  opacity: 0;
+  pointer-events: none;
+}

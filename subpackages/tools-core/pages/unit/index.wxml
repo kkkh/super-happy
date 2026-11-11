@@ -9,7 +9,7 @@
   has-result="{{hasResult}}"
   error="{{error}}"
   empty-title="输入数值，立即换算"
-  empty-sub="支持长度、质量、面积、体积、温度与速度"
+  empty-sub="覆盖长度、数据、时间、压力、能量、功率、角度、频率等 13 类"
   bind:example="onExample"
   bind:reset="onReset"
 >
@@ -126,10 +126,7 @@
     <glass-card tone="amber" radius="lg" padding="md" depth="soft">
       <view class="sg-tool-note">
         <text class="sg-tool-note__title">换算口径</text>
-        <text class="sg-tool-note__text">
-          市制单位按中国大陆标准：1 斤 = 500 克，1 市尺 = 1/3 米，1 亩 ≈ 666.67 平方米。
-          温度按摄氏度、华氏度、开尔文标准公式换算。
-        </text>
+        <text class="sg-tool-note__text">市制单位按中国大陆标准：1 斤 = 500 克，1 市尺 = 1/3 米，1 亩 ≈ 666.67 平方米。温度按摄氏度、华氏度、开尔文标准公式换算；数据按 1024 进制，时间不含月 / 年，马力按公制 735.49875 W。</text>
       </view>
     </glass-card>
   </view>

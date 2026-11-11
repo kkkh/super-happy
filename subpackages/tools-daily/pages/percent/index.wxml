@@ -1,0 +1,85 @@
+<glass-tool-shell
+  tool-id="percent"
+  title="{{toolName}}"
+  kicker="{{kicker}}"
+  desc="{{desc}}"
+  run-label="开始计算"
+  poster-data="{{posterData}}"
+  state="{{shellState}}"
+  has-result="{{hasResult}}"
+  error="{{error}}"
+  empty-title="选择模式，输入两个数值"
+  empty-sub="占比 / 增减幅 / 配比；最多两位小数，结果仅供参考"
+  bind:run="onRun"
+  bind:reset="onReset"
+  bind:example="onExample"
+>
+  <view slot="input" class="sg-tool-fields">
+    <view class="pc-modes" aria-role="tablist" aria-label="百分比模式">
+      <view
+        wx:for="{{modeOptions}}"
+        wx:key="key"
+        class="pc-mode {{item.key === mode ? 'pc-mode--on' : ''}}"
+        data-mode="{{item.key}}"
+        bindtap="onMode"
+        aria-role="tab"
+        aria-selected="{{item.key === mode}}"
+      >{{item.label}}</view>
+    </view>
+
+    <view class="pc-grid">
+      <view class="pc-col">
+        <glass-input
+          label="{{modeMeta.labelA}}"
+          type="digit"
+          maxlength="{{12}}"
+          value="{{aValue}}"
+          placeholder="{{modeMeta.placeholderA}}"
+          data-field="a"
+          aria-label="{{modeMeta.labelA}}"
+          bind:input="onInput"
+        />
+      </view>
+      <view class="pc-col">
+        <glass-input
+          label="{{modeMeta.labelB}}"
+          type="digit"
+          maxlength="{{12}}"
+          value="{{bValue}}"
+          placeholder="{{modeMeta.placeholderB}}"
+          data-field="b"
+          aria-label="{{modeMeta.labelB}}"
+          bind:input="onInput"
+        />
+      </view>
+    </view>
+
+    <view class="pc-hint">{{mode === 'share' ? '计算部分值占总数百分比；总数需大于 0。' : mode === 'change' ? '计算新值相对原值的涨跌幅；原值需大于 0。' : '把两个数值化简为最简整数比，并给出各自占比。'}}</view>
+  </view>
+
+  <view slot="result" class="sg-tool-result">
+    <view class="pc-stage">
+      <view class="pc-label">{{modeMeta.label}}</view>
+      <view class="pc-main" aria-role="status">{{resultMain}}</view>
+    </view>
+
+    <view class="sg-tool-rows">
+      <view wx:for="{{resultRows}}" wx:key="k" class="sg-tool-row">
+        <text class="sg-tool-row__k">{{item.k}}</text>
+        <text class="sg-tool-row__v">{{item.v}}</text>
+      </view>
+    </view>
+
+    <view
+      class="pc-copy"
+      bindtap="onCopy"
+      aria-role="button"
+      aria-label="复制百分比结果"
+    >点击复制结果</view>
+
+    <view class="sg-tool-note">
+      <text class="sg-tool-note__title">说明</text>
+      <text class="sg-tool-note__text">数值按两位小数放大为整数计算，避免浮点误差；不支持负数，涨跌幅超过 1000% 会提示复核。结果只在本机计算，仅供参考。</text>
+    </view>
+  </view>
+</glass-tool-shell>

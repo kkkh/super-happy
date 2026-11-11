@@ -1,0 +1,66 @@
+/* ==========================================================================
+   报价单 · 动态明细行 / CSV 导出
+   - 只使用 --glass-* 令牌，无硬编码色值
+   ========================================================================== */
+
+.quote-row {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+  box-sizing: border-box;
+  padding: 18rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: var(--glass-radius-md);
+  background-color: var(--glass-bg-soft);
+}
+
+.quote-row__head {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.quote-row__index {
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 19rpx;
+  letter-spacing: 0.08em;
+}
+
+.quote-row__remove {
+  color: var(--glass-warn, #d97706);
+  font-size: 19rpx;
+}
+
+.quote-row__grid {
+  display: flex;
+  flex-direction: row;
+  gap: 14rpx;
+}
+
+.quote-row__col {
+  flex: 1;
+  min-width: 0;
+}
+
+.quote-add {
+  box-sizing: border-box;
+  padding: 18rpx;
+  border: 1rpx dashed var(--glass-border-strong);
+  border-radius: var(--glass-radius-md);
+  color: var(--glass-text-3);
+  font-size: 20rpx;
+  text-align: center;
+}
+
+.quote-export {
+  box-sizing: border-box;
+  padding: 20rpx;
+  border: 1rpx solid var(--glass-border-strong);
+  border-radius: var(--glass-radius-md);
+  background-color: var(--glass-bg-strong);
+  color: var(--glass-text);
+  font-size: 21rpx;
+  text-align: center;
+}

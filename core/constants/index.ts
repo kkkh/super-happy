@@ -26,8 +26,12 @@ export const ROUTES = {
   settings: '/subpackages/grow/pages/settings/index',
   /* 数据驾驶舱：本机计算轨迹 / 效率周报 / 双主题 Canvas 图表 */
   cockpit: '/subpackages/grow/pages/cockpit/index',
-  /* 全息专注引擎：life 分包，独立于 23 个工具路由 */
+  /* 使用指南：全部工具的使用步骤与常见问题 */
+  help: '/subpackages/grow/pages/help/index',
+  /* 全息专注引擎：life 分包，独立于 26 个工具路由 */
   focus: '/subpackages/life/pages/focus/index',
+  /* 全息气象站：tools-core 分包，直连高德 Web服务 REST */
+  weather: '/subpackages/tools-core/pages/weather/index',
 } as const
 
 /** 当前版本号：设置中心、我的页与更新日志共用同一真相源 */
@@ -76,6 +80,8 @@ export const ROUTE_TITLES: Record<string, string> = {
   [ROUTES.campusDetail]: '作品详情',
   [ROUTES.settings]: '全局设置',
   [ROUTES.cockpit]: '数据驾驶舱',
+  [ROUTES.help]: '使用指南',
+  [ROUTES.weather]: '全息气象',
 }
 
 /** 带参路由构造器 */
@@ -143,6 +149,10 @@ export const STORAGE_KEYS = {
   preference: 'app:prefs.v1',
   /** 旧版偏好：仅迁移读取，不再写入 */
   preferenceLegacy: 'app:prefs.v0',
+  /** 会议倒计时悬浮胶囊位置：只存 left / top，跨启动恢复 */
+  meetingTimerHud: 'toolbox:meeting-timer.hud.v1',
+  /** 官方汇率中间价缓存：只存最近一次牌价与更新时间，用于离线回退 */
+  fxOfficialRates: 'tbx:fx.official.v1',
 } as const
 
 /** 传输层重试策略：HTTP Transport 接入时复用同一退避参数 */

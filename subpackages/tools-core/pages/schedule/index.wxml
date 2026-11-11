@@ -1,0 +1,144 @@
+<glass-tool-shell
+  tool-id="schedule"
+  title="{{toolName}}"
+  kicker="{{kicker}}"
+  desc="{{desc}}"
+  poster-data="{{posterData}}"
+  run-label="排期"
+  state="{{shellState}}"
+  has-result="{{hasResult}}"
+  error="{{error}}"
+  empty-title="填写开始日与工期，算出结束日"
+  empty-sub="填写后点击「排期」；可跳过周末并排除自定义休息日"
+  bind:run="onRun"
+  bind:example="onExample"
+  bind:reset="onReset"
+>
+  <view slot="input" class="sg-tool-fields">
+    <view class="tool-date">
+      <text class="tool-date__label">开始日期</text>
+      <picker
+        mode="date"
+        value="{{startDate}}"
+        start="1900-01-01"
+        end="2100-12-31"
+        bindchange="onDateChange"
+      >
+        <view
+          class="tool-date__trigger"
+          hover-class="tool-date__trigger_pressed"
+          hover-stay-time="80"
+          aria-role="button"
+          aria-label="选择开始日期，当前 {{startDate}}"
+        >
+          <text class="tool-date__text">{{startDate}}</text>
+          <g-icon name="chevron" size="{{24}}" tone="ink4" />
+        </view>
+      </picker>
+    </view>
+
+    <glass-input
+      label="工期（工作日）"
+      type="digit"
+      maxlength="{{4}}"
+      value="{{workdaysText}}"
+      placeholder="例如 5"
+      data-field="workdaysText"
+      aria-label="工期工作日数量"
+      bind:input="onFieldInput"
+    />
+
+    <view class="sched-switch">
+      <view class="sched-switch__text">
+        <text class="sched-switch__title">包含开始日</text>
+        <text class="sched-switch__sub">开始日是工作日时计入第 1 天</text>
+      </view>
+      <switch
+        checked="{{includeStart}}"
+        color="var(--glass-accent)"
+        aria-label="是否包含开始日"
+        data-field="includeStart"
+        bindchange="onToggle"
+      />
+    </view>
+
+    <view class="sched-switch">
+      <view class="sched-switch__text">
+        <text class="sched-switch__title">跳过周末</text>
+        <text class="sched-switch__sub">关闭后周六、周日也计工作日</text>
+      </view>
+      <switch
+        checked="{{skipWeekend}}"
+        color="var(--glass-accent)"
+        aria-label="是否跳过周末"
+        data-field="skipWeekend"
+        bindchange="onToggle"
+      />
+    </view>
+
+    <glass-input
+      label="自定义休息日（可空）"
+      hint="每行一个 YYYY-MM-DD，最多 10 个"
+      multiline
+      auto-height
+      value="{{holidaysText}}"
+      maxlength="{{200}}"
+      placeholder="例如：&#10;2026-01-01"
+      cursor-spacing="{{120}}"
+      data-field="holidaysText"
+      aria-label="自定义休息日"
+      bind:input="onFieldInput"
+    />
+  </view>
+
+  <view slot="result" class="sg-tool-result">
+    <view class="sg-tool-result__head">
+      <text class="sg-tool-result__label">{{resultLabel}}</text>
+      <text class="sg-tool-result__meta" bindtap="onCopy">点击复制摘要</text>
+    </view>
+
+    <view class="sg-tool-result__main" aria-role="status">{{resultMain}}</view>
+
+    <view class="sg-tool-rows">
+      <view
+        wx:for="{{resultRows}}"
+        wx:key="k"
+        class="sg-tool-row"
+        data-value="{{item.v}}"
+        bindtap="onCopyRow"
+        aria-role="button"
+        aria-label="复制 {{item.k}}"
+      >
+        <text class="sg-tool-row__k">{{item.k}}</text>
+        <text class="sg-tool-row__v">{{item.v}}</text>
+      </view>
+    </view>
+
+    <view wx:if="{{listRows.length > 0}}" class="sched-list-block">
+      <view
+        class="sched-list-head"
+        bindtap="onToggleList"
+        aria-role="button"
+        aria-label="{{showList ? '收起逐日清单' : '展开逐日清单'}}"
+      >
+        <text class="sched-list-head__title">逐日清单</text>
+        <text class="sched-list-head__meta">{{showList ? '收起' : '展开'}}</text>
+      </view>
+
+      <block wx:if="{{showList}}">
+        <view class="sched-list">
+          <view wx:for="{{visibleList}}" wx:key="date" class="sched-list__row">
+            <text class="sched-list__date">{{item.label}}</text>
+            <text class="sched-list__kind">{{item.kind}}</text>
+          </view>
+        </view>
+        <text class="sched-list__note">{{listNote}}</text>
+      </block>
+    </view>
+
+    <view class="sg-tool-note">
+      <text class="sg-tool-note__title">说明</text>
+      <text class="sg-tool-note__text">只按周末与自定义休息日推进，不含法定节假日与调休；最多 1000 个工作日。结果只在本机计算，不保存日期与清单。</text>
+    </view>
+  </view>
+</glass-tool-shell>

@@ -6,6 +6,7 @@
 import { createStoreBindings } from 'mobx-miniprogram-bindings'
 import { uiStore } from '../../core/stores/ui'
 import { APP_VERSION, TIMING } from '../../core/constants/index'
+import { TOOLS } from '../../core/toolbox/registry'
 import { tapSuccess, tapTick, tapWarn } from '../../core/utils/haptics'
 import { showGlassToast } from '../../components/glass-toast/toast'
 import {
@@ -14,7 +15,7 @@ import {
 } from '../../core/toolbox/share'
 
 const EMAIL = '56967916@qq.com'
-const EFFECTIVE_DATE = '2026 年 11 月 5 日'
+const EFFECTIVE_DATE = '2026 年 11 月 9 日'
 
 interface LegalSection {
   key: string
@@ -52,6 +53,7 @@ Page({
     scrollTarget: '',
     email: EMAIL,
     effectiveDate: EFFECTIVE_DATE,
+    toolCount: TOOLS.length,
     version: APP_VERSION,
   },
 

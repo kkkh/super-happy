@@ -1,0 +1,130 @@
+<glass-tool-shell
+  tool-id="avatar"
+  title="{{toolName}}"
+  kicker="{{kicker}}"
+  desc="{{desc}}"
+  poster-data="{{posterData}}"
+  show-run="{{false}}"
+  show-example="{{false}}"
+  state="{{shellState}}"
+  has-result="{{hasResult}}"
+  error="{{error}}"
+  empty-title="从相册选择图片，生成圆角头像"
+  empty-sub="中心裁切、圆形或圆角、PNG 透明边角，全部在本机完成"
+  bind:reset="onReset"
+>
+  <view slot="input" class="sg-tool-fields">
+    <view wx:if="{{devtools}}" class="av-notice">
+      <text class="av-notice__text">开发者工具暂不支持 Skyline Canvas，请扫码在真机预览中使用圆角头像。</text>
+    </view>
+
+    <view
+      class="av-stage"
+      bind:tap="onChoose"
+      aria-role="button"
+      aria-label="{{imagePath ? '重新选择图片' : '从相册选择图片'}}"
+    >
+      <image
+        wx:if="{{outputPath || imagePath}}"
+        class="av-stage__img"
+        src="{{outputPath || imagePath}}"
+        mode="aspectFit"
+        aria-label="{{outputPath ? '头像预览' : '原图预览'}}"
+      />
+      <view wx:else class="av-stage__blank">
+        <text class="av-stage__title">从相册选择图片</text>
+        <text class="av-stage__sub">自动中心裁正方形，长边超过 2048 会先等比缩小</text>
+      </view>
+      <view wx:if="{{processing}}" class="av-stage__mask">
+        <text class="av-stage__mask-text">本机处理中</text>
+      </view>
+    </view>
+
+    <view wx:if="{{sourceMeta}}" class="av-meta-row">
+      <text class="av-meta">原图 {{sourceMeta}}</text>
+      <text wx:if="{{sourceNote}}" class="av-meta av-meta--warn">{{sourceNote}}</text>
+    </view>
+
+    <view class="av-section">
+      <text class="av-label">形状</text>
+      <view class="av-chips">
+        <view
+          wx:for="{{shapeOptions}}"
+          wx:key="key"
+          class="av-chip {{shape === item.key ? 'is-active' : ''}}"
+          data-shape="{{item.key}}"
+          bindtap="onShape"
+          aria-role="button"
+          aria-label="选择{{item.label}}"
+        >{{item.label}}</view>
+      </view>
+    </view>
+
+    <view class="av-section">
+      <text class="av-label">输出尺寸</text>
+      <view class="av-chips">
+        <view
+          wx:for="{{sizeOptions}}"
+          wx:key="*this"
+          class="av-chip {{size === item ? 'is-active' : ''}}"
+          data-size="{{item}}"
+          bindtap="onSize"
+          aria-role="button"
+          aria-label="选择 {{item}} 像素"
+        >{{item}} px</view>
+      </view>
+    </view>
+
+    <view class="av-hint">输出 PNG 保留透明边角；圆形与圆角按输出短边计算，12% / 25% 为圆角半径比例。</view>
+  </view>
+
+  <view slot="result" class="sg-tool-result">
+    <view class="sg-tool-result__head">
+      <text class="sg-tool-result__label">头像尺寸</text>
+      <text class="sg-tool-result__meta">{{outputSizeText}}</text>
+    </view>
+
+    <view class="sg-tool-result__main" aria-role="status">{{outputTitle}}</view>
+
+    <image
+      class="av-output"
+      src="{{outputPath}}"
+      mode="aspectFit"
+      bindtap="onPreview"
+      aria-role="button"
+      aria-label="预览头像结果"
+    />
+
+    <view class="sg-tool-rows">
+      <view wx:for="{{resultRows}}" wx:key="k" class="sg-tool-row">
+        <text class="sg-tool-row__k">{{item.k}}</text>
+        <text class="sg-tool-row__v">{{item.v}}</text>
+      </view>
+    </view>
+
+    <view class="av-actions">
+      <glass-button variant="ghost" size="md" block bind:tap="onPreview">预览</glass-button>
+      <glass-button
+        variant="primary"
+        size="md"
+        block
+        loading="{{saving}}"
+        loading-text="保存中"
+        bind:tap="onSave"
+      >保存到相册</glass-button>
+    </view>
+
+    <view class="sg-tool-note">
+      <text class="sg-tool-note__title">说明</text>
+      <text class="sg-tool-note__text">按输出尺寸重新绘制，预览仅做屏幕缩放；PNG 保留透明边角。图片只在本机处理，退出页面即清理临时文件。</text>
+    </view>
+  </view>
+</glass-tool-shell>
+
+<canvas
+  wx:if="{{!devtools}}"
+  id="avatar-canvas"
+  type="2d"
+  class="av-canvas"
+  style="width: {{canvasCss}}px; height: {{canvasCss}}px;"
+></canvas>

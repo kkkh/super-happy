@@ -36,4 +36,5 @@
       </view>
     </view>
   </view>
+  <meeting-timer-hud />
 </view>

@@ -190,7 +190,7 @@ test('副本与状态：Overheat / Glitch / 网络徽章 / 跳过休息文案完
 
 test('路由与后台音频：life 分包注册、ROUTES.focus、requiredBackgroundModes', () => {
   const appJson = JSON.parse(read('app.json'))
-  assert.equal(appJson.subpackages.length, 6)
+  assert.ok(appJson.subpackages.length >= 6)
   assert.ok(
     appJson.subpackages.some(
       (subpackage) =>

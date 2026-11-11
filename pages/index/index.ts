@@ -2,7 +2,7 @@
    工具首页 · Spatial Glass 26
    - 搜索使用单层玻璃药丸 + 原生 input，实时 filter 全量工具
    - 收藏 / 历史通过 storeBindingsBehavior 实时绑定 glassStore
-   - 23 个工具路由完全来自 registry，跳转 url 不做任何改写
+   - 54 个工具路由完全来自 registry，跳转 url 不做任何改写
    ========================================================================== */
 import { storeBindingsBehavior } from 'mobx-miniprogram-bindings'
 import { glassStore } from '../../store/index'
@@ -11,6 +11,7 @@ import {
   HOME_SECTIONS,
   TOOLS,
   TOOL_IDS,
+  searchTools,
   toolsForCategories,
 } from '../../core/toolbox/registry'
 import { toolboxStore } from '../../core/toolbox/store'
@@ -21,6 +22,12 @@ import {
   timelinePayloadForTool,
 } from '../../core/toolbox/share'
 import {
+  clearSearchHistory,
+  pushSearchHistory,
+  readSearchHistory,
+  removeSearchHistory,
+} from '../../core/toolbox/searchHistory'
+import {
   closeCommandPalette,
   openCommandPalette,
 } from '../../components/command-palette/palette'
@@ -29,6 +36,7 @@ import { ROUTES } from '../../core/constants/index'
 import { ambientTheme } from '../../core/theme/ambient-theme'
 import { selectTabBar } from '../../core/toolbox/tabbar'
 import { showGlassToast } from '../../components/glass-toast/toast'
+import { TBX_KEYS, readStorage, writeStorage } from '../../core/toolbox/storage'
 import { tapTick } from '../../core/utils/haptics'
 import { logger } from '../../core/utils/logger'
 
@@ -96,19 +104,21 @@ function buildSections(favorites: string[]): HomeSectionView[] {
 }
 
 function buildResults(keyword: string, favorites: string[]): HomeToolView[] {
-  const kw = keyword.trim().toLowerCase()
-  if (!kw) {
-    return []
-  }
-  return TOOLS.filter((tool) =>
-    [tool.name, tool.desc, ...tool.keywords].join(' ').toLowerCase().includes(kw),
-  )
-    .sort((left, right) => right.weight - left.weight)
-    .map((tool) => ({
-      ...tool,
-      favorite: favorites.includes(tool.id),
-    }))
+  /* 搜索排序与别名统一由 registry.searchTools 负责，首页不再自写过滤 */
+  return searchTools(keyword).map((tool) => ({
+    ...tool,
+    favorite: favorites.includes(tool.id),
+  }))
 }
+
+/* 搜索历史的失焦延迟计时器：页面单例，切换 tab 不重入 */
+let searchBlurTimer = 0
+
+/* 空结果推荐：权重最高的 3 个工具，避免用户走进死路 */
+const RECOMMENDED_TOOLS = [...TOOLS]
+  .sort((left, right) => right.weight - left.weight)
+  .slice(0, 3)
+  .map((tool) => ({ id: tool.id, name: tool.name, route: tool.route }))
 
 Component({
   options: {
@@ -156,6 +166,10 @@ Component({
     ambientStyle: '',
     keyword: '',
     searchFocused: false,
+    searchHistory: [] as string[],
+    recommendedTools: RECOMMENDED_TOOLS,
+    /* 使用指南横幅：关闭后永久隐藏，状态存本机 */
+    showHelpBanner: false,
     results: [] as HomeToolView[],
     /* 深链自动跳转期间挂起全局更新弹窗，避免弹窗与跳转互相打断 */
     updateNavHold: true,
@@ -218,7 +232,10 @@ Component({
         toneClasses[index] = toneClasses[swapIndex]
         toneClasses[swapIndex] = temp
       }
-      this.setData({ statTones: toneClasses })
+      this.setData({
+        statTones: toneClasses,
+        showHelpBanner: !readStorage(TBX_KEYS.helpBannerDismissed),
+      })
 
       ambientTheme.setCategory('home')
       runtime.unsubscribeAmbient = ambientTheme.subscribe((state) => {
@@ -436,18 +453,72 @@ Component({
 
     onSearchConfirm(event: WechatMiniprogram.Input) {
       const keyword = event.detail.value
+      const history = pushSearchHistory(keyword)
+      this.setData({
+        keyword,
+        searchHistory: history,
+        results: buildResults(keyword, glassStore.toolFavorites),
+      })
+    },
+
+    onSearchFocus() {
+      if (searchBlurTimer) {
+        clearTimeout(searchBlurTimer)
+        searchBlurTimer = 0
+      }
+      this.setData({ searchFocused: true, searchHistory: readSearchHistory() })
+    },
+
+    onSearchBlur() {
+      /* 延迟隐藏：让历史 chip 的点击优先于 blur 生效，避免节点先被移除 */
+      if (searchBlurTimer) {
+        clearTimeout(searchBlurTimer)
+      }
+      searchBlurTimer = setTimeout(() => {
+        searchBlurTimer = 0
+        this.setData({ searchFocused: false })
+      }, 180)
+    },
+
+    /* 历史词点击：回填并立即搜索 */
+    onSearchHistoryTap(event: WechatMiniprogram.TouchEvent) {
+      const keyword = String(event.currentTarget.dataset.keyword || '')
+      if (!keyword) {
+        return
+      }
       this.setData({
         keyword,
         results: buildResults(keyword, glassStore.toolFavorites),
       })
     },
 
-    onSearchFocus() {
-      this.setData({ searchFocused: true })
+    onSearchHistoryRemove(event: WechatMiniprogram.TouchEvent) {
+      const keyword = String(event.currentTarget.dataset.keyword || '')
+      if (!keyword) {
+        return
+      }
+      this.setData({ searchHistory: removeSearchHistory(keyword) })
     },
 
-    onSearchBlur() {
-      this.setData({ searchFocused: false })
+    onSearchHistoryClear() {
+      clearSearchHistory()
+      this.setData({ searchHistory: [] })
+    },
+
+    /* 使用指南横幅：进入帮助页 */
+    onOpenHelpBanner() {
+      wx.navigateTo({
+        url: ROUTES.help,
+        fail: () => {
+          showGlassToast('使用指南打开失败')
+        },
+      })
+    },
+
+    /* 关闭横幅：只写本机标记，不再显示 */
+    onDismissHelpBanner() {
+      writeStorage(TBX_KEYS.helpBannerDismissed, true)
+      this.setData({ showHelpBanner: false })
     },
 
     /* 此处是处理工具 id 校验与下线工具拦截的边界 */

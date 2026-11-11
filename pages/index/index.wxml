@@ -178,10 +178,82 @@
     />
   </view>
 
+  <!-- 首次使用指南横幅：可关闭，状态仅存本机 -->
+  <view
+    wx:if="{{showHelpBanner && !keyword}}"
+    class="home-help-banner"
+    bindtap="onOpenHelpBanner"
+    aria-role="button"
+    aria-label="打开使用指南"
+  >
+    <view class="home-help-banner__copy">
+      <text class="home-help-banner__title">第一次来？先看使用指南</text>
+      <text class="home-help-banner__sub">{{toolTotal}} 个工具的步骤与常见问题，一次看懂</text>
+    </view>
+    <text
+      class="home-help-banner__close"
+      catchtap="onDismissHelpBanner"
+      aria-role="button"
+      aria-label="关闭使用指南横幅"
+    >×</text>
+  </view>
+
+  <!-- 搜索历史：仅聚焦且未输入时展示，最多 8 条，仅本机 -->
+  <view wx:if="{{searchFocused && !keyword && searchHistory.length > 0}}" class="home-history">
+    <view class="home-history__head">
+      <text class="home-history__title">最近搜索</text>
+      <text
+        class="home-history__clear"
+        bindtap="onSearchHistoryClear"
+        aria-role="button"
+        aria-label="清空搜索历史"
+      >清空</text>
+    </view>
+    <view class="home-history__chips">
+      <view
+        wx:for="{{searchHistory}}"
+        wx:key="*this"
+        class="home-history__chip"
+        hover-class="home-history__chip--press"
+        data-keyword="{{item}}"
+        bindtap="onSearchHistoryTap"
+        aria-role="button"
+        aria-label="搜索{{item}}"
+      >
+        <text class="home-history__chip-text">{{item}}</text>
+        <text
+          class="home-history__chip-close"
+          catchtap="onSearchHistoryRemove"
+          data-keyword="{{item}}"
+          aria-role="button"
+          aria-label="删除{{item}}"
+        >×</text>
+      </view>
+    </view>
+  </view>
+
   <view wx:if="{{keyword}}" class="home-section">
     <view class="home-section-head">
       <text class="home-section-title">搜索结果</text>
       <text class="home-section-count">{{results.length}}</text>
+    </view>
+
+    <!-- 空结果：给 3 个推荐工具，避免走进死路 -->
+    <view wx:if="{{results.length === 0}}" class="home-empty">
+      <text class="home-empty__title">没有找到「{{keyword}}」</text>
+      <text class="home-empty__sub">试试这些常用工具</text>
+      <view class="home-empty__chips">
+        <view
+          wx:for="{{recommendedTools}}"
+          wx:key="id"
+          class="home-empty__chip"
+          data-route="{{item.route}}"
+          data-id="{{item.id}}"
+          bindtap="onOpenTool"
+          aria-role="button"
+          aria-label="打开{{item.name}}"
+        >{{item.name}}</view>
+      </view>
     </view>
 
     <view class="home-tool-list">
@@ -325,4 +397,6 @@
   <update-guard blocked="{{updateNavHold || showPalette}}" />
 
   <glass-toast z-index="{{1001}}" />
+
+  <meeting-timer-hud />
 </view>

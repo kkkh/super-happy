@@ -91,7 +91,7 @@
             <text class="mine-stat__label">收藏工具</text>
           </view>
           <view class="mine-stat">
-            <text class="mine-stat__num">21</text>
+            <text class="mine-stat__num">{{toolCount}}</text>
             <text class="mine-stat__label">可用工具</text>
           </view>
           <view class="mine-stat">
@@ -171,7 +171,7 @@
         >
           <view class="mine-row__copy">
             <text class="mine-row__title">本机数据说明</text>
-            <text class="mine-row__sub">只存收藏、最近使用与最多 100 条轨迹摘要</text>
+            <text class="mine-row__sub">收藏、轨迹、快照、天气与专注缓存</text>
           </view>
           <g-icon name="arrow" size="{{24}}" tone="ink3" />
         </view>
@@ -188,7 +188,7 @@
         >
           <view class="mine-row__copy">
             <text class="mine-row__title">用户隐私保护指引</text>
-            <text class="mine-row__sub">不登录、不上传、不联网请求</text>
+            <text class="mine-row__sub">不登录 · 仅气象站请求高德 · 不上传内容</text>
           </view>
           <g-icon name="arrow" size="{{24}}" tone="ink3" />
         </view>
@@ -204,7 +204,7 @@
         >
           <view class="mine-row__copy">
             <text class="mine-row__title">清空工具数据</text>
-            <text class="mine-row__sub">只清除本机工具数据，不影响简历与作品收藏</text>
+            <text class="mine-row__sub">只清除工具数据与快照轨迹，不影响专注、天气、简历与作品收藏</text>
           </view>
           <g-icon name="close" size="{{22}}" tone="ink3" />
         </view>
@@ -222,6 +222,22 @@
         depth="soft"
         card-class="mine-panel"
       >
+        <view
+          class="mine-row"
+          hover-class="mine-row--press"
+          hover-start-time="0"
+          hover-stay-time="80"
+          aria-role="button"
+          aria-label="使用指南"
+          bindtap="onOpenHelp"
+        >
+          <view class="mine-row__copy">
+            <text class="mine-row__title">使用指南</text>
+            <text class="mine-row__sub">{{toolCount}} 个工具的使用步骤与常见问题</text>
+          </view>
+          <g-icon name="arrow" size="{{24}}" tone="ink3" />
+        </view>
+
         <view
           class="mine-row"
           hover-class="mine-row--press"
@@ -250,7 +266,7 @@
         >
           <view class="mine-row__copy">
             <text class="mine-row__title">开源许可</text>
-            <text class="mine-row__sub">图标、字体与第三方库说明</text>
+            <text class="mine-row__sub">图标、字体、第三方库与高德数据说明</text>
           </view>
           <g-icon name="arrow" size="{{24}}" tone="ink3" />
         </view>
@@ -258,14 +274,14 @@
         <view class="mine-row">
           <view class="mine-row__copy">
             <text class="mine-row__title">版本</text>
-            <text class="mine-row__sub">v{{version}} · 23 个本机工具 · 无广告 · 无登录</text>
+            <text class="mine-row__sub">v{{version}} · {{toolCount}} 个实用工具 · 无广告 · 无登录</text>
           </view>
           <text class="mine-row__tag">LOCAL</text>
         </view>
       </glass-card>
 
       <view class="mine-colophon">
-        <text class="mine-colophon__meta">CHAOHUAN · MADE LOCAL · NO CLOUD / NO LOGIN · V1.0.0</text>
+        <text class="mine-colophon__meta">CHAOHUAN · MADE LOCAL · NO CLOUD / NO LOGIN · V{{version}}</text>
       </view>
     </view>
   </scroll-view>
@@ -273,4 +289,5 @@
   <glass-toast z-index="{{1001}}" />
   <privacy-guard />
   <update-guard />
+  <meeting-timer-hud />
 </view>

@@ -1,0 +1,101 @@
+/* ==========================================================================
+   拼音标注 · 声调 chips / 结果滚动区 / 逐字对照
+   - 只使用 --glass-* 令牌；真机 WXSS 禁止裸伪类
+   ========================================================================== */
+
+.py-chips {
+  display: flex;
+  gap: 12rpx;
+}
+
+.py-chip {
+  flex: 1;
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 20rpx;
+  background: var(--glass-bg);
+  border: 1rpx solid var(--glass-border);
+  color: var(--glass-text-3);
+  font-size: 24rpx;
+  transition: transform 140ms var(--glass-ease-out), background 140ms var(--glass-ease-out);
+}
+
+.py-chip--on {
+  background: var(--glass-bg-strong);
+  border-color: var(--glass-border-strong);
+  color: var(--glass-text);
+  font-weight: 600;
+}
+
+.py-chip:active {
+  transform: scale(0.97);
+}
+
+.py-hint {
+  color: var(--glass-text-3);
+  font-size: 20rpx;
+  line-height: 1.5;
+}
+
+.py-output {
+  height: 220rpx;
+  box-sizing: border-box;
+  padding: 20rpx 22rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: var(--glass-radius-md);
+  background-color: var(--glass-bg-soft);
+  color: var(--glass-text);
+  font-family: var(--glass-font-mono);
+  font-size: 25rpx;
+  line-height: 1.7;
+  word-break: break-word;
+}
+
+.py-warn {
+  color: var(--glass-warn, #d97706);
+  font-size: 20rpx;
+}
+
+.py-compare {
+  margin-top: 20rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: var(--glass-radius-md);
+  background: var(--glass-bg-soft);
+  overflow: hidden;
+}
+
+.py-compare__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16rpx 22rpx 10rpx;
+}
+
+.py-compare__title {
+  color: var(--glass-text);
+  font-size: 22rpx;
+  font-weight: 600;
+}
+
+.py-compare__meta {
+  color: var(--glass-text-3);
+  font-size: 20rpx;
+}
+
+.py-compare__list {
+  height: 220rpx;
+  box-sizing: border-box;
+  padding: 0 22rpx 16rpx;
+  color: var(--glass-text-2, var(--glass-text));
+  font-family: var(--glass-font-mono);
+  font-size: 22rpx;
+  line-height: 1.8;
+}
+
+.py-actions {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 24rpx;
+}

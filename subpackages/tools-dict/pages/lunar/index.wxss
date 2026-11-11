@@ -1,0 +1,120 @@
+/* ==========================================================================
+   农历与节气 · 日期选择 / 节日高亮
+   - 真机 WXSS 禁止裸伪类，交互态全部走显式 class
+   ========================================================================== */
+
+.ln-date {
+  display: flex;
+  flex-direction: column;
+  padding: 22rpx 24rpx;
+  border-radius: 26rpx;
+  border: 1rpx solid var(--glass-border);
+  background: var(--glass-bg-soft);
+}
+
+.ln-date__label {
+  color: var(--glass-text-3);
+  font-size: 21rpx;
+  line-height: 1.3;
+  letter-spacing: 0.08em;
+}
+
+.ln-date__value {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12rpx;
+  color: var(--glass-text);
+  font-size: 34rpx;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.ln-date__arrow {
+  color: var(--glass-text-3);
+  font-size: 21rpx;
+  font-weight: 400;
+}
+
+.ln-date__hint {
+  margin-top: 12rpx;
+  color: var(--glass-text-3);
+  font-size: 21rpx;
+  line-height: 1.5;
+}
+
+.ln-range {
+  padding: 4rpx 4rpx 0;
+  color: var(--glass-text-3);
+  font-size: 21rpx;
+  line-height: 1.5;
+}
+
+.ln-festival {
+  align-self: flex-start;
+  margin-top: 16rpx;
+  padding: 8rpx 18rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 159, 10, 0.14);
+  color: var(--glass-text);
+  font-size: 22rpx;
+  line-height: 1.4;
+}
+
+.ln-actions {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 24rpx;
+}
+
+/* ---- 模式切换 ---- */
+.ln-seg {
+  display: flex;
+  gap: 6rpx;
+  padding: 6rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: 999rpx;
+  background-color: var(--glass-bg-soft);
+  box-sizing: border-box;
+}
+
+.ln-seg__item {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 62rpx;
+  padding: 0 18rpx;
+  border-radius: 999rpx;
+  color: var(--glass-text-2);
+  font-size: 23rpx;
+  font-weight: 600;
+  text-align: center;
+  box-sizing: border-box;
+  transition:
+    color var(--glass-duration-fast) var(--glass-ease-out),
+    background-color var(--glass-duration-fast) var(--glass-ease-out);
+}
+
+.ln-seg__item--active {
+  background-color: var(--glass-accent-soft);
+  color: var(--glass-accent);
+  box-shadow: var(--glass-shadow-soft);
+}
+
+.ln-press {
+  opacity: 0.86;
+  transform: scale(0.97);
+}
+
+.ln-countdown {
+  margin-top: 16rpx;
+  padding: 14rpx 20rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: var(--glass-radius-sm);
+  background-color: var(--glass-accent-soft);
+  color: var(--glass-accent);
+  font-size: 23rpx;
+  font-weight: 600;
+  line-height: 1.4;
+}

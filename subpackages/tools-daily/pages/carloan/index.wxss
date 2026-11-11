@@ -1,0 +1,118 @@
+/* ==========================================================================
+   车贷计算 · 首付 / 还款方式 chips / 明细表
+   - 只使用 --glass-* 令牌，无硬编码色值
+   ========================================================================== */
+
+.car-scheme {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  padding-top: 18rpx;
+  border-top: 1rpx solid var(--glass-border);
+}
+
+.car-scheme__title {
+  color: var(--glass-text);
+  font-family: var(--glass-font-mono);
+  font-size: 21rpx;
+  letter-spacing: 0.06em;
+}
+
+.car-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+}
+
+.car-block__label {
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 19rpx;
+  letter-spacing: 0.08em;
+}
+
+.car-chips {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 10rpx;
+}
+
+.car-chip {
+  padding: 12rpx 20rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: 999rpx;
+  background-color: var(--glass-bg-soft);
+  color: var(--glass-text-3);
+  font-size: 20rpx;
+}
+
+.car-chip_active {
+  border-color: var(--glass-accent);
+  background-color: var(--glass-accent-soft);
+  color: var(--glass-text);
+}
+
+.car-schedule {
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+}
+
+.car-schedule__head {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+  padding: 16rpx 18rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: var(--glass-radius-md);
+  background-color: var(--glass-bg-soft);
+}
+
+.car-schedule__title {
+  color: var(--glass-text);
+  font-size: 21rpx;
+}
+
+.car-schedule__meta {
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 19rpx;
+}
+
+.car-schedule__table {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1rpx solid var(--glass-border);
+  border-radius: var(--glass-radius-md);
+}
+
+.car-schedule__row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8rpx;
+  padding: 12rpx 14rpx;
+  border-bottom: 1rpx solid var(--glass-border);
+}
+
+.car-schedule__row_head {
+  background-color: var(--glass-bg-soft);
+}
+
+.car-schedule__cell {
+  flex: 1;
+  min-width: 0;
+  color: var(--glass-text);
+  font-family: var(--glass-font-mono);
+  font-size: 18rpx;
+  text-align: center;
+}
+
+.car-schedule__note {
+  color: var(--glass-text-3);
+  font-size: 18rpx;
+}

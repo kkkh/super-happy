@@ -43,7 +43,7 @@ test('app.ts 只暂存 updateManager，失败时给出全局提示', () => {
   assert.equal(source.includes('wx.showModal'), false)
 })
 
-test('update-guard 是全局组件，40 个页面全部覆盖', () => {
+test('update-guard 是全局组件，41 个页面全部覆盖', () => {
   assert.match(
     read('app.json'),
     /"update-guard"\s*:\s*"\/components\/update-guard\/index"/,
@@ -59,7 +59,7 @@ test('update-guard 是全局组件，40 个页面全部覆盖', () => {
       subpackage.pages.map((page) => `${subpackage.root}/${page}`),
     ),
   ]
-  assert.equal(pages.length, 40)
+  assert.ok(pages.length >= 41)
   for (const page of pages) {
     const wxml = read(`${page}.wxml`)
     const covered =

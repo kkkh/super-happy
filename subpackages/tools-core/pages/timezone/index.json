@@ -1,0 +1,8 @@
+{
+  "navigationBarTitleText": "时区换算",
+  "disableScroll": true,
+  "usingComponents": {
+    "glass-tool-shell": "../../../../components/glass-tool-shell/index",
+    "g-icon": "../../../../components/g-icon/index"
+  }
+}

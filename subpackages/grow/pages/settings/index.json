@@ -8,6 +8,7 @@
     "glass-bottom-sheet": "../../../../components/glass-bottom-sheet/index",
     "g-icon": "../../../../components/g-icon/index",
     "glass-switch": "../../components/glass-switch/index",
-    "glass-slider": "../../../../components/glass-slider/index"
+    "glass-slider": "../../../../components/glass-slider/index",
+    "privacy-guard": "../../../../components/privacy-guard/index"
   }
 }

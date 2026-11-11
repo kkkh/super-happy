@@ -1,0 +1,56 @@
+/* ==========================================================================
+   分辨率与比例 · 模式 / 比例 chips
+   - 只使用 --glass-* 令牌，无硬编码色值
+   ========================================================================== */
+
+.res-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+}
+
+.res-block__label {
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 19rpx;
+  letter-spacing: 0.08em;
+}
+
+.res-chips {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 10rpx;
+}
+
+.res-chip {
+  padding: 12rpx 20rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: 999rpx;
+  background-color: var(--glass-bg-soft);
+  color: var(--glass-text-3);
+  font-size: 20rpx;
+}
+
+.res-chip_active {
+  border-color: var(--glass-accent);
+  background-color: var(--glass-accent-soft);
+  color: var(--glass-text);
+}
+
+.res-custom {
+  display: flex;
+  flex-direction: row;
+  gap: 14rpx;
+}
+
+.res-custom__col {
+  flex: 1;
+  min-width: 0;
+}
+
+.res-hint {
+  color: var(--glass-text-3);
+  font-size: 19rpx;
+  line-height: 1.6;
+}

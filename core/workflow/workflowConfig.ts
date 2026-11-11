@@ -1,6 +1,6 @@
 /* ==========================================================================
    workflowConfig · 全域智能路由唯一配置
-   - 23 个真实工具全部登记，禁止遗漏、禁止猜测
+   - 63 个真实工具全部登记，禁止遗漏、禁止猜测
    - silent：面板内纯 TS 计算，不跳转
    - jump：navigateTo 注入后继续用户操作（图片 / 复杂表单）
    - accepts 决定当前载荷类型下哪些工具可点，哪些置灰
@@ -18,17 +18,54 @@ interface WorkflowToolRouteMeta {
   accepts: WorkflowDataType[]
 }
 
-/** 路由分类映射：23 个工具逐一声明，绝无遗漏 */
+/** 路由分类映射：全部工具逐一声明，绝无遗漏 */
 export const WORKFLOW_ROUTING: Record<WorkflowToolId, WorkflowRouteMode> = {
   /* ---- A 类 · 静默流转（纯文本 / JSON 纯函数） ---- */
   base64: 'silent',
+  radix: 'silent',
+  'date-format': 'silent',
+  'date-add': 'silent',
+  color: 'silent',
+  'json-csv': 'silent',
+  'size-convert': 'jump',
+  severance: 'jump',
+  'id-validate': 'jump',
+  'image-pdf': 'jump',
+  barcode: 'jump',
+  exif: 'jump',
+  timezone: 'jump',
+  schedule: 'jump',
+  'text-convert': 'silent',
+  template: 'silent',
+  resolution: 'silent',
+  percent: 'silent',
   dedupe: 'silent',
   json: 'silent',
   url: 'silent',
   wordcount: 'silent',
+  'random-pick': 'silent',
 
   /* ---- B 类 · 带参跳转（复杂表单 / 图片 / 需要用户继续操作） ---- */
   unit: 'jump',
+  ledger: 'jump',
+  fuel: 'jump',
+  power: 'jump',
+  carloan: 'jump',
+  quote: 'jump',
+  'meeting-timer': 'jump',
+  bodyfat: 'jump',
+  avatar: 'jump',
+  collage: 'jump',
+  'id-photo': 'jump',
+  'qr-decode': 'jump',
+  lunar: 'jump',
+  'zh-convert': 'jump',
+  pinyin: 'jump',
+  'fx-manual': 'jump',
+  'salary-inverse': 'jump',
+  worktime: 'jump',
+  wellness: 'jump',
+  vcard: 'jump',
   tax: 'jump',
   loan: 'jump',
   deposit: 'jump',
@@ -36,27 +73,68 @@ export const WORKFLOW_ROUTING: Record<WorkflowToolId, WorkflowRouteMode> = {
   age: 'jump',
   countdown: 'jump',
   timestamp: 'jump',
+  regex: 'jump',
   rmb: 'jump',
   'text-diff': 'jump',
   hash: 'jump',
   password: 'jump',
+  'photo-edit': 'jump',
   bmi: 'jump',
   compress: 'jump',
   palette: 'jump',
   'nine-grid': 'jump',
   qr: 'jump',
   watermark: 'jump',
+  weather: 'jump',
 }
 
 /** 接收能力：用于面板智能过滤与置灰 */
 export const WORKFLOW_ACCEPTS: Record<WorkflowToolId, WorkflowDataType[]> = {
   base64: ['text', 'json'],
+  /* 静默流转只接受纯文本：执行器只认十进制整数，避免对 JSON / 前缀做虚假承诺 */
+  radix: ['text'],
+  'date-format': ['text'],
+  'date-add': ['text'],
+  color: ['text'],
+  'json-csv': ['text', 'json'],
+  'size-convert': [],
+  severance: [],
+  'id-validate': ['text'],
+  'image-pdf': ['image'],
+  barcode: ['text'],
+  exif: ['image'],
+  timezone: ['text'],
+  schedule: ['text'],
+  'text-convert': ['text'],
+  template: ['text'],
+  resolution: ['text'],
+  percent: ['text'],
   dedupe: ['text', 'json'],
   json: ['json', 'text'],
   url: ['text', 'json'],
   wordcount: ['text', 'json'],
+  'random-pick': ['text'],
 
   unit: ['text'],
+  ledger: ['text'],
+  fuel: ['text'],
+  power: ['text'],
+  carloan: ['text'],
+  quote: ['text'],
+  'meeting-timer': [],
+  bodyfat: [],
+  avatar: ['image'],
+  collage: ['image'],
+  'id-photo': ['image'],
+  'qr-decode': ['image'],
+  lunar: ['text'],
+  'zh-convert': ['text'],
+  pinyin: ['text'],
+  'fx-manual': ['text'],
+  'salary-inverse': ['text'],
+  worktime: [],
+  wellness: [],
+  vcard: [],
   tax: ['text'],
   loan: ['text'],
   deposit: ['text'],
@@ -64,17 +142,21 @@ export const WORKFLOW_ACCEPTS: Record<WorkflowToolId, WorkflowDataType[]> = {
   age: ['text'],
   countdown: ['text'],
   timestamp: ['text'],
+  regex: ['text'],
   rmb: ['text'],
   'text-diff': ['text', 'json'],
   hash: ['text', 'json'],
   /* 纯产出 / 多字段复杂表单：不接受任意流转内容，面板中明确置灰 */
   password: [],
+  'photo-edit': ['image'],
   bmi: [],
   compress: ['image'],
   palette: ['image'],
   'nine-grid': ['image'],
   qr: ['text'],
   watermark: ['image'],
+  /* 气象站为纯产出：天气摘要可复制/流转，但不接受任意文本注入 */
+  weather: [],
 }
 
 /** 路由元数据：mode + accepts 一处取用 */

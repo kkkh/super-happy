@@ -1,0 +1,15 @@
+/* 每日健康 · 模式 chips / 日期 / 结果 */
+.wl-modes{display:flex;gap:12rpx}
+.wl-mode{flex:1;height:76rpx;display:flex;align-items:center;justify-content:center;border-radius:20rpx;background:var(--glass-bg);border:1rpx solid var(--glass-border);color:var(--glass-text-3);font-size:24rpx;transition:transform 140ms var(--glass-ease-out),background 140ms var(--glass-ease-out)}
+.wl-mode--on{background:var(--glass-bg-strong);border-color:var(--glass-border-strong);color:var(--glass-text);font-weight:600}
+.wl-mode:active{transform:scale(.97)}
+.wl-section{display:flex;flex-direction:column;gap:12rpx}
+.wl-label{color:var(--glass-text-3);font-family:var(--glass-font-mono);font-size:19rpx;letter-spacing:.08em}
+.wl-chips{display:flex;flex-wrap:wrap;gap:12rpx}
+.wl-chip{flex:1;min-width:140rpx;height:64rpx;display:flex;align-items:center;justify-content:center;box-sizing:border-box;padding:0 18rpx;border:1rpx solid var(--glass-border);border-radius:999rpx;background-color:var(--glass-bg-soft);color:var(--glass-text-3);font-size:21rpx;transition:transform 140ms var(--glass-ease-out),background 140ms var(--glass-ease-out)}
+.wl-chip--on{border-color:var(--glass-border-strong);background-color:var(--glass-bg-strong);color:var(--glass-text);font-weight:600}
+.wl-chip:active{transform:scale(.97)}
+.wl-date{display:flex;flex-direction:column;gap:10rpx}
+.wl-date__trigger{display:flex;align-items:center;justify-content:space-between;gap:8rpx;box-sizing:border-box;padding:20rpx 18rpx;border:1rpx solid var(--glass-border);border-radius:var(--glass-radius-md);background-color:var(--glass-bg-soft);box-shadow:inset 0 1rpx 0 var(--glass-highlight)}
+.wl-date__trigger_pressed{border-color:var(--glass-border-strong);background-color:var(--glass-bg-strong)}
+.wl-date__text{flex:1;min-width:0;overflow:hidden;color:var(--glass-text);font-family:var(--glass-font-mono);font-size:23rpx;text-overflow:ellipsis;white-space:nowrap}

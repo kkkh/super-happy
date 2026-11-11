@@ -1,0 +1,144 @@
+<glass-tool-shell
+  tool-id="lunar"
+  title="{{toolName}}"
+  kicker="{{kicker}}"
+  desc="{{desc}}"
+  run-label="{{mode === 'birthday' ? '查看农历生日' : '换算农历'}}"
+  can-run="{{mode === 'convert' || birthDate}}"
+  poster-data="{{posterData}}"
+  state="{{shellState}}"
+  has-result="{{hasResult}}"
+  error="{{error}}"
+  empty-title="选择公历日期或生日"
+  empty-sub="选择日期后点击「换算农历」或「查看农历生日」"
+  bind:run="onRun"
+  bind:reset="onReset"
+  bind:example="onExample"
+>
+  <view slot="input" class="sg-tool-fields">
+    <view class="ln-seg">
+      <view
+        class="ln-seg__item {{mode === 'convert' ? 'ln-seg__item--active' : ''}}"
+        hover-class="ln-press"
+        hover-stay-time="80"
+        data-mode="convert"
+        aria-role="button"
+        aria-label="公历转农历"
+        bindtap="onMode"
+      >
+        公历转农历
+      </view>
+      <view
+        class="ln-seg__item {{mode === 'birthday' ? 'ln-seg__item--active' : ''}}"
+        hover-class="ln-press"
+        hover-stay-time="80"
+        data-mode="birthday"
+        aria-role="button"
+        aria-label="农历生日"
+        bindtap="onMode"
+      >
+        农历生日
+      </view>
+    </view>
+
+    <block wx:if="{{mode === 'convert'}}">
+      <view class="ln-date">
+        <text class="ln-date__label">公历日期</text>
+        <picker
+          mode="date"
+          value="{{dateValue}}"
+          start="{{minDate}}"
+          end="{{maxDate}}"
+          bindchange="onDateChange"
+        >
+          <view class="ln-date__value" aria-role="button" aria-label="选择公历日期，当前 {{dateValue}}">
+            <text>{{dateValue}}</text>
+            <text class="ln-date__arrow">选择</text>
+          </view>
+        </picker>
+        <text class="ln-date__hint">选好日期后点击「换算农历」；闰月、节气与传统节日会自动标注。</text>
+      </view>
+      <view class="ln-range">支持范围：{{minDate}} 至 {{maxDate}}</view>
+    </block>
+
+    <block wx:else>
+      <view class="ln-date">
+        <text class="ln-date__label">公历生日</text>
+        <picker
+          mode="date"
+          value="{{birthDate}}"
+          start="{{minDate}}"
+          end="{{maxDate}}"
+          bindchange="onBirthDateChange"
+        >
+          <view
+            class="ln-date__value"
+            aria-role="button"
+            aria-label="{{birthDate ? '选择公历生日，当前 ' + birthDate : '选择公历生日'}}"
+          >
+            <text>{{birthDate || '选择生日'}}</text>
+            <text class="ln-date__arrow">选择</text>
+          </view>
+        </picker>
+        <text class="ln-date__hint">选好生日后点击「查看农历生日」；闰月生日按同月非闰月计算。</text>
+      </view>
+      <view class="ln-range">支持范围：{{minDate}} 至 {{maxDate}}</view>
+    </block>
+  </view>
+
+  <view slot="result" class="sg-tool-result">
+    <block wx:if="{{mode === 'convert'}}">
+      <view class="sg-tool-result__head">
+        <text class="sg-tool-result__label">农历</text>
+        <text class="sg-tool-result__meta">{{weekday}}</text>
+      </view>
+
+      <view class="sg-tool-result__main" aria-role="status">{{lunarText}}</view>
+
+      <view wx:if="{{festivalText}}" class="ln-festival">{{festivalText}}</view>
+
+      <view class="sg-tool-rows">
+        <view wx:for="{{resultRows}}" wx:key="k" class="sg-tool-row">
+          <text class="sg-tool-row__k">{{item.k}}</text>
+          <text class="sg-tool-row__v">{{item.v}}</text>
+        </view>
+      </view>
+
+      <view class="ln-actions">
+        <glass-button variant="primary" size="md" block bind:tap="onCopy">复制农历摘要</glass-button>
+      </view>
+
+      <view class="sg-tool-note">
+        <text class="sg-tool-note__title">说明</text>
+        <text class="sg-tool-note__text">农历与节气使用本机 1900–2100 词库换算；当日无节气时显示下一个节气与距今天数。结果只在本机计算，不上传日期。</text>
+      </view>
+    </block>
+
+    <block wx:else>
+      <view class="sg-tool-result__head">
+        <text class="sg-tool-result__label">农历生日</text>
+        <text class="sg-tool-result__meta">{{birthdayWeekday}}</text>
+      </view>
+
+      <view class="sg-tool-result__main" aria-role="status">{{birthdayLunarText}}</view>
+
+      <view wx:if="{{birthdayCountdownText}}" class="ln-countdown">{{birthdayCountdownText}}</view>
+
+      <view class="sg-tool-rows">
+        <view wx:for="{{birthdayRows}}" wx:key="k" class="sg-tool-row">
+          <text class="sg-tool-row__k">{{item.k}}</text>
+          <text class="sg-tool-row__v">{{item.v}}</text>
+        </view>
+      </view>
+
+      <view class="ln-actions">
+        <glass-button variant="primary" size="md" block bind:tap="onCopy">复制生日摘要</glass-button>
+      </view>
+
+      <view class="sg-tool-note">
+        <text class="sg-tool-note__title">说明</text>
+        <text class="sg-tool-note__text">按公历生日换算农历；闰月生日按同月非闰月计算，农历月无三十时按廿九计算。倒计时按本机今天计算，只在本机完成、不上传生日。</text>
+      </view>
+    </block>
+  </view>
+</glass-tool-shell>

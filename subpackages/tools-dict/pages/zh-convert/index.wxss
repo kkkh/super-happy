@@ -1,0 +1,76 @@
+/* ==========================================================================
+   简繁转换 · 方向 / 模式 chips 与结果滚动区
+   - 只使用 --glass-* 令牌；真机 WXSS 禁止裸伪类
+   ========================================================================== */
+
+.zh-chips {
+  display: flex;
+  gap: 12rpx;
+}
+
+.zh-chips--sub {
+  margin-top: 4rpx;
+}
+
+.zh-chip {
+  flex: 1;
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 20rpx;
+  background: var(--glass-bg);
+  border: 1rpx solid var(--glass-border);
+  color: var(--glass-text-3);
+  font-size: 24rpx;
+  transition: transform 140ms var(--glass-ease-out), background 140ms var(--glass-ease-out);
+}
+
+.zh-chip--sub {
+  height: 60rpx;
+  border-radius: 999rpx;
+  background: var(--glass-bg-soft);
+  font-size: 22rpx;
+}
+
+.zh-chip--on {
+  background: var(--glass-bg-strong);
+  border-color: var(--glass-border-strong);
+  color: var(--glass-text);
+  font-weight: 600;
+}
+
+.zh-chip:active {
+  transform: scale(0.97);
+}
+
+.zh-hint {
+  color: var(--glass-text-3);
+  font-size: 20rpx;
+  line-height: 1.5;
+}
+
+.zh-output {
+  height: 260rpx;
+  box-sizing: border-box;
+  padding: 20rpx 22rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: var(--glass-radius-md);
+  background-color: var(--glass-bg-soft);
+  color: var(--glass-text);
+  font-family: var(--glass-font-mono);
+  font-size: 25rpx;
+  line-height: 1.7;
+  word-break: break-all;
+}
+
+.zh-warn {
+  color: var(--glass-warn, #d97706);
+  font-size: 20rpx;
+}
+
+.zh-actions {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 24rpx;
+}

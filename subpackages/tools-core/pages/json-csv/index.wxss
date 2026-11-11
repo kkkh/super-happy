@@ -1,0 +1,91 @@
+/* ==========================================================================
+   JSON ↔ CSV · 方向切换 / 结果输出
+   - 只使用 --glass-* 令牌，无硬编码色值
+   ========================================================================== */
+
+.jc-modes {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.jc-mode {
+  flex: 1;
+  min-width: 200rpx;
+  box-sizing: border-box;
+  padding: 16rpx 20rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: 999rpx;
+  background-color: var(--glass-bg-soft);
+  color: var(--glass-text-2);
+  font-size: 22rpx;
+  text-align: center;
+  transition:
+    border-color var(--glass-duration-fast) var(--glass-ease-out),
+    background-color var(--glass-duration-fast) var(--glass-ease-out),
+    color var(--glass-duration-fast) var(--glass-ease-out);
+}
+
+.jc-mode--on {
+  border-color: var(--glass-accent);
+  background-color: var(--glass-accent-soft);
+  color: var(--glass-text);
+}
+
+.jc-output {
+  display: block;
+  box-sizing: border-box;
+  padding: 24rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: var(--glass-radius-sm);
+  background-color: var(--glass-bg-soft);
+  color: var(--glass-text);
+  font-family: var(--glass-font-mono);
+  font-size: 23rpx;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.jc-warnings {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.jc-warnings__title {
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 19rpx;
+  letter-spacing: 0.08em;
+}
+
+.jc-warning {
+  display: flex;
+  flex-direction: row;
+  gap: 8rpx;
+}
+
+.jc-warning__dot {
+  flex: none;
+  color: var(--glass-text-3);
+  font-size: 20rpx;
+}
+
+.jc-warning__text {
+  flex: 1;
+  min-width: 0;
+  color: var(--glass-text-2);
+  font-size: 20rpx;
+  line-height: 1.5;
+}
+
+.jc-copy {
+  padding: 18rpx 0;
+  border-top: 1rpx solid var(--glass-border);
+  border-bottom: 1rpx solid var(--glass-border);
+  color: var(--glass-text-2);
+  font-size: 21rpx;
+  text-align: center;
+}

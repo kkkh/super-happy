@@ -11,6 +11,7 @@ import {
   parseInteger,
   roundHalfUp,
 } from '../../lib/money'
+import { planLoan } from '../../../../core/toolbox/engines/loan'
 import { copyText } from '../../lib/ui'
 import { tapTick } from '../../../../core/utils/haptics'
 import {
@@ -162,86 +163,31 @@ Page({
 
     const principalCents = roundHalfUp(principalWan * 10000 * 100)
     const periods = years * 12
-    const monthlyRate = bp / 10000 / 12
     const equalPayment = this.data.mode === 'equal-payment'
-
-    let monthlyCents = 0
-    let totalCents = 0
-    let interestCents = 0
-    let firstCents = 0
-    let lastCents = 0
-    const schedule: ScheduleRow[] = []
-
-    if (equalPayment) {
-      if (monthlyRate === 0) {
-        monthlyCents = roundHalfUp(principalCents / periods)
-        totalCents = monthlyCents * periods
-      } else {
-        const pow = Math.pow(1 + monthlyRate, periods)
-        monthlyCents = roundHalfUp(principalCents * monthlyRate * pow / (pow - 1))
-        totalCents = monthlyCents * periods
-      }
-      interestCents = totalCents - principalCents
-      firstCents = monthlyCents
-      lastCents = monthlyCents
-    } else {
-      const principalPerPeriod = roundHalfUp(principalCents / periods)
-      let balance = principalCents
-      let total = 0
-      for (let index = 1; index <= periods; index += 1) {
-        const interest = roundHalfUp(balance * monthlyRate)
-        const principalPart = index === periods ? balance : principalPerPeriod
-        const payment = principalPart + interest
-        total += payment
-        if (index === 1) {
-          firstCents = payment
-        }
-        if (index === periods) {
-          lastCents = payment
-        }
-        if (index <= 12) {
-          balance -= principalPart
-          schedule.push({
-            index,
-            payment: `¥${formatCents(payment)}`,
-            principal: `¥${formatCents(principalPart)}`,
-            interest: `¥${formatCents(interest)}`,
-            balance: `¥${formatCents(Math.max(0, balance))}`,
-          })
-        } else {
-          balance -= principalPart
-        }
-      }
-      totalCents = total
-      interestCents = total - principalCents
+    const plan = planLoan({
+      principalCents,
+      annualRateBp: bp,
+      periods,
+      mode: this.data.mode,
+      scheduleLimit: 12,
+    })
+    if (!plan) {
+      this.setData({ shellState: 'invalid', hasResult: false, error: '贷款参数无效，请检查金额、利率与期限' })
+      return
     }
 
-    if (equalPayment) {
-      let balance = principalCents
-      let scheduleTotal = 0
-      for (let index = 1; index <= Math.min(12, periods); index += 1) {
-        const interest = roundHalfUp(balance * monthlyRate)
-        const principalPart = index === periods ? balance : monthlyCents - interest
-        const payment = index === periods ? balance + interest : monthlyCents
-        balance -= principalPart
-        scheduleTotal += payment
-        schedule.push({
-          index,
-          payment: `¥${formatCents(payment)}`,
-          principal: `¥${formatCents(principalPart)}`,
-          interest: `¥${formatCents(interest)}`,
-          balance: `¥${formatCents(Math.max(0, balance))}`,
-        })
-      }
-      if (periods <= 12) {
-        totalCents = scheduleTotal
-        interestCents = totalCents - principalCents
-      }
-    }
+    const { totalCents, interestCents, firstCents, lastCents } = plan
+    const schedule: ScheduleRow[] = plan.schedule.map((row) => ({
+      index: row.index,
+      payment: `¥${formatCents(row.paymentCents)}`,
+      principal: `¥${formatCents(row.principalCents)}`,
+      interest: `¥${formatCents(row.interestCents)}`,
+      balance: `¥${formatCents(row.balanceCents)}`,
+    }))
 
     const interestText = `¥${formatCents(interestCents)}`
     const totalText = `¥${formatCents(totalCents)}`
-    const monthlyText = `¥${formatCents(monthlyCents || firstCents)}`
+    const monthlyText = `¥${formatCents(plan.monthlyCents || firstCents)}`
     const firstText = `¥${formatCents(firstCents)}`
     const lastText = `¥${formatCents(lastCents)}`
     const periodsText = `${periods} 期`
@@ -278,7 +224,7 @@ Page({
       hasResult: true,
       error: '',
       monthlyText,
-      monthlyValue: (monthlyCents || firstCents) / 100,
+      monthlyValue: (plan.monthlyCents || firstCents) / 100,
       interestText,
       totalText,
       firstText,

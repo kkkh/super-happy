@@ -1,7 +1,7 @@
 /**
  * command-palette · 全局毛玻璃命令面板
  * - 由 paletteStore 驱动，页面挂载一次后用 openCommandPalette() 全局唤醒
- * - 29 条内置命令：23 工具 + 6 导航；支持拼音全拼、首字母、分类与关键词
+ * - 内置命令 = registry 全部工具 + 6 个导航；支持拼音全拼、首字母、分类与关键词
  * - 输入后必须经过 filterPaletteCommands，并 setData 更新 searchResults
  * - 输入框确认、点击结果、遮罩关闭、关闭按钮四种交互
  * - virtualHost + styleIsolation，样式不污染页面

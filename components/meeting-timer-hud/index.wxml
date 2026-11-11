@@ -1,0 +1,16 @@
+<view
+  wx:if="{{visible}}"
+  class="mth mth--{{phase}}"
+  style="left: {{left}}px; top: {{top}}px;"
+  bindtouchstart="onTouchStart"
+  catchtouchmove="onTouchMove"
+  bindtouchend="onTouchEnd"
+  bindtouchcancel="onTouchCancel"
+  aria-role="button"
+  aria-label="会议倒计时 {{remainingText}}，可拖动，点击查看"
+>
+  <view class="mth__dot"></view>
+  <text class="mth__label">会议</text>
+  <text class="mth__time">{{remainingText}}</text>
+  <text class="mth__state">{{phase === 'paused' ? '暂停' : phase === 'finished' ? '结束' : '进行中'}}</text>
+</view>

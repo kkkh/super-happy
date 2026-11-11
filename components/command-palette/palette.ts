@@ -1,6 +1,6 @@
 /* ==========================================================================
    Command Palette · 全局命令面板 Store + 模糊匹配
-   - 23 个工具自动生成命令，另附 6 个全局导航命令
+   - registry 全部工具自动生成命令，另附 6 个全局导航命令
    - 模糊匹配：完全匹配 / 前缀 / 包含 / 字符子序列 / 关键词
    - 支持带参路由与 switchTab / navigateTo 两种跳转模式
    ========================================================================== */
@@ -56,34 +56,6 @@ const CATEGORY_ALIASES: Record<ToolCategory, string[]> = {
   work: ['职场', '办公', 'zhichang', 'bangong', 'zc', 'bg'],
 }
 
-/**
- * 工具别名：全拼、拼音首字母与常用口语词。
- * 不引入额外拼音库，直接在命令构建期合并进 keywords，交由统一打分器处理。
- */
-const TOOL_ALIASES: Record<string, string[]> = {
-  unit: ['danwei', 'danweihuansuan', 'dw', 'dwhs', '换算', '厘米', '英寸'],
-  tax: ['geshui', 'geshuijisuan', 'gs', 'gsjs', '个税', '所得税', '到手'],
-  loan: ['fangdai', 'fangdaisuan', 'fd', 'fds', '房贷', '贷款', '月供'],
-  deposit: ['cunkuan', 'cunkuanfuli', 'ck', 'ckfl', '存款', '复利'],
-  span: ['riqi', 'riqijian', 'ge', 'rqjg', 'rq', '天数', '间隔', '工作日'],
-  age: ['nianling', 'nianlingzhousui', 'nl', 'nlzs', '年龄', '生日', '周岁'],
-  countdown: ['daoshu', 'daoshuri', 'ds', 'dsr', '倒数', '纪念日'],
-  timestamp: ['shijianchuo', 'sjc', '时间戳', 'unix'],
-  rmb: ['renminbi', 'jinedaxie', 'rmb', 'jedx', '大写', '金额', '报销'],
-  wordcount: ['zishu', 'zishutongji', 'zs', 'zstj', '字数', '统计', '文案'],
-  dedupe: ['quchong', 'quchongpaixu', 'qc', 'qccx', '去重', '排序', '清理'],
-  json: ['json', 'geshihua', 'gs', '格式化', '压缩', '校验'],
-  url: ['url', 'lianjie', 'bianma', 'jiema', 'lj', 'bm', 'jm', '链接', '转义'],
-  base64: ['base64', 'bianma', 'jiema', 'bm', 'jm', '编码', '解码'],
-  password: ['mima', 'suijimima', 'mm', 'sjmima', 'suiji', '密码', '强密码'],
-  bmi: ['bmi', 'tizhong', 'shengao', 'tz', 'sg', '体重', '身高', '胖瘦'],
-  compress: ['yasuo', 'tupian', 'tupianyasuo', 'ys', 'tp', 'tpys', '图片压缩', '照片压缩'],
-  palette: ['quese', 'tuse', 'tupianquese', 'qs', 'ts', 'tpqs', '取色', '色板', '颜色'],
-  'nine-grid': ['jiugongge', 'qietu', 'jiugonggeqietu', 'jgg', 'qt', 'jggqt', '九宫格', '切图'],
-  qr: ['erweima', 'erweimashengcheng', 'qr', 'ewm', 'saoma', '二维码', '扫码'],
-  watermark: ['shuiyin', 'shuiyingongzuotai', 'sy', 'dama', 'mashike', '水印', '打码', '防伪', '版权', '图层'],
-}
-
 const TOOL_COMMANDS: PaletteCommand[] = TOOLS.map((tool) => ({
   id: `tool:${tool.id}`,
   title: tool.name,
@@ -95,7 +67,7 @@ const TOOL_COMMANDS: PaletteCommand[] = TOOLS.map((tool) => ({
     tool.desc,
     tool.category,
     ...tool.keywords,
-    ...(TOOL_ALIASES[tool.id] ?? []),
+    ...tool.aliases,
     ...CATEGORY_ALIASES[tool.category],
   ],
   route: tool.route,

@@ -1,0 +1,208 @@
+<glass-tool-shell
+  tool-id="timezone"
+  title="{{toolName}}"
+  kicker="{{kicker}}"
+  desc="{{desc}}"
+  poster-data="{{posterData}}"
+  show-run="{{false}}"
+  state="{{shellState}}"
+  has-result="{{hasResult}}"
+  error="{{error}}"
+  empty-title="换算时区，或同屏看世界时钟"
+  empty-sub="固定偏移换算；夏令时请手动开启，不做自动猜测"
+  bind:example="onExample"
+  bind:reset="onReset"
+>
+  <view slot="input" class="sg-tool-fields">
+    <view class="tool-seg">
+      <view
+        class="tool-seg__item {{mode === 'convert' ? 'tool-seg__item--active' : ''}}"
+        hover-class="tool-press"
+        hover-stay-time="80"
+        data-mode="convert"
+        aria-role="button"
+        aria-label="时区换算"
+        bindtap="onMode"
+      >
+        时区换算
+      </view>
+      <view
+        class="tool-seg__item {{mode === 'world' ? 'tool-seg__item--active' : ''}}"
+        hover-class="tool-press"
+        hover-stay-time="80"
+        data-mode="world"
+        aria-role="button"
+        aria-label="世界时钟"
+        bindtap="onMode"
+      >
+        世界时钟
+      </view>
+    </view>
+
+    <view class="tz-grid">
+      <view class="tool-date tz-col">
+        <text class="tool-date__label">{{mode === 'world' ? '基准日期' : '日期'}}</text>
+        <picker
+          mode="date"
+          value="{{date}}"
+          start="1900-01-01"
+          end="2100-12-31"
+          bindchange="onDateChange"
+        >
+          <view
+            class="tool-date__trigger"
+            hover-class="tool-date__trigger_pressed"
+            hover-stay-time="80"
+            aria-role="button"
+            aria-label="选择日期，当前 {{date}}"
+          >
+            <text class="tool-date__text">{{date}}</text>
+            <g-icon name="chevron" size="{{24}}" tone="ink4" />
+          </view>
+        </picker>
+      </view>
+
+      <view class="tool-date tz-col">
+        <text class="tool-date__label">{{mode === 'world' ? '基准时间' : '时间'}}</text>
+        <picker mode="time" value="{{time}}" bindchange="onTimeChange">
+          <view
+            class="tool-date__trigger"
+            hover-class="tool-date__trigger_pressed"
+            hover-stay-time="80"
+            aria-role="button"
+            aria-label="选择时间，当前 {{time}}"
+          >
+            <text class="tool-date__text">{{time}}</text>
+            <g-icon name="chevron" size="{{24}}" tone="ink4" />
+          </view>
+        </picker>
+      </view>
+    </view>
+
+    <view class="tool-date">
+      <text class="tool-date__label">{{mode === 'world' ? '基准时区' : '源时区'}}</text>
+      <picker
+        mode="selector"
+        range="{{zones}}"
+        range-key="label"
+        value="{{sourceIndex}}"
+        bindchange="onSourceChange"
+      >
+        <view
+          class="tool-date__trigger"
+          hover-class="tool-date__trigger_pressed"
+          hover-stay-time="80"
+          aria-role="button"
+          aria-label="选择源时区，当前 {{sourceZoneLabel}}"
+        >
+          <text class="tool-date__text">{{sourceZoneLabel}}</text>
+          <g-icon name="chevron" size="{{24}}" tone="ink4" />
+        </view>
+      </picker>
+      <view class="tz-dst">
+        <text class="tz-dst__text">{{mode === 'world' ? '基准时区' : '源时区'}}夏令时（+1 小时）</text>
+        <switch
+          checked="{{sourceDst}}"
+          color="var(--glass-accent)"
+          aria-label="源时区是否开启夏令时"
+          data-field="sourceDst"
+          bindchange="onToggle"
+        />
+      </view>
+    </view>
+
+    <block wx:if="{{mode === 'convert'}}">
+      <view class="tool-date">
+        <text class="tool-date__label">目标时区</text>
+        <picker
+          mode="selector"
+          range="{{zones}}"
+          range-key="label"
+          value="{{targetIndex}}"
+          bindchange="onTargetChange"
+        >
+          <view
+            class="tool-date__trigger"
+            hover-class="tool-date__trigger_pressed"
+            hover-stay-time="80"
+            aria-role="button"
+            aria-label="选择目标时区，当前 {{targetZoneLabel}}"
+          >
+            <text class="tool-date__text">{{targetZoneLabel}}</text>
+            <g-icon name="chevron" size="{{24}}" tone="ink4" />
+          </view>
+        </picker>
+        <view class="tz-dst">
+          <text class="tz-dst__text">目标时区夏令时（+1 小时）</text>
+          <switch
+            checked="{{targetDst}}"
+            color="var(--glass-accent)"
+            aria-label="目标时区是否开启夏令时"
+            data-field="targetDst"
+            bindchange="onToggle"
+          />
+        </view>
+      </view>
+
+      <text class="tool-date__hint">可选范围 1900–2100 年；固定偏移不含自动夏令时，切换后自动计算</text>
+    </block>
+
+    <block wx:else>
+      <text class="tool-date__hint">内置 8 个常用城市同屏；每个城市可单独开启夏令时</text>
+    </block>
+  </view>
+
+  <view slot="result" class="sg-tool-result">
+    <view class="sg-tool-result__head">
+      <text class="sg-tool-result__label">{{resultLabel}}</text>
+      <text class="sg-tool-result__meta" bindtap="onCopy">{{mode === 'world' ? '点击复制全部' : '点击复制摘要'}}</text>
+    </view>
+
+    <view class="sg-tool-result__main" aria-role="status">{{resultMain}}</view>
+
+    <view wx:if="{{mode === 'convert'}}" class="sg-tool-rows">
+      <view
+        wx:for="{{resultRows}}"
+        wx:key="k"
+        class="sg-tool-row"
+        data-value="{{item.v}}"
+        bindtap="onCopyRow"
+        aria-role="button"
+        aria-label="复制 {{item.k}}"
+      >
+        <text class="sg-tool-row__k">{{item.k}}</text>
+        <text class="sg-tool-row__v">{{item.v}}</text>
+      </view>
+    </view>
+
+    <view wx:else class="tz-world">
+      <view wx:for="{{worldRows}}" wx:key="id" class="tz-row">
+        <view class="tz-row__top">
+          <view class="tz-row__city-wrap">
+            <text class="tz-row__city">{{item.label}}</text>
+            <text wx:if="{{item.isSource}}" class="tz-row__badge">基准</text>
+          </view>
+          <text class="tz-row__time">{{item.time}}</text>
+        </view>
+        <view class="tz-row__bottom">
+          <text class="tz-row__meta">{{item.date}} {{item.weekday}} {{item.dayOffsetLabel}} · {{item.offsetLabel}} · 时差 {{item.diffLabel}}</text>
+          <view class="tz-row__dst">
+            <text class="tz-row__dst-label">夏令时</text>
+            <switch
+              checked="{{item.dst}}"
+              color="var(--glass-accent)"
+              aria-label="{{item.label}} 是否开启夏令时"
+              data-id="{{item.id}}"
+              bindchange="onWorldDst"
+            />
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="sg-tool-note">
+      <text class="sg-tool-note__title">说明</text>
+      <text class="sg-tool-note__text">按固定 UTC 偏移换算；夏令时逐项手动 +1 小时。所有结果只在本机计算，不保存日期、城市与时间。</text>
+    </view>
+  </view>
+</glass-tool-shell>

@@ -1,0 +1,125 @@
+<glass-tool-shell
+  tool-id="size-convert"
+  title="{{toolName}}"
+  kicker="{{kicker}}"
+  desc="{{desc}}"
+  run-label="开始换算"
+  poster-data="{{posterData}}"
+  state="{{shellState}}"
+  has-result="{{hasResult}}"
+  can-run="{{canRun}}"
+  error="{{error}}"
+  empty-title="选择类型，填写尺码"
+  empty-sub="鞋码 / 服装 / 戒指，一屏给出各区对照"
+  bind:run="onRun"
+  bind:reset="onReset"
+  bind:example="onExample"
+>
+  <view slot="input" class="sg-tool-fields">
+    <view class="sc-modes" aria-role="tablist" aria-label="尺码类型">
+      <view
+        wx:for="{{modeOptions}}"
+        wx:key="key"
+        class="sc-mode {{item.key === mode ? 'sc-mode--on' : ''}}"
+        data-mode="{{item.key}}"
+        bindtap="onMode"
+        aria-role="tab"
+        aria-selected="{{item.key === mode}}"
+      >{{item.label}}</view>
+    </view>
+
+    <view wx:if="{{mode !== 'ring'}}" class="sc-field">
+      <text class="sc-label">性别</text>
+      <view class="sc-chips" aria-role="tablist" aria-label="性别">
+        <view
+          wx:for="{{genderOptions}}"
+          wx:key="key"
+          class="sc-chip {{item.key === gender ? 'sc-chip--on' : ''}}"
+          data-gender="{{item.key}}"
+          bindtap="onGender"
+          aria-role="tab"
+          aria-selected="{{item.key === gender}}"
+        >{{item.label}}</view>
+      </view>
+    </view>
+
+    <view wx:if="{{mode === 'clothing'}}" class="sc-field">
+      <text class="sc-label">中国码</text>
+      <view class="sc-chips" aria-role="tablist" aria-label="服装尺码">
+        <view
+          wx:for="{{clothingLabels}}"
+          wx:key="*this"
+          class="sc-chip {{item === clothingLabel ? 'sc-chip--on' : ''}}"
+          data-label="{{item}}"
+          bindtap="onClothingLabel"
+          aria-role="tab"
+          aria-selected="{{item === clothingLabel}}"
+        >{{item}}</view>
+      </view>
+    </view>
+
+    <block wx:if="{{mode !== 'clothing'}}">
+      <view class="sc-field">
+        <text class="sc-label">输入地区</text>
+        <view class="sc-chips" aria-role="tablist" aria-label="输入地区">
+          <view
+            wx:for="{{regionOptions}}"
+            wx:key="key"
+            class="sc-chip {{item.key === regionKey ? 'sc-chip--on' : ''}}"
+            data-key="{{item.key}}"
+            bindtap="onRegion"
+            aria-role="tab"
+            aria-selected="{{item.key === regionKey}}"
+          >{{item.label}}</view>
+        </view>
+      </view>
+
+      <glass-input
+        label="{{valueLabel}}"
+        type="digit"
+        maxlength="{{5}}"
+        value="{{value}}"
+        placeholder="{{valuePlaceholder}}"
+        hint="{{modeMeta.hint}}"
+        aria-label="{{valueLabel}}"
+        bind:input="onValueInput"
+      />
+    </block>
+
+    <view wx:if="{{mode === 'clothing'}}" class="sc-hint">{{modeMeta.hint}}</view>
+  </view>
+
+  <view slot="result" class="sg-tool-result">
+    <view class="sc-stage">
+      <view class="sc-stage__label">{{resultLabel}}</view>
+      <view class="sc-stage__main" aria-role="status">{{resultMain}}</view>
+    </view>
+
+    <view class="sg-tool-rows">
+      <view
+        wx:for="{{resultRows}}"
+        wx:key="k"
+        class="sg-tool-row"
+        data-value="{{item.v}}"
+        bindtap="onCopyRow"
+        aria-role="button"
+        aria-label="复制 {{item.k}}"
+      >
+        <text class="sg-tool-row__k">{{item.k}}</text>
+        <text class="sg-tool-row__v">{{item.v}}</text>
+      </view>
+    </view>
+
+    <view
+      class="sc-copy"
+      bindtap="onCopy"
+      aria-role="button"
+      aria-label="复制尺码结果"
+    >点击复制结果</view>
+
+    <view class="sg-tool-note">
+      <text class="sg-tool-note__title">说明</text>
+      <text class="sg-tool-note__text">鞋码按 EU / US / UK 与脚长的常见对照换算，允许半码；服装为常见版型参考；戒指以周长 mm 为基准。不同品牌版型存在差异，结果仅供参考。</text>
+    </view>
+  </view>
+</glass-tool-shell>

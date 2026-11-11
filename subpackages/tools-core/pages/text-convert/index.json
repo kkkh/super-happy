@@ -1,0 +1,8 @@
+{
+  "navigationBarTitleText": "文本转换",
+  "disableScroll": true,
+  "usingComponents": {
+    "glass-tool-shell": "../../../../components/glass-tool-shell/index",
+    "glass-input": "../../../../components/glass-input/index"
+  }
+}

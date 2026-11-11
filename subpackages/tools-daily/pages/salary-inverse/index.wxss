@@ -1,0 +1,83 @@
+/* ==========================================================================
+   薪资反算 · 五险一金方式 chips / 税前结果 / 校验提示
+   - 只使用 --glass-* 令牌，无裸伪类
+   ========================================================================== */
+
+.si-modes {
+  display: flex;
+  gap: 12rpx;
+}
+
+.si-mode {
+  flex: 1;
+  box-sizing: border-box;
+  padding: 18rpx 12rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: var(--glass-radius-md);
+  background-color: var(--glass-bg-soft);
+  color: var(--glass-text-3);
+  font-size: 22rpx;
+  text-align: center;
+}
+
+.si-mode--on {
+  border-color: var(--glass-border-strong);
+  background-color: var(--glass-bg-strong);
+  color: var(--glass-text);
+  font-weight: 600;
+}
+
+.si-mode:active {
+  transform: scale(0.97);
+}
+
+.si-hint {
+  color: var(--glass-text-3);
+  font-size: 19rpx;
+  line-height: 1.6;
+}
+
+.si-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12rpx;
+  padding: 8rpx 0 4rpx;
+}
+
+.si-label {
+  color: var(--glass-text-3);
+  font-size: 20rpx;
+  letter-spacing: 0.08em;
+}
+
+.si-gross {
+  color: var(--glass-text);
+  font-family: var(--glass-font-mono);
+  font-size: 62rpx;
+  letter-spacing: 0.02em;
+}
+
+.si-caption {
+  color: var(--glass-text-3);
+  font-size: 19rpx;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.si-warn {
+  color: var(--glass-warn, #d97706);
+  font-size: 19rpx;
+  line-height: 1.6;
+}
+
+.si-copy {
+  box-sizing: border-box;
+  padding: 18rpx;
+  border: 1rpx solid var(--glass-border-strong);
+  border-radius: var(--glass-radius-md);
+  background-color: var(--glass-bg-strong);
+  color: var(--glass-text);
+  font-size: 21rpx;
+  text-align: center;
+}

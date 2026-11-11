@@ -1,0 +1,80 @@
+/* ==========================================================================
+   百分比计算 · 三模式 chips / 双列输入 / 大号结果
+   - 只使用 --glass-* 令牌，无裸伪类
+   ========================================================================== */
+
+.pc-modes {
+  display: flex;
+  gap: 12rpx;
+}
+
+.pc-mode {
+  flex: 1;
+  box-sizing: border-box;
+  padding: 18rpx 12rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: var(--glass-radius-md);
+  background-color: var(--glass-bg-soft);
+  color: var(--glass-text-3);
+  font-size: 22rpx;
+  text-align: center;
+}
+
+.pc-mode--on {
+  border-color: var(--glass-border-strong);
+  background-color: var(--glass-bg-strong);
+  color: var(--glass-text);
+  font-weight: 600;
+}
+
+.pc-mode:active {
+  transform: scale(0.97);
+}
+
+.pc-grid {
+  display: flex;
+  gap: 14rpx;
+}
+
+.pc-col {
+  flex: 1;
+  min-width: 0;
+}
+
+.pc-hint {
+  color: var(--glass-text-3);
+  font-size: 19rpx;
+  line-height: 1.6;
+}
+
+.pc-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12rpx;
+  padding: 8rpx 0 4rpx;
+}
+
+.pc-label {
+  color: var(--glass-text-3);
+  font-size: 20rpx;
+  letter-spacing: 0.08em;
+}
+
+.pc-main {
+  color: var(--glass-text);
+  font-family: var(--glass-font-mono);
+  font-size: 72rpx;
+  letter-spacing: 0.02em;
+}
+
+.pc-copy {
+  box-sizing: border-box;
+  padding: 18rpx;
+  border: 1rpx solid var(--glass-border-strong);
+  border-radius: var(--glass-radius-md);
+  background-color: var(--glass-bg-strong);
+  color: var(--glass-text);
+  font-size: 21rpx;
+  text-align: center;
+}

@@ -6,6 +6,9 @@
 
 export type ToolCategory = 'calc' | 'date' | 'text' | 'media' | 'life' | 'work'
 
+/** 隐私 / 金融 / 健康提示类型，由外壳统一渲染 */
+export type ToolSensitivity = '' | 'privacy' | 'personal' | 'finance' | 'health'
+
 export interface ToolMeta {
   id: string
   name: string
@@ -15,9 +18,20 @@ export interface ToolMeta {
   icon: string
   route: string
   keywords: string[]
-  /** 搜索排序权重，越大越靠前 */
+  /** 搜索别名：拼音全拼、首字母、英文与俗称 */
+  aliases: string[]
+  /** 敏感提示类型；空串表示无额外提示 */
+  sensitive: ToolSensitivity
+  /** 可选：覆盖 sensitive 默认提示，用于同类别不同文案 */
+  privacyNote?: string
+  /** 可选：即使 sensitive 为空也不写草稿（如带时薪的工时工具） */
+  draftExcluded?: boolean
+  /** 搜索排序权重 0–100，越大越靠前 */
   weight: number
 }
+
+/** 收藏切换结果：满额不挤出旧项，失败回滚 */
+export type FavoriteToggleResult = 'added' | 'removed' | 'full' | 'invalid' | 'failed'
 
 /** 首页分区：生活与职场合并，避免单卡分区显得稀疏 */
 export interface HomeSection {

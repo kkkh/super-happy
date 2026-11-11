@@ -4,7 +4,6 @@
   kicker="{{kicker}}"
   desc="{{desc}}"
   poster-data="{{posterData}}"
-  sensitive="health"
   state="{{shellState}}"
   run-label="计算 BMI"
   has-result="{{hasResult}}"

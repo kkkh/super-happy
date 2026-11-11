@@ -1,5 +1,5 @@
 /* ==========================================================================
-   极简 1-bit PNG 编码器 · 二维码专用
+   极简 1-bit PNG 编码器 · 二维码 / 条形码共用
    - 1 位灰度 + 无压缩 deflate 块 + Adler32 + CRC32
    - 输出体积小，不依赖 Canvas，开发者工具与真机均可用
    ========================================================================== */
@@ -79,6 +79,49 @@ function bytesToBase64(bytes: number[]): string {
   return out
 }
 
+/** 统一组装 1-bit 灰度 PNG：调用方负责准备好逐扫描线原始字节 */
+function encodeMonoPng(width: number, height: number, raw: number[]): string {
+  const ihdr = [...u32(width), ...u32(height), 1, 0, 0, 0, 0]
+  const png = [
+    0x89,
+    0x50,
+    0x4e,
+    0x47,
+    0x0d,
+    0x0a,
+    0x1a,
+    0x0a,
+    ...chunk('IHDR', ihdr),
+    ...chunk('IDAT', zlibStore(raw)),
+    ...chunk('IEND', []),
+  ]
+  return bytesToBase64(png)
+}
+
+/**
+ * 单条扫描线纵向重复，生成 1-bit PNG 的 base64
+ * - 条形码所有行图案完全一致，只需打包一次再按高度重复
+ * @param width 图片宽度（像素）
+ * @param height 图片高度（像素）
+ * @param row 已按 PNG 位序打包的扫描线，1 = 白、0 = 黑
+ */
+export function repeatRowPngBase64(width: number, height: number, row: Uint8Array): string {
+  const safeWidth = Math.max(1, Math.floor(width))
+  const safeHeight = Math.max(1, Math.floor(height))
+  const rowBytes = Math.ceil(safeWidth / 8)
+  const raw = new Array<number>(safeHeight * (rowBytes + 1))
+  let cursor = 0
+  for (let y = 0; y < safeHeight; y += 1) {
+    raw[cursor] = 0
+    cursor += 1
+    for (let index = 0; index < rowBytes; index += 1) {
+      raw[cursor] = row[index] ?? 0xff
+      cursor += 1
+    }
+  }
+  return encodeMonoPng(safeWidth, safeHeight, raw)
+}
+
 /**
  * 生成二维码 1-bit PNG 的 base64
  * @param matrix 暗模块矩阵
@@ -121,29 +164,7 @@ export function qrPngBase64(matrix: boolean[][], count: number, scale: number, m
     }
   }
 
-  const ihdr = [
-    ...u32(size),
-    ...u32(size),
-    1,
-    0,
-    0,
-    0,
-    0,
-  ]
-  const png = [
-    0x89,
-    0x50,
-    0x4e,
-    0x47,
-    0x0d,
-    0x0a,
-    0x1a,
-    0x0a,
-    ...chunk('IHDR', ihdr),
-    ...chunk('IDAT', zlibStore(raw)),
-    ...chunk('IEND', []),
-  ]
-  return bytesToBase64(png)
+  return encodeMonoPng(size, size, raw)
 }
 
 /** 将 base64 PNG 写入用户目录；返回可保存/展示的临时路径 */

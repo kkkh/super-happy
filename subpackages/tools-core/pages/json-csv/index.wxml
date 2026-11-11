@@ -1,0 +1,89 @@
+<glass-tool-shell
+  tool-id="json-csv"
+  title="{{toolName}}"
+  kicker="{{kicker}}"
+  desc="{{desc}}"
+  run-label="{{modeMeta.action}}"
+  poster-data="{{posterData}}"
+  state="{{shellState}}"
+  has-result="{{hasResult}}"
+  can-run="{{canRun}}"
+  error="{{error}}"
+  empty-title="选择方向，粘贴内容"
+  empty-sub="JSON 对象数组 ↔ 首行表头的 CSV，自动处理转义与字段并集"
+  bind:run="onRun"
+  bind:reset="onReset"
+  bind:example="onExample"
+>
+  <view slot="input" class="sg-tool-fields">
+    <view class="jc-modes" aria-role="tablist" aria-label="转换方向">
+      <view
+        wx:for="{{modeOptions}}"
+        wx:key="key"
+        class="jc-mode {{item.key === mode ? 'jc-mode--on' : ''}}"
+        data-mode="{{item.key}}"
+        bindtap="onMode"
+        aria-role="tab"
+        aria-selected="{{item.key === mode}}"
+      >{{item.label}}</view>
+    </view>
+
+    <glass-input
+      label="{{modeMeta.inputLabel}}"
+      hint="{{modeMeta.inputHint}}"
+      multiline
+      auto-height
+      show-count
+      value="{{input}}"
+      maxlength="{{maxText}}"
+      placeholder="{{modeMeta.placeholder}}"
+      cursor-spacing="{{120}}"
+      aria-label="{{modeMeta.inputLabel}}"
+      bind:input="onInput"
+    />
+  </view>
+
+  <view slot="result" class="sg-tool-result">
+    <view class="sg-tool-result__head">
+      <text class="sg-tool-result__label">{{resultLabel}}</text>
+      <text class="sg-tool-result__meta">{{resultMeta}}</text>
+    </view>
+
+    <text class="jc-output" selectable>{{outputText}}</text>
+
+    <view class="sg-tool-rows">
+      <view
+        wx:for="{{resultRows}}"
+        wx:key="k"
+        class="sg-tool-row"
+        data-value="{{item.v}}"
+        bindtap="onCopyRow"
+        aria-role="button"
+        aria-label="复制 {{item.k}}"
+      >
+        <text class="sg-tool-row__k">{{item.k}}</text>
+        <text class="sg-tool-row__v">{{item.v}}</text>
+      </view>
+    </view>
+
+    <view wx:if="{{warnings.length}}" class="jc-warnings">
+      <text class="jc-warnings__title">转换提示</text>
+      <view wx:for="{{warnings}}" wx:key="*this" class="jc-warning">
+        <text class="jc-warning__dot">·</text>
+        <text class="jc-warning__text">{{item}}</text>
+      </view>
+    </view>
+
+    <view
+      class="jc-copy"
+      bindtap="onCopy"
+      aria-role="button"
+      aria-label="复制转换结果"
+    >点击复制结果</view>
+
+    <view class="sg-tool-note">
+      <text class="sg-tool-note__title">说明</text>
+      <text class="sg-tool-note__text">CSV 输出含 UTF-8 BOM，便于 Excel 识别中文；以 = + - @ 开头的文本会自动加单引号防公式注入。JSON → CSV → JSON 仅对扁平字符串无损，数字、布尔与嵌套结构会变成字符串或 JSON 文本。</text>
+    </view>
+  </view>
+</glass-tool-shell>

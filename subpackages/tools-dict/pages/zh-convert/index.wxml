@@ -1,0 +1,93 @@
+<glass-tool-shell
+  tool-id="zh-convert"
+  title="{{toolName}}"
+  kicker="{{kicker}}"
+  desc="{{desc}}"
+  run-label="开始转换"
+  poster-data="{{posterData}}"
+  state="{{shellState}}"
+  has-result="{{hasResult}}"
+  error="{{error}}"
+  empty-title="粘贴简体或繁体文本"
+  empty-sub="词组优先匹配，未收录字原样保留；最多 20,000 字"
+  bind:run="onRun"
+  bind:reset="onReset"
+  bind:example="onExample"
+>
+  <view slot="input" class="sg-tool-fields">
+    <view class="zh-chips" aria-role="tablist" aria-label="转换方向">
+      <view
+        wx:for="{{directionOptions}}"
+        wx:key="key"
+        class="zh-chip {{item.key === direction ? 'zh-chip--on' : ''}}"
+        data-direction="{{item.key}}"
+        bindtap="onDirection"
+        aria-role="tab"
+        aria-selected="{{item.key === direction}}"
+      >
+        {{item.label}}
+      </view>
+    </view>
+
+    <view class="zh-chips zh-chips--sub" aria-role="tablist" aria-label="转换模式">
+      <view
+        wx:for="{{modeOptions}}"
+        wx:key="key"
+        class="zh-chip zh-chip--sub {{item.key === mode ? 'zh-chip--on' : ''}}"
+        data-mode="{{item.key}}"
+        bindtap="onMode"
+        aria-role="tab"
+        aria-selected="{{item.key === mode}}"
+      >
+        {{item.label}}
+      </view>
+    </view>
+
+    <text class="zh-hint">{{mode === 'phrase' ? '按 2–4 字词组最长匹配，未命中再用单字兜底' : '逐字替换，适合检查单字映射'}}</text>
+
+    <glass-input
+      label="输入文本"
+      hint="最多 20,000 字符"
+      multiline
+      auto-height
+      show-count
+      value="{{inputText}}"
+      maxlength="{{20000}}"
+      placeholder="输入或粘贴简体 / 繁体文本"
+      cursor-spacing="{{120}}"
+      aria-label="待转换的文本"
+      bind:input="onInput"
+    />
+
+    <text wx:if="{{truncated}}" class="zh-warn">内容超过 20,000 字符，已按前 20,000 字符转换</text>
+  </view>
+
+  <view slot="result" class="sg-tool-result">
+    <view class="sg-tool-result__head">
+      <text class="sg-tool-result__label">转换结果</text>
+      <text class="sg-tool-result__meta" bindtap="onCopy">点击复制</text>
+    </view>
+
+    <view class="sg-tool-result__main" aria-role="status">{{resultMain}}</view>
+
+    <scroll-view scroll-y enhanced show-scrollbar="{{false}}" class="zh-output">
+      <text selectable>{{resultText}}</text>
+    </scroll-view>
+
+    <view class="sg-tool-rows">
+      <view wx:for="{{resultRows}}" wx:key="k" class="sg-tool-row">
+        <text class="sg-tool-row__k">{{item.k}}</text>
+        <text class="sg-tool-row__v">{{item.v}}</text>
+      </view>
+    </view>
+
+    <view class="zh-actions">
+      <glass-button variant="primary" size="md" block bind:tap="onCopy">复制转换结果</glass-button>
+    </view>
+
+    <view class="sg-tool-note">
+      <text class="sg-tool-note__title">说明</text>
+      <text class="sg-tool-note__text">词库来自 OpenCC 本地字典；一词多繁（如“发”对应“發 / 髮”）按常用词处理，未收录字原样保留。全部转换只在本机完成，不保存原文。</text>
+    </view>
+  </view>
+</glass-tool-shell>

@@ -1,0 +1,89 @@
+<glass-tool-shell
+  tool-id="pinyin"
+  title="{{toolName}}"
+  kicker="{{kicker}}"
+  desc="{{desc}}"
+  run-label="标注拼音"
+  poster-data="{{posterData}}"
+  state="{{shellState}}"
+  has-result="{{hasResult}}"
+  error="{{error}}"
+  empty-title="输入中文文本，标注拼音"
+  empty-sub="带声调 / 不带声调切换；最多 2,000 字"
+  bind:run="onRun"
+  bind:reset="onReset"
+  bind:example="onExample"
+>
+  <view slot="input" class="sg-tool-fields">
+    <view class="py-chips" aria-role="tablist" aria-label="声调选项">
+      <view
+        wx:for="{{toneOptions}}"
+        wx:key="key"
+        class="py-chip {{item.key === toneKey ? 'py-chip--on' : ''}}"
+        data-tone="{{item.key}}"
+        bindtap="onTone"
+        aria-role="tab"
+        aria-selected="{{item.key === toneKey}}"
+      >
+        {{item.label}}
+      </view>
+    </view>
+
+    <text class="py-hint">多音字按常用读音，常用词组优先消歧；非汉字原样保留。</text>
+
+    <glass-input
+      label="输入文本"
+      hint="最多 {{maxChars}} 字符"
+      multiline
+      auto-height
+      show-count
+      value="{{inputText}}"
+      maxlength="{{maxChars}}"
+      placeholder="输入或粘贴中文文本"
+      cursor-spacing="{{120}}"
+      aria-label="待标注拼音的文本"
+      bind:input="onInput"
+    />
+
+    <text wx:if="{{truncated}}" class="py-warn">内容超过 2,000 字符，已按前 2,000 字符标注</text>
+  </view>
+
+  <view slot="result" class="sg-tool-result">
+    <view class="sg-tool-result__head">
+      <text class="sg-tool-result__label">拼音结果</text>
+      <text class="sg-tool-result__meta" bindtap="onCopy">点击复制</text>
+    </view>
+
+    <view class="sg-tool-result__main" aria-role="status">{{resultMain}}</view>
+
+    <scroll-view scroll-y enhanced show-scrollbar="{{false}}" class="py-output">
+      <text selectable>{{resultText}}</text>
+    </scroll-view>
+
+    <view class="sg-tool-rows">
+      <view wx:for="{{resultRows}}" wx:key="k" class="sg-tool-row">
+        <text class="sg-tool-row__k">{{item.k}}</text>
+        <text class="sg-tool-row__v">{{item.v}}</text>
+      </view>
+    </view>
+
+    <view wx:if="{{comparisonText}}" class="py-compare">
+      <view class="py-compare__head">
+        <text class="py-compare__title">逐字对照</text>
+        <text wx:if="{{comparisonTruncated}}" class="py-compare__meta">前 200 字</text>
+      </view>
+      <scroll-view scroll-y enhanced show-scrollbar="{{false}}" class="py-compare__list">
+        <text selectable>{{comparisonText}}</text>
+      </scroll-view>
+    </view>
+
+    <view class="py-actions">
+      <glass-button variant="primary" size="md" block bind:tap="onCopy">复制拼音结果</glass-button>
+    </view>
+
+    <view class="sg-tool-note">
+      <text class="sg-tool-note__title">说明</text>
+      <text class="sg-tool-note__text">单字读音与常用多音词来自本地词库；多音字按常用读音输出，个别词仍可能存在不同读法。未收录字保留原字，全部处理只在本机完成。</text>
+    </view>
+  </view>
+</glass-tool-shell>

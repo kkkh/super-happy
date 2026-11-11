@@ -1,0 +1,15 @@
+/* 水电燃气费 · 模式切换 / 阶梯输入 / 分段明细；只使用 --glass-* 令牌 */
+.power-modes{display:flex;gap:6rpx;padding:6rpx;border:1rpx solid var(--glass-border);border-radius:999rpx;background-color:var(--glass-bg-soft);box-sizing:border-box}
+.power-mode{flex:1;display:flex;align-items:center;justify-content:center;min-height:62rpx;padding:0 16rpx;border-radius:999rpx;color:var(--glass-text-2);font-size:23rpx;font-weight:600;text-align:center;box-sizing:border-box}
+.power-mode--on{background-color:var(--glass-accent-soft);color:var(--glass-accent);box-shadow:var(--glass-shadow-soft)}
+.power-tier-block{display:flex;flex-direction:column;gap:12rpx;box-sizing:border-box;padding:18rpx;border:1rpx solid var(--glass-border);border-radius:var(--glass-radius-md);background-color:var(--glass-bg-soft)}
+.power-tier-title{color:var(--glass-text);font-size:21rpx}
+.power-tier-hint{color:var(--glass-text-3);font-size:18rpx;line-height:1.5}
+.power-tier-row{display:flex;flex-direction:row;gap:14rpx}
+.power-tier-col{flex:1;min-width:0}
+.power-review{color:var(--glass-warn,#d97706);font-size:19rpx}
+.power-slices{display:flex;flex-direction:column;gap:10rpx}
+.power-slices__title{color:var(--glass-text);font-size:21rpx}
+.power-slices__row{display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:16rpx;padding:12rpx 16rpx;border:1rpx solid var(--glass-border);border-radius:var(--glass-radius-sm)}
+.power-slices__range{color:var(--glass-text);font-family:var(--glass-font-mono);font-size:19rpx}
+.power-slices__detail{color:var(--glass-text-3);font-size:18rpx;text-align:right}

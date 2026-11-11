@@ -1,0 +1,86 @@
+<glass-tool-shell
+  tool-id="radix"
+  title="{{toolName}}"
+  kicker="{{kicker}}"
+  desc="{{desc}}"
+  poster-data="{{posterData}}"
+  state="{{shellState}}"
+  can-run="{{canRun}}"
+  run-label="开始转换"
+  has-result="{{hasResult}}"
+  error="{{error}}"
+  empty-title="输入数值，四进制同屏"
+  empty-sub="支持负数、0x / 0b / 0o 前缀与下划线分隔"
+  bind:run="onRun"
+  bind:example="onExample"
+  bind:reset="onReset"
+>
+  <view slot="input" class="sg-tool-fields">
+    <view class="tool-field">
+      <view class="tool-field__head">
+        <text class="tool-field__label">数值</text>
+        <text class="tool-field__hint">{{sourceBase}} 进制</text>
+      </view>
+      <input
+        class="radix-input"
+        value="{{sourceValue}}"
+        placeholder="如 255、0xFF、-1010"
+        placeholder-class="radix-input__placeholder"
+        maxlength="140"
+        confirm-type="done"
+        bindinput="onValueInput"
+        aria-label="要转换的数值"
+      />
+    </view>
+
+    <view class="tool-field">
+      <view class="tool-field__head">
+        <text class="tool-field__label">输入进制</text>
+        <text class="tool-field__hint">点击切换</text>
+      </view>
+      <view class="radix-bases">
+        <view
+          wx:for="{{baseOptions}}"
+          wx:key="base"
+          class="radix-base {{item.base === sourceBase ? 'radix-base--on' : ''}}"
+          data-base="{{item.base}}"
+          bindtap="onBaseTap"
+          aria-role="button"
+          aria-label="按{{item.label}}输入"
+        >
+          <text class="radix-base__num">{{item.base}}</text>
+          <text class="radix-base__label">{{item.label}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view slot="result" class="sg-tool-result">
+    <view class="sg-tool-result__head">
+      <text class="sg-tool-result__label">四进制结果</text>
+      <text class="sg-tool-result__meta">点击任意行复制</text>
+    </view>
+
+    <view class="radix-rows">
+      <view
+        wx:for="{{conversions}}"
+        wx:key="base"
+        class="radix-row"
+        hover-class="radix-row--press"
+        data-value="{{item.value}}"
+        bindtap="onCopy"
+        aria-role="button"
+        aria-label="复制{{item.label}}结果"
+      >
+        <text class="radix-row__k">{{item.label}}</text>
+        <text class="radix-row__v">{{item.value}}</text>
+        <text class="radix-row__copy">复制</text>
+      </view>
+    </view>
+
+    <view class="sg-tool-note">
+      <text class="sg-tool-note__title">说明</text>
+      <text class="sg-tool-note__text">支持负数、0x / 0b / 0o 前缀与下划线分隔；有效数字最多 128 位，超出请分段转换。全部换算在本机完成，不上传。</text>
+    </view>
+  </view>
+</glass-tool-shell>

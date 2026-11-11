@@ -1,0 +1,87 @@
+<glass-tool-shell
+  tool-id="vcard"
+  title="{{toolName}}"
+  kicker="{{kicker}}"
+  desc="{{desc}}"
+  poster-data="{{posterData}}"
+  run-label="生成名片"
+  state="{{shellState}}"
+  has-result="{{hasResult}}"
+  error="{{error}}"
+  empty-title="填写名片信息，生成 vCard 与二维码"
+  empty-sub="不读取通讯录；名片只在本机生成，整段不超过 1000 字节"
+  bind:run="onRun"
+  bind:example="onExample"
+  bind:reset="onReset"
+>
+  <view slot="input" class="sg-tool-fields">
+    <glass-input label="姓名（必填）" maxlength="{{200}}" value="{{name}}" placeholder="例如 秦超" data-field="name" aria-label="姓名" bind:input="onFieldInput" />
+    <glass-input label="公司" maxlength="{{200}}" value="{{company}}" placeholder="例如 超欢" data-field="company" aria-label="公司" bind:input="onFieldInput" />
+    <glass-input label="职位" maxlength="{{200}}" value="{{title}}" placeholder="例如 独立开发者" data-field="title" aria-label="职位" bind:input="onFieldInput" />
+    <glass-input label="手机" type="number" maxlength="{{200}}" value="{{phone}}" placeholder="例如 13800000000" data-field="phone" aria-label="手机" bind:input="onFieldInput" />
+    <glass-input label="邮箱" maxlength="{{200}}" value="{{email}}" placeholder="例如 name@example.com" data-field="email" aria-label="邮箱" bind:input="onFieldInput" />
+    <glass-input label="地址" maxlength="{{200}}" value="{{address}}" placeholder="例如 杭州市西湖区" data-field="address" aria-label="地址" bind:input="onFieldInput" />
+    <glass-input label="网址" maxlength="{{200}}" value="{{website}}" placeholder="例如 https://example.com" data-field="website" aria-label="网址" bind:input="onFieldInput" />
+    <glass-input label="备注" hint="最多 200 字符" multiline auto-height maxlength="{{200}}" value="{{note}}" placeholder="例如 扫码保存联系人" data-field="note" aria-label="备注" bind:input="onFieldInput" />
+  </view>
+
+  <view slot="result" class="sg-tool-result">
+    <view class="sg-tool-result__head">
+      <text class="sg-tool-result__label">vCard</text>
+      <text class="sg-tool-result__meta" bindtap="onCopyText">点击复制文本</text>
+    </view>
+
+    <view class="sg-tool-result__main" aria-role="status">{{vcardBytes}} 字节</view>
+
+    <view class="vc-card-wrap">
+      <canvas
+        wx:if="{{!cardImagePath && shellState === 'running'}}"
+        type="2d"
+        id="vcard-canvas"
+        class="vc-card"
+        style="width: {{cardCssWidth}}px; height: {{cardCssHeight}}px;"
+      ></canvas>
+      <image
+        wx:elif="{{cardImagePath}}"
+        class="vc-card"
+        src="{{cardImagePath}}"
+        mode="widthFix"
+        bindtap="onPreviewCard"
+        aria-role="button"
+        aria-label="预览图片名片"
+      />
+      <view wx:else class="vc-card-empty">当前环境无法生成图片名片，已生成二维码</view>
+    </view>
+
+    <image
+      class="vc-qr"
+      src="{{qrImagePath}}"
+      mode="aspectFit"
+      bindtap="onPreview"
+      aria-role="button"
+      aria-label="预览名片二维码"
+    />
+
+    <view class="sg-tool-rows">
+      <view wx:for="{{resultRows}}" wx:key="k" class="sg-tool-row">
+        <text class="sg-tool-row__k">{{item.k}}</text>
+        <text class="sg-tool-row__v">{{item.v}}</text>
+      </view>
+    </view>
+
+    <scroll-view scroll-y class="vc-text">
+      <text selectable>{{vcardText}}</text>
+    </scroll-view>
+
+    <view class="tool-actions">
+      <glass-button variant="primary" size="md" block loading="{{savingCard}}" loading-text="保存中" bind:tap="onSaveCard">保存图片名片</glass-button>
+      <glass-button variant="ghost" size="md" block loading="{{saving}}" loading-text="保存中" bind:tap="onSave">保存二维码</glass-button>
+      <glass-button variant="ghost" size="md" block bind:tap="onCopyText">复制 vCard</glass-button>
+    </view>
+
+    <view class="sg-tool-note">
+      <text class="sg-tool-note__title">说明</text>
+      <text class="sg-tool-note__text">名片信息只在本机生成，不读取通讯录、不申请联系人权限；vCard 3.0 使用 CRLF 与 75 字节折行，二维码纠错等级 M；图片名片为 1080 × 672 PNG。</text>
+    </view>
+  </view>
+</glass-tool-shell>

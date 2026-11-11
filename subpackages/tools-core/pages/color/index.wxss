@@ -1,0 +1,128 @@
+/* ==========================================================================
+   颜色转换 · 对比度 / 色块 / 色觉模拟
+   - 只使用 --glass-* 令牌，无硬编码色值
+   ========================================================================== */
+
+.cl-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.cl-stage__label {
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 19rpx;
+  letter-spacing: 0.08em;
+}
+
+.cl-stage__main {
+  color: var(--glass-text);
+  font-family: var(--glass-font-mono);
+  font-size: 56rpx;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.cl-swatches {
+  display: flex;
+  flex-direction: row;
+  gap: 16rpx;
+}
+
+.cl-swatch {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 8rpx;
+  min-width: 0;
+}
+
+.cl-swatch__block {
+  box-sizing: border-box;
+  height: 96rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: var(--glass-radius-md);
+  box-shadow: inset 0 1rpx 0 var(--glass-highlight);
+}
+
+.cl-swatch__label {
+  color: var(--glass-text-3);
+  font-size: 19rpx;
+}
+
+.cl-swatch__value {
+  overflow: hidden;
+  color: var(--glass-text);
+  font-family: var(--glass-font-mono);
+  font-size: 22rpx;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cl-cvd {
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+}
+
+.cl-cvd__title {
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 19rpx;
+  letter-spacing: 0.08em;
+}
+
+.cl-cvd__row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12rpx;
+  box-sizing: border-box;
+  padding: 14rpx 16rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: var(--glass-radius-sm);
+  background-color: var(--glass-bg-soft);
+}
+
+.cl-cvd__dot {
+  flex: none;
+  box-sizing: border-box;
+  width: 36rpx;
+  height: 36rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: 50%;
+}
+
+.cl-cvd__label {
+  flex: none;
+  color: var(--glass-text);
+  font-size: 22rpx;
+}
+
+.cl-cvd__hex {
+  flex: none;
+  color: var(--glass-text-2);
+  font-family: var(--glass-font-mono);
+  font-size: 21rpx;
+}
+
+.cl-cvd__ratio {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--glass-text-3);
+  font-size: 19rpx;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cl-copy {
+  padding: 18rpx 0;
+  border-top: 1rpx solid var(--glass-border);
+  border-bottom: 1rpx solid var(--glass-border);
+  color: var(--glass-text-2);
+  font-size: 21rpx;
+  text-align: center;
+}

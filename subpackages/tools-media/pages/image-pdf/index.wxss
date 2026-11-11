@@ -1,0 +1,174 @@
+/* ==========================================================================
+   图片转 PDF · 选图 / 缩略图 / 页面尺寸
+   - 只使用 --glass-* 令牌，无硬编码色值
+   ========================================================================== */
+
+.pdf-pick {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12rpx;
+  box-sizing: border-box;
+  padding: 24rpx 20rpx;
+  border: 1rpx dashed var(--glass-border-strong);
+  border-radius: var(--glass-radius-md);
+  background-color: var(--glass-bg-soft);
+}
+
+.pdf-pick__plus {
+  color: var(--glass-text-2);
+  font-size: 34rpx;
+  line-height: 1;
+}
+
+.pdf-pick__text {
+  flex: 1;
+  color: var(--glass-text);
+  font-size: 23rpx;
+}
+
+.pdf-pick__count {
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 20rpx;
+}
+
+.pdf-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.pdf-item {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 16rpx;
+  box-sizing: border-box;
+  padding: 12rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: var(--glass-radius-sm);
+  background-color: var(--glass-bg-soft);
+}
+
+.pdf-item__img {
+  flex: none;
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: var(--glass-radius-xs);
+  background-color: var(--glass-bg-strong);
+}
+
+.pdf-item__meta {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4rpx;
+  min-width: 0;
+}
+
+.pdf-item__name {
+  color: var(--glass-text);
+  font-size: 22rpx;
+}
+
+.pdf-item__size {
+  overflow: hidden;
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 19rpx;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pdf-item__remove {
+  flex: none;
+  width: 52rpx;
+  height: 52rpx;
+  color: var(--glass-text-3);
+  font-size: 34rpx;
+  line-height: 52rpx;
+  text-align: center;
+}
+
+.pdf-field {
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+}
+
+.pdf-label {
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 19rpx;
+  letter-spacing: 0.08em;
+}
+
+.pdf-chips {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.pdf-chip {
+  min-width: 120rpx;
+  box-sizing: border-box;
+  padding: 14rpx 24rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: 999rpx;
+  background-color: var(--glass-bg-soft);
+  color: var(--glass-text-2);
+  font-size: 23rpx;
+  text-align: center;
+}
+
+.pdf-chip--on {
+  border-color: var(--glass-accent);
+  background-color: var(--glass-accent-soft);
+  color: var(--glass-text);
+}
+
+.pdf-canvas {
+  position: fixed;
+  top: -10000px;
+  left: -10000px;
+  width: 300px;
+  height: 300px;
+  pointer-events: none;
+}
+
+.pdf-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.pdf-stage__label {
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 19rpx;
+  letter-spacing: 0.08em;
+}
+
+.pdf-stage__main {
+  color: var(--glass-text);
+  font-family: var(--glass-font-mono);
+  font-size: 44rpx;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.pdf-stage__meta {
+  color: var(--glass-text-3);
+  font-size: 20rpx;
+}
+
+.pdf-preview {
+  padding: 18rpx 0;
+  border-top: 1rpx solid var(--glass-border);
+  border-bottom: 1rpx solid var(--glass-border);
+  color: var(--glass-text-2);
+  font-size: 21rpx;
+  text-align: center;
+}

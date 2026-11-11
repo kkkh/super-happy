@@ -1,0 +1,106 @@
+<glass-tool-shell
+  tool-id="salary-inverse"
+  title="{{toolName}}"
+  kicker="{{kicker}}"
+  desc="{{desc}}"
+  run-label="反推税前月薪"
+  poster-data="{{posterData}}"
+  state="{{shellState}}"
+  has-result="{{hasResult}}"
+  error="{{error}}"
+  empty-title="输入目标到手月薪"
+  empty-sub="按月度简化口径反推税前；结果仅供参考"
+  bind:run="onRun"
+  bind:reset="onReset"
+  bind:example="onExample"
+>
+  <view slot="input" class="sg-tool-fields">
+    <glass-input
+      label="目标到手月薪（元）"
+      type="digit"
+      maxlength="{{10}}"
+      value="{{targetNet}}"
+      placeholder="例如 10000"
+      data-field="targetNet"
+      aria-label="目标到手月薪，元"
+      bind:input="onInput"
+    />
+
+    <view class="si-modes" aria-role="tablist" aria-label="五险一金方式">
+      <view
+        wx:for="{{modeOptions}}"
+        wx:key="key"
+        class="si-mode {{item.key === insuranceMode ? 'si-mode--on' : ''}}"
+        data-mode="{{item.key}}"
+        bindtap="onMode"
+        aria-role="tab"
+        aria-selected="{{item.key === insuranceMode}}"
+      >{{item.label}}</view>
+    </view>
+
+    <glass-input
+      wx:if="{{insuranceMode === 'ratio'}}"
+      label="五险一金月度比例（%）"
+      type="digit"
+      maxlength="{{6}}"
+      value="{{insuranceRatio}}"
+      placeholder="例如 10.5；0 表示不缴"
+      data-field="insuranceRatio"
+      aria-label="五险一金月度比例，百分比"
+      bind:input="onInput"
+    />
+    <glass-input
+      wx:else
+      label="五险一金固定金额（元/月）"
+      type="digit"
+      maxlength="{{10}}"
+      value="{{insuranceFixed}}"
+      placeholder="例如 2000；留空表示 0"
+      data-field="insuranceFixed"
+      aria-label="五险一金固定金额，元每月"
+      bind:input="onInput"
+    />
+
+    <glass-input
+      label="专项附加扣除（元/月）"
+      type="digit"
+      maxlength="{{10}}"
+      value="{{special}}"
+      placeholder="例如 1000；留空表示 0"
+      data-field="special"
+      aria-label="专项附加扣除，元每月"
+      bind:input="onInput"
+    />
+
+    <view class="si-hint">按月度简化口径试算，不按累计预扣；五险一金比例请按所在城市与缴费基数填写，0 表示不缴。</view>
+  </view>
+
+  <view slot="result" class="sg-tool-result">
+    <view class="si-stage">
+      <view class="si-label">税前月薪</view>
+      <view class="si-gross" aria-role="status">{{grossText}}</view>
+      <view class="si-caption">目标到手 ¥{{targetNet}} · 月度简化口径</view>
+    </view>
+
+    <view class="sg-tool-rows">
+      <view wx:for="{{resultRows}}" wx:key="k" class="sg-tool-row">
+        <text class="sg-tool-row__k">{{item.k}}</text>
+        <text class="sg-tool-row__v">{{item.v}}</text>
+      </view>
+    </view>
+
+    <view wx:if="{{verificationNote}}" class="si-warn">{{verificationNote}}</view>
+
+    <view
+      class="si-copy"
+      bindtap="onCopy"
+      aria-role="button"
+      aria-label="复制薪资反算结果"
+    >点击复制结果</view>
+
+    <view class="sg-tool-note">
+      <text class="sg-tool-note__title">说明</text>
+      <text class="sg-tool-note__text">按月度简化口径计算：5,000 元起征、7 级综合所得税率、五险一金与专项附加扣除；不按累计预扣，不含年终奖、补贴与其他扣除。结果仅供参考，不构成税务或劳动建议。</text>
+    </view>
+  </view>
+</glass-tool-shell>

@@ -406,6 +406,175 @@
   color: var(--glass-text-3);
 }
 
+/* ---- 首次使用指南横幅 ---- */
+.home-help-banner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-top: 14rpx;
+  padding: 20rpx 22rpx;
+  border-radius: 26rpx;
+  background: var(--glass-bg-soft);
+  border: 1rpx solid var(--glass-border);
+}
+
+.home-help-banner__copy {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.home-help-banner__title {
+  font-size: 25rpx;
+  font-weight: 600;
+  color: var(--glass-text-2);
+}
+
+.home-help-banner__sub {
+  margin-top: 6rpx;
+  font-size: 21rpx;
+  color: var(--glass-text-3);
+}
+
+.home-help-banner__close {
+  flex: none;
+  width: 44rpx;
+  height: 44rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 30rpx;
+  line-height: 1;
+  color: var(--glass-text-3);
+  background: var(--glass-bg);
+}
+
+/* ---- 搜索历史：玻璃胶囊 chips ---- */
+.home-history {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  margin-top: 14rpx;
+  padding: 18rpx 20rpx 20rpx;
+  border-radius: 28rpx;
+  background: var(--glass-bg-soft);
+  border: 1rpx solid var(--glass-border);
+}
+
+.home-history__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14rpx;
+}
+
+.home-history__title {
+  font-size: 21rpx;
+  letter-spacing: 2rpx;
+  color: var(--glass-text-3);
+}
+
+.home-history__clear {
+  padding: 4rpx 10rpx;
+  border-radius: 999rpx;
+  font-size: 21rpx;
+  color: var(--glass-text-3);
+}
+
+.home-history__clear:active {
+  background: var(--glass-bg);
+}
+
+.home-history__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.home-history__chip {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  height: 54rpx;
+  padding: 0 12rpx 0 18rpx;
+  border-radius: 999rpx;
+  background: var(--glass-bg);
+  border: 1rpx solid var(--glass-border);
+  transition: transform 140ms var(--glass-ease-out);
+}
+
+.home-history__chip--press {
+  transform: scale(0.96);
+  background: var(--glass-bg-strong);
+}
+
+.home-history__chip-text {
+  max-width: 260rpx;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 23rpx;
+  color: var(--glass-text-2);
+}
+
+.home-history__chip-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32rpx;
+  height: 32rpx;
+  border-radius: 50%;
+  font-size: 24rpx;
+  line-height: 1;
+  color: var(--glass-text-3);
+  background: var(--glass-bg-soft);
+}
+
+/* ---- 搜索空结果 ---- */
+.home-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10rpx;
+  padding: 46rpx 0 36rpx;
+}
+
+.home-empty__title {
+  font-size: 26rpx;
+  color: var(--glass-text-2);
+}
+
+.home-empty__sub {
+  font-size: 22rpx;
+  color: var(--glass-text-3);
+}
+
+.home-empty__chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12rpx;
+  margin-top: 10rpx;
+}
+
+.home-empty__chip {
+  padding: 10rpx 26rpx;
+  border-radius: 999rpx;
+  background: var(--glass-bg);
+  border: 1rpx solid var(--glass-border);
+  font-size: 23rpx;
+  color: var(--glass-text-2);
+}
+
+.home-empty__chip:active {
+  background: var(--glass-bg-strong);
+}
+
 .home-sections {
   position: relative;
   z-index: 1;

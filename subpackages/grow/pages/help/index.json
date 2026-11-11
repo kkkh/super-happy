@@ -1,0 +1,8 @@
+{
+  "navigationBarTitleText": "使用指南",
+  "disableScroll": true,
+  "usingComponents": {
+    "g-navbar": "../../../../components/g-navbar/index",
+    "glass-card": "../../../../components/glass-card/index"
+  }
+}

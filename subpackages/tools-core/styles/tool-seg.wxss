@@ -1,0 +1,39 @@
+/* 工具页分段选择器 · 多页共用 */
+.tool-seg {
+  display: flex;
+  gap: 6rpx;
+  padding: 6rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: 999rpx;
+  background-color: var(--glass-bg-soft);
+  box-sizing: border-box;
+}
+
+.tool-seg__item {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 62rpx;
+  padding: 0 18rpx;
+  border-radius: 999rpx;
+  color: var(--glass-text-2);
+  font-size: 23rpx;
+  font-weight: 600;
+  text-align: center;
+  box-sizing: border-box;
+  transition:
+    color var(--glass-duration-fast) var(--glass-ease-out),
+    background-color var(--glass-duration-fast) var(--glass-ease-out);
+}
+
+.tool-seg__item--active {
+  background-color: var(--glass-accent-soft);
+  color: var(--glass-accent);
+  box-shadow: var(--glass-shadow-soft);
+}
+
+.tool-press {
+  opacity: 0.86;
+  transform: scale(0.97);
+}

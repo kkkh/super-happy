@@ -4,7 +4,6 @@
   kicker="{{kicker}}"
   desc="{{desc}}"
   poster-data="{{posterData}}"
-  sensitive="privacy"
   state="{{generating ? 'running' : 'idle'}}"
   show-run="{{false}}"
   show-example="{{false}}"

@@ -1,0 +1,1 @@
+<image class="wg wg--{{size}}" src="{{iconSrc}}" mode="aspectFit" aria-hidden="true" />

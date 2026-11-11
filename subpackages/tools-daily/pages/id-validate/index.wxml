@@ -1,0 +1,77 @@
+<glass-tool-shell
+  tool-id="id-validate"
+  title="{{toolName}}"
+  kicker="{{kicker}}"
+  desc="{{desc}}"
+  run-label="开始校验"
+  poster-data="{{posterData}}"
+  state="{{shellState}}"
+  has-result="{{hasResult}}"
+  can-run="{{canRun}}"
+  error="{{error}}"
+  empty-title="输入身份证号或银行卡号"
+  empty-sub="18 位身份证加权校验；12–19 位银行卡 Luhn 校验"
+  bind:run="onRun"
+  bind:reset="onReset"
+  bind:example="onExample"
+>
+  <view slot="input" class="sg-tool-fields">
+    <view class="iv-modes" aria-role="tablist" aria-label="校验类型">
+      <view
+        wx:for="{{modeOptions}}"
+        wx:key="key"
+        class="iv-mode {{item.key === mode ? 'iv-mode--on' : ''}}"
+        data-mode="{{item.key}}"
+        bindtap="onMode"
+        aria-role="tab"
+        aria-selected="{{item.key === mode}}"
+      >{{item.label}}</view>
+    </view>
+
+    <glass-input
+      label="身份证 / 银行卡号"
+      type="text"
+      maxlength="{{26}}"
+      value="{{value}}"
+      placeholder="18 位身份证或 12–19 位银行卡"
+      hint="号码只在本机校验，不保存、不上传；末位 X 可用小写"
+      clearable="{{true}}"
+      aria-label="证件号"
+      bind:input="onInput"
+    />
+  </view>
+
+  <view slot="result" class="sg-tool-result">
+    <view class="iv-stage">
+      <view class="iv-stage__label">{{resultLabel}}</view>
+      <view class="iv-stage__main" aria-role="status">{{resultMain}}</view>
+    </view>
+
+    <view class="sg-tool-rows">
+      <view
+        wx:for="{{resultRows}}"
+        wx:key="k"
+        class="sg-tool-row"
+        data-value="{{item.v}}"
+        bindtap="onCopyRow"
+        aria-role="button"
+        aria-label="复制 {{item.k}}"
+      >
+        <text class="sg-tool-row__k">{{item.k}}</text>
+        <text class="sg-tool-row__v">{{item.v}}</text>
+      </view>
+    </view>
+
+    <view
+      class="iv-copy"
+      bindtap="onCopy"
+      aria-role="button"
+      aria-label="复制校验结果"
+    >点击复制结果</view>
+
+    <view class="sg-tool-note">
+      <text class="sg-tool-note__title">说明</text>
+      <text class="sg-tool-note__text">身份证按 GB 11643 加权校验位并检证内出生日期；银行卡按 Luhn 校验。只检查格式与校验位，不联网、不查询发卡行、不验证证件真伪；结果只在本机生成，号码不会保存或上传。</text>
+    </view>
+  </view>
+</glass-tool-shell>

@@ -987,7 +987,7 @@
                 <view wx:if="{{hasPendingUpdate}}" class="settings-update-dot" aria-hidden="true"></view>
               </view>
               <text wx:if="{{hasPendingUpdate}}" class="settings-row__sub settings-row__sub--update">新版本已就绪 · 重启小程序后生效</text>
-              <text wx:else class="settings-row__sub">v{{version}} · 23 个本机工具 · 无广告 · 无登录</text>
+              <text wx:else class="settings-row__sub">v{{version}} · 24 个实用工具 · 无广告 · 无登录</text>
             </view>
             <text class="settings-row__value">{{changelogOpen ? '收起' : '展开'}}</text>
             <view class="settings-chevron {{changelogOpen ? 'settings-chevron--open' : ''}}">
@@ -1123,6 +1123,9 @@
   </glass-bottom-sheet>
 
   <glass-toast z-index="{{1200}}" />
+
+  <!-- 剪贴板属于微信隐私接口：分片复制 / 从剪贴板追加 / 备份码复制前必须能弹出授权 -->
+  <privacy-guard />
 
   <!-- AES 加密 / 时间旅行 / 分片 / Auto-Pilot / 页面抽屉期间，更新弹窗只排队 -->
   <update-guard

@@ -27,17 +27,67 @@
         "pages/url/index",
         "pages/base64/index",
         "pages/password/index",
-        "pages/bmi/index"
+        "pages/bmi/index",
+        "pages/radix/index",
+        "pages/date-format/index",
+        "pages/date-add/index",
+        "pages/color/index",
+        "pages/json-csv/index",
+        "pages/timezone/index",
+        "pages/schedule/index",
+        "pages/text-convert/index",
+        "pages/template/index",
+        "pages/regex/index",
+        "pages/weather/index"
+      ]
+    },
+    {
+      "root": "subpackages/tools-daily",
+      "pages": [
+        "pages/ledger/index",
+        "pages/worktime/index",
+        "pages/wellness/index",
+        "pages/random-pick/index",
+        "pages/fuel/index",
+        "pages/power/index",
+        "pages/resolution/index",
+        "pages/carloan/index",
+        "pages/quote/index",
+        "pages/meeting-timer/index",
+        "pages/bodyfat/index",
+        "pages/fx-manual/index",
+        "pages/salary-inverse/index",
+        "pages/percent/index",
+        "pages/size-convert/index",
+        "pages/severance/index",
+        "pages/id-validate/index"
       ]
     },
     {
       "root": "subpackages/tools-media",
       "pages": [
+        "pages/photo-edit/index",
         "pages/compress/index",
         "pages/palette/index",
         "pages/nine-grid/index",
         "pages/qr/index",
+        "pages/id-photo/index",
+        "pages/image-pdf/index",
+        "pages/barcode/index",
+        "pages/exif/index",
+        "pages/avatar/index",
+        "pages/collage/index",
+        "pages/qr-decode/index",
+        "pages/vcard/index",
         "pages/watermark/index"
+      ]
+    },
+    {
+      "root": "subpackages/tools-dict",
+      "pages": [
+        "pages/lunar/index",
+        "pages/zh-convert/index",
+        "pages/pinyin/index"
       ]
     },
     {
@@ -49,7 +99,8 @@
         "pages/about/index",
         "pages/skills/index",
         "pages/settings/index",
-        "pages/cockpit/index"
+        "pages/cockpit/index",
+        "pages/help/index"
       ]
     },
     {
@@ -98,7 +149,8 @@
     ]
   },
   "usingComponents": {
-    "update-guard": "/components/update-guard/index"
+    "update-guard": "/components/update-guard/index",
+    "meeting-timer-hud": "/components/meeting-timer-hud/index"
   },
   "window": {
     "navigationStyle": "custom",
@@ -109,6 +161,14 @@
     "backgroundTextStyle": "dark",
     "navigationBarTextStyle": "@navText"
   },
+  "permission": {
+    "scope.userLocation": {
+      "desc": "用于定位当前城市并展示本地天气"
+    }
+  },
+  "requiredPrivateInfos": [
+    "getFuzzyLocation"
+  ],
   "darkmode": true,
   "__usePrivacyCheck__": true,
   "themeLocation": "theme.json",

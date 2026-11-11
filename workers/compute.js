@@ -3,10 +3,12 @@
  * 微信小程序 Worker 计算入口
  * - 平台限制：同一时刻只允许一个 Worker，因此本文件按串行任务处理
  * - 协议：
- *   主线程 -> Worker: { kind: 'task', id, task, payload }
- *   Worker -> 主线程: { kind: 'progress', id, progress } |
+ *   主线程 -> Worker: { kind: 'ping', id } | { kind: 'task', id, task, payload }
+ *   Worker -> 主线程: { kind: 'pong', id } |
+ *                    { kind: 'progress', id, progress } |
  *                    { kind: 'done', id, ok, data } |
  *                    { kind: 'done', id, ok: false, error: { code, message } }
+ * - pong 用于冷启动握手：Worker 就绪后才派发任务，300ms 只计执行时间
  * - 支持 text-stats / dedupe / base64-encode / checksum
  */
 
@@ -419,6 +421,71 @@ function computeNineGridPlan(id, payload) {
   }
 }
 
+function computeRegex(id, payload) {
+  var pattern = payload && typeof payload.pattern === 'string' ? payload.pattern : ''
+  var flags = payload && typeof payload.flags === 'string' ? payload.flags : ''
+  var text = payload && typeof payload.text === 'string' ? payload.text : ''
+  var safeFlags = ''
+  var flagIndex = 0
+  for (flagIndex = 0; flagIndex < flags.length; flagIndex += 1) {
+    var flag = flags.charAt(flagIndex)
+    if ('gimsuy'.indexOf(flag) >= 0 && safeFlags.indexOf(flag) < 0) {
+      safeFlags += flag
+    }
+  }
+  var expression = new RegExp(pattern, safeFlags)
+  var matches = []
+  var truncated = false
+  var limit = 500
+  var global = safeFlags.indexOf('g') >= 0
+
+  if (!global) {
+    var single = expression.exec(text)
+    if (single) {
+      matches.push({
+        index: single.index,
+        end: single.index + single[0].length,
+        value: single[0],
+        groups: single.slice(1).map(function (group) {
+          return group == null ? '' : String(group)
+        }),
+      })
+    }
+    return { matches: matches, truncated: truncated }
+  }
+
+  var guard = 0
+  var match = expression.exec(text)
+  while (match !== null) {
+    matches.push({
+      index: match.index,
+      end: match.index + match[0].length,
+      value: match[0],
+      groups: match.slice(1).map(function (group) {
+        return group == null ? '' : String(group)
+      }),
+    })
+    if (matches.length >= limit) {
+      /* 恰好 500 条时先探测是否还有第 501 条，避免把“刚好到上限”误报为截断 */
+      if (match[0] === '') {
+        expression.lastIndex += 1
+      }
+      truncated = expression.exec(text) !== null
+      break
+    }
+    if (match[0] === '') {
+      expression.lastIndex += 1
+    }
+    guard += 1
+    if (guard > limit * 2) {
+      truncated = true
+      break
+    }
+    match = expression.exec(text)
+  }
+  return { matches: matches, truncated: truncated }
+}
+
 function clampInt(value, min, max, fallback) {
   if (typeof value !== 'number' || !isFinite(value)) {
     return fallback
@@ -457,6 +524,10 @@ function runTask(message) {
       postDone(id, computeNineGridPlan(id, payload))
       return
     }
+    if (task === 'regex') {
+      postDone(id, computeRegex(id, payload))
+      return
+    }
     postError(id, 'UNKNOWN_TASK', '未知的计算任务：' + String(task))
   } catch (error) {
     var messageText =
@@ -467,7 +538,14 @@ function runTask(message) {
 
 worker.onMessage(function (res) {
   var message = res && res.message ? res.message : res
-  if (!message || message.kind !== 'task') {
+  if (!message) {
+    return
+  }
+  if (message.kind === 'ping') {
+    worker.postMessage({ kind: 'pong', id: message.id })
+    return
+  }
+  if (message.kind !== 'task') {
     return
   }
   runTask(message)

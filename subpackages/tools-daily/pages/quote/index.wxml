@@ -1,0 +1,140 @@
+<glass-tool-shell
+  tool-id="quote"
+  title="{{toolName}}"
+  kicker="{{kicker}}"
+  desc="{{desc}}"
+  poster-data="{{posterData}}"
+  run-label="生成报价"
+  state="{{shellState}}"
+  has-result="{{hasResult}}"
+  error="{{error}}"
+  empty-title="填写明细，生成报价单"
+  empty-sub="行小计 / 优惠 / 税额 / 大写 / CSV 全部在本机完成"
+  bind:run="onRun"
+  bind:example="onExample"
+  bind:reset="onReset"
+>
+  <view slot="input" class="sg-tool-fields">
+    <view wx:for="{{rows}}" wx:key="id" class="quote-row">
+      <view class="quote-row__head">
+        <text class="quote-row__index">第 {{index + 1}} 行</text>
+        <text
+          wx:if="{{rows.length > 1}}"
+          class="quote-row__remove"
+          data-id="{{item.id}}"
+          bindtap="onRemoveRow"
+          aria-role="button"
+          aria-label="删除第 {{index + 1}} 行"
+        >删除</text>
+      </view>
+
+      <glass-input
+        label="名称"
+        maxlength="{{40}}"
+        value="{{item.name}}"
+        placeholder="例如 设计服务"
+        data-id="{{item.id}}"
+        data-field="name"
+        aria-label="第 {{index + 1}} 行名称"
+        bind:input="onRowInput"
+      />
+
+      <view class="quote-row__grid">
+        <view class="quote-row__col">
+          <glass-input
+            label="数量"
+            type="digit"
+            maxlength="{{9}}"
+            value="{{item.quantity}}"
+            placeholder="1"
+            data-id="{{item.id}}"
+            data-field="quantity"
+            aria-label="第 {{index + 1}} 行数量"
+            bind:input="onRowInput"
+          />
+        </view>
+        <view class="quote-row__col">
+          <glass-input
+            label="单价（元）"
+            type="digit"
+            maxlength="{{11}}"
+            value="{{item.unitPrice}}"
+            placeholder="例如 3000"
+            data-id="{{item.id}}"
+            data-field="unitPrice"
+            aria-label="第 {{index + 1}} 行单价"
+            bind:input="onRowInput"
+          />
+        </view>
+      </view>
+    </view>
+
+    <view
+      class="quote-add"
+      bindtap="onAddRow"
+      aria-role="button"
+      aria-label="添加一行明细"
+    >+ 添加一行（最多 50 行）</view>
+
+    <glass-input
+      label="税率（可空）"
+      hint="留空不计税；0–100%，最多两位小数"
+      type="digit"
+      maxlength="{{5}}"
+      value="{{taxText}}"
+      placeholder="例如 6"
+      data-field="taxText"
+      aria-label="税率，百分比"
+      bind:input="onFieldInput"
+    />
+
+    <glass-input
+      label="优惠金额（可空）"
+      hint="先扣优惠再计税；超过合计按合计封顶"
+      type="digit"
+      maxlength="{{11}}"
+      value="{{discountText}}"
+      placeholder="例如 200"
+      data-field="discountText"
+      aria-label="优惠金额，元"
+      bind:input="onFieldInput"
+    />
+  </view>
+
+  <view slot="result" class="sg-tool-result">
+    <view class="sg-tool-result__head">
+      <text class="sg-tool-result__label">{{resultLabel}}</text>
+      <text class="sg-tool-result__meta" bindtap="onCopy">点击复制摘要</text>
+    </view>
+
+    <view class="sg-tool-result__main" aria-role="status">{{resultMain}}</view>
+
+    <view class="sg-tool-rows">
+      <view
+        wx:for="{{resultRows}}"
+        wx:key="k"
+        class="sg-tool-row"
+        data-value="{{item.v}}"
+        bindtap="onCopyRow"
+        aria-role="button"
+        aria-label="复制 {{item.k}}"
+      >
+        <text class="sg-tool-row__k">{{item.k}}</text>
+        <text class="sg-tool-row__v">{{item.v}}</text>
+      </view>
+    </view>
+
+    <view
+      wx:if="{{hasResult && canExport}}"
+      class="quote-export"
+      bindtap="onExportCsv"
+      aria-role="button"
+      aria-label="导出 CSV 报价单"
+    >导出 CSV（本机文件，主动分享）</view>
+
+    <view class="sg-tool-note">
+      <text class="sg-tool-note__title">说明</text>
+      <text class="sg-tool-note__text">报价单，非发票：不生成税务发票，也不生成发票号码。行小计先四舍五入到分，合计为各行小计之和；优惠先扣减再计税；所有计算与 CSV 只在本机完成。</text>
+    </view>
+  </view>
+</glass-tool-shell>

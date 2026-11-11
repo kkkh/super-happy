@@ -1,0 +1,9 @@
+{
+  "navigationBarTitleText": "正则测试",
+  "disableScroll": true,
+  "usingComponents": {
+    "glass-tool-shell": "../../../../components/glass-tool-shell/index",
+    "glass-input": "../../../../components/glass-input/index",
+    "glass-button": "../../../../components/glass-button/index"
+  }
+}

@@ -1,0 +1,170 @@
+/* ==========================================================================
+   拼图与长图 · 选图网格 / 模板与间距 chips / 结果预览
+   - 只使用 --glass-* 令牌，无裸伪类
+   ========================================================================== */
+
+.cl-notice {
+  box-sizing: border-box;
+  padding: 16rpx 20rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: var(--glass-radius-sm);
+  background-color: var(--glass-accent-warm-soft);
+}
+
+.cl-notice__text {
+  color: var(--glass-text-2);
+  font-size: 21rpx;
+  line-height: 1.6;
+}
+
+.cl-blank {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10rpx;
+  box-sizing: border-box;
+  padding: 44rpx 24rpx;
+  border: 1rpx dashed var(--glass-border-strong);
+  border-radius: var(--glass-radius-lg);
+  background-color: var(--glass-bg-soft);
+}
+
+.cl-blank__title {
+  color: var(--glass-text);
+  font-size: 26rpx;
+  font-weight: 600;
+}
+
+.cl-blank__sub {
+  color: var(--glass-text-3);
+  font-size: 20rpx;
+  text-align: center;
+}
+
+.cl-grid {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.cl-thumb {
+  position: relative;
+  width: 140rpx;
+  height: 140rpx;
+  overflow: hidden;
+  border-radius: var(--glass-radius-md);
+  background-color: var(--glass-bg-soft);
+}
+
+.cl-thumb__img {
+  width: 100%;
+  height: 100%;
+}
+
+.cl-thumb__remove {
+  position: absolute;
+  top: 6rpx;
+  right: 6rpx;
+  width: 36rpx;
+  height: 36rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: var(--glass-scrim, rgba(0, 0, 0, 0.45));
+  color: var(--glass-text-inverse, #fff);
+  font-size: 24rpx;
+}
+
+.cl-thumb--add {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4rpx;
+  border: 1rpx dashed var(--glass-border-strong);
+}
+
+.cl-thumb__plus {
+  color: var(--glass-text-3);
+  font-size: 40rpx;
+  line-height: 1;
+}
+
+.cl-thumb__count {
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 17rpx;
+}
+
+.cl-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.cl-label {
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono);
+  font-size: 19rpx;
+  letter-spacing: 0.08em;
+}
+
+.cl-chips {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.cl-chip {
+  flex: 1;
+  min-width: 120rpx;
+  height: 64rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 0 18rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: 999rpx;
+  background-color: var(--glass-bg-soft);
+  color: var(--glass-text-3);
+  font-size: 21rpx;
+}
+
+.cl-chip.is-active {
+  border-color: var(--glass-border-strong);
+  background-color: var(--glass-bg-strong);
+  color: var(--glass-text);
+  font-weight: 600;
+}
+
+.cl-hint {
+  color: var(--glass-text-3);
+  font-size: 19rpx;
+  line-height: 1.6;
+}
+
+.cl-output {
+  width: 100%;
+  height: 360rpx;
+  border-radius: var(--glass-radius-md);
+  background-color: var(--glass-bg-soft);
+}
+
+.cl-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+  margin-top: 10rpx;
+}
+
+.cl-canvas {
+  position: fixed;
+  left: -9999rpx;
+  top: 0;
+  opacity: 0;
+  pointer-events: none;
+}

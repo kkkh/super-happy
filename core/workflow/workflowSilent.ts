@@ -4,6 +4,26 @@
    - Base64 / 去重 / JSON / URL / 字数统计 与现有工具默认行为一致
    - 每个步骤都必须可抛错，由 workflowStore 统一熔断
    ========================================================================== */
+import {
+  addDate,
+  dateAddSummary,
+  dateSummaryText,
+  formatAll,
+  parseDateAddWorkflow,
+} from '../toolbox/engines/date'
+import { colorSummary, parseColor } from '../toolbox/engines/color'
+import { jsonToCsv } from '../toolbox/engines/csv'
+import { pickUnique, splitOptions } from '../toolbox/engines/random'
+import { convertText, isConvertMode } from '../toolbox/engines/text'
+import { extractPlaceholders } from '../toolbox/engines/template'
+import { analyzeResolution, resolutionSummary } from '../toolbox/engines/resolution'
+import {
+  changeRate,
+  parsePercentWorkflow,
+  percentOf,
+  percentSummary,
+  ratioParts,
+} from '../toolbox/engines/percent'
 import { workflowToolName } from './workflowConfig'
 import type { IWorkflowData, WorkflowToolId } from './types'
 
@@ -217,6 +237,139 @@ function formatCountSummary(text: string): string {
   ].join(' · ')
 }
 
+/** 进制摘要：十进制文本 → 四进制摘要；仅接受安全整数，超出交给页面处理 */
+function formatRadixSummary(text: string): string {
+  const raw = text.trim()
+  if (!/^-?\d+$/.test(raw)) {
+    throw new Error('进制转换：静默流转仅支持十进制整数')
+  }
+  const value = Number(raw)
+  if (!Number.isSafeInteger(value)) {
+    throw new Error('进制转换：数值超出安全整数范围，请在页面内转换')
+  }
+  const negative = value < 0 ? '-' : ''
+  const abs = Math.abs(value)
+  return [
+    `BIN ${negative}${abs.toString(2)}`,
+    `OCT ${negative}${abs.toString(8)}`,
+    `DEC ${negative}${abs.toString(10)}`,
+    `HEX ${negative}${abs.toString(16).toUpperCase()}`,
+  ].join(' / ')
+}
+
+/** 日期格式：与页面同源 formatAll，非法日期明确抛错 */
+function formatDateSummary(text: string): string {
+  const result = formatAll(text.trim())
+  if (!result) {
+    throw new Error('日期格式：请输入 1900–2100 之间的合法日期')
+  }
+  return dateSummaryText(result)
+}
+
+/** 文本转换：context.convertMode 决定模式；缺失时默认 snake，保证面板可直接流转 */
+function convertSilentText(input: IWorkflowData): string {
+  const raw = input.context?.convertMode
+  const mode = isConvertMode(raw) ? raw : 'snake'
+  const result = convertText(mode, input.payload)
+  if (!result.text) {
+    throw new Error('文本转换：没有可转换的内容')
+  }
+  return result.text
+}
+
+/** 随机决定：silent 固定不重复，pickCount 缺省 1 */
+function pickSilent(input: IWorkflowData): string {
+  const raw = input.context?.pickCount
+  const count = typeof raw === 'number' && Number.isInteger(raw) ? raw : 1
+  const result = pickUnique(splitOptions(input.payload), count)
+  if (!result.ok) {
+    throw new Error(
+      result.code === 'insufficient'
+        ? '随机决定：选项数量不足'
+        : result.code === 'count'
+          ? '随机决定：抽取数量需在 1–10 之间'
+          : '随机决定：没有可抽取的选项',
+    )
+  }
+  return `抽中：${result.picked.join('、')}`
+}
+
+/** 占位符模板：silent 只提取变量清单，替换需要变量表，引导去页面填写 */
+function templateSilent(input: IWorkflowData): string {
+  const keys = extractPlaceholders(input.payload)
+  if (keys.length === 0) {
+    throw new Error('占位符模板：未发现 {{变量}}，请到页面填写模板与变量')
+  }
+  return `变量：${keys.join('、')}（${keys.length} 个）`
+}
+
+/** 分辨率静默：解析「宽x高」，输出化简比例 / 像素 / 高清判定 */
+function resolutionSilent(input: IWorkflowData): string {
+  const match = input.payload.match(/(\d{1,6})\s*[x×*]\s*(\d{1,6})/i)
+  if (!match) {
+    throw new Error('分辨率与比例：请输入 宽x高，例如 1920x1080')
+  }
+  const base = analyzeResolution(Number(match[1]), Number(match[2]))
+  if (!base) {
+    throw new Error('分辨率与比例：宽高需为大于 0 的整数')
+  }
+  return resolutionSummary({
+    ...base,
+    targetWidth: null,
+    targetHeight: null,
+    targetRatioText: null,
+  })
+}
+
+/** 日期加减静默：输入 `YYYY-MM-DD ±30d/w/m/y`，摘要与页面同源 */
+function dateAddSilent(input: IWorkflowData): string {
+  const parsed = parseDateAddWorkflow(input.payload)
+  if (!parsed) {
+    throw new Error('日期加减：请输入「日期 ±数量单位」，例如 2026-01-31 +1m')
+  }
+  const result = addDate(parsed.startISO, parsed.amount, parsed.unit)
+  if (!result) {
+    throw new Error('日期加减：结果需在 1900-01-01 至 2100-12-31 之间')
+  }
+  return dateAddSummary(result)
+}
+
+/** 颜色静默：HEX / RGB / HSL 任一，默认对白底计算对比度 */
+function colorSilent(input: IWorkflowData): string {
+  const foreground = parseColor(input.payload)
+  if (!foreground) {
+    throw new Error('颜色：请输入 #RGB / #RRGGBB 或 rgb(...) / hsl(...)')
+  }
+  return colorSummary(foreground)
+}
+
+/** JSON → CSV 静默：输入 JSON 对象数组，输出首行表头的 CSV 文本 */
+function jsonCsvSilent(input: IWorkflowData): string {
+  const result = jsonToCsv(input.payload)
+  if (!result.ok) {
+    throw new Error(`JSON 转 CSV：${result.error}`)
+  }
+  return result.output
+}
+
+/** 百分比静默：支持「占比 / 增减 / 配比」前缀，无前缀默认占比 */
+function percentSilent(input: IWorkflowData): string {
+  const parsed = parsePercentWorkflow(input.payload)
+  if (!parsed) {
+    throw new Error('百分比：请输入两个数字，例如 占比 25 200')
+  }
+  const result =
+    parsed.mode === 'share'
+      ? percentOf(parsed.aCents, parsed.bCents)
+      : parsed.mode === 'change'
+        ? changeRate(parsed.aCents, parsed.bCents)
+        : ratioParts(parsed.aCents, parsed.bCents)
+  if (!result) {
+    throw new Error('百分比：请检查总数 / 原值是否为 0，或涨跌幅是否超过 1000%')
+  }
+  return percentSummary(result)
+}
+
 /** A 类工具唯一执行入口；返回新的 IWorkflowData，绝不修改入参 */
 export function executeSilentTool(toolId: WorkflowToolId, input: IWorkflowData): IWorkflowData {
   if (!input.payload) {
@@ -229,6 +382,26 @@ export function executeSilentTool(toolId: WorkflowToolId, input: IWorkflowData):
   switch (toolId) {
     case 'base64':
       return { type: 'text', payload: encodeBase64Utf8(input.payload) }
+    case 'radix':
+      return { type: 'text', payload: formatRadixSummary(input.payload) }
+    case 'date-format':
+      return { type: 'text', payload: formatDateSummary(input.payload) }
+    case 'date-add':
+      return { type: 'text', payload: dateAddSilent(input) }
+    case 'color':
+      return { type: 'text', payload: colorSilent(input) }
+    case 'json-csv':
+      return { type: 'text', payload: jsonCsvSilent(input) }
+    case 'text-convert':
+      return { type: 'text', payload: convertSilentText(input) }
+    case 'random-pick':
+      return { type: 'text', payload: pickSilent(input) }
+    case 'template':
+      return { type: 'text', payload: templateSilent(input) }
+    case 'resolution':
+      return { type: 'text', payload: resolutionSilent(input) }
+    case 'percent':
+      return { type: 'text', payload: percentSilent(input) }
     case 'dedupe':
       return { type: 'text', payload: dedupeLines(input.payload) }
     case 'json':

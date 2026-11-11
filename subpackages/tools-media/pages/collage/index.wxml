@@ -1,0 +1,148 @@
+<glass-tool-shell
+  tool-id="collage"
+  title="{{toolName}}"
+  kicker="{{kicker}}"
+  desc="{{desc}}"
+  run-label="生成拼图"
+  can-run="{{imageCount >= 2}}"
+  poster-data="{{posterData}}"
+  show-example="{{false}}"
+  state="{{shellState}}"
+  has-result="{{hasResult}}"
+  error="{{error}}"
+  empty-title="选择 2–9 张图片，生成拼图"
+  empty-sub="选好图片与参数后点击「生成拼图」；全部在本机完成"
+  bind:run="onRun"
+  bind:reset="onReset"
+>
+  <view slot="input" class="sg-tool-fields">
+    <view wx:if="{{devtools}}" class="cl-notice">
+      <text class="cl-notice__text">开发者工具暂不支持 Skyline Canvas，请扫码在真机预览中生成拼图。</text>
+    </view>
+
+    <view wx:if="{{imageCount === 0}}" class="cl-blank" bindtap="onChoose" aria-role="button" aria-label="从相册选择 2–9 张图片">
+      <text class="cl-blank__title">从相册选择图片</text>
+      <text class="cl-blank__sub">至少 2 张，最多 9 张；超过模板容量会自动截断</text>
+    </view>
+
+    <view wx:else class="cl-grid">
+      <view wx:for="{{selected}}" wx:key="id" class="cl-thumb">
+        <image class="cl-thumb__img" src="{{item.path}}" mode="aspectFill" aria-label="已选图片 {{index + 1}}" />
+        <view
+          class="cl-thumb__remove"
+          data-id="{{item.id}}"
+          catchtap="onRemove"
+          aria-role="button"
+          aria-label="移除第 {{index + 1}} 张图片"
+        >×</view>
+      </view>
+      <view
+        wx:if="{{imageCount < maxImages}}"
+        class="cl-thumb cl-thumb--add"
+        bindtap="onChoose"
+        aria-role="button"
+        aria-label="继续添加图片"
+      >
+        <text class="cl-thumb__plus">+</text>
+        <text class="cl-thumb__count">{{imageCount}} / {{maxImages}}</text>
+      </view>
+    </view>
+
+    <view class="cl-section">
+      <text class="cl-label">模板</text>
+      <view class="cl-chips">
+        <view
+          wx:for="{{templateOptions}}"
+          wx:key="key"
+          class="cl-chip {{template === item.key ? 'is-active' : ''}}"
+          data-key="{{item.key}}"
+          bindtap="onTemplate"
+          aria-role="button"
+          aria-label="选择 {{item.label}}"
+        >{{item.label}}</view>
+      </view>
+    </view>
+
+    <view class="cl-section">
+      <text class="cl-label">间距</text>
+      <view class="cl-chips">
+        <view
+          wx:for="{{gapOptions}}"
+          wx:key="*this"
+          class="cl-chip {{gap === item ? 'is-active' : ''}}"
+          data-gap="{{item}}"
+          bindtap="onGap"
+          aria-role="button"
+          aria-label="间距 {{item}} 像素"
+        >{{item}} px</view>
+      </view>
+    </view>
+
+    <view class="cl-section">
+      <text class="cl-label">背景</text>
+      <view class="cl-chips">
+        <view
+          wx:for="{{backgroundOptions}}"
+          wx:key="key"
+          class="cl-chip {{background === item.key ? 'is-active' : ''}}"
+          data-key="{{item.key}}"
+          bindtap="onBackground"
+          aria-role="button"
+          aria-label="选择{{item.label}}"
+        >{{item.label}}</view>
+      </view>
+    </view>
+
+    <view class="cl-hint">图片按中心裁正方形后填入统一单元；2×2 最多 4 张、3×3 最多 9 张，竖排按实际张数顺排。选好图片与参数后点击「生成拼图」。</view>
+  </view>
+
+  <view slot="result" class="sg-tool-result">
+    <view class="sg-tool-result__head">
+      <text class="sg-tool-result__label">拼图尺寸</text>
+      <text class="sg-tool-result__meta">{{outputSizeText}}</text>
+    </view>
+
+    <view class="sg-tool-result__main" aria-role="status">{{outputTitle}}</view>
+
+    <image
+      class="cl-output"
+      src="{{outputPath}}"
+      mode="aspectFit"
+      bindtap="onPreview"
+      aria-role="button"
+      aria-label="预览拼图结果"
+    />
+
+    <view class="sg-tool-rows">
+      <view wx:for="{{resultRows}}" wx:key="k" class="sg-tool-row">
+        <text class="sg-tool-row__k">{{item.k}}</text>
+        <text class="sg-tool-row__v">{{item.v}}</text>
+      </view>
+    </view>
+
+    <view class="cl-actions">
+      <glass-button variant="ghost" size="md" block bind:tap="onPreview">预览</glass-button>
+      <glass-button
+        variant="primary"
+        size="md"
+        block
+        loading="{{saving}}"
+        loading-text="保存中"
+        bind:tap="onSave"
+      >保存到相册</glass-button>
+    </view>
+
+    <view class="sg-tool-note">
+      <text class="sg-tool-note__title">说明</text>
+      <text class="sg-tool-note__text">逐张串行绘制并立即释放图像对象，输出长边不超过 4096px；单张解码失败会跳过并在结果区提示。图片只在本机处理，退出页面即清理临时文件。</text>
+    </view>
+  </view>
+</glass-tool-shell>
+
+<canvas
+  wx:if="{{!devtools}}"
+  id="collage-canvas"
+  type="2d"
+  class="cl-canvas"
+  style="width: {{canvasCss}}px; height: {{canvasCss}}px;"
+></canvas>

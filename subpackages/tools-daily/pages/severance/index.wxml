@@ -1,0 +1,152 @@
+<glass-tool-shell
+  tool-id="severance"
+  title="{{toolName}}"
+  kicker="{{kicker}}"
+  desc="{{desc}}"
+  run-label="开始试算"
+  poster-data="{{posterData}}"
+  state="{{shellState}}"
+  has-result="{{hasResult}}"
+  can-run="{{canRun}}"
+  error="{{error}}"
+  empty-title="填写月薪与工作年限"
+  empty-sub="N / N+1、社平 3 倍封顶与未休年假一次算清"
+  bind:run="onRun"
+  bind:reset="onReset"
+  bind:example="onExample"
+>
+  <view slot="input" class="sg-tool-fields">
+    <view class="sv-field">
+      <text class="sv-label">补偿方案</text>
+      <view class="sv-chips" aria-role="tablist" aria-label="补偿方案">
+        <view
+          wx:for="{{modeOptions}}"
+          wx:key="key"
+          class="sv-chip {{item.key === mode ? 'sv-chip--on' : ''}}"
+          data-mode="{{item.key}}"
+          bindtap="onMode"
+          aria-role="tab"
+          aria-selected="{{item.key === mode}}"
+        >{{item.label}}</view>
+      </view>
+    </view>
+
+    <glass-input
+      label="月薪（税前）"
+      type="digit"
+      maxlength="{{12}}"
+      value="{{monthly}}"
+      placeholder="例如 20000"
+      hint="按劳动合同约定的月工资填写，最多两位小数"
+      aria-label="月薪"
+      data-field="monthly"
+      bind:input="onInput"
+    />
+
+    <view class="sv-grid">
+      <view class="sv-col">
+        <glass-input
+          label="工作年限（年）"
+          type="number"
+          maxlength="{{2}}"
+          value="{{years}}"
+          placeholder="例如 5"
+          aria-label="工作年限年"
+          data-field="years"
+          bind:input="onInput"
+        />
+      </view>
+      <view class="sv-col">
+        <glass-input
+          label="零头（月）"
+          type="number"
+          maxlength="{{2}}"
+          value="{{months}}"
+          placeholder="0–11"
+          aria-label="工作年限月"
+          data-field="months"
+          bind:input="onInput"
+        />
+      </view>
+    </view>
+
+    <view class="sv-field">
+      <text class="sv-label">社平封顶</text>
+      <view class="sv-chips" aria-role="tablist" aria-label="是否封顶">
+        <view
+          class="sv-chip {{capEnabled ? '' : 'sv-chip--on'}}"
+          data-enabled="0"
+          bindtap="onCap"
+          aria-role="tab"
+          aria-selected="{{!capEnabled}}"
+        >不封顶</view>
+        <view
+          class="sv-chip {{capEnabled ? 'sv-chip--on' : ''}}"
+          data-enabled="1"
+          bindtap="onCap"
+          aria-role="tab"
+          aria-selected="{{capEnabled}}"
+        >按 3 倍社平封顶</view>
+      </view>
+    </view>
+
+    <glass-input
+      wx:if="{{capEnabled}}"
+      label="当地社平月薪"
+      type="digit"
+      maxlength="{{12}}"
+      value="{{social}}"
+      placeholder="例如 10000"
+      hint="计发基数 = min(月薪, 3 × 社平)，补偿年限最多 12 年"
+      aria-label="当地社平月薪"
+      data-field="social"
+      bind:input="onInput"
+    />
+
+    <glass-input
+      label="未休年假（天）"
+      type="digit"
+      maxlength="{{4}}"
+      value="{{leaveDays}}"
+      placeholder="0"
+      hint="0–30 天，支持半天；额外补偿按日薪 × 天数 × 200%"
+      aria-label="未休年假天数"
+      data-field="leaveDays"
+      bind:input="onInput"
+    />
+  </view>
+
+  <view slot="result" class="sg-tool-result">
+    <view class="sv-stage">
+      <view class="sv-stage__label">{{resultLabel}}</view>
+      <view class="sv-stage__main" aria-role="status">{{resultMain}}</view>
+    </view>
+
+    <view class="sg-tool-rows">
+      <view
+        wx:for="{{resultRows}}"
+        wx:key="k"
+        class="sg-tool-row"
+        data-value="{{item.v}}"
+        bindtap="onCopyRow"
+        aria-role="button"
+        aria-label="复制 {{item.k}}"
+      >
+        <text class="sg-tool-row__k">{{item.k}}</text>
+        <text class="sg-tool-row__v">{{item.v}}</text>
+      </view>
+    </view>
+
+    <view
+      class="sv-copy"
+      bindtap="onCopy"
+      aria-role="button"
+      aria-label="复制补偿结果"
+    >点击复制结果</view>
+
+    <view class="sg-tool-note">
+      <text class="sg-tool-note__title">说明</text>
+      <text class="sg-tool-note__text">经济补偿按工作年限每满一年一个月工资；六个月以上不满一年按一年，不满六个月按半个月。封顶时计发基数为社平 3 倍且年限最多 12 年；年假补偿按日薪 × 天数 × 200%，正常工资另计。补偿与年假试算仅供参考，不构成法律意见。</text>
+    </view>
+  </view>
+</glass-tool-shell>

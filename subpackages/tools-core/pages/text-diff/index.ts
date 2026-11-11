@@ -10,6 +10,10 @@ import { tapSuccess, tapTick, tapWarn } from '../../../../core/utils/haptics'
 import { uiStore } from '../../../../core/stores/ui'
 import type { IWorkflowData } from '../../../../core/workflow/types'
 import type { IPosterData } from '../../../../core/toolbox/poster'
+import {
+  sharePayloadForCurrentPage,
+  timelinePayloadForCurrentPage,
+} from '../../../../core/toolbox/share'
 import { copyText } from '../../lib/ui'
 import {
   buildDiffReport,
@@ -149,6 +153,14 @@ function buildDiffPoster(input: {
 }
 
 Page({
+  onShareAppMessage() {
+    return sharePayloadForCurrentPage()
+  },
+
+  onShareTimeline() {
+    return timelinePayloadForCurrentPage()
+  },
+
   data: {
     toolName: '文本对比',
     kicker: '文本效率',

@@ -1,158 +1,57 @@
 /* ==========================================================================
-   Base64 · UTF-8 文本编解码（纯 JS，不依赖平台 API）
-   - 支持中文、Emoji 与 URL-safe Base64（-_）
-   - 只处理文本，不支持二进制文件；Base64 不是加密
+   Base64 · 文本编解码 + 图片转 Base64
+   - 文本：UTF-8 / 标准 Base64，兼容 URL-safe、中文与 Emoji
+   - 图片：相册单图，≤2MB，可选 data URL 前缀；只在本机读取
    ========================================================================== */
 import { copyText } from '../../lib/ui'
 import { tapTick } from '../../../../core/utils/haptics'
 import { LIMITS } from '../../../../core/constants/index'
+import { ensurePrivacyAuthorized } from '../../../../core/utils/privacy'
+import {
+  BASE64_MAX_BYTES,
+  BASE64_PREVIEW_LENGTH,
+  decodeBase64ToText,
+  encodeTextToBase64,
+  imageToBase64,
+  type ImageBase64Result,
+} from '../../lib/base64'
 import {
   sharePayloadForCurrentPage,
   timelinePayloadForCurrentPage,
 } from '../../../../core/toolbox/share'
 import type { IPosterData } from '../../../../core/toolbox/poster'
 
-type Base64Mode = 'encode' | 'decode'
+type Base64Mode = 'encode' | 'decode' | 'image'
 
-const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
-
-function utf8ToBytes(text: string): number[] {
-  const bytes: number[] = []
-  for (const char of Array.from(text)) {
-    const code = char.codePointAt(0)
-    if (code === undefined) {
-      continue
-    }
-    if (code < 0x80) {
-      bytes.push(code)
-    } else if (code < 0x800) {
-      bytes.push(0xc0 | (code >> 6), 0x80 | (code & 0x3f))
-    } else if (code < 0x10000) {
-      bytes.push(0xe0 | (code >> 12), 0x80 | ((code >> 6) & 0x3f), 0x80 | (code & 0x3f))
-    } else {
-      bytes.push(
-        0xf0 | (code >> 18),
-        0x80 | ((code >> 12) & 0x3f),
-        0x80 | ((code >> 6) & 0x3f),
-        0x80 | (code & 0x3f),
-      )
-    }
-  }
-  return bytes
+interface Base64State {
+  destroyed: boolean
+  imageSeq: number
 }
 
-function bytesToUtf8(bytes: number[]): string {
-  let out = ''
-  let index = 0
-  while (index < bytes.length) {
-    const first = bytes[index]
-    if (first < 0x80) {
-      out += String.fromCodePoint(first)
-      index += 1
-      continue
-    }
-    if (first >= 0xc2 && first <= 0xdf) {
-      const second = bytes[index + 1]
-      if (second === undefined || (second & 0xc0) !== 0x80) {
-        throw new Error('不是有效的 UTF-8 文本')
-      }
-      out += String.fromCodePoint(((first & 0x1f) << 6) | (second & 0x3f))
-      index += 2
-      continue
-    }
-    if (first >= 0xe0 && first <= 0xef) {
-      const second = bytes[index + 1]
-      const third = bytes[index + 2]
-      if (
-        second === undefined ||
-        third === undefined ||
-        (second & 0xc0) !== 0x80 ||
-        (third & 0xc0) !== 0x80
-      ) {
-        throw new Error('不是有效的 UTF-8 文本')
-      }
-      const code = ((first & 0x0f) << 12) | ((second & 0x3f) << 6) | (third & 0x3f)
-      if (code >= 0xd800 && code <= 0xdfff) {
-        throw new Error('不是有效的 UTF-8 文本')
-      }
-      out += String.fromCodePoint(code)
-      index += 3
-      continue
-    }
-    if (first >= 0xf0 && first <= 0xf4) {
-      const second = bytes[index + 1]
-      const third = bytes[index + 2]
-      const fourth = bytes[index + 3]
-      if (
-        second === undefined ||
-        third === undefined ||
-        fourth === undefined ||
-        (second & 0xc0) !== 0x80 ||
-        (third & 0xc0) !== 0x80 ||
-        (fourth & 0xc0) !== 0x80
-      ) {
-        throw new Error('不是有效的 UTF-8 文本')
-      }
-      const code =
-        ((first & 0x07) << 18) |
-        ((second & 0x3f) << 12) |
-        ((third & 0x3f) << 6) |
-        (fourth & 0x3f)
-      if (code > 0x10ffff) {
-        throw new Error('不是有效的 UTF-8 文本')
-      }
-      out += String.fromCodePoint(code)
-      index += 4
-      continue
-    }
-    throw new Error('不是有效的 UTF-8 文本')
-  }
-  return out
+interface ImageCache extends ImageBase64Result {
+  full: string
+  path: string
 }
 
-function bytesToBase64(bytes: number[]): string {
-  let out = ''
-  for (let index = 0; index < bytes.length; index += 3) {
-    const b1 = bytes[index]
-    const b2 = bytes[index + 1]
-    const b3 = bytes[index + 2]
-    out += ALPHABET[b1 >> 2]
-    out += ALPHABET[((b1 & 0x03) << 4) | ((b2 ?? 0) >> 4)]
-    out += b2 === undefined ? '=' : ALPHABET[((b2 & 0x0f) << 2) | ((b3 ?? 0) >> 6)]
-    out += b3 === undefined ? '=' : ALPHABET[b3 & 0x3f]
+/** 大图 Base64 可达 2.7MB，完整字符串只放模块缓存，页面只渲染预览 */
+let imageCache: ImageCache | null = null
+
+function formatSize(bytes: number): string {
+  if (!Number.isFinite(bytes) || bytes <= 0) {
+    return '—'
   }
-  return out
+  if (bytes < 1024) {
+    return `${Math.round(bytes)} B`
+  }
+  if (bytes < 1024 * 1024) {
+    return `${(bytes / 1024).toFixed(1)} KB`
+  }
+  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`
 }
 
-function base64ToBytes(raw: string): number[] {
-  const clean = raw.trim().replace(/\s/g, '').replace(/-/g, '+').replace(/_/g, '/')
-  if (!clean) {
-    throw new Error('请输入 Base64 内容')
-  }
-  if (clean.length % 4 === 1) {
-    throw new Error('Base64 长度不正确')
-  }
-  if (!/^[A-Za-z0-9+/]*={0,2}$/.test(clean)) {
-    throw new Error('包含无效的 Base64 字符')
-  }
-  const padded = clean.padEnd(clean.length + ((4 - (clean.length % 4)) % 4), '=')
-  const bytes: number[] = []
-  for (let index = 0; index < padded.length; index += 4) {
-    const chunk = padded.slice(index, index + 4)
-    const values = chunk.split('').map((char) => (char === '=' ? -1 : ALPHABET.indexOf(char)))
-    if (values.some((value) => value < 0 && value !== -1)) {
-      throw new Error('包含无效的 Base64 字符')
-    }
-    const [v1, v2, v3, v4] = values
-    bytes.push(((v1 << 2) | ((v2 & 0x3f) >> 4)) & 0xff)
-    if (v3 !== -1) {
-      bytes.push(((v2 & 0x0f) << 4 | ((v3 & 0x3f) >> 2)) & 0xff)
-    }
-    if (v4 !== -1) {
-      bytes.push(((v3 & 0x03) << 6 | (v4 & 0x3f)) & 0xff)
-    }
-  }
-  return bytes
+function fileNameOf(path: string): string {
+  const name = path.split('?')[0].split('/').pop() ?? ''
+  return name || '本地图片'
 }
 
 Page({
@@ -168,27 +67,67 @@ Page({
   data: {
     toolName: 'Base64',
     kicker: '文本效率',
-    desc: 'UTF-8 文本编解码',
+    desc: '文本 / 图片 · 本机编解码',
     mode: 'encode' as Base64Mode,
     input: '',
     maxText: LIMITS.TEXT_INPUT,
+    imagePath: '',
+    imageName: '',
+    imageMeta: '',
+    imagePrefix: true,
+    imageReading: false,
+    shellState: 'idle',
     hasResult: false,
     error: '',
+    resultLabel: 'Base64 结果',
     outputText: '',
+    outputIsPreview: false,
     inputSizeText: '',
     outputSizeText: '',
     posterData: null as IPosterData | null,
   },
 
+  onLoad() {
+    const state = this as unknown as Base64State
+    state.destroyed = false
+    state.imageSeq = 0
+  },
+
+  onUnload() {
+    const state = this as unknown as Base64State
+    state.destroyed = true
+    state.imageSeq += 1
+    imageCache = null
+  },
+
   onMode(event: WechatMiniprogram.TouchEvent) {
     const mode = event.currentTarget.dataset.mode as Base64Mode
-    if (mode !== 'encode' && mode !== 'decode') {
+    if (mode !== 'encode' && mode !== 'decode' && mode !== 'image') {
       return
     }
     tapTick()
-    this.setData({ mode }, () => {
-      this.recalculate()
-    })
+    this.setData(
+      {
+        mode,
+        hasResult: false,
+        shellState: 'idle',
+        error: '',
+        outputText: '',
+        outputIsPreview: false,
+        inputSizeText: '',
+        outputSizeText: '',
+        resultLabel: mode === 'image' ? '图片 Base64' : mode === 'encode' ? 'Base64 结果' : '解码文本',
+      },
+      () => {
+        if (mode === 'image') {
+          if (imageCache) {
+            this.applyImageResult()
+          }
+        } else {
+          this.recalculate()
+        }
+      },
+    )
   },
 
   onInput(event: WechatMiniprogram.TextareaInput) {
@@ -198,91 +137,281 @@ Page({
   },
 
   onExample() {
+    if (this.data.mode === 'image') {
+      void this.onChooseImage()
+      return
+    }
     const sample = '超欢 · 本机处理 Base64'
-    this.setData({ mode: 'encode', input: sample }, () => {
+    this.setData({ mode: 'encode', resultLabel: 'Base64 结果', input: sample }, () => {
       this.recalculate()
     })
   },
 
   onReset() {
+    const state = this as unknown as Base64State
+    state.imageSeq += 1
+    imageCache = null
     this.setData({
+      mode: 'encode',
       input: '',
+      imagePath: '',
+      imageName: '',
+      imageMeta: '',
+      imagePrefix: true,
+      imageReading: false,
+      shellState: 'idle',
       hasResult: false,
       error: '',
+      resultLabel: 'Base64 结果',
       outputText: '',
+      outputIsPreview: false,
       inputSizeText: '',
       outputSizeText: '',
+      posterData: null,
     })
   },
 
   onCopy() {
-    copyText(this.data.outputText, 'Base64 结果已复制')
+    const state = this as unknown as Base64State
+    if (state.destroyed) {
+      return
+    }
+    const text =
+      this.data.mode === 'image' && imageCache ? imageCache.full : this.data.outputText
+    if (!text) {
+      return
+    }
+    tapTick()
+    copyText(text, 'Base64 结果已复制')
+  },
+
+  onImagePrefix(event: { detail: { value: boolean } }) {
+    if (this.data.imageReading) {
+      return
+    }
+    const imagePrefix = Boolean(event.detail.value)
+    this.setData({ imagePrefix }, () => {
+      if (imageCache) {
+        this.applyImageResult()
+      }
+    })
+  },
+
+  async onChooseImage() {
+    if (this.data.imageReading) {
+      return
+    }
+    const state = this as unknown as Base64State
+    const authorized = await ensurePrivacyAuthorized()
+    if (state.destroyed) {
+      return
+    }
+    if (!authorized) {
+      this.setData({
+        hasResult: false,
+        shellState: 'invalid',
+        error: '未同意隐私保护指引，无法访问相册',
+      })
+      return
+    }
+    tapTick()
+    wx.chooseMedia({
+      count: 1,
+      mediaType: ['image'],
+      sourceType: ['album'],
+      sizeType: ['original'],
+      success: (result) => {
+        const file = result.tempFiles[0]
+        if (!file || state.destroyed) {
+          return
+        }
+        if (file.size > BASE64_MAX_BYTES) {
+          this.setData({
+            hasResult: false,
+            shellState: 'invalid',
+            error: '图片超过 2MB，请压缩后再试',
+          })
+          return
+        }
+        const seq = (state.imageSeq += 1)
+        this.setData({
+          imagePath: file.tempFilePath,
+          imageName: fileNameOf(file.tempFilePath),
+          imageMeta: `${formatSize(file.size)} · 读取中`,
+          imageReading: true,
+          hasResult: false,
+          shellState: 'running',
+          error: '',
+          posterData: null,
+        })
+        imageToBase64(file.tempFilePath, this.data.imagePrefix)
+          .then((meta) => {
+            if (state.destroyed || seq !== state.imageSeq) {
+              return
+            }
+            imageCache = {
+              ...meta,
+              full: this.data.imagePrefix ? meta.dataUrl : meta.base64,
+              path: file.tempFilePath,
+            }
+            this.applyImageResult()
+          })
+          .catch((error) => {
+            if (state.destroyed || seq !== state.imageSeq) {
+              return
+            }
+            const message = error instanceof Error ? error.message : String(error)
+            this.setData({
+              imageReading: false,
+              hasResult: false,
+              shellState: 'error',
+              imageMeta: formatSize(file.size),
+              error: message || '图片读取失败，请重试',
+            })
+          })
+      },
+      fail: (error) => {
+        const message = error.errMsg ?? ''
+        if (state.destroyed || message.includes('cancel')) {
+          return
+        }
+        this.setData({
+          hasResult: false,
+          shellState: 'error',
+          error: /privacy|auth|authorize/i.test(message)
+            ? '需要相册权限或隐私授权，请在设置中开启后再试'
+            : '选择图片失败，请重试',
+        })
+      },
+    })
+  },
+
+  applyImageResult() {
+    const state = this as unknown as Base64State
+    if (!imageCache || state.destroyed) {
+      return
+    }
+    const full = this.data.imagePrefix ? imageCache.dataUrl : imageCache.base64
+    imageCache.full = full
+    const preview =
+      full.length > BASE64_PREVIEW_LENGTH
+        ? `${full.slice(0, BASE64_PREVIEW_LENGTH)}…`
+        : full
+    const mimeLabel = imageCache.mime.replace('image/', '').toUpperCase()
+    const poster: IPosterData = {
+      toolName: 'Base64',
+      category: '文本效率',
+      mainResult: `${full.length}`,
+      resultLabel: 'Base64 字符数',
+      params: [
+        { label: '图片大小', value: formatSize(imageCache.size) },
+        { label: '格式', value: mimeLabel },
+      ],
+      extras: [
+        this.data.imagePrefix ? '含 data URL 前缀' : '纯 Base64',
+        `原图 ${formatSize(imageCache.size)}`,
+        `预览 ${Math.min(full.length, BASE64_PREVIEW_LENGTH)} 字符`,
+      ],
+    }
+    this.setData({
+      imagePath: imageCache.path,
+      imageName: fileNameOf(imageCache.path),
+      imageMeta: `${formatSize(imageCache.size)} · ${mimeLabel}`,
+      imageReading: false,
+      hasResult: true,
+      shellState: 'done',
+      resultLabel: '图片 Base64',
+      error: '',
+      outputText: preview,
+      outputIsPreview: full.length > BASE64_PREVIEW_LENGTH,
+      inputSizeText: `${formatSize(imageCache.size)} · ${mimeLabel}`,
+      outputSizeText: `${full.length} 字符`,
+      posterData: poster,
+    })
   },
 
   recalculate() {
+    if (this.data.mode === 'image') {
+      if (imageCache) {
+        this.applyImageResult()
+      }
+      return
+    }
     const input = this.data.input
     if (!input) {
-      this.setData({ hasResult: false, error: '', outputText: '' })
+      this.setData({
+        hasResult: false,
+        shellState: 'idle',
+        error: '',
+        outputText: '',
+        outputIsPreview: false,
+        inputSizeText: '',
+        outputSizeText: '',
+      })
       return
     }
     try {
       if (this.data.mode === 'encode') {
-        const bytes = utf8ToBytes(input)
-        const output = bytesToBase64(bytes)
+        const { base64, byteLength } = encodeTextToBase64(input)
         const poster: IPosterData = {
           toolName: 'Base64',
           category: '文本效率',
-          mainResult: `${output.length}`,
+          mainResult: `${base64.length}`,
           resultLabel: '输出字符数',
           params: [
             { label: '处理模式', value: '编码' },
             { label: '输入字符', value: `${Array.from(input).length}` },
           ],
           extras: [
-            `输入 ${bytes.length} 字节`,
-            `输出 ${output.length} 字符`,
-            `编码预览 ${output.slice(0, 24)}${output.length > 24 ? '…' : ''}`,
+            `输入 ${byteLength} 字节`,
+            `输出 ${base64.length} 字符`,
+            `编码预览 ${base64.slice(0, 24)}${base64.length > 24 ? '…' : ''}`,
           ],
         }
         this.setData({
           hasResult: true,
+          shellState: 'done',
           error: '',
-          outputText: output,
-          inputSizeText: `${Array.from(input).length} 字符 · ${bytes.length} 字节`,
-          outputSizeText: `${output.length} 字符`,
+          resultLabel: 'Base64 结果',
+          outputText: base64,
+          outputIsPreview: false,
+          inputSizeText: `${Array.from(input).length} 字符 · ${byteLength} 字节`,
+          outputSizeText: `${base64.length} 字符`,
           posterData: poster,
         })
       } else {
-        const bytes = base64ToBytes(input)
-        const output = bytesToUtf8(bytes)
-        const outputChars = Array.from(output).length
+        const { text, byteLength } = decodeBase64ToText(input)
+        const outputChars = Array.from(text).length
         const asText = outputChars <= 24
         const poster: IPosterData = {
           toolName: 'Base64',
           category: '文本效率',
-          mainResult: asText ? output : `${outputChars}`,
+          mainResult: asText ? text : `${outputChars}`,
           resultLabel: asText ? '解码文本' : '解码字符数',
           params: [
             { label: '处理模式', value: '解码' },
             { label: '输入字符', value: `${input.length}` },
           ],
           extras: [
-            `输出 ${outputChars} 字符 · ${bytes.length} 字节`,
-            `解码预览 ${output.slice(0, 24)}${outputChars > 24 ? '…' : ''}`,
+            `输出 ${outputChars} 字符 · ${byteLength} 字节`,
+            `解码预览 ${text.slice(0, 24)}${outputChars > 24 ? '…' : ''}`,
           ],
         }
         this.setData({
           hasResult: true,
+          shellState: 'done',
           error: '',
-          outputText: output,
+          resultLabel: '解码文本',
+          outputText: text,
+          outputIsPreview: false,
           inputSizeText: `${input.length} 字符`,
-          outputSizeText: `${Array.from(output).length} 字符 · ${bytes.length} 字节`,
+          outputSizeText: `${outputChars} 字符 · ${byteLength} 字节`,
           posterData: poster,
         })
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
-      this.setData({ hasResult: false, error: message })
+      this.setData({ hasResult: false, shellState: 'error', error: message })
     }
   },
 })

@@ -279,11 +279,12 @@ test('AES Vault：AES-256-CBC 与 Node crypto 标准向量一致', async () => {
 })
 
 /* ---- 10. AES：错口令 / 篡改 ---- */
-test('AES Vault：错口令与篡改密文必须失败', async () => {
+test('AES Vault：错口令与篡改密文不得还原原文', async () => {
   const vault = await load('subpackages/grow/utils/aesVault.ts')
   const cipher = vault.encryptVault('secret payload', 'correct-pass')
   assert.ok(cipher)
-  assert.equal(vault.decryptVault(cipher, 'wrong-pass'), null)
+  /* CBC 无 MAC：错口令可能恰好通过 padding，只要求不得还原原文 */
+  assert.notEqual(vault.decryptVault(cipher, 'wrong-pass'), 'secret payload')
   const tampered =
     cipher.slice(0, -2) + (cipher.endsWith('00') ? '01' : '00')
   assert.notEqual(

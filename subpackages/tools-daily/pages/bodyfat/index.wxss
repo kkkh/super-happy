@@ -1,0 +1,94 @@
+/* ==========================================================================
+   体脂率 · 性别切换 / 双列围度 / 结果标签
+   - 只使用 --glass-* 令牌，无裸伪类
+   ========================================================================== */
+
+.bf-gender {
+  display: flex;
+  flex-direction: row;
+  gap: 12rpx;
+}
+
+.bf-gender__item {
+  flex: 1;
+  box-sizing: border-box;
+  padding: 18rpx 12rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: var(--glass-radius-md);
+  background-color: var(--glass-bg-soft);
+  color: var(--glass-text-3);
+  font-size: 22rpx;
+  text-align: center;
+}
+
+.bf-gender__item.is-active {
+  border-color: var(--glass-border-strong);
+  background-color: var(--glass-bg-strong);
+  color: var(--glass-text);
+}
+
+.bf-grid {
+  display: flex;
+  flex-direction: row;
+  gap: 14rpx;
+}
+
+.bf-col {
+  flex: 1;
+  min-width: 0;
+}
+
+.bf-hint {
+  color: var(--glass-text-3);
+  font-size: 19rpx;
+  line-height: 1.6;
+}
+
+.bf-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14rpx;
+  padding: 8rpx 0 4rpx;
+}
+
+.bf-percent {
+  color: var(--glass-text);
+  font-family: var(--glass-font-mono);
+  font-size: 72rpx;
+  letter-spacing: 0.02em;
+}
+
+.bf-chip {
+  box-sizing: border-box;
+  padding: 10rpx 22rpx;
+  border: 1rpx solid var(--glass-border-strong);
+  border-radius: 999rpx;
+  background-color: var(--glass-bg-strong);
+  color: var(--glass-text);
+  font-size: 20rpx;
+}
+
+.bf-caption {
+  color: var(--glass-text-3);
+  font-size: 19rpx;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.bf-review {
+  color: var(--glass-warn, #d97706);
+  font-size: 19rpx;
+  line-height: 1.6;
+}
+
+.bf-copy {
+  box-sizing: border-box;
+  padding: 18rpx;
+  border: 1rpx solid var(--glass-border-strong);
+  border-radius: var(--glass-radius-md);
+  background-color: var(--glass-bg-strong);
+  color: var(--glass-text);
+  font-size: 21rpx;
+  text-align: center;
+}

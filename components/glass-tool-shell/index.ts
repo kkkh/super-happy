@@ -8,7 +8,7 @@
 import { createStoreBindings } from 'mobx-miniprogram-bindings'
 import { uiStore } from '../../core/stores/ui'
 import { toolboxStore } from '../../core/toolbox/store'
-import { TOOLS } from '../../core/toolbox/registry'
+import { privacyTextFor, resolveToolSession, toggleFavoriteTool } from '../../core/toolbox/tool-session'
 import { ROUTES, TIMING } from '../../core/constants/index'
 import { tapTick, tapWarn } from '../../core/utils/haptics'
 import { useMotion } from '../../core/services/motion'
@@ -42,19 +42,6 @@ const POSTER_START_DELAY = 560
 const POSTER_SAVER_DELAY = 240
 /** 结果埋点短防抖：只合并同一结果的多路触发，160ms 内连续计算仍分别记录 */
 const TRACK_DEBOUNCE_MS = 160
-
-function privacyTextFor(sensitive: string): string {
-  if (sensitive === 'privacy') {
-    return '图片只在本机处理，不会上传服务器'
-  }
-  if (sensitive === 'finance') {
-    return '试算结果仅供参考，不构成金融建议'
-  }
-  if (sensitive === 'health') {
-    return '结果仅供参考，不构成医疗建议'
-  }
-  return ''
-}
 
 Component({
   options: {
@@ -113,7 +100,8 @@ Component({
 
   observers: {
     sensitive(value: string) {
-      this.setData({ privacyText: privacyTextFor(value) })
+      const session = resolveToolSession(this.data.toolId)
+      this.setData({ privacyText: privacyTextFor(value || session.sensitive) })
     },
 
     /** 结果出现：延迟 1.2s 入轨迹，输入型工具只记录稳定后的最终结果 */
@@ -149,16 +137,16 @@ Component({
       holder.pendingTrackSig = ''
       holder.lastTrackSig = ''
       holder.lastTrackAt = 0
-      const meta = TOOLS.find((tool) => tool.id === this.data.toolId)
+      const session = resolveToolSession(this.data.toolId)
       const codeLabel = (this.data.toolId || 'local').toUpperCase()
       const windowInfo = wx.getWindowInfo()
       const capsule = wx.getMenuButtonBoundingClientRect()
       const headInset = Math.max(0, capsule.bottom - (windowInfo.statusBarHeight ?? 0))
       const navRight = Math.max(16, (windowInfo.windowWidth || 375) - capsule.left + 8)
       this.setData({
-        privacyText: privacyTextFor(this.data.sensitive),
+        privacyText: privacyTextFor(this.data.sensitive || session.sensitive),
         codeLabel,
-        kickerLabel: this.data.kicker || (meta?.category ?? 'tool').toUpperCase(),
+        kickerLabel: this.data.kicker || session.kicker,
         headInset,
         navRight,
       })
@@ -256,15 +244,20 @@ Component({
         return
       }
       tapTick()
-      const added = toolboxStore.toggleFavorite(id)
-      if (added === null) {
+      const result = toggleFavoriteTool(id)
+      if (result === 'full') {
+        tapWarn()
+        showGlassToast({ message: '收藏已满（最多 100 个）', type: 'warning' })
+        return
+      }
+      if (result === 'failed' || result === 'invalid') {
         tapWarn()
         showGlassToast({ message: '收藏失败，请重试', type: 'error' })
         return
       }
       showGlassToast({
-        message: added ? '已收藏工具' : '已取消收藏',
-        type: added ? 'success' : 'info',
+        message: result === 'added' ? '已收藏工具' : '已取消收藏',
+        type: result === 'added' ? 'success' : 'info',
       })
     },
 
@@ -298,6 +291,20 @@ Component({
     onExample() {
       tapTick()
       this.triggerEvent('example')
+    },
+
+    /** 使用说明：跳帮助页并自动展开当前工具 */
+    onOpenHelp() {
+      if (!this.data.toolId) {
+        return
+      }
+      tapTick()
+      wx.navigateTo({
+        url: `${ROUTES.help}?tool=${encodeURIComponent(this.data.toolId)}`,
+        fail: () => {
+          showGlassToast({ message: '使用说明打开失败', type: 'error' })
+        },
+      })
     },
 
     /** 打开流转面板：只有存在结果时允许，防重复打开 */
@@ -437,7 +444,7 @@ Component({
       tapTick()
       /* 显式接入全局音效接管：生成前预热，受静音开关管辖 */
       void useSound().preload()
-      const tool = TOOLS.find((item) => item.id === this.data.toolId)
+      const tool = resolveToolSession(this.data.toolId).meta
       const meta = {
         toolId: this.data.toolId,
         theme: uiStore.resolvedTheme,

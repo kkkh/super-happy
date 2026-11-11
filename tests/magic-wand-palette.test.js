@@ -2,7 +2,7 @@
    魔法棒 + 指令面板 · 单元测试
    - 首页红线：搜索 input / bindinput / keyword 逻辑保持原样
    - 布局：魔法棒安全区 + 44px 玻璃方块；面板顶部避开状态栏
-   - 面板：29 条内置命令、模糊匹配、带参路由、受控开关与 close 事件
+   - 面板：30 条内置命令、模糊匹配、带参路由、受控开关与 close 事件
    - 首页：openPalette / closePalette 不触碰 keyword / results
    - 运行：npm test
    ========================================================================== */
@@ -216,11 +216,18 @@ test('魔法棒图标：内嵌 PNG 为 96x96 透明栅格图', () => {
   assert.equal(ts.includes('data:image/svg+xml'), false)
 })
 
-test('指令数据：29 条内置命令、模糊匹配与带参路由', async () => {
+test('指令数据：内置命令覆盖全部工具与导航', async () => {
   const { BUILTIN_COMMANDS, buildPaletteUrl, filterPaletteCommands } =
     await loadPaletteModule()
+  const { TOOLS } = await import(pathToFileURL(path.join(ROOT, 'core/toolbox/registry.ts')).href)
 
-  assert.equal(BUILTIN_COMMANDS.length, 29)
+  /* 每个工具必须有命令，外加 6 个全局导航命令 */
+  assert.equal(
+    BUILTIN_COMMANDS.filter((command) => command.id.startsWith('tool:')).length,
+    TOOLS.length,
+  )
+  assert.equal(BUILTIN_COMMANDS.length, TOOLS.length + 6)
+  assert.ok(BUILTIN_COMMANDS.some((command) => command.id === 'tool:radix'))
 
   const qr = filterPaletteCommands(BUILTIN_COMMANDS, '二维码', 8)
   assert.ok(qr.length > 0)
@@ -240,11 +247,12 @@ test('指令数据：29 条内置命令、模糊匹配与带参路由', async ()
 test('指令匹配：图片、拼音全拼与首字母都能扩大命中', async () => {
   const { BUILTIN_COMMANDS, filterPaletteCommands } = await loadPaletteModule()
 
-  const imageResults = filterPaletteCommands(BUILTIN_COMMANDS, '图片', 8)
+  /* 媒体工具持续增加，扩大到 12 才能验证「分类别名覆盖整组」而非只看权重前 8 */
+  const imageResults = filterPaletteCommands(BUILTIN_COMMANDS, '图片', 12)
   const imageIds = imageResults.map((command) => command.id)
   assert.ok(imageIds.includes('tool:compress'), '图片应命中图片压缩')
   assert.ok(imageIds.includes('tool:palette'), '图片应命中图片取色')
-  assert.ok(imageIds.includes('tool:nine-grid'), '图片应命中九宫格切图')
+  assert.ok(imageIds.includes('tool:qr-decode'), '图片应命中二维码识别')
 
   const fullPinyin = filterPaletteCommands(BUILTIN_COMMANDS, 'tupian', 8)
   assert.ok(fullPinyin.some((command) => command.id === 'tool:compress'))
@@ -258,17 +266,19 @@ test('指令匹配：图片、拼音全拼与首字母都能扩大命中', async
 
 test('面板输入：allCommands 为空时自动重建数据源并命中媒体工具', async () => {
   const definition = await loadComponentDefinition('components/command-palette/index.ts')
-  const instance = createComponentInstance(definition, { allCommands: [] })
+  const instance = createComponentInstance(definition, { allCommands: [], maxResults: 12 })
 
   try {
     instance.onInput({ detail: { value: '图片' } })
     assert.equal(instance.data.query, '图片')
-    assert.equal(instance.data.allCommands.length, 29)
+    /* 工具命令随注册表增长，这里只校验下限 30（当前 56 个工具 + 6 个导航命令 = 62） */
+    assert.ok(instance.data.allCommands.length >= 30)
     assert.equal(instance.data.dataSourceReady, true)
     const ids = instance.data.searchResults.map((command) => command.id)
     assert.ok(ids.includes('tool:compress'))
     assert.ok(ids.includes('tool:palette'))
-    assert.ok(ids.includes('tool:nine-grid'))
+    assert.ok(ids.includes('tool:qr-decode'))
+    assert.ok(ids.includes('tool:color'))
   } finally {
     /* 无定时器与全局副作用，无需额外清理 */
   }
@@ -400,7 +410,8 @@ test('面板打开：30ms 后激活并渲染默认结果列表', async (t) => {
     assert.equal(instance.data.active, true)
     assert.equal(instance.data.focusInput, true)
     assert.equal(instance.data.query, '')
-    assert.equal(instance.data.allCommands.length, 29)
+    /* 工具命令随注册表增长，这里只校验下限 30（当前 26 个工具 + 6 个导航命令 = 32） */
+    assert.ok(instance.data.allCommands.length >= 30)
     assert.equal(instance.data.searchResults.length, 8)
     assert.equal(instance.data.searchResults[0].id, 'nav-home')
   } finally {

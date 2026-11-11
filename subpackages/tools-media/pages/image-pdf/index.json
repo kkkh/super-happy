@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "图片转 PDF",
+  "disableScroll": true,
+  "usingComponents": {
+    "glass-tool-shell": "../../../../components/glass-tool-shell/index"
+  }
+}

@@ -1,5 +1,5 @@
 /* ==========================================================================
-   工具分享 · 首页与 23 个工具页的统一分享载荷
+   工具分享 · 首页与 26 个工具页的统一分享载荷
    - 分享路径统一回首页，并携带 ?tool=xxx，由首页深链逻辑安全跳转
    - 非法/缺失工具一律回退到工具箱首页，绝不生成坏路径
    ========================================================================== */
@@ -7,7 +7,7 @@ import { TOOL_IDS, TOOLS } from './registry'
 import type { ToolMeta } from './types'
 
 const HOME_PATH = '/pages/index/index'
-const GENERIC_TITLE = '超欢 · 23 个本机工具，离线也能用'
+const GENERIC_TITLE = `超欢 · ${TOOLS.length} 个实用工具，气象实时在线`
 
 export interface SharePayload {
   title: string

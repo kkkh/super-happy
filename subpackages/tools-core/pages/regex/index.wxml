@@ -1,0 +1,101 @@
+<glass-tool-shell
+  tool-id="regex"
+  title="{{toolName}}"
+  kicker="{{kicker}}"
+  desc="{{desc}}"
+  poster-data="{{posterData}}"
+  run-label="测试匹配"
+  can-run="{{canRun}}"
+  state="{{shellState}}"
+  has-result="{{hasResult}}"
+  error="{{error}}"
+  empty-title="{{stale ? '输入已变更，请重新测试' : '输入模式与测试文本'}}"
+  empty-sub="正则只在 Worker 中执行，300ms 超时自动终止"
+  bind:run="onRun"
+  bind:example="onExample"
+  bind:reset="onReset"
+>
+  <view slot="input" class="sg-tool-fields">
+    <glass-input
+      label="正则表达式"
+      hint="不含首尾斜杠"
+      maxlength="{{200}}"
+      value="{{pattern}}"
+      placeholder="例如 (\d{4})-(\d{2})"
+      aria-label="正则表达式模式"
+      bind:input="onPatternInput"
+    />
+
+    <view class="regex-flags" aria-role="group" aria-label="正则 flags">
+      <view
+        wx:for="{{flagOptions}}"
+        wx:key="key"
+        class="regex-flag {{item.on ? 'regex-flag--on' : ''}}"
+        data-flag="{{item.key}}"
+        bindtap="onFlagTap"
+        aria-role="checkbox"
+        aria-checked="{{item.on}}"
+        aria-label="flags {{item.key}}，{{item.desc}}"
+      >
+        <text class="regex-flag__key">{{item.label}}</text>
+        <text class="regex-flag__desc">{{item.desc}}</text>
+      </view>
+    </view>
+
+    <glass-input
+      label="测试文本"
+      hint="最多 10,000 字符"
+      multiline
+      auto-height
+      show-count
+      value="{{testText}}"
+      maxlength="{{10000}}"
+      placeholder="粘贴需要测试的文本"
+      cursor-spacing="{{120}}"
+      aria-label="正则测试文本"
+      bind:input="onTextInput"
+    />
+  </view>
+
+  <view slot="result" class="sg-tool-result">
+    <view class="sg-tool-result__head">
+      <text class="sg-tool-result__label">匹配数</text>
+      <text class="sg-tool-result__meta" bindtap="onCopy">点击复制 JSON</text>
+    </view>
+
+    <view class="sg-tool-result__main" aria-role="status">{{matchCount}} 处</view>
+
+    <view class="regex-preview" aria-label="匹配高亮预览">
+      <text
+        wx:for="{{segments}}"
+        wx:key="id"
+        class="{{item.hit ? 'regex-hit' : ''}}"
+      >{{item.text}}</text>
+    </view>
+
+    <view class="sg-tool-rows">
+      <view wx:for="{{matchesView}}" wx:key="key" class="regex-match">
+        <view class="regex-match__head">
+          <text class="regex-match__title">{{item.title}}</text>
+          <text class="regex-match__value">{{item.value}}</text>
+        </view>
+        <text class="regex-match__groups">{{item.groups}}</text>
+      </view>
+    </view>
+
+    <view wx:if="{{truncated}}" class="regex-note">已达 500 条上限，仅保留前 500 条</view>
+    <view wx:if="{{matchCount > 30}}" class="regex-note">列表仅展示前 30 条，复制 JSON 查看全部</view>
+    <view wx:if="{{highlightCut}}" class="regex-note">高亮预览最多 2,000 字符</view>
+
+    <view class="sg-tool-note">
+      <text class="sg-tool-note__title">说明</text>
+      <text class="sg-tool-note__text">匹配在 Worker 沙箱中执行，单次 300ms 超时并终止；Worker 不可用时直接拒绝，不退回主线程。文本与结果只在本机处理。</text>
+    </view>
+
+    <view class="tool-actions">
+      <glass-button variant="ghost" size="md" block bind:tap="onCopy">
+        复制结果 JSON
+      </glass-button>
+    </view>
+  </view>
+</glass-tool-shell>

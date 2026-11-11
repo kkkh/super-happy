@@ -6,7 +6,8 @@
    - 纯 transform / opacity 动画，单层 blur，低端机自动降级
    - 关闭只触发一次，重复点击 / 遮罩 / 物理返回全部幂等
    ========================================================================== */
-import { tapSuccess, tapTick, tapWarn } from '../../core/utils/haptics'
+import { tapTick, tapWarn } from '../../core/utils/haptics'
+import { copyText } from '../../core/services/feedback'
 
 type ReaderCloseSource = 'button' | 'mask' | 'programmatic'
 
@@ -192,21 +193,11 @@ Component({
       }
       this.setData({ copyLabel: '已复制', copyLocked: true })
       runtime.copyTimer = setTimeout(release, COPY_LOCK_MS) as unknown as number
-      try {
-        wx.setClipboardData({
-          data: text,
-          success: () => {
-            tapSuccess()
-          },
-          fail: () => {
-            release()
-            tapWarn()
-          },
-        })
-      } catch {
-        release()
-        tapWarn()
-      }
+      void copyText(text, '已复制全文').then((ok) => {
+        if (!ok) {
+          release()
+        }
+      })
     },
 
     onMaskTap(): void {

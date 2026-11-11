@@ -4,6 +4,7 @@
    - 四类字符可组合，至少保留一类；可排除易混淆字符
    ========================================================================== */
 import { copyText, toast } from '../../lib/ui'
+import { passwordEntropy, strengthLevel } from '../../lib/password'
 import { tapTick } from '../../../../core/utils/haptics'
 import {
   sharePayloadForCurrentPage,
@@ -286,9 +287,10 @@ Page({
     }
     random.shuffle(password)
 
-    const entropy = length * Math.log2(charset.length || 1)
-    const strengthPercent = Math.min(100, Math.max(6, Math.round(entropy)))
-    const strengthText = entropy >= 80 ? '很强' : entropy >= 60 ? '强' : entropy >= 40 ? '中等' : '偏弱'
+    const entropy = passwordEntropy(length, charset.length)
+    const strength = strengthLevel(entropy)
+    const strengthPercent = strength.percent
+    const strengthText = strength.label
     const classesText = classes.join(' · ')
     const entropyText = `约 ${entropy.toFixed(1)} 位熵`
     const poster: IPosterData = {

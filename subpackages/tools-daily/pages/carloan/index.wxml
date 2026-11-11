@@ -1,0 +1,334 @@
+<glass-tool-shell
+  tool-id="carloan"
+  title="{{toolName}}"
+  kicker="{{kicker}}"
+  desc="{{desc}}"
+  poster-data="{{posterData}}"
+  run-label="计算车贷"
+  state="{{shellState}}"
+  has-result="{{hasResult}}"
+  error="{{error}}"
+  empty-title="填写车价与首付，算出月供"
+  empty-sub="单方案 / 双方案对比 / 提前还款试算，月供与房贷共用贷款引擎"
+  bind:run="onRun"
+  bind:example="onExample"
+  bind:reset="onReset"
+>
+  <view slot="input" class="sg-tool-fields">
+    <glass-input
+      label="车价"
+      hint="落地价或裸车价，单位元"
+      type="digit"
+      maxlength="{{11}}"
+      value="{{carPriceText}}"
+      placeholder="例如 200000"
+      data-field="carPriceText"
+      aria-label="车价，元"
+      bind:input="onFieldInput"
+    />
+
+    <view class="car-block">
+      <text class="car-block__label">计算方式</text>
+      <view class="car-chips">
+        <view
+          class="car-chip {{calcMode === 'single' ? 'car-chip_active' : ''}}"
+          data-mode="single"
+          bindtap="onCalcMode"
+          aria-role="button"
+          aria-label="单个方案"
+        >单方案</view>
+        <view
+          class="car-chip {{calcMode === 'compare' ? 'car-chip_active' : ''}}"
+          data-mode="compare"
+          bindtap="onCalcMode"
+          aria-role="button"
+          aria-label="两个方案对比"
+        >方案对比</view>
+      </view>
+    </view>
+
+    <view class="car-scheme">
+      <text wx:if="{{calcMode === 'compare'}}" class="car-scheme__title">方案 A</text>
+      <view class="car-block">
+        <text class="car-block__label">首付方式</text>
+        <view class="car-chips">
+          <view
+            class="car-chip {{downMode === 'percent' ? 'car-chip_active' : ''}}"
+            data-mode="percent"
+            bindtap="onDownMode"
+            aria-role="button"
+            aria-label="首付按比例"
+          >按比例</view>
+          <view
+            class="car-chip {{downMode === 'amount' ? 'car-chip_active' : ''}}"
+            data-mode="amount"
+            bindtap="onDownMode"
+            aria-role="button"
+            aria-label="首付按金额"
+          >按金额</view>
+        </view>
+      </view>
+
+      <glass-input
+        wx:if="{{downMode === 'percent'}}"
+        label="首付比例"
+        hint="0–99.99%，30 表示 30%"
+        type="digit"
+        maxlength="{{5}}"
+        value="{{downPercentText}}"
+        placeholder="例如 30"
+        data-field="downPercentText"
+        aria-label="首付比例，百分比"
+        bind:input="onFieldInput"
+      />
+      <glass-input
+        wx:else
+        label="首付金额"
+        hint="单位元，需小于车价"
+        type="digit"
+        maxlength="{{11}}"
+        value="{{downAmountText}}"
+        placeholder="例如 60000"
+        data-field="downAmountText"
+        aria-label="首付金额，元"
+        bind:input="onFieldInput"
+      />
+
+      <glass-input
+        label="贷款期限（月）"
+        type="digit"
+        maxlength="{{3}}"
+        value="{{termText}}"
+        placeholder="例如 36"
+        data-field="termText"
+        aria-label="贷款期限，月"
+        bind:input="onFieldInput"
+      />
+
+      <glass-input
+        label="年利率"
+        hint="0–24%，最多两位小数"
+        type="digit"
+        maxlength="{{5}}"
+        value="{{rateText}}"
+        placeholder="例如 4.5"
+        data-field="rateText"
+        aria-label="年利率，百分比"
+        bind:input="onFieldInput"
+      />
+
+      <view class="car-block">
+        <text class="car-block__label">还款方式</text>
+        <view class="car-chips">
+          <view
+            class="car-chip {{mode === 'equal-payment' ? 'car-chip_active' : ''}}"
+            data-mode="equal-payment"
+            bindtap="onMode"
+            aria-role="button"
+            aria-label="等额本息"
+          >等额本息</view>
+          <view
+            class="car-chip {{mode === 'equal-principal' ? 'car-chip_active' : ''}}"
+            data-mode="equal-principal"
+            bindtap="onMode"
+            aria-role="button"
+            aria-label="等额本金"
+          >等额本金</view>
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{calcMode === 'compare'}}" class="car-scheme">
+      <text class="car-scheme__title">方案 B</text>
+      <view class="car-block">
+        <text class="car-block__label">首付方式</text>
+        <view class="car-chips">
+          <view
+            class="car-chip {{bDownMode === 'percent' ? 'car-chip_active' : ''}}"
+            data-mode="percent"
+            bindtap="onBDownMode"
+            aria-role="button"
+            aria-label="方案 B 首付按比例"
+          >按比例</view>
+          <view
+            class="car-chip {{bDownMode === 'amount' ? 'car-chip_active' : ''}}"
+            data-mode="amount"
+            bindtap="onBDownMode"
+            aria-role="button"
+            aria-label="方案 B 首付按金额"
+          >按金额</view>
+        </view>
+      </view>
+
+      <glass-input
+        wx:if="{{bDownMode === 'percent'}}"
+        label="方案 B 首付比例"
+        type="digit"
+        maxlength="{{5}}"
+        value="{{bDownPercentText}}"
+        placeholder="例如 20"
+        data-field="bDownPercentText"
+        aria-label="方案 B 首付比例，百分比"
+        bind:input="onFieldInput"
+      />
+      <glass-input
+        wx:else
+        label="方案 B 首付金额"
+        type="digit"
+        maxlength="{{11}}"
+        value="{{bDownAmountText}}"
+        placeholder="例如 40000"
+        data-field="bDownAmountText"
+        aria-label="方案 B 首付金额，元"
+        bind:input="onFieldInput"
+      />
+
+      <glass-input
+        label="方案 B 期限（月）"
+        type="digit"
+        maxlength="{{3}}"
+        value="{{bTermText}}"
+        placeholder="例如 24"
+        data-field="bTermText"
+        aria-label="方案 B 贷款期限，月"
+        bind:input="onFieldInput"
+      />
+
+      <glass-input
+        label="方案 B 年利率"
+        type="digit"
+        maxlength="{{5}}"
+        value="{{bRateText}}"
+        placeholder="例如 3.9"
+        data-field="bRateText"
+        aria-label="方案 B 年利率，百分比"
+        bind:input="onFieldInput"
+      />
+
+      <view class="car-block">
+        <text class="car-block__label">方案 B 还款方式</text>
+        <view class="car-chips">
+          <view
+            class="car-chip {{bMode === 'equal-payment' ? 'car-chip_active' : ''}}"
+            data-mode="equal-payment"
+            bindtap="onBMode"
+            aria-role="button"
+            aria-label="方案 B 等额本息"
+          >等额本息</view>
+          <view
+            class="car-chip {{bMode === 'equal-principal' ? 'car-chip_active' : ''}}"
+            data-mode="equal-principal"
+            bindtap="onBMode"
+            aria-role="button"
+            aria-label="方案 B 等额本金"
+          >等额本金</view>
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{calcMode === 'single'}}" class="car-scheme">
+      <view class="car-block">
+        <text class="car-block__label">提前还款试算</text>
+        <view class="car-chips">
+          <view
+            class="car-chip {{!prepayOn ? 'car-chip_active' : ''}}"
+            data-value="off"
+            bindtap="onPrepayToggle"
+            aria-role="button"
+            aria-label="不试算提前还款"
+          >不试算</view>
+          <view
+            class="car-chip {{prepayOn ? 'car-chip_active' : ''}}"
+            data-value="on"
+            bindtap="onPrepayToggle"
+            aria-role="button"
+            aria-label="试算提前还款"
+          >试算</view>
+        </view>
+      </view>
+
+      <block wx:if="{{prepayOn}}">
+        <glass-input
+          label="提前还款时点"
+          type="digit"
+          maxlength="{{3}}"
+          value="{{prepayPeriodText}}"
+          placeholder="例如 12"
+          data-field="prepayPeriodText"
+          aria-label="第几期后提前还款"
+          bind:input="onFieldInput"
+        />
+        <glass-input
+          label="提前还款金额"
+          hint="单位元，需小于剩余本金"
+          type="digit"
+          maxlength="{{11}}"
+          value="{{prepayAmountText}}"
+          placeholder="例如 50000"
+          data-field="prepayAmountText"
+          aria-label="提前还款金额，元"
+          bind:input="onFieldInput"
+        />
+      </block>
+    </view>
+  </view>
+
+  <view slot="result" class="sg-tool-result">
+    <view class="sg-tool-result__head">
+      <text class="sg-tool-result__label">{{resultLabel}}</text>
+      <text class="sg-tool-result__meta" bindtap="onCopy">点击复制摘要</text>
+    </view>
+
+    <view class="sg-tool-result__main" aria-role="status">{{resultMain}}</view>
+
+    <view class="sg-tool-rows">
+      <view
+        wx:for="{{resultRows}}"
+        wx:key="k"
+        class="sg-tool-row"
+        data-value="{{item.v}}"
+        bindtap="onCopyRow"
+        aria-role="button"
+        aria-label="复制 {{item.k}}"
+      >
+        <text class="sg-tool-row__k">{{item.k}}</text>
+        <text class="sg-tool-row__v">{{item.v}}</text>
+      </view>
+    </view>
+
+    <view wx:if="{{schedule.length > 0}}" class="car-schedule">
+      <view
+        class="car-schedule__head"
+        bindtap="onToggleSchedule"
+        aria-role="button"
+        aria-label="{{scheduleShow ? '收起前 12 期明细' : '展开前 12 期明细'}}"
+      >
+        <text class="car-schedule__title">前 12 期明细</text>
+        <text class="car-schedule__meta">{{scheduleShow ? '收起' : '展开'}}</text>
+      </view>
+
+      <block wx:if="{{scheduleShow}}">
+        <view class="car-schedule__table">
+          <view class="car-schedule__row car-schedule__row_head">
+            <text class="car-schedule__cell">期</text>
+            <text class="car-schedule__cell">月供</text>
+            <text class="car-schedule__cell">本金</text>
+            <text class="car-schedule__cell">利息</text>
+          </view>
+          <view wx:for="{{schedule}}" wx:key="index" class="car-schedule__row">
+            <text class="car-schedule__cell">{{item.index}}</text>
+            <text class="car-schedule__cell">{{item.payment}}</text>
+            <text class="car-schedule__cell">{{item.principal}}</text>
+            <text class="car-schedule__cell">{{item.interest}}</text>
+          </view>
+        </view>
+        <text class="car-schedule__note">仅展示前 12 期，金额四舍五入到分</text>
+      </block>
+    </view>
+
+    <view class="sg-tool-note">
+      <text class="sg-tool-note__title">说明</text>
+      <text class="sg-tool-note__text">金额按分计算；对比方案共享车价，首付、期限、利率与还款方式可不同；提前还款按「期限不变、重算月供」试算。结果只在本机生成，不保存输入。</text>
+    </view>
+  </view>
+</glass-tool-shell>
