@@ -1,8 +1,8 @@
 /* ==========================================================================
    元宝搜索 · 本地配置模板
-   - 正式接入请把本文件复制为 config-local.ts，并填入服务 API KEY（sk- 开头）
+   - 正式接入请把本文件复制为 config-local.ts，填入 TC3 SecretId / SecretKey（当前采用）
+   - 也可只填服务 API KEY（sk- 开头），此时走 Bearer
    - config-local.ts 已被 .gitignore 忽略，禁止把真实密钥提交到仓库
-   - API KEY 在腾讯云元宝搜索控制台「概览 > 服务 API KEY 方式」创建
    ========================================================================== */
 export interface YuanbaoConfig {
   /** 服务 API KEY（sk- 开头）；为空时走 TC3 SecretId/SecretKey */

@@ -83,7 +83,7 @@
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
-              <text class="legal-list__text">元宝搜索：仅在您主动点击搜索时，把搜索词与筛选条件发送至腾讯云元宝搜索（https://api.wsa.cloud.tencent.com），用于返回公开网页结果；不发送微信身份、手机号、通讯录、剪贴板或本机存储内容，搜索词不写入草稿与计算轨迹。</text>
+              <text class="legal-list__text">元宝搜索：仅在您主动点击搜索时，把搜索词与筛选条件发送至腾讯云元宝搜索（TC3 方式 https://wsa.tencentcloudapi.com；服务 API KEY 方式 https://api.wsa.cloud.tencent.com），用于返回公开网页结果；不发送微信身份、手机号、通讯录、剪贴板或本机存储内容，搜索词不写入草稿与计算轨迹。</text>
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
@@ -91,7 +91,7 @@
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
-              <text class="legal-list__text">网络请求：气象站仅向 https://restapi.amap.com 发送模糊经纬度、adcode、城市搜索关键词与高德 Web服务 Key，用于实况、4 天预报、逆地理编码、IP 定位与行政区搜索；汇率换算仅向 https://www.chinamoney.com.cn 请求公开的中间价 JSON；元宝搜索仅向 https://api.wsa.cloud.tencent.com 发送搜索词与筛选条件。三者都不发送通讯录、相册、剪贴板或其他工具的输入内容。</text>
+              <text class="legal-list__text">网络请求：气象站仅向 https://restapi.amap.com 发送模糊经纬度、adcode、城市搜索关键词与高德 Web服务 Key，用于实况、4 天预报、逆地理编码、IP 定位与行政区搜索；汇率换算仅向 https://www.chinamoney.com.cn 请求公开的中间价 JSON；元宝搜索仅向 https://wsa.tencentcloudapi.com 发送搜索词与筛选条件。三者都不发送通讯录、相册、剪贴板或其他工具的输入内容。</text>
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
@@ -354,7 +354,7 @@
             </view>
           </view>
 
-          <text class="legal-body">除「全息气象」按需直连 https://restapi.amap.com、「汇率换算」按需直连 https://www.chinamoney.com.cn 获取官方汇率中间价、以及「元宝搜索」在您主动搜索时直连 https://api.wsa.cloud.tencent.com 外，本程序不包含广告 SDK、统计 SDK、推送 SDK，其余功能不发起任何网络请求。</text>
+          <text class="legal-body">除「全息气象」按需直连 https://restapi.amap.com、「汇率换算」按需直连 https://www.chinamoney.com.cn 获取官方汇率中间价、以及「元宝搜索」在您主动搜索时直连 https://wsa.tencentcloudapi.com 外，本程序不包含广告 SDK、统计 SDK、推送 SDK，其余功能不发起任何网络请求。</text>
           <text class="legal-body">开源许可证全文可在各项目官方仓库查看；如对署名或授权有疑问，可通过下方邮箱联系，我们会在核实后更正。</text>
         </glass-card>
       </view>

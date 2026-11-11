@@ -52,13 +52,84 @@
         <view
           wx:for="{{freshnessOptions}}"
           wx:key="value"
-          class="ws-chip {{item.value === freshness ? 'ws-chip--on' : ''}}"
+          class="ws-chip {{item.value === freshnessPreset ? 'ws-chip--on' : ''}}"
           data-value="{{item.value}}"
           bindtap="onFreshness"
           aria-role="tab"
-          aria-selected="{{item.value === freshness}}"
+          aria-selected="{{item.value === freshnessPreset}}"
         >{{item.label}}</view>
       </view>
+    </view>
+
+    <view wx:if="{{freshnessPreset === 'custom'}}" class="ws-custom">
+      <view class="ws-chips" aria-role="tablist" aria-label="自定义时效方式">
+        <view
+          class="ws-chip {{customMode === 'recent' ? 'ws-chip--on' : ''}}"
+          data-mode="recent"
+          bindtap="onCustomMode"
+          aria-role="tab"
+          aria-selected="{{customMode === 'recent'}}"
+        >最近 N</view>
+        <view
+          class="ws-chip {{customMode === 'range' ? 'ws-chip--on' : ''}}"
+          data-mode="range"
+          bindtap="onCustomMode"
+          aria-role="tab"
+          aria-selected="{{customMode === 'range'}}"
+        >日期区间</view>
+        <view
+          class="ws-chip {{customMode === 'day' ? 'ws-chip--on' : ''}}"
+          data-mode="day"
+          bindtap="onCustomMode"
+          aria-role="tab"
+          aria-selected="{{customMode === 'day'}}"
+        >指定日期</view>
+      </view>
+
+      <block wx:if="{{customMode === 'recent'}}">
+        <glass-input
+          label="最近 N"
+          type="number"
+          maxlength="{{2}}"
+          value="{{customN}}"
+          placeholder="7"
+          hint="天 1–30 / 月 1–12 / 年 1–5"
+          aria-label="最近 N 的数值"
+          bind:input="onCustomNInput"
+        />
+        <view class="ws-chips" aria-role="tablist" aria-label="自定义时效单位">
+          <view
+            wx:for="{{unitOptions}}"
+            wx:key="value"
+            class="ws-chip {{item.value === customUnit ? 'ws-chip--on' : ''}}"
+            data-unit="{{item.value}}"
+            bindtap="onCustomUnit"
+            aria-role="tab"
+            aria-selected="{{item.value === customUnit}}"
+          >{{item.label}}</view>
+        </view>
+      </block>
+
+      <block wx:elif="{{customMode === 'day'}}">
+        <picker mode="date" value="{{customStart}}" start="1970-01-01" end="{{maxDate}}" bindchange="onCustomStart">
+          <view class="ws-date" aria-role="button" aria-label="选择日期">选择 {{customStart}}</view>
+        </picker>
+      </block>
+
+      <block wx:else>
+        <view class="ws-date-row">
+          <picker mode="date" value="{{customStart}}" start="1970-01-01" end="{{maxDate}}" bindchange="onCustomStart">
+            <view class="ws-date" aria-role="button" aria-label="选择开始日期">开始 {{customStart}}</view>
+          </picker>
+          <text class="ws-date-sep">至</text>
+          <picker mode="date" value="{{customEnd}}" start="1970-01-01" end="{{maxDate}}" bindchange="onCustomEnd">
+            <view class="ws-date" aria-role="button" aria-label="选择结束日期">结束 {{customEnd}}</view>
+          </picker>
+        </view>
+      </block>
+
+      <text wx:if="{{customError}}" class="ws-custom__error">{{customError}}</text>
+      <text wx:else class="ws-custom__hint">将使用：{{freshness || '待设置'}}</text>
     </view>
 
     <view
@@ -87,6 +158,19 @@
         </view>
       </view>
 
+      <view class="ws-filter">
+        <text class="ws-filter__label">附件子链</text>
+        <view class="ws-chips">
+          <view
+            class="ws-chip {{deeplinks ? 'ws-chip--on' : ''}}"
+            bindtap="onToggleDeeplinks"
+            aria-role="switch"
+            aria-checked="{{deeplinks}}"
+          >{{deeplinks ? '已开启' : '关闭'}}</view>
+        </view>
+        <text class="ws-filter__hint">仅旗舰版返回；标准版 / 极速版会忽略</text>
+      </view>
+
       <glass-input
         label="站点"
         maxlength="{{120}}"
@@ -111,89 +195,15 @@
     </view>
   </view>
 
-  <view slot="result" class="ws-result">
-    <view class="ws-result__head">
-      <view class="ws-result__copy">
-        <text class="ws-result__count">{{resultCount}} 条结果</text>
-        <text class="ws-result__meta">{{searchedQuery}}{{version ? ' · ' + version : ''}}</text>
-      </view>
-      <text
-        class="ws-result__action"
-        bindtap="onCopySummary"
-        aria-role="button"
-        aria-label="复制搜索摘要"
-      >复制摘要</text>
-    </view>
-
-    <view wx:if="{{resultCount === 0}}" class="ws-empty">
-      <text class="ws-empty__title">没有找到相关结果</text>
-      <text class="ws-empty__sub">换一个关键词，或放宽时效与站点限制</text>
-    </view>
-
-    <view class="ws-list">
-      <view
-        wx:for="{{results}}"
-        wx:key="url"
-        class="ws-card"
-        data-index="{{index}}"
-        bindtap="onOpenDetail"
-        aria-role="button"
-        aria-label="查看{{item.title}}"
-      >
-        <text class="ws-card__index" aria-hidden="true">{{index + 1}}</text>
-        <view class="ws-card__body">
-          <text class="ws-card__title">{{item.title}}</text>
-          <text wx:if="{{item.meta}}" class="ws-card__meta">{{item.meta}}</text>
-          <text class="ws-card__passage">{{item.passage}}</text>
-          <view class="ws-card__actions">
-            <view
-              class="ws-card__action"
-              data-url="{{item.url}}"
-              catchtap="onCopyLink"
-              aria-role="button"
-              aria-label="复制{{item.title}}链接"
-            >复制链接</view>
-            <text class="ws-card__hint">点击查看详情</text>
-          </view>
-        </view>
-      </view>
-    </view>
-
-    <view class="ws-foot">
-      结果来自腾讯云元宝搜索 · 内容版权归原作者所有 · 不构成投资或医疗建议
-    </view>
+  <view slot="result">
+    <web-search-results
+      results="{{results}}"
+      query="{{searchedQuery}}"
+      summary="{{searchSummary}}"
+      version-label="{{versionLabel}}"
+      version-hint="{{versionHint}}"
+      message="{{message}}"
+      request-id="{{requestId}}"
+    />
   </view>
 </glass-tool-shell>
-
-<glass-bottom-sheet
-  show="{{detailShow}}"
-  title="搜索结果"
-  size="tall"
-  show-footer="{{true}}"
-  z-index="{{1000}}"
-  bind:close="onDetailClose"
-  bind:closed="onDetailClose"
->
-  <scroll-view class="ws-detail__scroll" scroll-y>
-    <text class="ws-detail__title">{{detailTitle}}</text>
-    <text wx:if="{{detailMeta}}" class="ws-detail__meta">{{detailMeta}}</text>
-    <text wx:if="{{detailPassage}}" class="ws-detail__passage">{{detailPassage}}</text>
-    <text wx:if="{{detailContent}}" class="ws-detail__content">{{detailContent}}</text>
-    <text class="ws-detail__url" selectable>{{detailUrl}}</text>
-  </scroll-view>
-
-  <view slot="footer" class="ws-detail__footer">
-    <view
-      class="ws-detail__button ws-detail__button--primary"
-      bindtap="onCopyDetailLink"
-      aria-role="button"
-      aria-label="复制链接"
-    >复制链接</view>
-    <view
-      class="ws-detail__button ws-detail__button--ghost"
-      bindtap="onDetailClose"
-      aria-role="button"
-      aria-label="关闭详情"
-    >关闭</view>
-  </view>
-</glass-bottom-sheet>

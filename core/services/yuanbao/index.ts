@@ -1,7 +1,7 @@
 /* ==========================================================================
-   元宝搜索服务 · 腾讯云 WSA SearchPro（服务 API KEY 方式）
+   元宝搜索服务 · 腾讯云 WSA SearchPro
    - 只负责请求、响应归一化与错误映射；页面 / 首页只消费结构化结果
-   - 采用 Bearer 服务密钥，避免把腾讯云账号 SecretKey 放进小程序
+   - 凭证二选一：TC3 SecretId/SecretKey（当前采用）或服务 API KEY（Bearer）
    - 查询词只在本次请求内使用，不写草稿、不写计算轨迹、不打印日志
    - 文档：https://cloud.tencent.com/document/product/1806/130615
    ========================================================================== */
@@ -88,7 +88,7 @@ export interface YuanbaoRequestHooks {
 }
 
 export const YUANBAO_MAX_QUERY = 100
-export const YUANBAO_CNT_OPTIONS = [10, 20, 30] as const
+export const YUANBAO_CNT_OPTIONS = [10, 20, 30, 40, 50] as const
 export const YUANBAO_FRESHNESS_OPTIONS = [
   { value: '', label: '不限时间' },
   { value: 'd7', label: '近 7 天' },
@@ -237,19 +237,24 @@ export function parseYuanbaoPage(raw: unknown): YuanbaoResult | null {
 
 function mapApiError(code: string, message: string): YuanbaoError {
   const normalized = code.replace(/^.*?\./, '')
-  if (normalized === 'UnauthorizedOperation') {
+  if (
+    code.startsWith('AuthFailure') ||
+    normalized === 'UnauthorizedOperation' ||
+    normalized === 'SignatureFailure' ||
+    normalized === 'SecretIdNotFound'
+  ) {
     return new YuanbaoError('unauthorized', '元宝搜索密钥无效或未授权，请检查本地配置', false)
   }
-  if (normalized === 'ResourceNotFound') {
+  if (code.startsWith('ResourceNotFound')) {
     return new YuanbaoError('not-activated', '元宝搜索服务未开通，请先在腾讯云控制台开通', false)
   }
-  if (normalized === 'RequestLimitExceeded') {
+  if (code.startsWith('RequestLimitExceeded')) {
     return new YuanbaoError('quota', '元宝搜索请求过于频繁，请稍后再试', true)
   }
-  if (normalized === 'ResourceUnavailable') {
+  if (code.startsWith('ResourceUnavailable')) {
     return new YuanbaoError('unavailable', '元宝搜索资源不可用，请检查账号余额或服务状态', false)
   }
-  if (normalized === 'InvalidParameter') {
+  if (code.startsWith('InvalidParameter')) {
     return new YuanbaoError('invalid-parameter', message || '搜索参数不合法', false)
   }
   return new YuanbaoError('server', message || '元宝搜索暂时不可用，请稍后再试', true)
@@ -357,6 +362,10 @@ export function searchYuanbao(
           reject(
             new YuanbaoError('unauthorized', '元宝搜索密钥无效或未授权，请检查本地配置'),
           )
+          return
+        }
+        if (response.statusCode === 429) {
+          reject(new YuanbaoError('quota', '元宝搜索请求过于频繁，请稍后再试', true))
           return
         }
         if (response.statusCode < 200 || response.statusCode >= 300) {

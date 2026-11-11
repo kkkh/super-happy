@@ -1,32 +1,28 @@
 /* 元宝搜索 · 腾讯云 WSA SearchPro：搜索 / 筛选 / 详情；查询词会上传，不写草稿 */
 import { tapSuccess, tapTick, tapWarn } from '../../../../core/utils/haptics'
 import {
-  YUANBAO_CNT_OPTIONS,
-  YUANBAO_FRESHNESS_OPTIONS,
-  YUANBAO_INDUSTRY_OPTIONS,
   YUANBAO_MAX_QUERY,
   isYuanbaoConfigured,
   searchYuanbao,
   summarizeYuanbaoResults,
-  type YuanbaoResult,
 } from '../../../../core/services/yuanbao/index'
 import {
   sharePayloadForCurrentPage,
   timelinePayloadForCurrentPage,
 } from '../../../../core/toolbox/share'
+import { toast } from '../../lib/ui'
 import type { IPosterData } from '../../../../core/toolbox/poster'
-import { copyText, toast } from '../../lib/ui'
-
-interface WebSearchResultView {
-  index: number
-  title: string
-  site: string
-  date: string
-  passage: string
-  content: string
-  url: string
-  meta: string
-}
+import { normalizeCustomFreshness, todayISO } from '../../lib/freshness'
+import {
+  CNT_OPTIONS,
+  EXAMPLE_QUERY,
+  FRESHNESS_OPTIONS,
+  INDUSTRY_OPTIONS,
+  UNIT_OPTIONS,
+  freshnessLabel,
+  toView,
+  type WebSearchResultView,
+} from '../../lib/web-search-view'
 
 interface WebSearchRuntime {
   destroyed: boolean
@@ -34,28 +30,7 @@ interface WebSearchRuntime {
   seq: number
 }
 
-interface OptionView {
-  value: string
-  label: string
-}
-
-const CNT_OPTIONS: OptionView[] = YUANBAO_CNT_OPTIONS.map((value) => ({
-  value: String(value),
-  label: `${value} 条`,
-}))
-
-const FRESHNESS_OPTIONS: OptionView[] = YUANBAO_FRESHNESS_OPTIONS.map((item) => ({
-  value: item.value,
-  label: item.label,
-}))
-
-const INDUSTRY_OPTIONS: OptionView[] = YUANBAO_INDUSTRY_OPTIONS.map((item) => ({
-  value: item.value,
-  label: item.label,
-}))
-
-const EXAMPLE_QUERY = '人工智能发展现状'
-
+/* 页面海报状态：保留在此以便工具页数据契约统一校验 */
 function emptyResultState() {
   return {
     results: [] as WebSearchResultView[],
@@ -65,30 +40,11 @@ function emptyResultState() {
     error: '',
     searchSummary: '',
     searchedQuery: '',
-    version: '',
+    versionLabel: '',
+    versionHint: '',
+    message: '',
     requestId: '',
     posterData: null as IPosterData | null,
-  }
-}
-
-function truncate(text: string, limit: number): string {
-  if (text.length <= limit) {
-    return text
-  }
-  return `${text.slice(0, limit).trim()}…`
-}
-
-function toView(result: YuanbaoResult, index: number): WebSearchResultView {
-  const meta = [result.site, result.date].filter((item) => Boolean(item)).join(' · ')
-  return {
-    index,
-    title: result.title || '未命名结果',
-    site: result.site,
-    date: result.date,
-    passage: truncate(result.passage || result.content, 180),
-    content: result.content,
-    url: result.url,
-    meta,
   }
 }
 
@@ -108,21 +64,25 @@ Page({
     query: '',
     cnt: '10',
     freshness: '',
+    freshnessPreset: '',
+    customMode: 'recent' as 'recent' | 'day' | 'range',
+    customN: '7',
+    customUnit: 'd' as 'd' | 'm' | 'y',
+    customStart: todayISO(),
+    customEnd: todayISO(),
+    maxDate: todayISO(),
+    customError: '',
+    deeplinks: false,
     industry: '',
     site: '',
     advancedOpen: false,
     cntOptions: CNT_OPTIONS,
     freshnessOptions: FRESHNESS_OPTIONS,
     industryOptions: INDUSTRY_OPTIONS,
+    unitOptions: UNIT_OPTIONS,
     serviceReady: isYuanbaoConfigured(),
     maxQuery: YUANBAO_MAX_QUERY,
     canRun: false,
-    detailShow: false,
-    detailTitle: '',
-    detailMeta: '',
-    detailPassage: '',
-    detailContent: '',
-    detailUrl: '',
     ...emptyResultState(),
   },
 
@@ -135,7 +95,7 @@ Page({
     let incoming = rawIncoming
     try {
       /* 首页 / 分享链接会把查询词 encodeURIComponent，onLoad 需还原 */
-      incoming = decodeURIComponent(rawIncoming)
+      incoming = decodeURIComponent(rawIncoming).trim()
     } catch {
       incoming = rawIncoming
     }
@@ -197,12 +157,80 @@ Page({
   },
 
   onFreshness(event: WechatMiniprogram.TouchEvent) {
-    const freshness = String(event.currentTarget.dataset.value || '')
-    if (!FRESHNESS_OPTIONS.some((item) => item.value === freshness) || freshness === this.data.freshness) {
+    const preset = String(event.currentTarget.dataset.value || '')
+    if (!FRESHNESS_OPTIONS.some((item) => item.value === preset) || preset === this.data.freshnessPreset) {
       return
     }
     tapTick()
-    this.setData({ freshness, ...emptyResultState() })
+    if (preset === 'custom') {
+      this.setData(
+        { freshnessPreset: 'custom', freshness: '', customError: '', ...emptyResultState() },
+        () => this.recomputeCustomFreshness(),
+      )
+      return
+    }
+    this.setData({ freshnessPreset: preset, freshness: preset, customError: '', ...emptyResultState() })
+  },
+
+  onCustomMode(event: WechatMiniprogram.TouchEvent) {
+    const mode = String(event.currentTarget.dataset.mode || '')
+    if (!['recent', 'day', 'range'].includes(mode) || mode === this.data.customMode) {
+      return
+    }
+    tapTick()
+    this.setData({ customMode: mode as 'recent' | 'day' | 'range', ...emptyResultState() }, () =>
+      this.recomputeCustomFreshness(),
+    )
+  },
+
+  onCustomNInput(event: WechatMiniprogram.Input) {
+    this.setData(
+      { customN: String(event.detail.value || '').slice(0, 2), ...emptyResultState() },
+      () => this.recomputeCustomFreshness(),
+    )
+  },
+
+  onCustomUnit(event: WechatMiniprogram.TouchEvent) {
+    const unit = String(event.currentTarget.dataset.unit || '')
+    if (!['d', 'm', 'y'].includes(unit) || unit === this.data.customUnit) {
+      return
+    }
+    tapTick()
+    this.setData({ customUnit: unit as 'd' | 'm' | 'y', ...emptyResultState() }, () =>
+      this.recomputeCustomFreshness(),
+    )
+  },
+
+  onCustomStart(event: WechatMiniprogram.PickerChange) {
+    this.setData({ customStart: String(event.detail.value || ''), ...emptyResultState() }, () =>
+      this.recomputeCustomFreshness(),
+    )
+  },
+
+  onCustomEnd(event: WechatMiniprogram.PickerChange) {
+    this.setData({ customEnd: String(event.detail.value || ''), ...emptyResultState() }, () =>
+      this.recomputeCustomFreshness(),
+    )
+  },
+
+  /** 将自定义时效归一化为官方额度：dN / mN / yN 或 yyyy-mm-dd,yyyy-mm-dd */
+  recomputeCustomFreshness(): void {
+    if (this.data.freshnessPreset !== 'custom') {
+      return
+    }
+    const result = normalizeCustomFreshness({
+      mode: this.data.customMode,
+      n: this.data.customN,
+      unit: this.data.customUnit,
+      start: this.data.customStart,
+      end: this.data.customEnd,
+    })
+    this.setData({ freshness: result.freshness, customError: result.error })
+  },
+
+  onToggleDeeplinks(): void {
+    tapTick()
+    this.setData({ deeplinks: !this.data.deeplinks, ...emptyResultState() })
   },
 
   onIndustry(event: WechatMiniprogram.TouchEvent) {
@@ -240,11 +268,18 @@ Page({
       query: '',
       cnt: '10',
       freshness: '',
+      freshnessPreset: '',
+      customMode: 'recent',
+      customN: '7',
+      customUnit: 'd',
+      customStart: todayISO(),
+      customEnd: todayISO(),
+      customError: '',
+      deeplinks: false,
       industry: '',
       site: '',
       advancedOpen: false,
       canRun: false,
-      detailShow: false,
       ...emptyResultState(),
     })
   },
@@ -263,8 +298,16 @@ Page({
     if (!this.data.serviceReady) {
       tapWarn()
       this.setData({
-        error: '尚未配置元宝搜索服务 API KEY，请先在本地配置中填入服务密钥',
+        error: '尚未配置元宝搜索密钥，请先在本地配置中填入服务 API KEY 或 SecretId / SecretKey',
         shellState: 'error',
+      })
+      return
+    }
+    if (this.data.freshnessPreset === 'custom' && !this.data.freshness) {
+      tapWarn()
+      this.setData({
+        error: this.data.customError || '自定义时效未设置完整',
+        shellState: 'invalid',
       })
       return
     }
@@ -287,6 +330,7 @@ Page({
         freshness: this.data.freshness,
         industry: this.data.industry,
         site: this.data.site,
+        deeplinks: this.data.deeplinks,
       },
       {
         onTask: (task) => {
@@ -302,14 +346,14 @@ Page({
         const results = response.results.map((result, index) => toView(result, index))
         const summary = summarizeYuanbaoResults(query, response.results)
         /* 海报与轨迹只保存结果量与筛选条件，不保存搜索词本身 */
-        const poster: IPosterData = {
+        const poster = {
           toolName: '元宝搜索',
           category: '文本效率',
           resultLabel: '搜索结果',
           mainResult: `${results.length} 条结果`,
           params: [
             { label: '返回条数', value: `${this.data.cnt} 条` },
-            { label: '时效', value: this.freshnessLabel(this.data.freshness) },
+            { label: '时效', value: freshnessLabel(this.data.freshness) },
           ],
           extras: [
             ...results.slice(0, 3).map((item, index) => `${index + 1}. ${item.title}`),
@@ -323,7 +367,9 @@ Page({
           error: '',
           searchSummary: summary,
           searchedQuery: query,
-          version: response.version,
+          versionLabel: this.versionLabel(response.version),
+          versionHint: this.versionHint(response.version),
+          message: response.message,
           requestId: response.requestId,
           posterData: poster,
         })
@@ -349,53 +395,27 @@ Page({
       })
   },
 
-  freshnessLabel(value: string): string {
-    const option = FRESHNESS_OPTIONS.find((item) => item.value === value)
-    return option ? option.label : '不限时间'
-  },
-
-  onCopySummary(): void {
-    if (!this.data.searchSummary) {
-      return
+  versionLabel(version: string): string {
+    if (version === 'flagship') {
+      return '旗舰版'
     }
-    void copyText(this.data.searchSummary, '搜索摘要已复制')
-  },
-
-  onCopyLink(event: WechatMiniprogram.TouchEvent) {
-    const url = String(event.currentTarget.dataset.url || '')
-    if (!url) {
-      return
+    if (version === 'lite') {
+      return '极速版'
     }
-    tapTick()
-    void copyText(url, '链接已复制')
-  },
-
-  onOpenDetail(event: WechatMiniprogram.TouchEvent) {
-    const index = Number(event.currentTarget.dataset.index)
-    const result = this.data.results[index]
-    if (!result) {
-      return
+    if (version === 'standard') {
+      return '标准版'
     }
-    tapTick()
-    this.setData({
-      detailShow: true,
-      detailTitle: result.title,
-      detailMeta: result.meta,
-      detailPassage: result.passage,
-      detailContent: result.content,
-      detailUrl: result.url,
-    })
+    return version
   },
 
-  onDetailClose(): void {
-    this.setData({ detailShow: false })
-  },
-
-  onCopyDetailLink(): void {
-    if (!this.data.detailUrl) {
-      return
+  versionHint(version: string): string {
+    if (!version || version === 'flagship') {
+      return ''
     }
-    void copyText(this.data.detailUrl, '链接已复制')
+    if (version === 'lite') {
+      return '极速版不返回相关性、配图与动态摘要；权威度 / 子链需旗舰版'
+    }
+    return '当前为标准版；权威度与附件子链需旗舰版'
   },
 
   onReceiveWorkflow(data: { type?: string; payload?: string }): boolean {

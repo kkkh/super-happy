@@ -4,7 +4,7 @@
   "usingComponents": {
     "glass-tool-shell": "../../../../components/glass-tool-shell/index",
     "glass-input": "../../../../components/glass-input/index",
-    "glass-bottom-sheet": "../../../../components/glass-bottom-sheet/index",
-    "g-icon": "../../../../components/g-icon/index"
+    "g-icon": "../../../../components/g-icon/index",
+    "web-search-results": "../../components/web-search-results/index"
   }
 }

@@ -91,7 +91,10 @@ test('解析：官方 Error 对象按错误码映射', async () => {
 
   for (const [code, expected] of [
     ['UnauthorizedOperation', 'unauthorized'],
+    ['AuthFailure.SignatureFailure', 'unauthorized'],
+    ['AuthFailure.SecretIdNotFound', 'unauthorized'],
     ['ResourceNotFound', 'not-activated'],
+    ['ResourceNotFound.ServiceNotActivated', 'not-activated'],
     ['RequestLimitExceeded', 'quota'],
     ['ResourceUnavailable', 'unavailable'],
     ['InvalidParameter', 'invalid-parameter'],
@@ -170,6 +173,17 @@ test('请求：HTTP 失败、网络失败与空查询', async () => {
   await assert.rejects(
     () => searchYuanbao({ query: '天气' }),
     (error) => error instanceof YuanbaoError && error.code === 'http',
+  )
+
+  globalThis.wx = {
+    request(options) {
+      options.success({ statusCode: 429, data: '' })
+      return { abort() {} }
+    },
+  }
+  await assert.rejects(
+    () => searchYuanbao({ query: '天气' }),
+    (error) => error instanceof YuanbaoError && error.code === 'quota',
   )
 
   globalThis.wx = {

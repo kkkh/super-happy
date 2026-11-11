@@ -45,6 +45,11 @@ function payload() {
           site: '示例网',
           date: '2026-11-11',
           passage: '摘要一',
+          score: 0.91,
+          authority_level: 4,
+          favicon: 'https://example.com/favicon.ico',
+          pics: [{ caption: '现场图', origin_url: 'https://example.com/p1.jpg' }],
+          deeplinks: [{ title: '附件一', url: 'https://example.com/deep/1' }],
         }),
         JSON.stringify({
           title: '第二条结果',
@@ -53,15 +58,20 @@ function payload() {
         }),
       ],
       Query: '人工智能',
-      Version: 'standard',
+      Version: 'flagship',
+      Msg: '结果经过去重',
       RequestId: 'req-page',
     },
   }
 }
 
+let lastRequestData = ''
+
 function installWx(response) {
+  lastRequestData = ''
   globalThis.wx = {
     request(options) {
+      lastRequestData = options.data
       options.success({
         statusCode: 200,
         data: response || payload(),
@@ -141,6 +151,76 @@ test('页面：查询后回填结果、摘要与海报，且海报不含搜索�
   assert.equal(page.data.posterData.mainResult, '2 条结果')
   assert.equal(page.data.posterData.params.length, 2)
   assert.equal(JSON.stringify(page.data.posterData).includes('人工智能'), false)
+  /* 旗舰版支持信息与结果字段 */
+  assert.equal(page.data.versionLabel, '旗舰版')
+  assert.equal(page.data.versionHint, '')
+  assert.equal(page.versionLabel('standard'), '标准版')
+  assert.equal(page.versionHint('standard'), '当前为标准版；权威度与附件子链需旗舰版')
+  assert.match(page.versionHint('lite'), /极速版不返回相关性/)
+  assert.equal(page.data.message, '结果经过去重')
+  assert.equal(page.data.requestId, 'req-page')
+  assert.equal(page.data.results[0].scoreText, '相关 0.91')
+  assert.equal(page.data.results[0].authorityText, '权威 4/5')
+  assert.equal(page.data.results[0].favicon, 'https://example.com/favicon.ico')
+  assert.equal(page.data.results[0].pics.length, 1)
+  assert.equal(page.data.results[0].deeplinks[0].title, '附件一')
+  page.onUnload()
+})
+
+test('页面：Cnt 50、Deeplinks 与自定义时效透传官方参数', async () => {
+  const definition = await loadDefinition()
+  installWx()
+  const page = createPage(definition)
+
+  page.onLoad({})
+  page.setData({
+    query: '量子计算',
+    cnt: '50',
+    deeplinks: true,
+    freshnessPreset: 'custom',
+    customMode: 'recent',
+    customN: '3',
+    customUnit: 'm',
+  })
+  page.recomputeCustomFreshness()
+  assert.equal(page.data.freshness, 'm3')
+  assert.equal(page.data.customError, '')
+
+  page.runSearch()
+  await flush()
+
+  const request = JSON.parse(lastRequestData)
+  assert.equal(request.Query, '量子计算')
+  assert.equal(request.Cnt, 50)
+  assert.equal(request.Freshness, 'm3')
+  assert.equal(request.Deeplinks, true)
+  assert.equal(page.data.shellState, 'done')
+  assert.equal(page.data.posterData.params[1].value, '最近 3 月')
+  page.onUnload()
+})
+
+test('页面：自定义时效非法时阻止请求', async () => {
+  const definition = await loadDefinition()
+  installWx()
+  const page = createPage(definition)
+
+  page.onLoad({})
+  page.setData({
+    query: '测试',
+    freshnessPreset: 'custom',
+    customMode: 'range',
+    customStart: '2026-11-10',
+    customEnd: '2026-11-01',
+  })
+  page.recomputeCustomFreshness()
+  assert.match(page.data.customError, /开始日期不能晚于结束日期/)
+
+  page.runSearch()
+  await flush()
+
+  assert.equal(lastRequestData, '')
+  assert.equal(page.data.shellState, 'invalid')
+  assert.match(page.data.error, /开始日期不能晚于结束日期/)
   page.onUnload()
 })
 

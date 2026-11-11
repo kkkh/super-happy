@@ -1,0 +1,143 @@
+<view class="wr">
+  <view class="wr__head">
+    <view class="wr__head-copy">
+      <text class="wr__count">{{results.length}} 条结果</text>
+      <text class="wr__meta">{{query}}{{versionLabel ? ' · ' + versionLabel : ''}}</text>
+    </view>
+    <text class="wr__action" bindtap="onCopySummary" aria-role="button" aria-label="复制搜索摘要">
+      复制摘要
+    </text>
+  </view>
+
+  <view wx:if="{{message}}" class="wr__message">{{message}}</view>
+  <view wx:if="{{versionHint}}" class="wr__hint">{{versionHint}}</view>
+
+  <view wx:if="{{results.length === 0}}" class="wr__empty">
+    <text class="wr__empty-title">没有找到相关结果</text>
+    <text class="wr__empty-sub">换一个关键词，或放宽时效与站点限制</text>
+  </view>
+
+  <view class="wr__list">
+    <view
+      wx:for="{{results}}"
+      wx:key="index"
+      class="wr__card"
+      data-index="{{index}}"
+      bindtap="onOpenDetail"
+      aria-role="button"
+      aria-label="查看{{item.title}}"
+    >
+      <text class="wr__index" aria-hidden="true">{{index + 1}}</text>
+      <view class="wr__body">
+        <text class="wr__title">{{item.title}}</text>
+        <text wx:if="{{item.meta}}" class="wr__meta-line">{{item.meta}}</text>
+        <view wx:if="{{item.authorityText || item.scoreText}}" class="wr__badges">
+          <text wx:if="{{item.authorityText}}" class="wr__badge">{{item.authorityText}}</text>
+          <text wx:if="{{item.scoreText}}" class="wr__badge wr__badge--ghost">{{item.scoreText}}</text>
+        </view>
+        <text class="wr__passage">{{item.passage}}</text>
+        <view class="wr__card-foot">
+          <text
+            wx:if="{{item.url}}"
+            class="wr__copy-link"
+            data-value="{{item.url}}"
+            catchtap="onCopy"
+            aria-role="button"
+            aria-label="复制{{item.title}}链接"
+          >复制链接</text>
+          <text class="wr__hint-text">点击查看详情</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="wr__foot">
+    <text class="wr__foot-line">结果来自腾讯云元宝搜索{{versionLabel ? ' · ' + versionLabel : ''}}</text>
+    <text
+      wx:if="{{requestId}}"
+      class="wr__rid"
+      data-value="{{requestId}}"
+      bindtap="onCopy"
+      aria-role="button"
+      aria-label="复制 RequestId"
+    >RequestId {{requestId}} · 点击复制</text>
+    <text class="wr__foot-line">内容版权归原作者所有 · 不构成投资或医疗建议</text>
+  </view>
+</view>
+
+<glass-bottom-sheet
+  show="{{detailShow}}"
+  title="搜索结果"
+  size="tall"
+  show-footer="{{true}}"
+  z-index="{{1000}}"
+  bind:close="onDetailClose"
+  bind:closed="onDetailClose"
+>
+  <scroll-view class="wr-detail__scroll" scroll-y>
+    <text class="wr-detail__title">{{detailTitle}}</text>
+    <text wx:if="{{detailMeta}}" class="wr-detail__meta">{{detailMeta}}</text>
+
+    <view wx:if="{{detailAuthority || detailScore}}" class="wr-detail__badges">
+      <text wx:if="{{detailAuthority}}" class="wr-detail__badge">{{detailAuthority}}</text>
+      <text wx:if="{{detailScore}}" class="wr-detail__badge wr-detail__badge--ghost">{{detailScore}}</text>
+    </view>
+
+    <text wx:if="{{detailPassage}}" class="wr-detail__passage">{{detailPassage}}</text>
+    <text wx:if="{{detailContent}}" class="wr-detail__content">{{detailContent}}</text>
+
+    <view class="wr-detail__rows">
+      <view
+        wx:if="{{detailFavicon}}"
+        class="wr-detail__row"
+        data-value="{{detailFavicon}}"
+        bindtap="onCopy"
+        aria-role="button"
+        aria-label="复制站点图标地址"
+      >
+        <text class="wr-detail__row-k">站点图标</text>
+        <text class="wr-detail__row-v">复制图标地址</text>
+      </view>
+      <view wx:if="{{detailUrl}}" class="wr-detail__row" data-value="{{detailUrl}}" bindtap="onCopy" aria-role="button" aria-label="复制原文链接">
+        <text class="wr-detail__row-k">原文链接</text>
+        <text class="wr-detail__row-v">复制链接</text>
+      </view>
+    </view>
+
+    <view wx:if="{{detailPics.length}}" class="wr-detail__section">
+      <text class="wr-detail__label">配图（{{detailPics.length}}）</text>
+      <view wx:for="{{detailPics}}" wx:key="originUrl" class="wr-detail__item">
+        <text class="wr-detail__item-title">{{item.caption || item.originUrl}}</text>
+        <text class="wr-detail__item-action" data-value="{{item.originUrl}}" bindtap="onCopy">复制图片地址</text>
+      </view>
+      <text class="wr-detail__note">小程序无法直接加载任意来源图片，已提供描述与地址复制。</text>
+    </view>
+
+    <view wx:if="{{detailDeeplinks.length}}" class="wr-detail__section">
+      <text class="wr-detail__label">附件子链（{{detailDeeplinks.length}}）</text>
+      <view wx:for="{{detailDeeplinks}}" wx:key="url" class="wr-detail__item">
+        <text class="wr-detail__item-title">{{item.title || item.url}}</text>
+        <text class="wr-detail__item-action" data-value="{{item.url}}" bindtap="onCopy">复制子链</text>
+      </view>
+    </view>
+
+    <text wx:if="{{detailUrl}}" class="wr-detail__url" selectable>{{detailUrl}}</text>
+  </scroll-view>
+
+  <view slot="footer" class="wr-detail__footer">
+    <view
+      wx:if="{{detailUrl}}"
+      class="wr-detail__button wr-detail__button--primary"
+      data-value="{{detailUrl}}"
+      bindtap="onCopy"
+      aria-role="button"
+      aria-label="复制链接"
+    >复制链接</view>
+    <view
+      class="wr-detail__button wr-detail__button--ghost"
+      bindtap="onDetailClose"
+      aria-role="button"
+      aria-label="关闭详情"
+    >关闭</view>
+  </view>
+</glass-bottom-sheet>
