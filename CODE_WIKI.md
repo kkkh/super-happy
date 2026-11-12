@@ -4235,9 +4235,9 @@ macOS 的 CLI 常见路径（自动化脚本会按顺序探测）：
 | `minifyWXSS` | `true` | 压缩样式 |
 | `minifyWXML` | `true` | 压缩模板 |
 | `uploadWithSourceMap` | `true` | 保留 source map |
-| `ignoreUploadUnusedFiles` | `false` | 以 `packOptions.ignore` 为准，避免误过滤共享模块 |
-| `ignoreDevUnusedFiles` | `false` | 开发阶段不过滤仅被分包引用的共享模块 |
-| `ignoreCodeQuality` | `true` | 关闭代码质量面板对共享模块的“未使用 JS”伪警告 |
+| `ignoreUploadUnusedFiles` | `true` | 上传时过滤无依赖文件；共享模块均被分包静态引用，不会被过滤 |
+| `ignoreDevUnusedFiles` | `true` | 预览 / 真机调试同样过滤无依赖文件，并使「未使用 JS」检查通过 |
+| `ignoreCodeQuality` | `true` | 关闭预览 / 上传前的代码质量自动扫描（手动面板不受此项控制） |
 | `packNpmManually` | `true` | 手动构建 npm |
 | `skylineRenderEnable` | `true` | 开启 Skyline |
 
@@ -4496,9 +4496,9 @@ npm test
 | `packNpmRelationList` | 根包 + `subpackages/tools-core` | 两处 npm 产物 |
 | `minified` / `minifyWXSS` / `minifyWXML` | `true` | 上传压缩 |
 | `uploadWithSourceMap` | `true` | 后台错误堆栈还原 |
-| `ignoreUploadUnusedFiles` | `false` | 以 `packOptions.ignore` 为准，避免误过滤共享模块 |
-| `ignoreDevUnusedFiles` | `false` | 开发阶段不过滤仅被分包引用的共享模块 |
-| `ignoreCodeQuality` | `true` | 关闭代码质量面板对共享模块的“未使用 JS”伪警告 |
+| `ignoreUploadUnusedFiles` | `true` | 上传时过滤无依赖文件；共享模块均被分包静态引用，不会被过滤 |
+| `ignoreDevUnusedFiles` | `true` | 预览 / 真机调试同样过滤无依赖文件，并使「未使用 JS」检查通过 |
+| `ignoreCodeQuality` | `true` | 关闭预览 / 上传前的代码质量自动扫描（手动面板不受此项控制） |
 | `bigPackageSizeSupport`（私有配置） | `false` | 主包按 2MB 限制 |
 | `skylineRenderEnable`（私有配置） | `true` | 开启 Skyline |
 | `renderer`（`app.json`） | `skyline` | 渲染引擎 |

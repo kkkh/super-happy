@@ -11,8 +11,8 @@
     "useCompilerPlugins": [
       "typescript"
     ],
-    "ignoreUploadUnusedFiles": false,
-    "ignoreDevUnusedFiles": false,
+    "ignoreUploadUnusedFiles": true,
+    "ignoreDevUnusedFiles": true,
     "ignoreCodeQuality": true,
     "uploadWithSourceMap": true,
     "minifyWXSS": true,
