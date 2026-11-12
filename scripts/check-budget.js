@@ -1,6 +1,7 @@
 /* ==========================================================================
    check-budget · 上传口径包体门禁
    - 排除 node_modules / package.json / package-lock.json / .DS_Store
+   - 根目录未排除且非运行时资源直接失败，防止截图 / 文档被误打包
    - 主包正确遍历真实页面目录（pages/index/index → pages/index）
    - 单页预算只校验 manifest 中的新增页，避免误伤既有大页面
    ========================================================================== */
@@ -9,6 +10,30 @@ const path = require('node:path')
 
 const ROOT = path.resolve(__dirname, '..')
 const APP = JSON.parse(fs.readFileSync(path.join(ROOT, 'app.json'), 'utf8'))
+const PROJECT = JSON.parse(fs.readFileSync(path.join(ROOT, 'project.config.json'), 'utf8'))
+const PACK_IGNORE = (PROJECT.packOptions && PROJECT.packOptions.ignore) || []
+
+/** 小程序运行时真正需要的根目录 / 根文件；其余未排除项一律视为打包异常 */
+const RUNTIME_ROOT_DIRS = new Set([
+  'assets',
+  'components',
+  'core',
+  'custom-tab-bar',
+  'miniprogram_npm',
+  'pages',
+  'store',
+  'styles',
+  'subpackages',
+  'workers',
+])
+const RUNTIME_ROOT_FILES = new Set([
+  'app.ts',
+  'app.json',
+  'app.wxss',
+  'theme.json',
+  'sitemap.json',
+  'project.config.json',
+])
 
 /** 批 1 起每新增一页，把页面目录相对路径加入此清单 */
 const NEW_PAGES = [
@@ -112,6 +137,83 @@ function pageFolder(route) {
   return path.join(ROOT, path.dirname(route))
 }
 
+/** 按 packOptions.ignore 的 folder / file / prefix / suffix 规则判断是否排除 */
+function ignoredByPack(name, type) {
+  return PACK_IGNORE.some((rule) => {
+    if (!rule || typeof rule.value !== 'string') {
+      return false
+    }
+    if (rule.type === type) {
+      return rule.value === name
+    }
+    if (rule.type === 'prefix') {
+      return name.startsWith(rule.value)
+    }
+    if (rule.type === 'suffix') {
+      return name.endsWith(rule.value)
+    }
+    return false
+  })
+}
+
+/** 递归统计路径体积：异常资源可能不在主包目录白名单内，不能用 walk 跳过文件 */
+function bytesOfPath(target) {
+  try {
+    const stat = fs.statSync(target)
+    if (stat.isFile()) {
+      return stat.size
+    }
+    if (!stat.isDirectory()) {
+      return 0
+    }
+    return fs
+      .readdirSync(target)
+      .reduce((sum, name) => sum + bytesOfPath(path.join(target, name)), 0)
+  } catch {
+    return 0
+  }
+}
+
+/**
+ * 根目录异常资源：未被 packOptions.ignore 排除、且不属于小程序运行时的文件夹 / 文件。
+ * 这些内容会随 `ignoreUploadUnusedFiles: false` 的上传口径进入主包，必须显式拦截。
+ */
+function rootAnomalies() {
+  const anomalies = []
+  for (const entry of fs.readdirSync(ROOT, { withFileTypes: true })) {
+    /* 点文件由微信开发者工具与 packOptions 统一处理，不计入异常 */
+    if (entry.name.startsWith('.')) {
+      continue
+    }
+    const target = path.join(ROOT, entry.name)
+    if (entry.isDirectory()) {
+      if (RUNTIME_ROOT_DIRS.has(entry.name) || ignoredByPack(entry.name, 'folder')) {
+        continue
+      }
+      const bytes = bytesOfPath(target)
+      if (bytes > 0) {
+        anomalies.push({ name: entry.name, type: '目录', kb: bytes / 1024 })
+      }
+      continue
+    }
+    if (RUNTIME_ROOT_FILES.has(entry.name)) {
+      continue
+    }
+    if (
+      ignoredByPack(entry.name, 'file') ||
+      ignoredByPack(entry.name, 'prefix') ||
+      ignoredByPack(entry.name, 'suffix')
+    ) {
+      continue
+    }
+    const bytes = bytesOfPath(target)
+    if (bytes > 0) {
+      anomalies.push({ name: entry.name, type: '文件', kb: bytes / 1024 })
+    }
+  }
+  return anomalies
+}
+
 function mainFiles() {
   return [
     'app.ts',
@@ -128,8 +230,19 @@ function mainFiles() {
     .concat(APP.pages.flatMap((page) => walk(pageFolder(page))))
 }
 
+function formatSize(kb) {
+  return kb < 0.1 ? `${Math.round(kb * 1024)} B` : `${kb.toFixed(1)} KB`
+}
+
 function checkBudgets() {
   const failures = []
+  const anomalies = rootAnomalies()
+  for (const item of anomalies) {
+    failures.push(
+      `未排除的根${item.type}会随包上传：${item.name}（${formatSize(item.kb)}）；请移入已排除目录或加入 packOptions.ignore`,
+    )
+  }
+
   const mainKb = bytesOf(mainFiles())
   if (mainKb > LIMITS.main) {
     failures.push(`主包 ${mainKb.toFixed(0)} KB 超过 ${LIMITS.main} KB`)
@@ -154,7 +267,7 @@ function checkBudgets() {
     }
   }
 
-  return { ok: failures.length === 0, mainKb, packages, pages, failures }
+  return { ok: failures.length === 0, mainKb, packages, pages, anomalies, failures }
 }
 
 if (require.main === module) {
@@ -173,4 +286,4 @@ if (require.main === module) {
   }
 }
 
-module.exports = { checkBudgets, LIMITS, NEW_PAGES }
+module.exports = { checkBudgets, rootAnomalies, LIMITS, NEW_PAGES }

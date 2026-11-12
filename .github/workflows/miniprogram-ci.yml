@@ -79,6 +79,10 @@ jobs:
         timeout-minutes: 3
         run: npm run check:version
 
+      - name: 生产依赖安全审计
+        timeout-minutes: 3
+        run: npm run audit:prod
+
   upload:
     name: 构建并上传开发版本
     needs: quality

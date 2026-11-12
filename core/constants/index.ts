@@ -39,9 +39,9 @@ export const ROUTES = {
 } as const
 
 /** 当前版本号：设置中心、我的页与更新日志共用同一真相源 */
-export const APP_VERSION = '1.1.0'
-/** 隐私保护指引版本：仅在数据处理方式变化时递增，与 app:privacy.version 比对 */
-export const PRIVACY_VERSION = 2
+export const APP_VERSION = '1.2.0'
+/** 隐私保护指引版本：仅在数据处理方式或披露变化时递增，与 app:privacy.version 比对（v3：2026-11-12 披露校准） */
+export const PRIVACY_VERSION = 3
 
 /** 模态弹窗动作色：破坏性操作必须红/绿分明，避免误触 */
 export const ACTION_COLORS = {

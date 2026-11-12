@@ -54,6 +54,7 @@ import {
 import { useSound } from '../../../../core/services/sound'
 import { ambientTheme } from '../../../../core/theme/ambient-theme'
 import { APP_VERSION, PRIVACY_VERSION, ROUTES } from '../../../../core/constants/index'
+import { TOOLS } from '../../../../core/toolbox/registry'
 import { readUpdatePending } from '../../../../core/services/update'
 import { historyStore } from '../../../../core/stores/history'
 import { isDevtools } from '../../../../core/utils/platform'
@@ -448,6 +449,18 @@ interface ChangelogEntry {
 
 const CHANGELOG: ChangelogEntry[] = [
   {
+    version: 'v1.2.0',
+    date: '2026-11-12',
+    title: '联网工具箱与和风天气上线',
+    notes: [
+      '新增和风天气：8 组 API / 27 个范围变体 / 7 个页签 / 507 个官方图标',
+      '汇率换算接入中国外汇交易中心官方中间价，6 小时缓存、失败离线回退',
+      '新增元宝搜索：全网公开网页检索、筛选与单篇 / 全量导出',
+      '工具矩阵扩展至 65 个，新增和风天气、汇率换算与元宝搜索',
+      '隐私披露全面校准：四项联网服务、草稿留存、备份范围与缓存 TTL；隐私指引升至 v3',
+    ],
+  },
+  {
     version: 'v1.1.0',
     date: '2026-11-06',
     title: '控制中枢上线',
@@ -525,6 +538,7 @@ Page({
     cacheText: '—',
     cacheDetail: '读取中',
     version: APP_VERSION,
+    toolCount: TOOLS.length,
     hasPendingUpdate: false,
     /** 从更新弹窗「查看更新日志」进入时，滚动定位到版本区块 */
     scrollTarget: '',
@@ -2925,7 +2939,7 @@ Page({
       privacyConfirmKind: 'toolbox',
       privacyConfirmTitle: '清除工具数据？',
       privacyConfirmDesc:
-        '将删除本机工具收藏、最近使用、搜索历史、计算轨迹与工具草稿等 tbx: 数据；不影响简历、作品收藏、备份文件、天气与专注记录。',
+        '将删除本机工具收藏、最近使用、搜索历史、计算轨迹、工具草稿、汇率缓存与临时图片回收队列等 tbx: 数据；不影响简历、作品收藏、备份文件、天气与专注记录。',
     })
   },
 

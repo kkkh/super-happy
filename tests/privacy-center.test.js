@@ -98,7 +98,7 @@ test('权限快照：定位 / 相册 / 隐私指引状态与系统一致', async
   installWxMock({
     auth: { 'scope.userFuzzyLocation': true, 'scope.writePhotosAlbum': false },
     privacy: { needAuthorization: true, privacyContractName: '超欢隐私保护指引' },
-    seed: { 'app:privacy.version': 2 },
+    seed: { 'app:privacy.version': 3 },
   })
   const privacy = await loadPrivacyCenter()
   const snapshot = await privacy.permissionSnapshot()
@@ -124,7 +124,7 @@ test('隐私指引已同意时状态为 granted', async () => {
   installWxMock({
     auth: {},
     privacy: { needAuthorization: false, privacyContractName: '指引' },
-    seed: { 'app:privacy.version': 2 },
+    seed: { 'app:privacy.version': 3 },
   })
   const privacy = await loadPrivacyCenter()
   const snapshot = await privacy.permissionSnapshot()
@@ -138,7 +138,10 @@ test('隐私指引版本：确认后写回并消除变更提示', async () => {
   assert.equal(privacy.privacyVersionChanged(), true)
   assert.equal(privacy.ackPrivacyVersion(2), true)
   assert.equal(values['app:privacy.version'], 2)
-  assert.equal(privacy.readPrivacyVersion(), 2)
+  assert.equal(privacy.privacyVersionChanged(), true)
+  assert.equal(privacy.ackPrivacyVersion(3), true)
+  assert.equal(values['app:privacy.version'], 3)
+  assert.equal(privacy.readPrivacyVersion(), 3)
   assert.equal(privacy.privacyVersionChanged(), false)
   assert.equal(privacy.ackPrivacyVersion(0), false)
   assert.equal(privacy.privacyVersionChanged(), false)
@@ -235,6 +238,6 @@ test('设置页与 legal 已接入隐私中心契约', () => {
   assert.match(settingsWxml, /onPrivacyConfirm/)
   assert.match(legalWxml, /app:privacy\.version/)
   assert.match(legalWxml, /privacyVersion/)
-  assert.match(constants, /PRIVACY_VERSION\s*=\s*2/)
+  assert.match(constants, /PRIVACY_VERSION\s*=\s*3/)
   assert.match(constants, /privacyVersion:\s*'app:privacy\.version'/)
 })

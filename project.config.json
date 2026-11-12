@@ -12,6 +12,8 @@
       "typescript"
     ],
     "ignoreUploadUnusedFiles": false,
+    "ignoreDevUnusedFiles": false,
+    "ignoreCodeQuality": true,
     "uploadWithSourceMap": true,
     "minifyWXSS": true,
     "minifyWXML": true,

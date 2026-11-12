@@ -287,7 +287,7 @@ export function drawCardBody(
         hooks.onError(error)
       }
     }
-    qr.src = '/assets/img/qr-blog.png'
+    qr.src = '/subpackages/grow/assets/img/qr-blog.png'
   } catch (error) {
     hooks.onError(error)
   }

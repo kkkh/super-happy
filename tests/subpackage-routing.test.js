@@ -256,9 +256,11 @@ test('主包体积 <= 1900 KB，单分包体积 < 2048 KB', () => {
 
 test('简历数据引用的静态图片路径全部存在', () => {
   const source = fs.readFileSync(path.join(ROOT, 'core/data/resume-data.ts'), 'utf8')
-  const refs = [...source.matchAll(/['"](\/assets\/[^'"]+\.(?:png|jpg|jpeg|webp|svg))['"]/gi)].map(
-    (match) => match[1],
-  )
+  const refs = [
+    ...source.matchAll(
+      /['"]((?:\/assets\/|\/subpackages\/[^'"]+\/assets\/)[^'"]+\.(?:png|jpg|jpeg|webp|svg))['"]/gi,
+    ),
+  ].map((match) => match[1])
   assert.ok(refs.length > 0)
   for (const ref of refs) {
     const file = path.join(ROOT, ref.replace(/^\//, ''))
