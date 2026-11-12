@@ -311,7 +311,7 @@ Page<ProfileData, ProfileState>({
               this.handleCardError(error)
             }
           }
-          avatarImg.src = profile.avatar || '/assets/img/avatar.jpg'
+          avatarImg.src = profile.avatar || '/subpackages/grow/assets/img/avatar.jpg'
         } catch (error) {
           this.handleCardError(error)
         }

@@ -65,8 +65,13 @@ Page({
           return
         }
         if (result.ok) {
+          /* 封面已下沉到 campus 分包，避免主包继续承载作品静态图 */
+          const project = {
+            ...result.data,
+            cover: '/subpackages/campus/assets/covers/yuan-shu.jpg',
+          }
           this.setData({
-            project: result.data,
+            project,
             shotCount: galleryCount(result.data.gallery),
           })
         } else {

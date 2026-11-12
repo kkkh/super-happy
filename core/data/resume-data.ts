@@ -57,17 +57,17 @@ export const profile: Profile = {
   location: ['山西', '太原', '迎泽'],
   email: '56967916@qq.com',
   phone: '',
-  avatar: '/assets/img/avatar.jpg',
+  avatar: '/subpackages/grow/assets/img/avatar.jpg',
   intro: '前途广阔，大有可为。',
   heroLine: '秦超 · 作品集 2026',
 }
 
 /* ---- 社交坐标 ---- */
 export const contactLinks: ContactLink[] = [
-  { id: 'gitee', label: 'Gitee', handle: 'q04', qr: '/assets/img/qr-gitee.png', tone: 'iris' },
-  { id: 'github', label: 'GitHub', handle: 'kkkh', qr: '/assets/img/qr-github.png', tone: 'aurora' },
-  { id: 'blog', label: '我的网站', handle: '43322.cn', qr: '/assets/img/qr-blog.png', tone: 'iris' },
-  { id: 'juejin', label: '掘金', handle: '人工智能专栏', qr: '/assets/img/qr-juejin.png', tone: 'amber' },
+  { id: 'gitee', label: 'Gitee', handle: 'q04', qr: '/subpackages/grow/assets/img/qr-gitee.png', tone: 'iris' },
+  { id: 'github', label: 'GitHub', handle: 'kkkh', qr: '/subpackages/grow/assets/img/qr-github.png', tone: 'aurora' },
+  { id: 'blog', label: '我的网站', handle: '43322.cn', qr: '/subpackages/grow/assets/img/qr-blog.png', tone: 'iris' },
+  { id: 'juejin', label: '掘金', handle: '人工智能专栏', qr: '/subpackages/grow/assets/img/qr-juejin.png', tone: 'amber' },
 ]
 
 /* ---- 问候卡（序厅展品） ---- */
@@ -235,7 +235,7 @@ export const projects: Project[] = [
      */
     summary:
       '面向公司形象与客户沟通的全栈站点，覆盖前台展示、后台管理与数据库，形成从内容发布到成果呈现的完整闭环。',
-    cover: '/assets/covers/team-work.jpg',
+    cover: '/subpackages/works/assets/covers/team-work.jpg',
     accent: 'iris',
     role: '全栈开发',
     duration: '1 个半月',
@@ -277,7 +277,7 @@ export const projects: Project[] = [
      * 使用 Vue 全家桶 + element-ui 构建的外卖总台系统，一键总控制商家、用户、订单、财务、广告、配送、排班等全方位总台系统。
      */
     summary: '面向校园外卖场景的全方位总台系统，统一管理商家、用户、订单、财务、广告、配送与排班。',
-    cover: '/assets/covers/take-out-food.jpg',
+    cover: '/subpackages/works/assets/covers/take-out-food.jpg',
     accent: 'aurora',
     role: '前端开发',
     duration: '3 个半月',
@@ -312,7 +312,7 @@ export const projects: Project[] = [
      */
     summary:
       '覆盖知识产权申报、核查、记录与备案的后台系统，以权限与流程建模支撑单团队与多团队两种形态。',
-    cover: '/assets/covers/property-right.jpg',
+    cover: '/subpackages/works/assets/covers/property-right.jpg',
     accent: 'iris',
     role: '前端开发',
     duration: '1 个半月',
@@ -342,7 +342,7 @@ export const projects: Project[] = [
      * 软件著作后台管理系统用于操作软件著作业务的后台管理，具有订单管理、费用规则、常见问题等功能模块。
      */
     summary: '面向软件著作权业务的后台系统，聚焦订单管理、费用规则与常见问题维护。',
-    cover: '/assets/covers/software-work.jpg',
+    cover: '/subpackages/works/assets/covers/software-work.jpg',
     accent: 'amber',
     role: '前端开发',
     duration: '—',
@@ -406,7 +406,7 @@ export const projects: Project[] = [
      */
     summary:
       '面向山西晋中理工学院师生、考生与家长的校园信息聚合应用。把官网栏目与 35 个机构子站收进一个入口，覆盖要闻、公告、院系专业、招生资讯与校园风光，支持收藏、搜索、本地通知与离线阅读；无需注册，不收集个人信息。',
-    cover: '/assets/covers/yuan-shu.jpg',
+    cover: '/subpackages/works/assets/covers/yuan-shu.jpg',
     accent: 'iris',
     role: '独立开发',
     duration: '持续迭代',
@@ -453,7 +453,7 @@ export const projects: Project[] = [
      * 应聘时更容易让面试官了解你，从千篇一律的简历模板中脱颖而出。
      */
     summary: '以微信小程序与 Vant 搭建的轻量简历，让面试官在几屏之内读懂经历、技能与作品。',
-    cover: '/assets/covers/wechat-resume.jpg',
+    cover: '/subpackages/works/assets/covers/wechat-resume.jpg',
     accent: 'iris',
     role: '独立开发',
     duration: '约 1 个半月',
@@ -484,7 +484,7 @@ export const projects: Project[] = [
      * 具有登录注册页面（有权限）、简单的资金管理功能和分页功能，锻炼自己的全栈开发项目经验。
      */
     summary: '以 Vue、Koa2 与 MongoDB 构建的全栈资金管理实践，覆盖登录鉴权、资金管理与分页。',
-    cover: '/assets/covers/fund-manager.jpg',
+    cover: '/subpackages/works/assets/covers/fund-manager.jpg',
     accent: 'aurora',
     role: '全栈开发',
     duration: '约 1 周',
@@ -519,7 +519,7 @@ export const projects: Project[] = [
      * 保证接口文档与代码的一致，已用于实际项目开发中。
      */
     summary: '基于 egg.js 与 Swagger UI 的接口文档工具，让文档随代码自动同步，减少重复维护。',
-    cover: '/assets/covers/egg-interface.jpg',
+    cover: '/subpackages/works/assets/covers/egg-interface.jpg',
     accent: 'iris',
     role: '独立开发',
     duration: '约 1 周',
@@ -544,7 +544,7 @@ export const projects: Project[] = [
     title: '图片智能识别文字应用',
     subtitle: '百度人工智能接口',
     summary: '接入百度人工智能接口，上传图片即可实时识别文字，完成从图像到文本的最短闭环。',
-    cover: '/assets/covers/ai-ocr.jpg',
+    cover: '/subpackages/works/assets/covers/ai-ocr.jpg',
     accent: 'amber',
     role: '独立开发',
     duration: '约 1 天',
@@ -569,7 +569,7 @@ export const projects: Project[] = [
     title: '仿小米闪购商城',
     subtitle: '原生 HTML · CSS · JavaScript',
     summary: '以原生 HTML、CSS 与 JavaScript 复刻小米闪购商城页面，专注布局还原与交互细节。',
-    cover: '/assets/covers/xm-mall.jpg',
+    cover: '/subpackages/works/assets/covers/xm-mall.jpg',
     accent: 'aurora',
     role: '独立开发',
     duration: '约 3 天',

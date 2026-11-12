@@ -525,7 +525,7 @@ sequenceDiagram
 ├── styles/                    # Design Tokens / V3 / 旧工具箱样式
 ├── workers/compute.js         # Worker 计算入口
 ├── tests/                     # 836 项测试 + 视觉 / E2E
-├── assets/                    # 头像、二维码、作品封面
+├── assets/                    # 全局小程序码 / 海报兜底图
 └── CODE_WIKI.md               # 本文档
 ```
 
@@ -4049,8 +4049,8 @@ npm run typecheck
 
 **静态资源**
 
-- 主包 `assets/` 只放全局资源（头像、二维码、作品封面等）。
-- 大图、园枢 22 张真机图放在 `subpackages/campus/assets/`。
+- 主包 `assets/` 只放全局小程序码与海报兜底图；头像 / 社交二维码下沉 `subpackages/grow/assets/img/`，作品封面下沉 `subpackages/works/assets/covers/`。
+- 大图、园枢 22 张真机图与园枢封面放在 `subpackages/campus/assets/`。
 - 新增图片前先压缩；主包接近项目预算 1900KB（平台上限 2MB）时优先迁入分包。
 - `project.config.json` 的 `packOptions.ignore` 已排除设计源文件、测试、Markdown 等非运行资源。
 
@@ -4126,7 +4126,7 @@ npm run plan            # 计划文档 81 项能力 / 63 张计划卡（运行�
 | 门禁 | 通过输出 | 当前值 |
 |---|---|---|
 | `check:version` | `✔ 版本四源一致：1.2.0` | `1.2.0` |
-| `budget` | `✔ 包体预算通过` | 主包 1858.9 KB / 1900 KB；tools-core 1454.6 KB；grow 805.4 KB；weather 912.5 KB / 1400 KB |
+| `budget` | `✔ 包体预算通过` | 主包 1475.6 KB / 1900 KB；tools-core 1454.6 KB；grow 841.9 KB；weather 912.5 KB / 1400 KB |
 | `plan` | `✔ 方案自检通过` | 计划文档能力 81 项 / 计划卡 63 张（注册表 65 个工具） |
 | `typecheck` | 无输出 | 通过 |
 | `test` | `tests 836`、`pass 836`、`fail 0` | 836/836 |
@@ -4235,7 +4235,9 @@ macOS 的 CLI 常见路径（自动化脚本会按顺序探测）：
 | `minifyWXSS` | `true` | 压缩样式 |
 | `minifyWXML` | `true` | 压缩模板 |
 | `uploadWithSourceMap` | `true` | 保留 source map |
-| `ignoreUploadUnusedFiles` | `true` | 未引用文件不上传 |
+| `ignoreUploadUnusedFiles` | `false` | 以 `packOptions.ignore` 为准，避免误过滤共享模块 |
+| `ignoreDevUnusedFiles` | `false` | 开发阶段不过滤仅被分包引用的共享模块 |
+| `ignoreCodeQuality` | `true` | 关闭代码质量面板对共享模块的“未使用 JS”伪警告 |
 | `packNpmManually` | `true` | 手动构建 npm |
 | `skylineRenderEnable` | `true` | 开启 Skyline |
 
@@ -4494,7 +4496,9 @@ npm test
 | `packNpmRelationList` | 根包 + `subpackages/tools-core` | 两处 npm 产物 |
 | `minified` / `minifyWXSS` / `minifyWXML` | `true` | 上传压缩 |
 | `uploadWithSourceMap` | `true` | 后台错误堆栈还原 |
-| `ignoreUploadUnusedFiles` | `true` | 未引用文件不上传 |
+| `ignoreUploadUnusedFiles` | `false` | 以 `packOptions.ignore` 为准，避免误过滤共享模块 |
+| `ignoreDevUnusedFiles` | `false` | 开发阶段不过滤仅被分包引用的共享模块 |
+| `ignoreCodeQuality` | `true` | 关闭代码质量面板对共享模块的“未使用 JS”伪警告 |
 | `bigPackageSizeSupport`（私有配置） | `false` | 主包按 2MB 限制 |
 | `skylineRenderEnable`（私有配置） | `true` | 开启 Skyline |
 | `renderer`（`app.json`） | `skyline` | 渲染引擎 |
