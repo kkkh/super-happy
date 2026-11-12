@@ -2,11 +2,11 @@
 
 > 工程名：`chaohuan-toolbox`（`package.json` 的 `name` 为 `qinchao-toolbox`）
 > AppID：`wx0f5c60d97c1ce6e2`
-> 应用版本：`1.1.0`（`core/constants/index.ts` 的 `APP_VERSION`）
+> 应用版本：`1.2.0`（`core/constants/index.ts` 的 `APP_VERSION`）
 > 渲染引擎：Skyline + glass-easel
 > 基础库：`3.17.6`
 > 文档基线：2026-11-12（已按当前源码全量核验）
-> 校验状态：`tsc --noEmit` 通过；`npm test` 835/835 通过（复核于 2026-11-12，111 个测试文件）
+> 校验状态：`tsc --noEmit` 通过；`npm test` 836/836 通过（复核于 2026-11-12，111 个测试文件）
 
 本文是面向开发者的完整 Code Wiki，覆盖项目定位、技术栈、整体架构、启动编排、核心 Store、Workflow 流转引擎、65 个工具算法、全息气象站、和风天气、全息专注引擎、组件库、83 个页面、设计令牌、存储迁移、隐私与更新机制、依赖关系、运行方式、部署发布流程和扩展指南。文中路径均为仓库相对路径，关键公式与常量标注来源文件。
 
@@ -220,7 +220,7 @@ flowchart TB
 | `build:icon` | `npx fantasticon .icon-src -o .icon-dist -n gicon --font-types ttf --asset-types json` | 生成图标字体到 `.icon-dist/` |
 | `pretypecheck` / `pretest` | `node scripts/ensure-weather-config.js && node scripts/ensure-yuanbao-config.js && node scripts/ensure-qweather-config.js` | 自动生成 `weather/config.local.ts`、`yuanbao/config-local.ts` 与和风 `config-local.ts`（若缺失），避免 Key 缺失导致编译失败 |
 | `typecheck` | `tsc --noEmit` | 严格类型检查 |
-| `test` | `node --experimental-strip-types --test tests/*.test.js` | 111 个测试文件、835 项全部单元 / 集成测试 |
+| `test` | `node --experimental-strip-types --test tests/*.test.js` | 111 个测试文件、836 项全部单元 / 集成测试 |
 | `test:hologram` | 仅 `tests/spatial-hologram.test.js` | 空间全息单测 |
 | `test:integration` | `tests/*.integration.test.js` | 集成测试 |
 | `test:integration:hologram` | 仅空间全息集成测试 | 集成测试 |
@@ -524,7 +524,7 @@ sequenceDiagram
 ├── store/index.ts             # glassStore 全局门面
 ├── styles/                    # Design Tokens / V3 / 旧工具箱样式
 ├── workers/compute.js         # Worker 计算入口
-├── tests/                     # 835 项测试 + 视觉 / E2E
+├── tests/                     # 836 项测试 + 视觉 / E2E
 ├── assets/                    # 头像、二维码、作品封面
 └── CODE_WIKI.md               # 本文档
 ```
@@ -791,7 +791,7 @@ resetAllLocalData(): { removedKeys: number; backups: number }
 ```
 
 - 权限快照：`wx.getSetting` 读取 `scope.userFuzzyLocation`（旧版回退 `scope.userLocation`）/ `scope.writePhotosAlbum`，`wx.getPrivacySetting` 读取 `needAuthorization` 与 `privacyContractName`；API 不可用时统一降级为 `unavailable`。
-- 版本：`PRIVACY_VERSION`（当前 2）与 `app:privacy.version` 比对；设置页隐私中心首次进入提示，用户确认后写回，清空工具数据不重置，只有重置全部才清除。
+- 版本：`PRIVACY_VERSION`（当前 3）与 `app:privacy.version` 比对；设置页隐私中心首次进入提示，用户确认后写回，清空工具数据不重置，只有重置全部才清除。
 - 重置全部：删除 `tbx:` / `weather:` / `focus:` / `diag:` / `cyber:`、`app:prefs.v1`、`app:prefs.v0`、`app:backup.at`、`app:privacy.version` 与 `USER_DATA_PATH/backups`、`exports`；保留 `gallery.*` 与 `app:storage.version`。
 - 设置页入口：权限状态与跳转、查看隐私指引、导出本机数据（复用备份）、清除工具数据、重置全部；`tests/privacy-center.test.js` 7 条契约测试。
 - 隐私版本与重置范围在 legal 页同步披露。
@@ -4082,7 +4082,7 @@ npm test
 | 项 | 要求 |
 |---|---|
 | 类型检查 | `npm run typecheck` 通过 |
-| 单元 / 集成测试 | `npm test` 835/835 通过 |
+| 单元 / 集成测试 | `npm test` 836/836 通过 |
 | 样式产物 | `styles/generated/tailwind.wxss` 存在且为最新 |
 | npm 产物 | 根包与 tools-core 的 `miniprogram_npm` 均存在 |
 | 版本号 | `APP_VERSION` 与后台版本说明一致 |
@@ -4125,11 +4125,11 @@ npm run plan            # 计划文档 81 项能力 / 63 张计划卡（运行�
 
 | 门禁 | 通过输出 | 当前值 |
 |---|---|---|
-| `check:version` | `✔ 版本四源一致：1.1.0` | `1.1.0` |
-| `budget` | `✔ 包体预算通过` | 主包 1858.7 KB / 1900 KB；tools-core 1454.6 KB；grow 802.9 KB；weather 912.5 KB / 1400 KB |
+| `check:version` | `✔ 版本四源一致：1.2.0` | `1.2.0` |
+| `budget` | `✔ 包体预算通过` | 主包 1858.9 KB / 1900 KB；tools-core 1454.6 KB；grow 805.4 KB；weather 912.5 KB / 1400 KB |
 | `plan` | `✔ 方案自检通过` | 计划文档能力 81 项 / 计划卡 63 张（注册表 65 个工具） |
 | `typecheck` | 无输出 | 通过 |
-| `test` | `tests 835`、`pass 835`、`fail 0` | 835/835 |
+| `test` | `tests 836`、`pass 836`、`fail 0` | 836/836 |
 
 任一项失败时的处理顺序：
 
@@ -4437,9 +4437,9 @@ wx.getStorageSync('diag:errors.v1')
 
 | 位置 | 当前值 | 作用 |
 |---|---|---|
-| `core/constants/index.ts` 的 `APP_VERSION` | `1.1.0` | 运行时唯一版本真相源；我的页、隐私页、设置页、驾驶舱读取并展示 |
-| `package.json` / `package-lock.json` 根版本 | `1.1.0` | npm 元数据；必须与 APP_VERSION 保持一致 |
-| 设置页 `CHANGELOG[0]` | `v1.1.0` | 用户可见的版本说明；四源由 `npm run check:version` 校验 |
+| `core/constants/index.ts` 的 `APP_VERSION` | `1.2.0` | 运行时唯一版本真相源；我的页、隐私页、设置页、驾驶舱读取并展示 |
+| `package.json` / `package-lock.json` 根版本 | `1.2.0` | npm 元数据；必须与 APP_VERSION 保持一致 |
+| 设置页 `CHANGELOG[0]` | `v1.2.0` | 用户可见的版本说明；四源由 `npm run check:version` 校验 |
 | 微信后台「上传版本号」 | 手动填写 | 审核与发布的标识，必须与 `APP_VERSION` 完全一致 |
 
 规则：
@@ -4516,7 +4516,7 @@ npm test
 #### 14.9.5 上传开发版本
 
 1. 开发者工具点击「上传」。
-2. 版本号填写 `APP_VERSION`（当前 `1.1.0`；发版前按 14.9.2 递增）。
+2. 版本号填写 `APP_VERSION`（当前 `1.2.0`；发版前按 14.9.2 递增）。
 3. 项目备注写清：本次变更、重点验收项、已知限制、隐私相关改动。
 4. 确认上传设置与 14.9.4 一致（压缩、source map、未引用文件忽略）。
 5. 执行上传；若主包超过 2MB，上传会失败，先按 14.9.4 处理体积。
@@ -4569,7 +4569,7 @@ Worker 用于长文本统计与去重；设备方向用于空间全息动效，�
 
 | 检查项 | 预期 |
 |---|---|
-| 版本号 | 我的页 / 隐私页 / 设置页显示 `1.1.0`，与后台一致 |
+| 版本号 | 我的页 / 隐私页 / 设置页显示 `1.2.0`，与后台一致 |
 | 首屏 | 65 个工具、Hero 数据、搜索、Dock 正常 |
 | 主题 | 白昼 / 夜航 / 自动跟随系统，状态栏与背景同步 |
 | 搜索与指令面板 | 中文、拼音全拼、首字母均可命中 |
@@ -4817,7 +4817,7 @@ MP_CI_PRIVATE_KEY_PATH="$MP_CI_KEY_FILE" npm run ci:upload
 
 ### 15.1 测试构成
 
-`npm test` 当前 **835 项全部通过**。
+`npm test` 当前 **836 项全部通过**。
 
 | 测试组 | 文件 | 覆盖主题 |
 |---|---|---|
@@ -4848,7 +4848,7 @@ MP_CI_PRIVATE_KEY_PATH="$MP_CI_KEY_FILE" npm run ci:upload
 | 门禁 | 命令 | 当前状态 |
 |---|---|---|
 | 类型检查 | `npm run typecheck` | 通过 |
-| 单元 / 集成 | `npm test` | 835/835 通过 |
+| 单元 / 集成 | `npm test` | 836/836 通过 |
 | 文字对比度 | `npm run check:contrast` | 通过（正文全绿，按钮 6 条 warning 设计债） |
 | Workflow 覆盖率 | `tests/workflow-coverage.test.js` | 65 工具全部注册 / 适配器 / 来源 / 收发端；15 silent + 50 jump |
 | 分包路由 | `tests/subpackage-routing.test.js` | 通过 |
@@ -5037,7 +5037,7 @@ MP_CI_PRIVATE_KEY_PATH="$MP_CI_KEY_FILE" npm run ci:upload
 
 | 常量 | 值 | 来源 |
 |---|---|---|
-| `APP_VERSION` | `1.1.0` | `core/constants/index.ts` |
+| `APP_VERSION` | `1.2.0` | `core/constants/index.ts` |
 | `TIMING.HOME_SEARCH_DEBOUNCE` | 160ms | `core/constants/index.ts` |
 | `TIMING.WORKS_SEARCH_DEBOUNCE` | 200ms | `core/constants/index.ts` |
 | `TIMING.TOAST_DURATION` | 2200ms | `core/constants/index.ts` |
@@ -5232,7 +5232,7 @@ MP_CI_PRIVATE_KEY_PATH="$MP_CI_KEY_FILE" npm run ci:upload
 | 工具 | 65 / 65，全部在 6.1 与 8.4 中列出 |
 | `core/` TypeScript 模块 | 77 / 77，均在 5.x、6.x、7.x、8.x、11.x、12.x 或 5.11 中出现 |
 | `subpackages/` TypeScript 模块 | 212 / 212，页面 / 组件在 10.x、9.10 中按路由列出，lib / utils / weather 在 8.x、5.11、18.3 中说明 |
-| 测试文件 | 111 个 `.test.js`；`npm test` 835 项通过 |
+| 测试文件 | 111 个 `.test.js`；`npm test` 836 项通过 |
 | 运行时依赖 | 根包 2 个 + tools-core 2 个，均在 2.1 / 13.2 中列出 |
 | 配置文件 | `app.json`、`app.ts`、`theme.json`、`project.config.json`、`project.private.config.json`、`tsconfig.json`、`package.json`、`postcss.config.js`、`sitemap.json` |
 | 存储键 | 46 个运行期键条目（含 `weather:*` / `qweather:*` 动态后缀），见 12.1 |

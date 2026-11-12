@@ -1212,7 +1212,7 @@
                 <view wx:if="{{hasPendingUpdate}}" class="settings-update-dot" aria-hidden="true"></view>
               </view>
               <text wx:if="{{hasPendingUpdate}}" class="settings-row__sub settings-row__sub--update">新版本已就绪 · 重启小程序后生效</text>
-              <text wx:else class="settings-row__sub">v{{version}} · 24 个实用工具 · 无广告 · 无登录</text>
+              <text wx:else class="settings-row__sub">v{{version}} · {{toolCount}} 个实用工具 · 无广告 · 无登录</text>
             </view>
             <text class="settings-row__value">{{changelogOpen ? '收起' : '展开'}}</text>
             <view class="settings-chevron {{changelogOpen ? 'settings-chevron--open' : ''}}">
