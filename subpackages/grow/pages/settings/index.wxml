@@ -1124,7 +1124,7 @@
             </view>
             <view class="settings-row__copy">
               <text class="settings-row__title">重置全部本机数据</text>
-              <text class="settings-row__sub">含天气、专注、诊断、备份、偏好与隐私确认；保留主题与作品收藏</text>
+              <text class="settings-row__sub">含气象与和风天气缓存、专注、诊断、备份、导出、偏好与隐私确认；保留主题与作品收藏</text>
             </view>
             <text class="settings-row__value settings-row__value--danger">重置</text>
           </view>

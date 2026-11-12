@@ -138,7 +138,7 @@ export function permissionSnapshot(): Promise<PrivacySnapshot> {
           label: '定位',
           status: locationStatus,
           statusText: statusTextOf(locationStatus),
-          detail: '天气页「使用当前位置」申请；仅城市级模糊定位，拒绝后可手动选城',
+          detail: '全息气象与和风天气按需申请；仅城市级模糊定位，拒绝后可手动选城',
         },
         {
           key: 'album',

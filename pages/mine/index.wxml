@@ -171,7 +171,7 @@
         >
           <view class="mine-row__copy">
             <text class="mine-row__title">本机数据说明</text>
-            <text class="mine-row__sub">收藏、轨迹、快照、天气与专注缓存</text>
+            <text class="mine-row__sub">收藏、轨迹、快照、气象与专注缓存</text>
           </view>
           <g-icon name="arrow" size="{{24}}" tone="ink3" />
         </view>
@@ -188,7 +188,7 @@
         >
           <view class="mine-row__copy">
             <text class="mine-row__title">用户隐私保护指引</text>
-            <text class="mine-row__sub">不登录 · 仅 4 类公开数据请求 · 不上传内容</text>
+            <text class="mine-row__sub">不登录 · 仅 4 项必要联网请求 · 无云端存储</text>
           </view>
           <g-icon name="arrow" size="{{24}}" tone="ink3" />
         </view>
