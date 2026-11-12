@@ -294,7 +294,7 @@ const SMOKE_ACTIONS = {
   exif: async (page) => {
     const ok = await page.callMethod('onReceiveWorkflow', {
       type: 'image',
-      payload: '/assets/img/avatar.jpg',
+      payload: '/assets/poster-qr.png',
     })
     if (!ok) {
       return 'DevTools 无法读取代码包图片，真机相册验收'
