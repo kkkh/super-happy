@@ -21,7 +21,7 @@
       <view class="legal-head">
         <text class="legal-kicker">LEGAL / LOCAL FIRST</text>
         <text class="legal-title">先说清楚，再开始</text>
-        <text class="legal-desc">超欢不登录、不设账号、不上传您的内容；除「全息气象」按需向高德开放平台请求天气、「和风天气」按需向和风天气开发者 API 请求气象数据、「汇率换算」按需向中国外汇交易中心请求人民币汇率中间价、以及「元宝搜索」在您主动搜索时向腾讯云元宝搜索发送查询词外，其余功能全部在本机完成。以下说明生效于 {{effectiveDate}}。</text>
+        <text class="legal-desc">超欢不登录、不设账号、不建云端存储。仅「全息气象」「和风天气」「汇率换算」「元宝搜索」会按需向对应公开数据服务发送必要参数，其余功能全部在本机完成。以下说明生效于 {{effectiveDate}}，并随功能与数据处理方式变化同步更新。</text>
       </view>
 
       <view class="legal-seg" aria-role="tablist" aria-label="说明章节">
@@ -54,16 +54,16 @@
             </view>
           </view>
 
-          <text class="legal-body">本小程序是 {{toolCount}} 个效率工具的合集，没有账号体系、没有自建后端、没有广告 SDK、没有第三方统计 SDK。除「全息气象」按需向高德开放平台请求天气数据、「和风天气」按需向和风天气开发者 API 请求气象数据、以及「元宝搜索」在您主动搜索时向腾讯云元宝搜索发送查询词外，我们不向任何服务器上传您的姓名、手机号、邮箱、设备标识或工具输入内容；除您主动产生的轨迹摘要、专注记录、时间旅行快照与天气/城市缓存外，工具输入只在本机参与计算。</text>
+          <text class="legal-body">本小程序是 {{toolCount}} 个效率工具的合集，没有账号体系、没有自建后端、没有广告 SDK、没有第三方统计 SDK。仅「全息气象」「和风天气」「汇率换算」「元宝搜索」会按需向对应公开数据服务发送必要参数；除此之外，我们不向任何服务器上传您的姓名、手机号、邮箱、设备标识或工具输入内容。除您主动产生的计算轨迹摘要、工具草稿、专注记录、时间旅行快照与天气/城市缓存外，工具输入只在本机参与计算。</text>
 
           <view class="legal-list">
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
-              <text class="legal-list__text">文本与数字只在本机计算；除您主动产生的轨迹摘要外，关闭页面即释放。</text>
+              <text class="legal-list__text">文本与数字只在本机计算，结果不离开设备；非敏感工具的「继续上次」草稿会保存最近一次输入（单工具 ≤4KB、最多 20 个、30 天自动清理），计算轨迹只保留摘要，其余内容关闭页面即释放。</text>
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
-              <text class="legal-list__text">图片只在您主动选择时读取该张图片，并在本机处理；临时文件由页面退出、系统清理或快捷管道的回收队列处理，不上传。证件照换底只做像素级背景替换，不做人脸识别、不提取人脸特征。</text>
+              <text class="legal-list__text">图片只在您主动选择时读取所选图片（单图工具 1 张，拼图 / 批量压缩最多 9 张），并在本机处理；临时文件由页面退出、系统清理或快捷管道的回收队列处理，不上传。证件照换底只做像素级背景替换，不做人脸识别、不提取人脸特征。</text>
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
@@ -71,31 +71,31 @@
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
-              <text class="legal-list__text">隐私授权：首次使用定位、相册、剪贴板等敏感能力前，会通过 wx.requirePrivacyAuthorize 弹出微信《用户隐私保护指引》；您同意后才继续，拒绝则相关功能降级，其余工具不受影响。</text>
+              <text class="legal-list__text">隐私授权：首次使用定位、相册、剪贴板等敏感能力前，会通过 wx.requirePrivacyAuthorize 请求微信《用户隐私保护指引》授权；您同意后才继续，拒绝则相关功能降级，其余工具不受影响。低版本基础库不支持该接口时，按微信既有授权机制处理。</text>
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
-              <text class="legal-list__text">全息气象：仅在您打开气象站并同意隐私授权后，申请城市级模糊定位（wx.getFuzzyLocation）；经纬度仅用于向高德逆地理编码换取 adcode 并请求天气，微信返回的模糊坐标会作为城市中心点保存在本机（仅用于日出日落估算），不保存设备精确坐标。拒绝授权时自动降级为 IP 定位或手动选择城市。</text>
+              <text class="legal-list__text">全息气象：仅在您打开气象站并同意隐私授权后，申请城市级模糊定位（wx.getFuzzyLocation）；经纬度仅用于向高德逆地理编码换取 6 位 adcode 并请求天气。保存城市时只记录城市名、省份、adcode、城市级中心点（来自模糊定位、IP 区域中心或高德行政区数据）、来源标记与更新时间，不保存设备精确坐标；中心点仅用于日出日落估算。拒绝授权时自动降级为 IP 定位或手动选择城市。</text>
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
-              <text class="legal-list__text">和风天气：仅在您打开「和风天气」页并同意隐私授权后，申请城市级模糊定位（wx.getFuzzyLocation）；城市名、城市级经纬度、日期与时间仅用于向和风天气 API Host 请求实时天气、预报、分钟降水、空气质量、预警、生活指数、天文与历史数据。保存城市只记录城市名、行政区、LocationID、城市中心点与来源标记，不保存设备精确坐标；JWT / API KEY 只打包在本机小程序代码中，不进入分享、日志或诊断。</text>
+              <text class="legal-list__text">和风天气：仅在您打开「和风天气」页且尚未保存城市时，或主动点击「定位当前城市」并同意隐私授权后，申请城市级模糊定位（wx.getFuzzyLocation）；城市名、LocationID、城市级经纬度、日期、时间、语言与查询范围仅用于向和风天气 API Host（*.qweatherapi.com）请求城市/景点搜索、实时天气、预报、分钟降水、空气质量、预警、生活指数、天文与历史数据。保存城市只记录城市名、行政区、LocationID、城市中心点（最多两位小数）、时区与来源标记，不保存设备精确坐标；和风天气凭据通过构建期本地配置注入并随小程序包发布，不进入分享、日志或诊断。</text>
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
-              <text class="legal-list__text">汇率换算：仅在您打开汇率页时向中国外汇交易中心请求人民币汇率中间价；请求不包含金额、币种选择或其他输入。官方中间价按交易日 9:15 发布，返回的牌价与更新时间仅缓存本机用于网络失败时回退。</text>
+              <text class="legal-list__text">汇率换算：仅在您打开汇率页时向中国外汇交易中心请求人民币汇率中间价；请求不包含金额、币种选择或其他输入。官方中间价按交易日 9:15 发布，返回的牌价与更新时间仅缓存本机，6 小时内优先复用，网络失败时回退最近一次缓存。</text>
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
-              <text class="legal-list__text">元宝搜索：仅在您主动点击搜索时，把搜索词与筛选条件发送至腾讯云元宝搜索（TC3 方式 https://wsa.tencentcloudapi.com；服务 API KEY 方式 https://api.wsa.cloud.tencent.com），用于返回公开网页结果；不发送微信身份、手机号、通讯录、剪贴板或本机存储内容，搜索词不写入草稿与计算轨迹。</text>
+              <text class="legal-list__text">元宝搜索：仅在您主动点击搜索时，把搜索词与筛选条件发送至腾讯云元宝搜索（TC3 方式 https://wsa.tencentcloudapi.com；服务 API KEY 方式 https://api.wsa.cloud.tencent.com），用于返回公开网页结果；不发送微信身份、手机号、通讯录、剪贴板或本机存储内容。搜索词不写入草稿；计算轨迹只记录返回条数、时效与前 3 条结果标题，不记录搜索词本身。</text>
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
-              <text class="legal-list__text">IP 定位：仅在模糊定位不可用或被拒绝时调用高德 IP 定位，获取城市级省市与 adcode；局域网、非法或高德无法识别的 IP 会跳过并转手动选城。</text>
+              <text class="legal-list__text">IP 定位：仅在全息气象的模糊定位不可用或被拒绝时调用高德 IP 定位，获取城市级省市与 adcode；局域网、非法或高德无法识别的 IP 会跳过并转手动选城。和风天气不使用 IP 定位，未授权时显示默认城市并引导手动搜索。</text>
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
-              <text class="legal-list__text">网络请求：气象站仅向 https://restapi.amap.com 发送模糊经纬度、adcode、城市搜索关键词与高德 Web服务 Key，用于实况、4 天预报、逆地理编码、IP 定位与行政区搜索；和风天气仅向开发者配置的 qweatherapi.com API Host 发送城市名 / LocationID / 城市级经纬度、日期与时间，用于 8 组气象 API；汇率换算仅向 https://www.chinamoney.com.cn 请求公开的中间价 JSON；元宝搜索仅向 https://wsa.tencentcloudapi.com 发送搜索词与筛选条件。四者都不发送通讯录、相册、剪贴板或其他工具的输入内容。</text>
+              <text class="legal-list__text">网络请求：气象站仅向 https://restapi.amap.com 发送模糊经纬度、adcode、城市搜索关键词与高德 Web服务 Key，用于实况、4 天预报、逆地理编码、IP 定位与行政区搜索；和风天气仅向开发者配置的 qweatherapi.com API Host 发送城市名 / LocationID / 城市级经纬度、日期、时间、语言与查询范围，用于 8 组 API（GeoAPI 与 7 组天气/天文接口）；汇率换算仅向 https://www.chinamoney.com.cn 请求公开的中间价 JSON；元宝搜索仅向 https://wsa.tencentcloudapi.com（或服务 API KEY 方式的 https://api.wsa.cloud.tencent.com）发送搜索词与筛选条件。四者都不发送通讯录、相册、剪贴板或其他工具的输入内容。</text>
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
@@ -103,7 +103,7 @@
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
-              <text class="legal-list__text">设备能力：震动只调用系统短震动；界面音效只播放内嵌 WAV；全息视差在支持机型上读取设备姿态（加速度/陀螺仪）仅用于画面阻尼，开启「省电模式」即关闭；专注「翻转黑屏」会读取设备姿态，仅在本机判断手机是否面朝下，可在专注设置关闭；专注模式会读取当前亮度并临时调暗、计时期间保持屏幕常亮，退出即恢复原亮度，亮度值只在本机用于恢复；专注后台提示音为本机生成的 1 秒低振幅 WAV；以上均不录音、不采集声音。</text>
+              <text class="legal-list__text">设备能力：震动只调用系统短震动；界面音效只播放内嵌 WAV；全息视差在支持机型上读取设备姿态（加速度/陀螺仪）仅用于画面阻尼，将动画强度设为「省电」即关闭；专注「翻转黑屏」会读取设备姿态，仅在本机判断手机是否面朝下，可在专注设置关闭；专注模式会读取当前亮度并临时调暗、计时期间保持屏幕常亮，退出即恢复原亮度，亮度值只在本机用于恢复；专注后台提示音为本机生成的 1 秒低振幅 WAV；以上均不录音、不采集声音。</text>
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
@@ -111,9 +111,9 @@
             </view>
           </view>
 
-          <text class="legal-body">第三方服务：全息气象接入高德开放平台 Web 服务 API，和风天气接入和风天气开发者 API（GeoAPI、分钟降水、空气质量、时光机、天气预报、天气预警、天气指数、天文），汇率换算接入中国外汇交易中心公开中间价接口，元宝搜索接入腾讯云元宝搜索（WSA）SearchPro 接口。请求由微信客户端直接发出，服务方可获取请求 IP、调用时间与请求参数；汇率请求不包含金额或币种选择，元宝搜索请求包含搜索词与筛选条件，和风天气请求只包含城市与时间参数。本程序不向其发送微信身份信息、手机号或本机存储内容。高德隐私政策：https://lbs.amap.com/pages/privacy/；和风天气隐私政策：https://www.qweather.com/privacy/；腾讯云隐私政策：https://cloud.tencent.com/document/product/301/3011</text>
-          <text class="legal-body">您可在微信「设置 → 小程序 → 超欢 → 权限管理」中撤回相册或位置权限。撤回相册仅影响保存图片；撤回位置后气象站与和风天气改用 IP 定位 / 手动选城或默认城市；设备方向随「省电模式」关闭，剪贴板仅在您点击对应按钮时读取，不影响其他工具。</text>
-          <text class="legal-body">本程序不面向未成年人定向收集信息，也不提供付费、打赏、社交、抽奖或虚拟支付功能。</text>
+          <text class="legal-body">第三方服务：全息气象接入高德开放平台 Web 服务 API，和风天气接入和风天气开发者 API（GeoAPI、分钟降水、空气质量、时光机、天气预报、天气预警、天气指数、天文），汇率换算接入中国外汇交易中心公开中间价接口，元宝搜索接入腾讯云元宝搜索（WSA）SearchPro 接口。请求由微信客户端直接发出，服务方可获取请求 IP、调用时间与请求参数；汇率请求不包含金额或币种选择，元宝搜索请求包含搜索词与筛选条件，和风天气请求包含城市名 / LocationID / 城市级经纬度、日期、时间、语言与查询范围。本程序不向其发送微信身份信息、手机号或本机存储内容。中国外汇交易中心：https://www.chinamoney.com.cn；高德隐私政策：https://lbs.amap.com/pages/privacy/；和风天气隐私政策：https://www.qweather.com/privacy/；腾讯云隐私政策：https://cloud.tencent.com/document/product/301/3011</text>
+          <text class="legal-body">您可在微信「设置 → 小程序 → 超欢 → 权限管理」中撤回相册或位置权限。撤回相册仅影响保存图片；撤回位置后气象站与和风天气改用 IP 定位 / 手动选城或默认城市；设备姿态随动画强度「省电」或专注翻转开关关闭；剪贴板仅在您点击对应按钮时读取，不影响其他工具。</text>
+          <text class="legal-body">本程序不面向 14 周岁以下未成年人定向收集信息，也不提供账号、付费、打赏、抽奖或虚拟支付功能。</text>
           <text class="legal-body">本页为小程序内说明；微信后台公示的《用户隐私保护指引》与本页不一致时，以后台公示版本为准。当前隐私保护指引版本 v{{privacyVersion}}；版本变化时设置页「隐私中心」会提示一次，确认后仅在本机记录版本号。</text>
         </glass-card>
       </view>
@@ -130,7 +130,7 @@
             </view>
           </view>
 
-          <text class="legal-body">为了记住您的常用工具、天气城市、专注记录并定位本机异常，本机只保存以下轻量数据，主要位于 tbx:、app:、gallery.、weather:、qweather:、focus:、cyber: 与 diag: 命名空间。全部数据仅存于微信小程序本地缓存与本地文件目录，不含账号、身份或设备精确位置。</text>
+          <text class="legal-body">为了记住您的常用工具、天气城市、专注记录并定位本机异常，本机只保存以下轻量数据，主要位于 tbx:、toolbox:、app:、gallery.、weather:、qweather:、focus:、cyber: 与 diag: 命名空间，另有少量无命名空间标记（如 hasPendingUpdate）。全部数据仅存于微信小程序本地缓存与本地文件目录，不含账号、身份或设备精确位置。</text>
 
           <view class="legal-list">
             <view class="legal-list__item">
@@ -147,7 +147,7 @@
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
-              <text class="legal-list__text">tbx:fx.official.v1：最近一次中国外汇交易中心人民币汇率中间价与更新时间，仅用于网络失败时离线回退；不含金额、币种选择或其他输入，可随「清空工具数据」删除。</text>
+              <text class="legal-list__text">tbx:fx.official.v1：最近一次中国外汇交易中心人民币汇率中间价、更新时间与缓存时间；6 小时内优先复用，网络失败时离线回退，不含金额、币种选择或其他输入，可随「清空工具数据」删除。</text>
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
@@ -159,7 +159,7 @@
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
-              <text class="legal-list__text">tbx:workflow.pipes：快捷管道 A → B 的工具配对与成功流转次数，最多 6 条，仅用于推荐排序。</text>
+              <text class="legal-list__text">tbx:workflow.pipes：快捷管道 A → B 的工具配对与成功流转次数，最多 6 条，仅用于快捷管道推荐。</text>
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
@@ -167,7 +167,7 @@
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
-              <text class="legal-list__text">tbx:prefs、tbx:ack.finance.v1、tbx:ack.health.v1、tbx:legacy-tip、tbx:legacy-tip-home：旧版偏好仅在升级时读取；其余只保存金融、健康、收藏提示的确认或关闭状态（布尔值）。</text>
+              <text class="legal-list__text">tbx:prefs、tbx:ack.finance.v1、tbx:ack.health.v1、tbx:legacy-tip：旧版偏好与提示键，仅在升级迁移时清理；tbx:legacy-tip-home：首页旧收藏提示的关闭状态（布尔值），仅用于避免重复提示。</text>
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
@@ -179,7 +179,7 @@
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
-              <text class="legal-list__text">app:prefs.v1：震动、音效、光效、动画、字号与自动清理天数等全局偏好；app:prefs.v0 仅在升级时读取一次。</text>
+              <text class="legal-list__text">app:prefs.v1：震动、音效、光效、动画、字号、自动清理天数、驾驶舱脱敏、计算轨迹记录开关、收藏排序与实验席位等全局偏好；app:prefs.v0 仅在升级时读取一次。</text>
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
@@ -191,11 +191,11 @@
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
-              <text class="legal-list__text">app:backup.at：最近一次备份导出的时间戳，仅用于设置页展示；删除备份文件时同步清除。备份文件写入本地 backups 目录，文件名固定为「超欢备份-YYYYMMDD.json」，最多保留 1 份，只含收藏、最近使用、搜索历史、天气城市、专注记录（含本机校验密钥）与全局偏好，不含草稿、诊断原文或输入原文；导入前会校验格式与大小，失败时保留原数据。</text>
+              <text class="legal-list__text">app:backup.at：最近一次备份导出的时间戳，仅用于设置页展示；删除备份文件时同步清除。备份文件写入本地 backups 目录，文件名固定为「超欢备份-YYYYMMDD.json」，最多保留 1 份、单份 ≤256KB，只含收藏、最近使用、搜索历史、气象站城市（不含和风天气城市）、专注记录与统计（含本机校验密钥）以及全局偏好；不含草稿、诊断原文或输入原文。导入前会校验格式与大小，写入失败时回滚并保留原数据。</text>
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
-              <text class="legal-list__text">tbx:draft.*（按工具 id 区分）：最近一次工具输入与模式，仅存本机，单工具不超过 4KB，最多保留 20 个工具，30 天后自动清理；敏感工具与工时工具不保存，可随「清空工具数据」删除。</text>
+              <text class="legal-list__text">tbx:draft.*（按工具 id 区分）：最近一次工具输入与模式，仅存本机，单工具不超过 4KB，最多保留 20 个工具，30 天后自动清理；敏感工具、元宝搜索与工时工具不保存，可随「清空工具数据」删除。</text>
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
@@ -231,7 +231,7 @@
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
-              <text class="legal-list__text">qweather:cities:v1 与 qweather:current:v1：和风天气保存的城市（最多 5 个，含城市名、行政区、LocationID、城市中心点、时区与来源）与当前城市标识；来源为模糊定位、手动搜索、热门城市或景点。</text>
+              <text class="legal-list__text">qweather:cities:v1 与 qweather:current:v1：和风天气保存的城市（最多 5 个）与当前城市标识；城市含城市名、行政区、LocationID、城市中心点、时区与来源，城市中心点最多保留两位小数；来源为模糊定位、手动搜索、热门城市或景点。</text>
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
@@ -243,7 +243,7 @@
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
-              <text class="legal-list__text">本地文件：专注后台提示音会在小程序本地文件目录生成 focus-bgm-v1.wav（约 16KB，1 秒低振幅）；界面音效预加载会写入 4 个极短 WAV 缓存；工具导出会写入本地 exports 目录，单文件 ≤2MB，结果变更或卸载时清理；诊断包同样写入 exports 目录，单份 ≤50KB，预览确认后才生成；本机备份会写入 backups 目录，最多保留 1 份，单份 ≤256KB；以上均保留在小程序本地文件目录，随小程序缓存清除，均为本机生成，不含录音、不上传。</text>
+              <text class="legal-list__text">本地文件：专注后台提示音会在小程序本地文件目录生成 focus-bgm-v1.wav（约 16KB，1 秒低振幅）；界面音效预加载会写入 4 个极短 WAV 缓存；工具导出会写入本地 exports 目录，单文件 ≤2MB，启动时自动清理超过 24 小时或总量超过 10MB 的旧导出，重置全部本机数据时清空；诊断包同样写入 exports 目录，单份 ≤50KB，预览确认后才生成；本机备份会写入 backups 目录，最多保留 1 份，单份 ≤256KB；以上均保留在小程序本地文件目录，随小程序缓存清除，均为本机生成，不含录音、不上传。</text>
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
@@ -255,16 +255,16 @@
             </view>
             <view class="legal-list__item">
               <view class="legal-list__dot" aria-hidden="true"></view>
-              <text class="legal-list__text">不长期保存任何图片内容、完整输入原文或搜索词；轨迹只保留摘要，天气只保留官方字段，专注只保留标签、时长、中断次数与等级等摘要。</text>
+              <text class="legal-list__text">除上述「继续上次」草稿会保留最近一次输入外，不长期保存任何图片内容、完整输入原文或搜索词；轨迹只保留摘要，天气只保留官方字段，专注只保留标签、时长、中断次数与等级等摘要，元宝搜索轨迹不记录搜索词本身。</text>
             </view>
           </view>
 
-          <text class="legal-body">所有数据只保存在本机；除按您设置的自动清理规则裁剪最近使用外，保留至您主动清除、清理小程序缓存或卸载小程序。本程序不提供云同步，也没有任何云端数据恢复服务。</text>
-          <text class="legal-body">「我的 → 清空工具数据」只删除上述 tbx: 前缀数据（含本机计算轨迹），并同步清除 cyber: 快照中的轨迹副本，但不会影响简历内容、作品数据、作品收藏、外观与偏好设置、专注记录、天气缓存与诊断日志。</text>
+          <text class="legal-body">所有数据只保存在本机。最近使用按您设置的自动清理规则裁剪；工具草稿 30 天过期，天气与和风天气缓存按各自 TTL 失效；其余保留至您主动清除、清理小程序缓存或卸载小程序。本程序不提供云同步，也没有任何云端数据恢复服务。</text>
+          <text class="legal-body">「我的 → 清空工具数据」只删除上述 tbx: 前缀数据（含本机计算轨迹与工具草稿），并同步清除 cyber: 快照中的轨迹副本，但不会影响简历内容、作品数据、作品收藏、外观与偏好设置、专注记录、天气缓存与诊断日志。</text>
           <text class="legal-body">「设置 → 存储与数据 → 备份与恢复」生成的备份文件保存在本地 backups 目录，不会被「清空工具数据」删除；如需删除，请在备份与恢复中手动删除，删除后同步清除 app:backup.at。</text>
           <text class="legal-body">「设置 → 隐私中心 → 重置全部本机数据」会删除 tbx:、toolbox:、weather:、qweather:、focus:、cyber:、diag:、app:prefs.v1、app:prefs.v0、app:privacy.version、app:backup.at 与本地 backups / exports 目录；保留 gallery.*（主题与作品收藏）与 app:storage.version（迁移判断），不会删除系统相册中已保存的图片。</text>
           <text class="legal-body">天气数据清除：在气象站或和风天气城市抽屉移除城市即删除该城市缓存；下拉刷新会用最新官方数据覆盖旧缓存。专注数据清除：「设置 → 存储与数据 → 清空专注数据」会同时清理会话、偏好、记录、统计、校验密钥与亮度恢复标记。</text>
-          <text class="legal-body">自动清理仅按偏好裁剪 tbx:recent 与时间戳，不会影响收藏、轨迹、专注记录、天气缓存与作品收藏。外观设置使用 gallery.theme.mode，全局偏好使用 app:prefs.v1，均由超欢整体共用，不属于工具数据。诊断日志只用于定位本机异常，可在微信「设置 → 通用 → 存储空间 → 小程序缓存」中随小程序缓存一并清除。</text>
+          <text class="legal-body">「自动清理最近使用」仅按偏好裁剪 tbx:recent 与时间戳，不会影响收藏、轨迹、草稿、专注记录、天气缓存与作品收藏。外观设置使用 gallery.theme.mode，全局偏好使用 app:prefs.v1，均由超欢整体共用，不属于工具数据。诊断日志只用于定位本机异常，可在微信「设置 → 通用 → 存储空间 → 小程序缓存」中随小程序缓存一并清除。</text>
           <text class="legal-body">若功能变化导致本地数据处理方式变化，我们会更新本页内容与生效日期；继续使用即表示您知悉更新后的说明。</text>
           <text class="legal-body">{{toolCount}} 个工具页面、专注页、数据驾驶舱与简历页面按功能拆分为多个分包，首次打开某个页面时微信会按需下载对应分包，下载完成后除在线天气、汇率与主动搜索外可离线使用；作品图集同样位于独立分包。这是微信分包机制，不是本程序上传数据。</text>
         </glass-card>
@@ -286,7 +286,7 @@
           <text class="legal-body">BMI 等健康类结果仅依据公开公式估算，不构成医疗诊断或健康建议；如有健康问题请咨询专业医生。</text>
           <text class="legal-body">日期间隔、年龄、倒数日按设备本地日期计算，不含法定节假日与调休；跨时区或系统时间异常时结果可能变化。</text>
           <text class="legal-body">天气数据由高德开放平台与和风天气提供，可能存在延迟、缺测或区域差异，仅供参考，不构成气象预警、防灾减灾、航空、航海、农业或出行安全决策依据；请以中国气象局等官方发布为准。「全息气象」未接入气象预警、AQI、生活指数与分钟级降水接口；这些能力集中在独立的「和风天气」页，数据与图标均来自和风天气官方 API 与 QWeather Icons，页面会标注来源与更新时间。</text>
-          <text class="legal-body">日出日落为基于经纬度的本地近似算法（误差约数分钟）；24 小时温度曲线由官方 4 天预报插值推算，不是逐小时实况；两者均标注「仅供参考」。</text>
+          <text class="legal-body">全息气象的日出日落为基于经纬度的本地近似算法（误差约数分钟），24 小时温度曲线由官方 4 天预报插值推算，不是逐小时实况；两者均标注「仅供参考」。和风天气的日出日落、月相与太阳高度角来自和风天气天文接口，以接口返回为准。</text>
           <text class="legal-body">全息专注的计时以设备系统时间为准，锁屏、后台运行、系统省电策略或手动修改系统时间可能影响显示与提醒；后台提示音仅用于避免计时中断，不构成医疗、治疗或健康建议，长时间使用时请自行控制音量。</text>
           <text class="legal-body">全息视差、极光与粒子动效仅用于视觉呈现；专注翻转检测仅用于判断手机是否面朝下并触发黑屏，不用于专业姿态测量、运动分析或任何专业用途；设备传感器不可用时将自动降级为静态画面或隐藏翻转功能。</text>
           <text class="legal-body">因输入错误、政策调整、设备时间异常、网络中断、第三方接口变更或依赖上述结果作出的决定，开发者不承担由此产生的责任。</text>
@@ -378,7 +378,7 @@
             </view>
           </view>
 
-          <text class="legal-body">除「全息气象」按需直连 https://restapi.amap.com、「和风天气」按需直连开发者配置的 qweatherapi.com API Host、「汇率换算」按需直连 https://www.chinamoney.com.cn 获取官方汇率中间价、以及「元宝搜索」在您主动搜索时直连 https://wsa.tencentcloudapi.com 外，本程序不包含广告 SDK、统计 SDK、推送 SDK，其余功能不发起任何网络请求。</text>
+          <text class="legal-body">除「全息气象」按需直连 https://restapi.amap.com、「和风天气」按需直连开发者配置的 qweatherapi.com API Host、「汇率换算」按需直连 https://www.chinamoney.com.cn 获取官方汇率中间价、以及「元宝搜索」在您主动搜索时直连 https://wsa.tencentcloudapi.com（或服务 API KEY 方式的 https://api.wsa.cloud.tencent.com）外，本程序不包含广告 SDK、统计 SDK、推送 SDK，其余功能不发起任何网络请求。</text>
           <text class="legal-body">开源许可证全文可在各项目官方仓库查看；如对署名或授权有疑问，可通过下方邮箱联系，我们会在核实后更正。</text>
         </glass-card>
       </view>

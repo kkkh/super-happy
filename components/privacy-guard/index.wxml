@@ -18,7 +18,7 @@
         <text class="privacy-kicker">PRIVACY / LOCAL FIRST</text>
         <text class="privacy-title">隐私保护指引</text>
         <text class="privacy-desc">
-          访问相册、定位或读写剪贴板前，需要您同意《超欢隐私保护指引》。除您主动使用的天气、汇率与搜索外，处理在本机完成；联网时仅发送必要参数。
+          访问相册、定位或读写剪贴板前，需要您同意《超欢隐私保护指引》。仅「全息气象」「和风天气」「汇率换算」「元宝搜索」会按需联网并发送必要参数，其余处理均在本机完成。
         </text>
       </view>
 
