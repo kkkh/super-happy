@@ -1,5 +1,5 @@
 <view
-  class="home-page sg-ambient-surface {{ambientClass}} {{themeClass}} {{themeSwitching ? 'theme-breathing' : ''}}"
+  class="home-page sg-ambient-surface {{ambientClass}} {{themeClass}} {{fsClass}} {{themeSwitching ? 'theme-breathing' : ''}}"
   style="{{ambientStyle}}"
 >
   <view class="home-aurora" aria-hidden="true">
@@ -176,6 +176,19 @@
       bindfocus="onSearchFocus"
       bindblur="onSearchBlur"
     />
+    <view
+      wx:if="{{keyword}}"
+      class="home-search__clear"
+      catchtap="onClearSearch"
+      aria-role="button"
+      aria-label="清空搜索"
+    >
+      <icon
+        type="clear"
+        size="16"
+        color="{{themeClass === 'theme-dark' ? 'rgba(255, 255, 255, 0.55)' : 'rgba(0, 0, 0, 0.35)'}}"
+      />
+    </view>
   </view>
 
   <!-- 首次使用指南横幅：可关闭，状态仅存本机 -->
@@ -254,6 +267,13 @@
           aria-label="打开{{item.name}}"
         >{{item.name}}</view>
       </view>
+      <view
+        wx:if="{{webReady}}"
+        class="home-empty__web"
+        bindtap="onOpenWebSearch"
+        aria-role="button"
+        aria-label="用元宝搜索{{keyword}}"
+      >用元宝搜索「{{keyword}}」</view>
     </view>
 
     <view class="home-tool-list">
@@ -289,6 +309,52 @@
           <text class="tool-fav-glyph">{{item.favorite ? '★' : '☆'}}</text>
         </view>
       </view>
+    </view>
+
+    <!-- 全网结果：本地工具之外，按需调用腾讯云元宝搜索 -->
+    <view wx:if="{{webReady && keyword}}" class="home-web">
+      <view class="home-web__head">
+        <view class="home-web__copy">
+          <text class="home-web__title">全网结果</text>
+          <text class="home-web__sub">腾讯云元宝搜索 · 前 4 条</text>
+        </view>
+        <text
+          class="home-web__all"
+          bindtap="onOpenWebSearch"
+          aria-role="button"
+          aria-label="查看全部全网结果"
+        >查看全部</text>
+      </view>
+
+      <view wx:if="{{webLoading}}" class="home-web__loading">正在搜索全网…</view>
+      <view
+        wx:elif="{{webError}}"
+        class="home-web__error"
+        bindtap="onRetryWebSearch"
+        aria-role="button"
+        aria-label="全网搜索失败，点击重试"
+      >{{webError}} · 点击重试</view>
+      <block wx:else>
+        <view
+          wx:for="{{webResults}}"
+          wx:key="url"
+          class="home-web__card"
+          data-url="{{item.url}}"
+          bindtap="onCopyWebResult"
+          aria-role="button"
+          aria-label="复制{{item.title}}链接"
+        >
+          <text class="home-web__index" aria-hidden="true">{{index + 1}}</text>
+          <view class="home-web__body">
+            <text class="home-web__card-title">{{item.title}}</text>
+            <text wx:if="{{item.meta}}" class="home-web__meta">{{item.meta}}</text>
+            <text class="home-web__passage">{{item.passage}}</text>
+          </view>
+        </view>
+        <view wx:if="{{!webResults.length}}" class="home-web__empty">全网暂无结果</view>
+      </block>
+
+      <text class="home-web__note">点击结果复制链接；查询词会上传至腾讯云元宝搜索</text>
     </view>
 
     <glass-card

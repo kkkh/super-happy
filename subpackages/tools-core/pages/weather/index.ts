@@ -82,6 +82,8 @@ import {
   candidateToCity,
   locateByIp,
   locateCity,
+  readFuzzyLocationPermission,
+  type LocationFailureReason,
 } from '../../weather/weatherLocation'
 import type {
   AmbientScene,
@@ -124,6 +126,8 @@ interface WeatherPageRuntime {
   booted: boolean
   booting: boolean
   locating: boolean
+  /** 首启自动弹出的定位引导：取消时需回退到 IP 定位 */
+  locationPromptAuto: boolean
 
   service: WeatherService | null
   storage: WeatherStorage | null
@@ -427,6 +431,23 @@ Page({
     currentIndex: 0,
     cityCountText: '0/5',
     citySheetOpen: false,
+    locationPermissionText: '未申请 · 点击后按引导开启',
+    locationActionText: '去开启',
+    locationAttention: true,
+    locationPromptShow: false,
+    locationPromptMode: '' as
+      | ''
+      | 'request'
+      | 'privacy'
+      | 'denied'
+      | 'unavailable'
+      | 'failed',
+    locationPromptTitle: '',
+    locationPromptDesc: '',
+    locationPromptConfirmText: '允许并定位',
+    locationPromptCancelText: '暂不开启',
+    locationPromptExtraText: '',
+    locationPromptShowCancel: true,
     searchOpen: false,
     searchFocus: false,
     searchKeyword: '',
@@ -463,6 +484,7 @@ Page({
     runtime.booted = false
     runtime.booting = false
     runtime.locating = false
+    runtime.locationPromptAuto = false
     runtime.service = new WeatherService()
     const storage = createWxWeatherStorage()
     runtime.storage = storage
@@ -659,7 +681,7 @@ Page({
       this.setData({ ready: true })
       return
     }
-    await this.locateCurrent({ silent: true, allowIp: true })
+    await this.beginLocationFlow(true)
     runtime.booted = true
     runtime.booting = false
     this.setData({ ready: true })
@@ -732,6 +754,7 @@ Page({
     }
     runtime.visible = true
     this.measureNavBar()
+    void this.refreshLocationPermission()
     const hiddenFor = runtime.hiddenAt ? Date.now() - runtime.hiddenAt : 0
     runtime.hiddenAt = 0
     this.mountFx()
@@ -872,28 +895,34 @@ Page({
   /* 定位 / 城市                                                               */
   /* ------------------------------------------------------------------------ */
 
-  async locateCurrent(options: { silent: boolean; allowIp?: boolean }): Promise<void> {
+  async locateCurrent(options: {
+    silent: boolean
+    allowIp?: boolean
+    openSearchOnFail?: boolean
+  }): Promise<{ ok: boolean; reason?: LocationFailureReason }> {
     const runtime = this as unknown as WeatherPageRuntime
     if (runtime.locating || runtime.destroyed) {
-      return
+      return { ok: false }
     }
     if (!runtime.service) {
-      return
+      return { ok: false }
     }
     runtime.locating = true
     if (!this.data.hasResult) {
       this.setData({ loading: true })
     }
     try {
-      const city = await locateCity(runtime.service, Date.now())
-      if (city && !runtime.destroyed) {
-        this.upsertCity(city, true)
-        this.activateCity(city, true)
-        tapSuccess()
-        if (!options.silent) {
-          this.toast(`已定位到 ${city.name}`, 'success')
+      const located = await locateCity(runtime.service, Date.now())
+      if (located.ok) {
+        if (!runtime.destroyed) {
+          this.upsertCity(located.city, true)
+          this.activateCity(located.city, true)
+          tapSuccess()
+          if (!options.silent) {
+            this.toast(`已定位到 ${located.city.name}`, 'success')
+          }
         }
-        return
+        return { ok: true }
       }
       if (options.allowIp !== false) {
         const ipCity = await locateByIp(runtime.service, Date.now())
@@ -904,32 +933,28 @@ Page({
           if (!options.silent) {
             this.toast(`已按 IP 定位到 ${ipCity.name}`, 'info')
           }
-          return
+          return { ok: true }
         }
       }
       if (runtime.destroyed) {
-        return
+        return { ok: false, reason: located.reason }
       }
-      this.setData({
-        searchOpen: true,
-        searchFocus: true,
-        searchKeyword: '',
-        searchResults: [],
-        searchEmpty: false,
-        searchError: '',
-      })
-      if (!runtime.service.hasKey()) {
-        this.setData({
-          errorText: '未配置高德 Web服务 Key',
-          errorHint: '请在 config.local.ts 填入 Web服务 Key 后重试',
-          showRetry: false,
-        })
-      } else if (!options.silent) {
-        this.toast('定位失败，请手动选择城市', 'warning')
+      if (options.openSearchOnFail !== false) {
+        this.openSearchSheet()
+        if (!runtime.service.hasKey()) {
+          this.setData({
+            errorText: '未配置高德 Web服务 Key',
+            errorHint: '请在 config.local.ts 填入 Web服务 Key 后重试',
+            showRetry: false,
+          })
+        } else if (!options.silent) {
+          this.toast('定位失败，请手动选择城市', 'warning')
+        }
       }
+      return { ok: false, reason: located.reason }
     } catch (error) {
       logger.warn('weather', '定位链路异常', error)
-      if (!runtime.destroyed) {
+      if (!runtime.destroyed && options.openSearchOnFail !== false) {
         this.setData({
           searchOpen: true,
           searchFocus: true,
@@ -938,12 +963,293 @@ Page({
           showRetry: true,
         })
       }
+      return { ok: false, reason: 'failed' }
     } finally {
       runtime.locating = false
       if (!runtime.destroyed) {
         this.setData({ loading: false })
       }
     }
+  },
+
+  openSearchSheet(): void {
+    this.setData({
+      searchOpen: true,
+      searchFocus: true,
+      searchKeyword: '',
+      searchResults: [],
+      searchEmpty: false,
+      searchError: '',
+    })
+  },
+
+  async refreshLocationPermission(): Promise<void> {
+    const runtime = this as unknown as WeatherPageRuntime
+    const status = await readFuzzyLocationPermission()
+    if (runtime.destroyed) {
+      return
+    }
+    const text =
+      status === 'granted'
+        ? '已授权 · 城市级模糊定位'
+        : status === 'denied'
+          ? '权限未开启 · 点击后去设置'
+          : status === 'unavailable'
+            ? '当前环境不支持模糊定位'
+            : '未申请 · 点击后按引导开启'
+    const action =
+      status === 'granted' ? '重新定位' : status === 'unavailable' ? '手动选城' : '去开启'
+    this.setData({
+      locationPermissionText: text,
+      locationActionText: action,
+      locationAttention: status !== 'granted',
+    })
+  },
+
+  /** 统一入口：已授权直接定位；未申请先说明；已拒绝给出去设置 / 手动选城 */
+  async beginLocationFlow(auto: boolean): Promise<void> {
+    const runtime = this as unknown as WeatherPageRuntime
+    if (runtime.locating || runtime.destroyed) {
+      return
+    }
+    const status = await readFuzzyLocationPermission()
+    if (runtime.destroyed) {
+      return
+    }
+    if (status === 'granted') {
+      const result = await this.locateCurrent({
+        silent: auto,
+        allowIp: auto,
+        openSearchOnFail: auto,
+      })
+      if (auto || result.ok) {
+        return
+      }
+      this.openLocationPrompt(
+        result.reason === 'failed'
+          ? 'failed'
+          : result.reason === 'unavailable'
+            ? 'unavailable'
+            : result.reason === 'privacy'
+              ? 'privacy'
+              : 'denied',
+      )
+      return
+    }
+    if (status === 'unset') {
+      this.openLocationPrompt('request', auto)
+      return
+    }
+    if (status === 'denied') {
+      if (auto) {
+        await this.fallbackToIp(true)
+      } else {
+        this.openLocationPrompt('denied')
+      }
+      return
+    }
+    if (auto) {
+      await this.fallbackToIp(true)
+    } else {
+      this.openLocationPrompt('unavailable')
+    }
+  },
+
+  async startFuzzyLocate(): Promise<void> {
+    const result = await this.locateCurrent({
+      silent: false,
+      allowIp: false,
+      openSearchOnFail: false,
+    })
+    if (result.ok) {
+      return
+    }
+    if (result.reason === 'privacy') {
+      this.openLocationPrompt('privacy')
+      return
+    }
+    if (result.reason === 'denied') {
+      this.openLocationPrompt('denied')
+      return
+    }
+    this.openLocationPrompt(result.reason === 'unavailable' ? 'unavailable' : 'failed')
+  },
+
+  async fallbackToIp(silent = false): Promise<void> {
+    const runtime = this as unknown as WeatherPageRuntime
+    if (!runtime.service || runtime.destroyed) {
+      return
+    }
+    const ipCity = await locateByIp(runtime.service, Date.now())
+    if (ipCity && !runtime.destroyed) {
+      this.upsertCity(ipCity, true)
+      this.activateCity(ipCity, true)
+      tapSuccess()
+      if (!silent) {
+        this.toast(`已按 IP 定位到 ${ipCity.name}`, 'info')
+      }
+      return
+    }
+    if (!runtime.destroyed) {
+      this.openSearchSheet()
+    }
+  },
+
+  openLocationPrompt(
+    mode: 'request' | 'privacy' | 'denied' | 'unavailable' | 'failed',
+    auto = false,
+  ): void {
+    const runtime = this as unknown as WeatherPageRuntime
+    runtime.locationPromptAuto = auto
+    const config =
+      mode === 'request'
+        ? {
+            title: '开启城市级定位？',
+            desc: '全息气象只申请城市级模糊定位，用于自动展示所在城市天气；不会获取或保存精确坐标，也不会上传到自建服务器。首次会先确认微信隐私指引，再由微信弹出定位授权。',
+            confirm: '允许并定位',
+            cancel: '暂不开启',
+            extra: '',
+            showCancel: true,
+          }
+        : mode === 'privacy'
+          ? {
+              title: '需要先同意隐私保护指引',
+              desc: '使用定位前需要先同意微信《用户隐私保护指引》。再次点击“重新授权”会重新弹出隐私确认；也可以手动选择城市。',
+              confirm: '重新授权',
+              cancel: '手动选城',
+              extra: '',
+              showCancel: true,
+            }
+          : mode === 'denied'
+            ? {
+                title: '定位权限未开启',
+                desc: '你之前拒绝了城市级模糊定位。可前往小程序设置重新开启，开启后返回气象站会自动定位；若已开启，请检查手机系统定位服务。也可以手动选择城市。',
+                confirm: '去设置',
+                cancel: '手动选城',
+                extra: '系统设置',
+                showCancel: true,
+              }
+          : mode === 'unavailable'
+            ? {
+                title: '当前环境不支持模糊定位',
+                desc: '当前微信版本或运行环境不支持城市级模糊定位，请手动添加城市。',
+                confirm: '手动选城',
+                cancel: '',
+                extra: '',
+                showCancel: false,
+              }
+            : {
+                title: '定位暂时失败',
+                desc: '模糊定位或逆地理编码没有成功，可以稍后重试，或手动添加城市。',
+                confirm: '手动选城',
+                cancel: '知道了',
+                extra: '',
+                showCancel: true,
+              }
+    this.setData({
+      locationPromptShow: true,
+      locationPromptMode: mode,
+      locationPromptTitle: config.title,
+      locationPromptDesc: config.desc,
+      locationPromptConfirmText: config.confirm,
+      locationPromptCancelText: config.cancel,
+      locationPromptExtraText: config.extra,
+      locationPromptShowCancel: config.showCancel,
+    })
+  },
+
+  onUseCurrentLocation(): void {
+    const runtime = this as unknown as WeatherPageRuntime
+    if (runtime.locating || runtime.destroyed) {
+      return
+    }
+    tapTick()
+    if (this.data.citySheetOpen) {
+      this.setData({ citySheetOpen: false })
+    }
+    void this.refreshLocationPermission()
+    void this.beginLocationFlow(false)
+  },
+
+  onLocationPromptConfirm(): void {
+    const runtime = this as unknown as WeatherPageRuntime
+    const mode = this.data.locationPromptMode
+    runtime.locationPromptAuto = false
+    this.setData({ locationPromptShow: false, locationPromptMode: '' })
+    if (mode === 'request' || mode === 'privacy') {
+      void this.startFuzzyLocate()
+      return
+    }
+    if (mode === 'denied') {
+      this.openLocationSetting()
+      return
+    }
+    this.openSearchSheet()
+    if (mode === 'unavailable') {
+      this.toast('请手动添加城市', 'info')
+    }
+  },
+
+  onLocationPromptCancel(): void {
+    const runtime = this as unknown as WeatherPageRuntime
+    const mode = this.data.locationPromptMode
+    const auto = runtime.locationPromptAuto
+    runtime.locationPromptAuto = false
+    this.setData({ locationPromptShow: false, locationPromptMode: '' })
+    if (auto) {
+      void this.fallbackToIp()
+      return
+    }
+    if (
+      mode === 'privacy' ||
+      mode === 'denied' ||
+      mode === 'failed' ||
+      mode === 'unavailable'
+    ) {
+      this.openSearchSheet()
+    }
+  },
+
+  onLocationPromptExtra(): void {
+    const runtime = this as unknown as WeatherPageRuntime
+    runtime.locationPromptAuto = false
+    this.setData({ locationPromptShow: false, locationPromptMode: '' })
+    const api = wx as unknown as {
+      openAppAuthorizeSetting?: (options?: { fail?: () => void }) => void
+    }
+    if (typeof api.openAppAuthorizeSetting !== 'function') {
+      this.toast('当前版本不支持打开系统设置', 'warning')
+      return
+    }
+    api.openAppAuthorizeSetting({
+      fail: () => {
+        if (!runtime.destroyed) {
+          this.toast('打开系统设置失败', 'error')
+        }
+      },
+    })
+  },
+
+  openLocationSetting(): void {
+    const runtime = this as unknown as WeatherPageRuntime
+    wx.openSetting({
+      success: (result) => {
+        if (runtime.destroyed) {
+          return
+        }
+        const auth = (result.authSetting || {}) as Record<string, unknown>
+        if (auth['scope.userFuzzyLocation'] === true) {
+          void this.startFuzzyLocate()
+        } else {
+          this.toast('定位权限仍未开启，可手动添加城市', 'warning')
+        }
+      },
+      fail: () => {
+        if (!runtime.destroyed) {
+          this.toast('打开设置失败，请在小程序右上角设置中开启定位', 'error')
+        }
+      },
+    })
   },
 
   upsertCity(city: SavedCity, evict: boolean): boolean {
@@ -1168,7 +1474,7 @@ Page({
       runtime.doubleTapTimer = setTimeout(() => {
         runtime.doubleTapTimer = 0
         runtime.tapCount = 0
-        void this.locateCurrent({ silent: false, allowIp: true })
+        void this.beginLocationFlow(false)
       }, 350) as unknown as number
       return
     }
@@ -1194,6 +1500,7 @@ Page({
 
   onOpenCities(): void {
     this.setData({ citySheetOpen: true })
+    void this.refreshLocationPermission()
   },
 
   onCloseCities(): void {
@@ -1523,7 +1830,7 @@ Page({
     const runtime = this as unknown as WeatherPageRuntime
     const city = runtime.currentCity
     if (!city) {
-      await this.locateCurrent({ silent: false, allowIp: true })
+      await this.beginLocationFlow(true)
       return
     }
     await Promise.all([

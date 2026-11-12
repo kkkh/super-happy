@@ -1,4 +1,4 @@
-<view class="help-page {{themeClass}}">
+<view class="help-page {{themeClass}} {{fsClass}}">
   <g-navbar title="使用指南" back />
 
   <view class="help-search">
@@ -15,37 +15,43 @@
 
   <scroll-view class="help-scroll" scroll-y enhanced show-scrollbar="{{false}}">
     <view class="help-content">
-      <view wx:if="{{keyword}}" class="help-block">
+      <!-- 搜索与浏览共用一套分组卡片，避免两套模板漂移 -->
+      <view class="help-block" wx:for="{{groups}}" wx:for-item="group" wx:key="key">
         <view class="help-block__head">
-          <text class="help-block__title">搜索结果</text>
-          <text class="help-block__count">{{results.length}}</text>
+          <text class="help-block__title">{{group.title}}</text>
+          <text
+            class="help-block__count"
+            aria-role="status"
+            aria-label="{{group.title}} {{group.entries.length}} 个工具"
+          >{{group.entries.length}}</text>
         </view>
 
         <view
-          wx:for="{{results}}"
+          wx:for="{{group.entries}}"
+          wx:for-item="entry"
           wx:key="id"
           class="help-card"
-          data-id="{{item.id}}"
+          data-id="{{entry.id}}"
           bindtap="onToggleEntry"
           aria-role="button"
-          aria-label="展开{{item.name}}使用说明"
+          aria-label="展开{{entry.name}}使用说明"
         >
           <view class="help-card__head">
             <view class="help-card__icon" aria-hidden="true">
-              <text class="help-card__icon-text">{{item.icon}}</text>
+              <text class="help-card__icon-text">{{entry.icon}}</text>
             </view>
             <view class="help-card__copy">
-              <text class="help-card__name">{{item.name}}</text>
-              <text class="help-card__summary">{{item.summary}}</text>
+              <text class="help-card__name">{{entry.name}}</text>
+              <text class="help-card__summary">{{entry.summary}}</text>
             </view>
-            <text class="help-card__chevron" aria-hidden="true">{{item.expanded ? '−' : '+'}}</text>
+            <text class="help-card__chevron" aria-hidden="true">{{entry.expanded ? '−' : '+'}}</text>
           </view>
 
-          <view wx:if="{{item.expanded}}" class="help-card__body">
-            <view wx:if="{{item.steps.length}}" class="help-card__section">
+          <view wx:if="{{entry.expanded}}" class="help-card__body">
+            <view wx:if="{{entry.steps.length}}" class="help-card__section">
               <text class="help-card__label">使用步骤</text>
               <text
-                wx:for="{{item.steps}}"
+                wx:for="{{entry.steps}}"
                 wx:for-item="step"
                 wx:for-index="stepIndex"
                 wx:key="*this"
@@ -53,14 +59,14 @@
               >{{stepIndex + 1}}. {{step}}</text>
             </view>
 
-            <view wx:if="{{item.tips.length}}" class="help-card__section">
+            <view wx:if="{{entry.tips.length}}" class="help-card__section">
               <text class="help-card__label">说明</text>
-              <text wx:for="{{item.tips}}" wx:key="*this" class="help-card__tip">{{item}}</text>
+              <text wx:for="{{entry.tips}}" wx:for-item="tip" wx:key="*this" class="help-card__tip">{{tip}}</text>
             </view>
 
-            <view wx:if="{{item.faq.length}}" class="help-card__section">
+            <view wx:if="{{entry.faq.length}}" class="help-card__section">
               <text class="help-card__label">常见问题</text>
-              <view wx:for="{{item.faq}}" wx:for-item="faq" wx:key="q" class="help-card__faq">
+              <view wx:for="{{entry.faq}}" wx:for-item="faq" wx:key="q" class="help-card__faq">
                 <text class="help-card__faq-q">{{faq.q}}</text>
                 <text class="help-card__faq-a">{{faq.a}}</text>
               </view>
@@ -68,98 +74,91 @@
 
             <view
               class="help-card__open"
-              data-route="{{item.route}}"
+              data-route="{{entry.route}}"
               catchtap="onOpenTool"
               aria-role="button"
-              aria-label="打开{{item.name}}"
+              aria-label="打开{{entry.name}}"
             >去使用</view>
-          </view>
-        </view>
-
-        <view wx:if="{{results.length === 0}}" class="help-empty">
-          <text class="help-empty__title">没有找到相关工具</text>
-          <text class="help-empty__sub">试试「换算」「日期」「图片」等关键词</text>
-          <view class="help-empty__chips">
-            <view
-              wx:for="{{recommended}}"
-              wx:key="id"
-              class="help-empty__chip"
-              data-route="{{item.route}}"
-              bindtap="onOpenTool"
-              aria-role="button"
-              aria-label="打开{{item.name}}"
-            >{{item.name}}</view>
           </view>
         </view>
       </view>
 
-      <block wx:else>
-        <view class="help-block" wx:for="{{groups}}" wx:for-item="group" wx:key="key">
-          <view class="help-block__head">
-            <text class="help-block__title">{{group.title}}</text>
-            <text class="help-block__count">{{group.entries.length}}</text>
-          </view>
-
+      <view wx:if="{{searchEmpty}}" class="help-empty">
+        <text class="help-empty__title">没有找到相关工具</text>
+        <text class="help-empty__sub">试试「换算」「日期」「图片」等关键词</text>
+        <view class="help-empty__chips">
           <view
-            wx:for="{{group.entries}}"
-            wx:for-item="entry"
+            wx:for="{{recommended}}"
             wx:key="id"
-            class="help-card"
-            data-id="{{entry.id}}"
-            bindtap="onToggleEntry"
+            class="help-empty__chip"
+            data-route="{{item.route}}"
+            bindtap="onOpenTool"
             aria-role="button"
-            aria-label="展开{{entry.name}}使用说明"
-          >
-            <view class="help-card__head">
-              <view class="help-card__icon" aria-hidden="true">
-                <text class="help-card__icon-text">{{entry.icon}}</text>
-              </view>
-              <view class="help-card__copy">
-                <text class="help-card__name">{{entry.name}}</text>
-                <text class="help-card__summary">{{entry.summary}}</text>
-              </view>
-              <text class="help-card__chevron" aria-hidden="true">{{entry.expanded ? '−' : '+'}}</text>
-            </view>
-
-            <view wx:if="{{entry.expanded}}" class="help-card__body">
-              <view wx:if="{{entry.steps.length}}" class="help-card__section">
-                <text class="help-card__label">使用步骤</text>
-                <text
-                  wx:for="{{entry.steps}}"
-                  wx:for-item="step"
-                  wx:for-index="stepIndex"
-                  wx:key="*this"
-                  class="help-card__step"
-                >{{stepIndex + 1}}. {{step}}</text>
-              </view>
-
-              <view wx:if="{{entry.tips.length}}" class="help-card__section">
-                <text class="help-card__label">说明</text>
-                <text wx:for="{{entry.tips}}" wx:for-item="tip" wx:key="*this" class="help-card__tip">{{tip}}</text>
-              </view>
-
-              <view wx:if="{{entry.faq.length}}" class="help-card__section">
-                <text class="help-card__label">常见问题</text>
-                <view wx:for="{{entry.faq}}" wx:for-item="faq" wx:key="q" class="help-card__faq">
-                  <text class="help-card__faq-q">{{faq.q}}</text>
-                  <text class="help-card__faq-a">{{faq.a}}</text>
-                </view>
-              </view>
-
-              <view
-                class="help-card__open"
-                data-route="{{entry.route}}"
-                catchtap="onOpenTool"
-                aria-role="button"
-                aria-label="打开{{entry.name}}"
-              >去使用</view>
-            </view>
-          </view>
+            aria-label="打开{{item.name}}"
+          >{{item.name}}</view>
         </view>
-      </block>
+      </view>
+
+      <view
+        class="help-feedback"
+        bindtap="onOpenFeedback"
+        aria-role="button"
+        aria-label="问题未解决"
+      >
+        <view class="help-feedback__copy">
+          <text class="help-feedback__title">问题未解决？</text>
+          <text class="help-feedback__sub">复制反馈邮箱，或导出一份脱敏诊断包</text>
+        </view>
+        <text class="help-feedback__arrow" aria-hidden="true">→</text>
+      </view>
     </view>
   </scroll-view>
 
+  <glass-bottom-sheet
+    show="{{feedbackOpen}}"
+    title="问题未解决？"
+    description="诊断包只含版本、基础库、机型、当前路由与最近错误摘要，已脱敏；确认后才写文件。"
+    size="tall"
+    z-index="{{1000}}"
+    show-footer="{{true}}"
+    bind:close="onFeedbackClose"
+    bind:closed="onFeedbackClose"
+  >
+    <scroll-view class="help-diag__scroll" scroll-y>
+      <text class="help-diag__text">{{diagnosticPreview}}</text>
+    </scroll-view>
+
+    <view slot="footer" class="help-diag__footer">
+      <view class="help-diag__actions">
+        <view
+          class="help-diag__action"
+          bindtap="onCopyDiagnostic"
+          aria-role="button"
+          aria-label="复制诊断包"
+        >复制诊断包</view>
+        <view
+          wx:if="{{diagnosticShareSupported}}"
+          class="help-diag__action help-diag__action--primary"
+          bindtap="onExportDiagnostic"
+          aria-role="button"
+          aria-label="{{diagnosticFileReady ? '分享诊断文件' : '生成诊断文件'}}"
+        >
+          <text wx:if="{{diagnosticBusy}}">生成中…</text>
+          <text wx:elif="{{diagnosticFileReady}}">分享诊断文件</text>
+          <text wx:else>生成诊断文件</text>
+        </view>
+        <view
+          class="help-diag__action"
+          bindtap="onCopyEmail"
+          aria-role="button"
+          aria-label="复制邮箱"
+        >复制反馈邮箱</view>
+      </view>
+    </view>
+  </glass-bottom-sheet>
+
+  <glass-toast z-index="{{1200}}" />
+
   <!-- 全局更新弹窗：搜索输入期间不阻塞 -->
-  <update-guard blocked="{{keyword.length > 0}}" />
+  <update-guard blocked="{{keyword.length > 0 || feedbackOpen || diagnosticBusy}}" />
 </view>

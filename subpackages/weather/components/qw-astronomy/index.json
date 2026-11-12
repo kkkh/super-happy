@@ -1,0 +1,8 @@
+{
+  "component": true,
+  "styleIsolation": "isolated",
+  "usingComponents": {
+    "qw-icon": "../qw-icon/index",
+    "g-icon": "/components/g-icon/index"
+  }
+}

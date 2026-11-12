@@ -8,6 +8,7 @@ import { createStoreBindings } from 'mobx-miniprogram-bindings'
 import { tapTick } from '../core/utils/haptics'
 import { uiStore } from '../core/stores/ui'
 import { ROUTES } from '../core/constants/index'
+import { fontScaleClass, syncFontScaleClass } from '../core/services/font-scale'
 
 interface TabItem {
   pagePath: string
@@ -32,10 +33,13 @@ Component({
     items: ITEMS,
     selected: 0,
     isDark: uiStore.resolvedTheme === 'dark',
+    /** TabBar 不在页面根节点内，需要自己挂字号类 */
+    fsClass: fontScaleClass(),
   },
 
   lifetimes: {
     attached() {
+      this.setData({ fsClass: syncFontScaleClass() })
       const state = this as unknown as TabBarState
       state.switching = false
       state.themeBindings = createStoreBindings(this, {
@@ -63,6 +67,7 @@ Component({
 
   pageLifetimes: {
     show() {
+      this.setData({ fsClass: syncFontScaleClass() })
       const state = this as unknown as TabBarState
       state.switching = false
     },

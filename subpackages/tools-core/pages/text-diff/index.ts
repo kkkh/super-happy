@@ -464,6 +464,40 @@ Page({
     })
   },
 
+  /* ---- 草稿：两侧文本与忽略开关；恢复后重新对比 ---- */
+  collectDraftInput(): Record<string, string> {
+    return {
+      original: this.data.original,
+      modified: this.data.modified,
+      ignoreCase: this.data.ignoreCase ? '1' : '0',
+      ignoreSpace: this.data.ignoreSpace ? '1' : '0',
+    }
+  },
+
+  applyDraftInput(input: Record<string, string>): void {
+    const original = input.original ?? ''
+    const modified = input.modified ?? ''
+    this.setData(
+      {
+        ...EMPTY_RESULT_PATCH,
+        original,
+        modified,
+        originalCount: codePointLength(original),
+        modifiedCount: codePointLength(modified),
+        ignoreCase: input.ignoreCase === '1',
+        ignoreSpace: input.ignoreSpace !== '0',
+        state: 'idle',
+        canRun: Boolean(original.trim() && modified.trim()),
+        error: '',
+        tooLongShow: false,
+        tooLongText: '',
+      },
+      () => {
+        this.onCompare()
+      },
+    )
+  },
+
   /** Workflow 接收端：原文本自动填入，新文本已存在时自动触发对比 */
   onReceiveWorkflow(data: IWorkflowData): boolean {
     if (!data || data.type === 'image' || typeof data.payload !== 'string') {

@@ -1,0 +1,38 @@
+<view class="qw-card qw-minutely">
+  <view class="qw-card__head">
+    <view>
+      <text class="qw-kicker">MINUTELY / 5MIN</text>
+      <text class="qw-title">未来 2 小时降水</text>
+    </view>
+    <text wx:if="{{minutely}}" class="qw-badge">{{minutely.peakText}}</text>
+  </view>
+
+  <view wx:if="{{error}}" class="qw-error">{{error}}</view>
+  <block wx:elif="{{minutely}}">
+    <text class="qw-minutely__summary">{{minutely.summary}}</text>
+    <view class="qw-minutely__chart" aria-label="{{minutely.summary}}">
+      <view class="qw-minutely__bars">
+        <view
+          wx:for="{{bars}}"
+          wx:key="timeText"
+          class="qw-minutely__bar {{item.active ? 'qw-minutely__bar--active' : ''}}"
+          style="height: {{item.height}}%;"
+          aria-hidden="true"
+        ></view>
+      </view>
+      <view class="qw-minutely__axis">
+        <text>{{bars.length ? bars[0].timeText : '—'}}</text>
+        <text wx:if="{{bars.length}}">{{bars[bars.length - 1].timeText}}</text>
+      </view>
+    </view>
+    <view class="qw-minutely__meta">
+      <text>累计 {{minutely.totalPrecipText}} mm</text>
+      <text>峰值 {{minutely.maxPrecipText}} mm / 5 分钟</text>
+      <text wx:if="{{minutely.hasRain}}">降水类型 {{minutely.typeText}}</text>
+      <text wx:if="{{minutely.hasRain}}">峰值时段 {{minutely.peakTimeText}}</text>
+      <text wx:if="{{minutely.updateTimeText}}">{{minutely.updateTimeText}} 更新</text>
+    </view>
+  </block>
+  <view wx:elif="{{loading}}" class="qw-skeleton qw-minutely__skeleton"></view>
+  <text wx:else class="qw-empty">暂无分钟级降水数据</text>
+</view>

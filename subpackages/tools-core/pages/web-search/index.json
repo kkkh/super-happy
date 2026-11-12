@@ -1,0 +1,10 @@
+{
+  "navigationBarTitleText": "元宝搜索",
+  "disableScroll": true,
+  "usingComponents": {
+    "glass-tool-shell": "../../../../components/glass-tool-shell/index",
+    "glass-input": "../../../../components/glass-input/index",
+    "g-icon": "../../../../components/g-icon/index",
+    "web-search-results": "../../components/web-search-results/index"
+  }
+}

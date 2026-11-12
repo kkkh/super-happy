@@ -1,0 +1,210 @@
+<glass-tool-shell
+  tool-id="web-search"
+  title="{{toolName}}"
+  kicker="{{kicker}}"
+  desc="{{desc}}"
+  run-label="开始搜索"
+  poster-data="{{posterData}}"
+  export-enabled="{{true}}"
+  export-name="{{toolName}}"
+  export-content="{{exportContent}}"
+  state="{{shellState}}"
+  has-result="{{hasResult}}"
+  can-run="{{canRun}}"
+  error="{{error}}"
+  empty-title="输入搜索词，搜索全网信息"
+  empty-sub="结果来自腾讯云元宝搜索，查询词会上传；不写入本机轨迹"
+  bind:run="runSearch"
+  bind:reset="onReset"
+  bind:example="onExample"
+>
+  <view slot="input" class="ws-fields">
+    <glass-input
+      label="搜索词"
+      maxlength="{{maxQuery}}"
+      value="{{query}}"
+      placeholder="例如：人工智能发展现状"
+      hint="支持新闻、百科、问答与公开网页；单次最多 {{maxQuery}} 字"
+      confirm-type="search"
+      clearable="{{true}}"
+      aria-label="元宝搜索词"
+      bind:input="onQueryInput"
+      bind:confirm="onConfirm"
+    />
+
+    <view class="ws-filter">
+      <text class="ws-filter__label">返回条数</text>
+      <view class="ws-chips" aria-role="tablist" aria-label="返回条数">
+        <view
+          wx:for="{{cntOptions}}"
+          wx:key="value"
+          class="ws-chip {{item.value === cnt ? 'ws-chip--on' : ''}}"
+          data-value="{{item.value}}"
+          bindtap="onCnt"
+          aria-role="tab"
+          aria-selected="{{item.value === cnt}}"
+        >{{item.label}}</view>
+      </view>
+    </view>
+
+    <view class="ws-filter">
+      <text class="ws-filter__label">时效</text>
+      <view class="ws-chips" aria-role="tablist" aria-label="搜索时效">
+        <view
+          wx:for="{{freshnessOptions}}"
+          wx:key="value"
+          class="ws-chip {{item.value === freshnessPreset ? 'ws-chip--on' : ''}}"
+          data-value="{{item.value}}"
+          bindtap="onFreshness"
+          aria-role="tab"
+          aria-selected="{{item.value === freshnessPreset}}"
+        >{{item.label}}</view>
+      </view>
+    </view>
+
+    <view wx:if="{{freshnessPreset === 'custom'}}" class="ws-custom">
+      <view class="ws-chips" aria-role="tablist" aria-label="自定义时效方式">
+        <view
+          class="ws-chip {{customMode === 'recent' ? 'ws-chip--on' : ''}}"
+          data-mode="recent"
+          bindtap="onCustomMode"
+          aria-role="tab"
+          aria-selected="{{customMode === 'recent'}}"
+        >最近 N</view>
+        <view
+          class="ws-chip {{customMode === 'range' ? 'ws-chip--on' : ''}}"
+          data-mode="range"
+          bindtap="onCustomMode"
+          aria-role="tab"
+          aria-selected="{{customMode === 'range'}}"
+        >日期区间</view>
+        <view
+          class="ws-chip {{customMode === 'day' ? 'ws-chip--on' : ''}}"
+          data-mode="day"
+          bindtap="onCustomMode"
+          aria-role="tab"
+          aria-selected="{{customMode === 'day'}}"
+        >指定日期</view>
+      </view>
+
+      <block wx:if="{{customMode === 'recent'}}">
+        <glass-input
+          label="最近 N"
+          type="number"
+          maxlength="{{2}}"
+          value="{{customN}}"
+          placeholder="7"
+          hint="天 1–30 / 月 1–12 / 年 1–5"
+          aria-label="最近 N 的数值"
+          bind:input="onCustomNInput"
+        />
+        <view class="ws-chips" aria-role="tablist" aria-label="自定义时效单位">
+          <view
+            wx:for="{{unitOptions}}"
+            wx:key="value"
+            class="ws-chip {{item.value === customUnit ? 'ws-chip--on' : ''}}"
+            data-unit="{{item.value}}"
+            bindtap="onCustomUnit"
+            aria-role="tab"
+            aria-selected="{{item.value === customUnit}}"
+          >{{item.label}}</view>
+        </view>
+      </block>
+
+      <block wx:elif="{{customMode === 'day'}}">
+        <picker mode="date" value="{{customStart}}" start="1970-01-01" end="{{maxDate}}" bindchange="onCustomStart">
+          <view class="ws-date" aria-role="button" aria-label="选择日期">选择 {{customStart}}</view>
+        </picker>
+      </block>
+
+      <block wx:else>
+        <view class="ws-date-row">
+          <picker mode="date" value="{{customStart}}" start="1970-01-01" end="{{maxDate}}" bindchange="onCustomStart">
+            <view class="ws-date" aria-role="button" aria-label="选择开始日期">开始 {{customStart}}</view>
+          </picker>
+          <text class="ws-date-sep">至</text>
+          <picker mode="date" value="{{customEnd}}" start="1970-01-01" end="{{maxDate}}" bindchange="onCustomEnd">
+            <view class="ws-date" aria-role="button" aria-label="选择结束日期">结束 {{customEnd}}</view>
+          </picker>
+        </view>
+      </block>
+
+      <text wx:if="{{customError}}" class="ws-custom__error">{{customError}}</text>
+      <text wx:else class="ws-custom__hint">将使用：{{freshness || '待设置'}}</text>
+    </view>
+
+    <view
+      class="ws-advanced-toggle"
+      bindtap="onToggleAdvanced"
+      aria-role="button"
+      aria-label="{{advancedOpen ? '收起高级筛选' : '展开高级筛选'}}"
+    >
+      <text class="ws-advanced-toggle__text">高级筛选</text>
+      <g-icon name="chevron" size="{{20}}" tone="ink4" />
+    </view>
+
+    <view wx:if="{{advancedOpen}}" class="ws-advanced">
+      <view class="ws-filter">
+        <text class="ws-filter__label">领域</text>
+        <view class="ws-chips" aria-role="tablist" aria-label="垂直领域">
+          <view
+            wx:for="{{industryOptions}}"
+            wx:key="value"
+            class="ws-chip {{item.value === industry ? 'ws-chip--on' : ''}}"
+            data-value="{{item.value}}"
+            bindtap="onIndustry"
+            aria-role="tab"
+            aria-selected="{{item.value === industry}}"
+          >{{item.label}}</view>
+        </view>
+      </view>
+
+      <view class="ws-filter">
+        <text class="ws-filter__label">附件子链</text>
+        <view class="ws-chips">
+          <view
+            class="ws-chip {{deeplinks ? 'ws-chip--on' : ''}}"
+            bindtap="onToggleDeeplinks"
+            aria-role="switch"
+            aria-checked="{{deeplinks}}"
+          >{{deeplinks ? '已开启' : '关闭'}}</view>
+        </view>
+        <text class="ws-filter__hint">仅旗舰版返回；标准版 / 极速版会忽略</text>
+      </view>
+
+      <glass-input
+        label="站点"
+        maxlength="{{120}}"
+        value="{{site}}"
+        placeholder="qq.com 或 exclude:qq.com|sohu.com"
+        hint="只填一个域名；exclude: 前缀表示排除，最多 5 个"
+        aria-label="指定或排除站点"
+        bind:input="onSiteInput"
+      />
+    </view>
+
+    <view class="ws-notice">
+      <text class="ws-notice__text">
+        查询词会发送至腾讯云元宝搜索，仅用于本次检索；查询词不写入草稿与计算轨迹。
+      </text>
+    </view>
+
+    <view wx:if="{{!serviceReady}}" class="ws-warning">
+      <text class="ws-warning__text">
+        尚未配置元宝搜索密钥，请先在 core/services/yuanbao/config-local.ts 填入服务 API KEY 或 SecretId / SecretKey。
+      </text>
+    </view>
+  </view>
+
+  <view slot="result">
+    <web-search-results
+      results="{{results}}"
+      query="{{searchedQuery}}"
+      summary="{{searchSummary}}"
+      version-label="{{versionLabel}}"
+      version-hint="{{versionHint}}"
+      message="{{message}}"
+      request-id="{{requestId}}"
+    />
+  </view>
+</glass-tool-shell>

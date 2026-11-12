@@ -17,7 +17,7 @@ test('方案：章节连续、81 项能力、63 张卡、路由与分包一致',
   assert.equal(result.totals.cards, 63)
 
   const legal = fs.readFileSync(
-    path.join(__dirname, '..', 'pages/legal/index.wxml'),
+    path.join(__dirname, '..', 'subpackages/grow/pages/legal/index.wxml'),
     'utf8',
   )
   for (const key of ['tbx:helpBannerDismissed', 'exports', 'cyber:auto:v1']) {

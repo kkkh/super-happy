@@ -4,6 +4,7 @@
   "usingComponents": {
     "glass-card": "../../components/glass-card/index",
     "glass-button": "../../components/glass-button/index",
+    "glass-modal": "../../components/glass-modal/index",
     "glass-toast": "../../components/glass-toast/index"
   }
 }

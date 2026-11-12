@@ -73,15 +73,13 @@ function readJson(file) {
   return JSON.parse(fs.readFileSync(file, 'utf8'))
 }
 
-test('app.json：主包只保留 5 个核心页面，分包至少 6 个', () => {
-  assert.equal(app.pages.length, 5)
+test('app.json：主包只保留 3 个核心页面，分包至少 6 个', () => {
+  assert.equal(app.pages.length, 3)
   assert.ok(app.subpackages.length >= 6)
   assert.deepEqual(app.pages, [
     'pages/index/index',
-    'pages/lab/index',
     'pages/favorites/index',
     'pages/mine/index',
-    'pages/legal/index',
   ])
 })
 

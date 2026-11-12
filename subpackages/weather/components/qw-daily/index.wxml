@@ -1,0 +1,148 @@
+<view class="qw-card qw-daily">
+  <view class="qw-card__head">
+    <view>
+      <text class="qw-kicker">DAILY FORECAST</text>
+      <text class="qw-title">每日预报</text>
+    </view>
+  </view>
+
+  <view class="qw-chip-row qw-daily__ranges">
+    <view
+      wx:for="{{ranges}}"
+      wx:key="*this"
+      class="qw-chip {{range === item ? 'qw-chip--active' : ''}}"
+      data-range="{{item}}"
+      bindtap="onRange"
+      aria-role="button"
+      aria-label="{{item}} 天预报"
+    >{{item}}天</view>
+  </view>
+
+  <view wx:if="{{error}}" class="qw-error">{{error}}</view>
+  <block wx:elif="{{days.length}}">
+    <view
+      wx:for="{{days}}"
+      wx:key="date"
+      class="qw-daily__row {{index === 0 ? 'qw-daily__row--today' : ''}}"
+      data-date="{{item.date}}"
+      bindtap="onToggle"
+      aria-role="button"
+      aria-expanded="{{expandedDate === item.date}}"
+    >
+      <view class="qw-daily__main">
+        <view class="qw-daily__date">
+          <text class="qw-daily__week">{{item.weekText}}</text>
+          <text class="qw-daily__day">{{item.dateText}}</text>
+        </view>
+        <view class="qw-daily__icons">
+          <view class="qw-daily__icon-cell">
+            <qw-icon code="{{item.iconDay}}" size="{{56}}" alt="{{item.textDay}}" />
+            <text>{{item.textDay}}</text>
+          </view>
+          <view class="qw-daily__icon-cell qw-daily__icon-cell--night">
+            <qw-icon code="{{item.iconNight}}" size="{{48}}" night alt="{{item.textNight}}" />
+            <text>{{item.textNight}}</text>
+          </view>
+        </view>
+        <view class="qw-daily__temps">
+          <text class="qw-daily__temp-max">{{item.tempMaxText}}</text>
+          <text class="qw-daily__temp-min">{{item.tempMinText}}</text>
+        </view>
+        <text class="qw-daily__chevron">{{expandedDate === item.date ? '⌃' : '⌄'}}</text>
+      </view>
+
+      <view wx:if="{{expandedDate === item.date}}" class="qw-daily__detail">
+        <view class="qw-grid-2">
+          <view class="qw-grid__item qw-daily__metric"><text>气压</text><text>{{item.pressureText}}</text></view>
+          <view class="qw-grid__item qw-daily__metric"><text>能见度</text><text>{{item.visibilityText}}</text></view>
+          <view class="qw-grid__item qw-daily__metric"><text>紫外线</text><text>{{item.uvText}}</text></view>
+          <view class="qw-grid__item qw-daily__metric"><text>平均温度</text><text>{{item.tempAvgText}}</text></view>
+        </view>
+
+        <view class="qw-daily__parts">
+          <view class="qw-daily__part">
+            <text class="qw-daily__part-title">白天</text>
+            <view wx:if="{{item.daytime.periodText}}" class="qw-daily__part-row"><text>时段</text><text>{{item.daytime.periodText}}</text></view>
+            <view class="qw-daily__part-row"><text>温度</text><text>{{item.daytime.tempMinText}} ~ {{item.daytime.tempMaxText}}</text></view>
+            <view class="qw-daily__part-row"><text>风</text><text>{{item.daytime.windText}}</text></view>
+            <view wx:if="{{item.daytime.gustText !== '—'}}" class="qw-daily__part-row"><text>阵风</text><text>{{item.daytime.gustText}}</text></view>
+            <view class="qw-daily__part-row"><text>降水</text><text>{{item.daytime.precipText}}</text></view>
+            <view wx:if="{{item.daytime.precipTypeText !== '—'}}" class="qw-daily__part-row"><text>降水类型</text><text>{{item.daytime.precipTypeText}}</text></view>
+            <view wx:if="{{item.daytime.popText !== '—'}}" class="qw-daily__part-row"><text>降水概率</text><text>{{item.daytime.popText}}</text></view>
+            <view class="qw-daily__part-row"><text>湿度</text><text>{{item.daytime.humidityText}}</text></view>
+            <view class="qw-daily__part-row"><text>云量</text><text>{{item.daytime.cloudText}}</text></view>
+          </view>
+          <view class="qw-daily__part">
+            <text class="qw-daily__part-title">夜间</text>
+            <view wx:if="{{item.nighttime.periodText}}" class="qw-daily__part-row"><text>时段</text><text>{{item.nighttime.periodText}}</text></view>
+            <view class="qw-daily__part-row"><text>温度</text><text>{{item.nighttime.tempMinText}} ~ {{item.nighttime.tempMaxText}}</text></view>
+            <view class="qw-daily__part-row"><text>风</text><text>{{item.nighttime.windText}}</text></view>
+            <view wx:if="{{item.nighttime.gustText !== '—'}}" class="qw-daily__part-row"><text>阵风</text><text>{{item.nighttime.gustText}}</text></view>
+            <view class="qw-daily__part-row"><text>降水</text><text>{{item.nighttime.precipText}}</text></view>
+            <view wx:if="{{item.nighttime.precipTypeText !== '—'}}" class="qw-daily__part-row"><text>降水类型</text><text>{{item.nighttime.precipTypeText}}</text></view>
+            <view wx:if="{{item.nighttime.popText !== '—'}}" class="qw-daily__part-row"><text>降水概率</text><text>{{item.nighttime.popText}}</text></view>
+            <view class="qw-daily__part-row"><text>湿度</text><text>{{item.nighttime.humidityText}}</text></view>
+            <view class="qw-daily__part-row"><text>云量</text><text>{{item.nighttime.cloudText}}</text></view>
+          </view>
+        </view>
+        <view class="qw-daily__astro">
+          <view
+            wx:if="{{item.sunriseText !== '—' || item.sunsetText !== '—'}}"
+            class="qw-daily__astro-item"
+          >
+            <text class="qw-daily__astro-label">日出 / 日落</text>
+            <text class="qw-daily__astro-value">{{item.sunriseText}} / {{item.sunsetText}}</text>
+          </view>
+          <view
+            wx:if="{{item.moonriseText !== '—' || item.moonsetText !== '—'}}"
+            class="qw-daily__astro-item"
+          >
+            <text class="qw-daily__astro-label">月升 / 月落</text>
+            <text class="qw-daily__astro-value">{{item.moonriseText}} / {{item.moonsetText}}</text>
+          </view>
+          <view class="qw-daily__astro-item">
+            <text class="qw-daily__astro-label">月相</text>
+            <view class="qw-daily__moon">
+              <qw-icon code="{{item.moonIcon}}" size="{{40}}" moon alt="{{item.moonPhase}}" />
+              <text class="qw-daily__astro-value">{{item.moonPhase}}</text>
+            </view>
+          </view>
+          <view
+            wx:if="{{item.astro.astronomicalDawn !== '—' || item.astro.astronomicalDusk !== '—'}}"
+            class="qw-daily__astro-item"
+          >
+            <text class="qw-daily__astro-label">天文晨光 / 暮光</text>
+            <text class="qw-daily__astro-value">{{item.astro.astronomicalDawn}} / {{item.astro.astronomicalDusk}}</text>
+          </view>
+          <view
+            wx:if="{{item.astro.nauticalDawn !== '—' || item.astro.nauticalDusk !== '—'}}"
+            class="qw-daily__astro-item"
+          >
+            <text class="qw-daily__astro-label">航海晨光 / 暮光</text>
+            <text class="qw-daily__astro-value">{{item.astro.nauticalDawn}} / {{item.astro.nauticalDusk}}</text>
+          </view>
+          <view
+            wx:if="{{item.astro.dawn !== '—' || item.astro.dusk !== '—'}}"
+            class="qw-daily__astro-item"
+          >
+            <text class="qw-daily__astro-label">民用晨光 / 暮光</text>
+            <text class="qw-daily__astro-value">{{item.astro.dawn}} / {{item.astro.dusk}}</text>
+          </view>
+          <view wx:if="{{item.astro.solarNoon !== '—'}}" class="qw-daily__astro-item">
+            <text class="qw-daily__astro-label">太阳正午</text>
+            <text class="qw-daily__astro-value">{{item.astro.solarNoon}}</text>
+          </view>
+          <view
+            wx:if="{{item.astro.solarMidnight !== '—' || item.astro.moonTransit !== '—' || item.astro.moonUnderfoot !== '—'}}"
+            class="qw-daily__astro-item"
+          >
+            <text class="qw-daily__astro-label">午夜 / 月中天 / 月下中天</text>
+            <text class="qw-daily__astro-value">{{item.astro.solarMidnight}} / {{item.astro.moonTransit}} / {{item.astro.moonUnderfoot}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </block>
+  <view wx:elif="{{loading}}" class="qw-skeleton qw-daily__skeleton"></view>
+  <text wx:else class="qw-empty">暂无每日预报</text>
+</view>

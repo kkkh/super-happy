@@ -181,6 +181,59 @@ Page({
     })
   },
 
+  /* ---- 草稿：明细行、税额与优惠；恢复后重新汇总 ---- */
+  collectDraftInput(): Record<string, string> {
+    return {
+      rows: JSON.stringify(this.data.rows),
+      taxText: this.data.taxText,
+      discountText: this.data.discountText,
+    }
+  },
+
+  applyDraftInput(input: Record<string, string>): void {
+    let rows: QuoteRowDraft[] = []
+    try {
+      const parsed = JSON.parse(input.rows || '[]') as unknown
+      if (Array.isArray(parsed)) {
+        rows = parsed.slice(0, QUOTE_MAX_ROWS).map((item, index) => {
+          const row = (item && typeof item === 'object' ? item : {}) as Record<string, unknown>
+          return {
+            id: rowSeed + index + 1,
+            name: typeof row.name === 'string' ? row.name : '',
+            quantity: typeof row.quantity === 'string' ? row.quantity : '1',
+            unitPrice: typeof row.unitPrice === 'string' ? row.unitPrice : '',
+          }
+        })
+      }
+    } catch {
+      rows = []
+    }
+    rowSeed += rows.length
+    if (rows.length === 0) {
+      rows = [createRow()]
+    }
+    this.setData(
+      {
+        rows,
+        taxText: input.taxText ?? '',
+        discountText: input.discountText ?? '',
+        resultLabel: '应付金额',
+        resultMain: '',
+        resultRows: [],
+        quoteSummary: '',
+        hasResult: false,
+        csvPath: '',
+        shellState: 'idle',
+        error: '',
+        posterData: null,
+        formTouched: true,
+      },
+      () => {
+        this.onRun()
+      },
+    )
+  },
+
   onRun() {
     const state = this as unknown as QuoteState
     if (state.destroyed) {

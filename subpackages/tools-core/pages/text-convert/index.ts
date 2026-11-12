@@ -239,6 +239,62 @@ Page({
     })
   },
 
+  /* ---- 草稿：当前面板、文本、各面板选项与清洗开关；恢复后重算 ---- */
+  draftMode(): string {
+    return this.data.activeMode
+  },
+
+  collectDraftInput(): Record<string, string> {
+    return {
+      inputText: this.data.inputText,
+      caseMode: this.data.caseMode,
+      namingMode: this.data.namingMode,
+      htmlMode: this.data.htmlMode,
+      cleanFlags: this.data.cleanOptions
+        .filter((item) => item.on)
+        .map((item) => item.key)
+        .join(','),
+    }
+  },
+
+  applyDraftInput(input: Record<string, string>, mode: string): void {
+    const activeMode = PANEL_OPTIONS.some((item) => item.key === mode)
+      ? (mode as PanelMode)
+      : 'case'
+    const text = input.inputText ?? ''
+    const caseMode =
+      input.caseMode === 'lower' ? 'lower' : 'upper'
+    const namingMode =
+      input.namingMode === 'snake' || input.namingMode === 'kebab'
+        ? input.namingMode
+        : 'camel'
+    const htmlMode =
+      input.htmlMode === 'html-decode' ? 'html-decode' : 'html-encode'
+    const enabled = new Set(
+      (input.cleanFlags ?? '')
+        .split(',')
+        .map((item) => item.trim())
+        .filter(Boolean),
+    )
+    const cleanOptions = CLEAN_OPTIONS.map((item) => ({ ...item, on: enabled.has(item.key) }))
+    const state = this as unknown as TextConvertState
+    state.modeInputs[activeMode] = text
+    this.setData(
+      {
+        activeMode,
+        inputText: text,
+        inputLength: Array.from(text).length,
+        caseMode,
+        namingMode,
+        htmlMode,
+        cleanOptions,
+      },
+      () => {
+        this.setData({ convertMode: this.modeFor(activeMode) }, () => this.compute())
+      },
+    )
+  },
+
   onCopy() {
     const text = this.data.resultText
     if (!text) {

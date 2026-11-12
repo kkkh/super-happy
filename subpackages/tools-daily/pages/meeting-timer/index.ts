@@ -254,6 +254,25 @@ Page({
     })
   },
 
+  /* ---- 草稿：模式、时长与结束时间；恢复后不自动开始计时 ---- */
+  draftMode(): string {
+    return this.data.mode
+  },
+
+  collectDraftInput(): Record<string, string> {
+    return { durationText: this.data.durationText, deadlineTime: this.data.deadlineTime }
+  },
+
+  applyDraftInput(input: Record<string, string>, mode: string): void {
+    this.onReset()
+    this.setData({
+      mode: mode === 'deadline' ? 'deadline' : 'duration',
+      durationText: input.durationText || '10',
+      deadlineTime: input.deadlineTime || defaultDeadlineTime(Date.now()),
+      formTouched: true,
+    })
+  },
+
   onRun() {
     this.startCountdown()
   },

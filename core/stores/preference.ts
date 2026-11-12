@@ -6,12 +6,16 @@
    ========================================================================== */
 import { observable } from 'mobx-miniprogram'
 import { STORAGE_KEYS } from '../constants/index'
+import { isFavoriteSort } from '../toolbox/favorites-sort'
+import type { FavoriteSort } from '../toolbox/types'
 import { logger } from '../utils/logger'
 
 export type HapticLevel = 'off' | 'light' | 'heavy'
 export type MotionLevel = 'full' | 'lite' | 'saver'
 /** 0 表示永不清理；7 / 30 为天数阈值 */
 export type AutoCleanDays = 0 | 7 | 30
+/** 全局字号档：只缩放字号与行高，不缩放布局、图标与 Canvas */
+export type FontScale = 'standard' | 'large' | 'xlarge'
 export type FeatureFlagKey = 'enable_ai_assist'
 
 export interface PreferenceFlags {
@@ -29,12 +33,17 @@ export interface PreferenceSnapshot {
   isPrivacyMasked: boolean
   /** 计算轨迹记录总开关：默认开启，暂停后新计算不再写入 */
   isHistoryTrackingEnabled: boolean
+  /** 字号档：标准 / 大 / 特大，默认标准 */
+  fontScale: FontScale
+  /** 收藏页排序偏好 */
+  favoriteSort: FavoriteSort
   flags: PreferenceFlags
 }
 
 export const HAPTIC_LEVELS: HapticLevel[] = ['off', 'light', 'heavy']
 export const MOTION_LEVELS: MotionLevel[] = ['full', 'lite', 'saver']
 export const AUTO_CLEAN_LEVELS: AutoCleanDays[] = [7, 30, 0]
+export const FONT_SCALES: FontScale[] = ['standard', 'large', 'xlarge']
 
 export const HAPTIC_LABELS: Record<HapticLevel, string> = {
   off: '关闭',
@@ -54,6 +63,19 @@ export const AUTO_CLEAN_LABELS: Record<AutoCleanDays, string> = {
   0: '永不清理',
 }
 
+export const FONT_SCALE_LABELS: Record<FontScale, string> = {
+  standard: '标准',
+  large: '大',
+  xlarge: '特大',
+}
+
+/** 字号缩放因子：只作用于字号与行高 */
+export const FONT_SCALE_FACTORS: Record<FontScale, number> = {
+  standard: 1,
+  large: 1.15,
+  xlarge: 1.3,
+}
+
 /** 唯一默认值：任何异常路径最终都会回到这里 */
 export const DEFAULT_PREFERENCE: PreferenceSnapshot = {
   version: 1,
@@ -64,6 +86,8 @@ export const DEFAULT_PREFERENCE: PreferenceSnapshot = {
   autoCleanDays: 30,
   isPrivacyMasked: true,
   isHistoryTrackingEnabled: true,
+  fontScale: 'standard',
+  favoriteSort: 'recent',
   flags: {
     enable_ai_assist: false,
   },
@@ -95,6 +119,54 @@ function isMotionLevel(value: unknown): value is MotionLevel {
 
 function isAutoCleanDays(value: unknown): value is AutoCleanDays {
   return value === 0 || value === 7 || value === 30
+}
+
+export function isFontScale(value: unknown): value is FontScale {
+  return typeof value === 'string' && FONT_SCALES.includes(value as FontScale)
+}
+
+/**
+ * 字号档解析：合法枚举 / 中英文别名 / 1、1.15、1.3 数值 → FontScale；
+ * 无法识别时返回 null，由调用方决定回退或保持当前档。
+ */
+export function parseFontScale(value: unknown): FontScale | null {
+  if (isFontScale(value)) {
+    return value
+  }
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    if (Math.abs(value - FONT_SCALE_FACTORS.large) < 0.001) {
+      return 'large'
+    }
+    if (Math.abs(value - FONT_SCALE_FACTORS.xlarge) < 0.001) {
+      return 'xlarge'
+    }
+    if (Math.abs(value - FONT_SCALE_FACTORS.standard) < 0.001) {
+      return 'standard'
+    }
+    return null
+  }
+  if (typeof value === 'string') {
+    const text = value.trim().toLowerCase()
+    if (text === 'standard' || text === 'normal' || text === 'default' || text === '标准') {
+      return 'standard'
+    }
+    if (text === 'large' || text === 'big' || text === '大') {
+      return 'large'
+    }
+    if (text === 'xlarge' || text === 'huge' || text === '特大') {
+      return 'xlarge'
+    }
+    const numeric = Number.parseFloat(text)
+    if (Number.isFinite(numeric)) {
+      return parseFontScale(numeric)
+    }
+  }
+  return null
+}
+
+/** 缺失或非法值回退 fallback（旧快照默认 standard） */
+export function normalizeFontScale(value: unknown, fallback: FontScale = 'standard'): FontScale {
+  return parseFontScale(value) ?? fallback
 }
 
 /** 兼容布尔 / 数字 / 旧字符串三套历史写法 */
@@ -253,6 +325,10 @@ export function normalizePreference(
       record.isHistoryTrackingEnabled ?? record.historyTracking ?? record.trackingEnabled,
       base.isHistoryTrackingEnabled,
     ),
+    fontScale: normalizeFontScale(record.fontScale ?? record.font, base.fontScale),
+    favoriteSort: isFavoriteSort(record.favoriteSort)
+      ? record.favoriteSort
+      : base.favoriteSort,
     flags: normalizeFlags(flagsSource, base.flags),
   }
 }
@@ -320,6 +396,8 @@ export const preferenceStore = observable({
   autoCleanDays: DEFAULT_PREFERENCE.autoCleanDays as AutoCleanDays,
   isPrivacyMasked: DEFAULT_PREFERENCE.isPrivacyMasked,
   isHistoryTrackingEnabled: DEFAULT_PREFERENCE.isHistoryTrackingEnabled,
+  fontScale: DEFAULT_PREFERENCE.fontScale as FontScale,
+  favoriteSort: DEFAULT_PREFERENCE.favoriteSort as FavoriteSort,
   flags: { ...DEFAULT_PREFERENCE.flags } as PreferenceFlags,
 
   /** 启动调用一次；任何异常都保留默认值，绝不抛给 App */
@@ -347,6 +425,8 @@ export const preferenceStore = observable({
     this.autoCleanDays = safe.autoCleanDays
     this.isPrivacyMasked = safe.isPrivacyMasked
     this.isHistoryTrackingEnabled = safe.isHistoryTrackingEnabled
+    this.fontScale = safe.fontScale
+    this.favoriteSort = safe.favoriteSort
     this.flags = { ...safe.flags }
   },
 
@@ -360,6 +440,8 @@ export const preferenceStore = observable({
       autoCleanDays: this.autoCleanDays,
       isPrivacyMasked: this.isPrivacyMasked,
       isHistoryTrackingEnabled: this.isHistoryTrackingEnabled,
+      fontScale: this.fontScale,
+      favoriteSort: this.favoriteSort,
       flags: { ...this.flags },
     }
   },
@@ -455,6 +537,29 @@ export const preferenceStore = observable({
     return this.persist()
   },
 
+  /** 字号档：非法值拒绝，合法值立即持久化 */
+  setFontScale(scale: FontScale): boolean {
+    if (!isFontScale(scale)) {
+      return false
+    }
+    if (this.fontScale === scale) {
+      return true
+    }
+    this.fontScale = scale
+    return this.persist()
+  },
+
+  setFavoriteSort(sort: FavoriteSort): boolean {
+    if (!isFavoriteSort(sort)) {
+      return false
+    }
+    if (this.favoriteSort === sort) {
+      return true
+    }
+    this.favoriteSort = sort
+    return this.persist()
+  },
+
   setFlag(key: string, value: boolean): boolean {
     if (!KNOWN_FLAGS.includes(key)) {
       return false
@@ -477,6 +582,10 @@ export const preferenceStore = observable({
 
   get motionIndex(): number {
     return MOTION_LEVELS.indexOf(this.motion)
+  },
+
+  get fontScaleLabel(): string {
+    return FONT_SCALE_LABELS[this.fontScale]
   },
 
   get autoCleanLabel(): string {

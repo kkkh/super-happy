@@ -290,6 +290,45 @@ Page({
     })
   },
 
+  /* ---- 草稿：模式、性别 / 地区与尺码；恢复后重新换算 ---- */
+  draftMode(): string {
+    return this.data.mode
+  },
+
+  collectDraftInput(): Record<string, string> {
+    return {
+      gender: this.data.gender,
+      regionKey: this.data.regionKey,
+      value: this.data.value,
+      clothingLabel: this.data.clothingLabel,
+    }
+  },
+
+  applyDraftInput(input: Record<string, string>, mode: string): void {
+    const state = this as unknown as SizeState
+    const nextMode: SizeMode =
+      mode === 'clothing' || mode === 'ring' ? mode : 'shoe'
+    const gender = input.gender === 'female' ? 'female' : 'male'
+    if (nextMode === 'shoe') {
+      const region = isShoeRegion(input.regionKey) ? input.regionKey : 'cn'
+      state.inputs.shoe = { gender, region, value: input.value ?? '' }
+    } else if (nextMode === 'clothing') {
+      const label = isClothingLabel(input.clothingLabel)
+        ? input.clothingLabel
+        : 'M'
+      state.inputs.clothing = { gender, label }
+    } else {
+      const region = isRingRegion(input.regionKey) ? input.regionKey : 'cn'
+      state.inputs.ring = { region, value: input.value ?? '' }
+    }
+    this.applyMode(nextMode, state)
+    setTimeout(() => {
+      if (this.data.canRun) {
+        this.compute()
+      }
+    }, 0) as unknown as number
+  },
+
   onRun() {
     this.compute()
   },

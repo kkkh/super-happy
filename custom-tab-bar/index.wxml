@@ -1,4 +1,4 @@
-<view class="dock {{isDark ? 'dock_dark' : ''}}">
+<view class="dock {{isDark ? 'dock_dark' : ''}} {{fsClass}}">
   <view class="dock__pill">
     <view
       wx:for="{{items}}"

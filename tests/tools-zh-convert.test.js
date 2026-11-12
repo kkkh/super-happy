@@ -139,5 +139,5 @@ test('简繁契约：tools-dict / 页面 / 注册 / 帮助 / 文本工作流 / �
 
   const adapters = await import(`${URL_ROOT}core/workflow/workflowAdapters.ts`)
   assert.ok(adapters.getWorkflowAdapter('zh-convert'), '缺少 zh-convert 文本适配器')
-  assert.match(read('pages/legal/index.wxml'), /OpenCC 1\.4\.2/)
+  assert.match(read('subpackages/grow/pages/legal/index.wxml'), /OpenCC 1\.4\.2/)
 })

@@ -127,6 +127,24 @@ Page({
     })
   },
 
+  /* ---- 草稿：前景 / 背景色；恢复后重新计算对比度 ---- */
+  collectDraftInput(): Record<string, string> {
+    return { fgValue: this.data.fgValue, bgValue: this.data.bgValue }
+  },
+
+  applyDraftInput(input: Record<string, string>): void {
+    this.setData(
+      {
+        fgValue: input.fgValue || DEFAULT_FOREGROUND,
+        bgValue: input.bgValue || DEFAULT_BACKGROUND,
+        ...emptyResult(),
+      },
+      () => {
+        this.onRun()
+      },
+    )
+  },
+
   onRun() {
     this.compute()
   },

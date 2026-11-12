@@ -1,13 +1,15 @@
 /* ==========================================================================
-   history-snapshots · 清理 Cyber 快照 / 热备中的历史轨迹副本
+   history-snapshots · 清理 Cyber 快照 / 热备 / 时间轴帧中的历史轨迹副本
    - 驾驶舱「清除快照轨迹」、单条删除与「清空工具数据」共用
-   - 只改 snapshot.history，保留主题 / 收藏 / 偏好等其他字段
+   - 只改 snapshot.history / frame.history，保留主题 / 收藏 / 偏好等其他字段
    - 修改后重算 CRC32，保证 Time Travel 仍能正常解码
    ========================================================================== */
 import { crc32Hex } from './crc32'
 import { readStorage, writeStorage } from './storage'
 
 const SNAPSHOT_KEYS = ['cyber:auto:v1', 'cyber:hot:v1'] as const
+/** 时间轴帧以裸数组保存，结构与 auto/hot 的 slot payload 不同，单独处理 */
+const FRAME_KEY = 'cyber:frames:v1'
 
 interface SnapshotSlot {
   id: string
@@ -129,7 +131,54 @@ function mutateSnapshots(
   return { slots: slotsChanged, records: recordsRemoved }
 }
 
-/** 自动快照 + 热备里一共还存着多少条历史轨迹副本 */
+interface FrameRecord {
+  history?: unknown[]
+  [key: string]: unknown
+}
+
+function parseFrames(raw: unknown): FrameRecord[] {
+  if (!Array.isArray(raw)) {
+    return []
+  }
+  return raw.filter(
+    (item): item is FrameRecord =>
+      Boolean(item) && typeof item === 'object' && !Array.isArray(item),
+  )
+}
+
+function countHistoryInFrames(): number {
+  return parseFrames(readStorage(FRAME_KEY)).reduce(
+    (total, frame) => total + (Array.isArray(frame.history) ? frame.history.length : 0),
+    0,
+  )
+}
+
+function mutateFrameHistory(
+  mutator: (history: unknown[]) => unknown[] | null,
+): { changed: boolean; removed: number } {
+  const frames = parseFrames(readStorage(FRAME_KEY))
+  if (!frames.length) {
+    return { changed: false, removed: 0 }
+  }
+  let changed = false
+  let removed = 0
+  const next = frames.map((frame) => {
+    const history = Array.isArray(frame.history) ? frame.history : []
+    const result = mutator(history)
+    if (!result) {
+      return frame
+    }
+    changed = true
+    removed += history.length - result.length
+    return { ...frame, history: result }
+  })
+  if (changed) {
+    writeStorage(FRAME_KEY, next)
+  }
+  return { changed, removed }
+}
+
+/** 自动快照 + 热备 + 时间轴帧里一共还存着多少条历史轨迹副本 */
 export function countHistoryInSnapshots(): number {
   let total = 0
   for (const key of SNAPSHOT_KEYS) {
@@ -140,20 +189,27 @@ export function countHistoryInSnapshots(): number {
       }
     }
   }
-  return total
+  return total + countHistoryInFrames()
 }
 
-/** 清除所有快照 / 热备中的历史轨迹，保留其他快照字段 */
+/** 清除所有快照 / 热备 / 时间轴帧中的历史轨迹，保留其他快照字段 */
 export function purgeHistoryFromSnapshots(): SnapshotMutationResult {
-  return mutateSnapshots((history) => {
+  const result = mutateSnapshots((history) => {
     if (!history.length) {
       return null
     }
     return { next: [], removed: history.length }
   })
+  const frames = mutateFrameHistory((history) =>
+    history.length ? [] : null,
+  )
+  return {
+    slots: result.slots + (frames.changed ? 1 : 0),
+    records: result.records + frames.removed,
+  }
 }
 
-/** 从所有快照 / 热备中移除指定 id 的轨迹 */
+/** 从所有快照 / 热备 / 时间轴帧中移除指定 id 的轨迹 */
 export function purgeHistoryRecordFromSnapshots(id: string): number {
   const target = String(id || '')
   if (!target) {
@@ -172,5 +228,15 @@ export function purgeHistoryRecordFromSnapshots(id: string): number {
     }
     return { next, removed: history.length - next.length }
   })
-  return result.records
+  const frames = mutateFrameHistory((history) => {
+    const next = history.filter((item) => {
+      if (!item || typeof item !== 'object' || Array.isArray(item)) {
+        return true
+      }
+      const record = item as Record<string, unknown>
+      return typeof record.id === 'string' ? record.id !== target : true
+    })
+    return next.length === history.length ? null : next
+  })
+  return result.records + frames.removed
 }

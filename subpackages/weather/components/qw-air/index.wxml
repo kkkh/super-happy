@@ -1,0 +1,183 @@
+<view class="qw-card qw-air">
+  <view class="qw-card__head">
+    <view>
+      <text class="qw-kicker">AIR QUALITY</text>
+      <text class="qw-title">空气质量</text>
+    </view>
+    <text wx:if="{{air && air.primary}}" class="qw-badge">{{air.primary.category}}</text>
+  </view>
+
+  <view wx:if="{{error}}" class="qw-error">{{error}}</view>
+  <block wx:elif="{{air && air.primary}}">
+    <view class="qw-air__hero" style="border-color: {{air.primary.color}};">
+      <view class="qw-air__hero-main">
+        <text class="qw-air__aqi" style="--aqi-color: {{air.primary.color}};">{{air.primary.aqiDisplay}}</text>
+        <view class="qw-air__hero-copy">
+          <text class="qw-air__name">{{air.primary.name}}</text>
+          <text class="qw-air__sub">首要污染物 {{air.primary.primaryPollutant}}</text>
+        </view>
+      </view>
+      <view class="qw-air__indexes">
+        <view
+          wx:for="{{air.indexes}}"
+          wx:key="code"
+          class="qw-air__index"
+          style="border-color: {{item.color}};"
+        >
+          <text class="qw-air__index-name">{{item.name}}</text>
+          <text class="qw-air__index-value" style="--aqi-color: {{item.color}};">{{item.aqiDisplay}}</text>
+          <text class="qw-air__index-category">{{item.category}}</text>
+          <text wx:if="{{item.level}}" class="qw-air__index-level">等级 {{item.level}}</text>
+          <text wx:if="{{item.primaryPollutant}}" class="qw-air__index-pollutant">首要 {{item.primaryPollutant}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="qw-air__section">
+      <text class="qw-air__section-title">污染物浓度</text>
+      <view class="qw-grid-3">
+        <view
+          wx:for="{{air.pollutants}}"
+          wx:key="code"
+          class="qw-grid__item qw-air__pollutant"
+          aria-label="{{item.fullName || item.name}} {{item.valueText}} {{item.subIndexText}}"
+        >
+          <text class="qw-air__pollutant-name">{{item.name}}</text>
+          <text class="qw-air__pollutant-value">{{item.valueText}}</text>
+          <text class="qw-air__pollutant-sub">{{item.subIndexText}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="qw-air__section">
+      <text class="qw-air__section-title">健康建议</text>
+      <text wx:if="{{air.primary.health.effect}}" class="qw-air__effect">{{air.primary.health.effect}}</text>
+      <view class="qw-air__advice">
+        <view class="qw-air__advice-item">
+          <text class="qw-air__advice-label">一般人群</text>
+          <text class="qw-air__advice-text">{{air.generalAdvice || '暂无建议'}}</text>
+        </view>
+        <view class="qw-air__advice-item">
+          <text class="qw-air__advice-label">敏感人群</text>
+          <text class="qw-air__advice-text">{{air.sensitiveAdvice || '暂无建议'}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{hourlyBars.length}}" class="qw-air__section">
+      <text class="qw-air__section-title">未来 24 小时 AQI</text>
+      <view class="qw-air__chart">
+        <view class="qw-air__bars">
+          <view
+            wx:for="{{hourlyBars}}"
+            wx:key="hourText"
+            class="qw-air__bar"
+            style="height: {{item.height}}%; background: {{item.color}};"
+            aria-hidden="true"
+          ></view>
+        </view>
+        <view class="qw-air__axis">
+          <text>{{hourlyBars[0].hourText}}</text>
+          <text>{{hourlyBars[hourlyBars.length - 1].hourText}}</text>
+        </view>
+      </view>
+      <scroll-view class="qw-scroll-x qw-air__hour-scroll" scroll-x enhanced show-scrollbar="{{false}}">
+        <view class="qw-scroll-x__inner">
+          <view
+            wx:for="{{air.hourly}}"
+            wx:key="timeText"
+            class="qw-air__hour-card {{expandedHour === item.hourText ? 'qw-air__hour-card--active' : ''}}"
+            style="border-color: {{item.color}};"
+            data-hour="{{item.hourText}}"
+            bindtap="onHourToggle"
+            aria-role="button"
+            aria-expanded="{{expandedHour === item.hourText}}"
+          >
+            <text class="qw-air__hour-time">{{item.hourText}}</text>
+            <text class="qw-air__hour-aqi" style="--aqi-color: {{item.color}};">{{item.aqiDisplay}}</text>
+            <text class="qw-air__hour-cat">{{item.category}}</text>
+            <text class="qw-air__hour-poll">{{item.primaryPollutant}}</text>
+          </view>
+        </view>
+      </scroll-view>
+
+      <block wx:for="{{air.hourly}}" wx:for-item="hour" wx:key="timeText">
+        <view wx:if="{{expandedHour === hour.hourText}}" class="qw-air__hour-detail">
+          <view class="qw-air__hour-detail-head">
+            <text class="qw-air__hour-detail-title">{{hour.hourText}} · {{hour.category}}</text>
+            <text class="qw-air__hour-detail-aqi" style="--aqi-color: {{hour.color}};">AQI {{hour.aqiDisplay}}</text>
+          </view>
+          <view wx:for="{{hour.indexes}}" wx:for-item="entry" wx:key="code" class="qw-air__day-index">
+            <view class="qw-air__day-index-copy">
+              <text class="qw-air__day-index-name">{{entry.name}}</text>
+              <text wx:if="{{entry.level}}" class="qw-air__day-index-meta">等级 {{entry.level}}<text wx:if="{{entry.primaryPollutant}}"> · 首要 {{entry.primaryPollutant}}</text></text>
+            </view>
+            <text class="qw-air__day-index-value">{{entry.aqiDisplay}} · {{entry.category}}</text>
+          </view>
+          <view wx:for="{{hour.pollutants}}" wx:for-item="pollutant" wx:key="code" class="qw-air__day-poll">
+            <text class="qw-air__day-poll-name">{{pollutant.name}}</text>
+            <text class="qw-air__day-poll-value">{{pollutant.valueText}}</text>
+            <text wx:if="{{pollutant.subIndexText}}" class="qw-air__day-poll-sub">{{pollutant.subIndexText}}</text>
+          </view>
+          <text wx:if="{{hour.indexes[0].health.effect}}" class="qw-air__day-health">{{hour.indexes[0].health.effect}}</text>
+          <text wx:if="{{hour.indexes[0].health.general}}" class="qw-air__day-health">一般人群：{{hour.indexes[0].health.general}}</text>
+          <text wx:if="{{hour.indexes[0].health.sensitive}}" class="qw-air__day-health">敏感人群：{{hour.indexes[0].health.sensitive}}</text>
+        </view>
+      </block>
+    </view>
+    <text wx:else class="qw-empty">未来 24 小时空气质量暂不可用</text>
+
+    <view wx:if="{{air.daily.length}}" class="qw-air__section">
+      <text class="qw-air__section-title">未来 3 天</text>
+      <view class="qw-air__days">
+        <view
+          wx:for="{{air.daily}}"
+          wx:key="dateText"
+          class="qw-air__day {{expandedDate === item.dateText ? 'qw-air__day--active' : ''}}"
+          style="border-color: {{item.color}};"
+          data-date="{{item.dateText}}"
+          bindtap="onDayToggle"
+          aria-role="button"
+          aria-expanded="{{expandedDate === item.dateText}}"
+        >
+          <text class="qw-air__day-date">{{item.weekText}} {{item.dateText}}</text>
+          <text class="qw-air__day-aqi" style="--aqi-color: {{item.color}};">{{item.aqiDisplay}}</text>
+          <text class="qw-air__day-category">{{item.category}}</text>
+          <text class="qw-air__day-pollutant">{{item.primaryPollutant}}</text>
+          <text class="qw-air__day-more">{{expandedDate === item.dateText ? '收起' : '详情'}}</text>
+        </view>
+      </view>
+
+      <block wx:for="{{air.daily}}" wx:for-item="day" wx:key="dateText">
+        <view wx:if="{{expandedDate === day.dateText}}" class="qw-air__day-detail">
+          <view class="qw-air__day-detail-head">
+            <text class="qw-air__day-detail-title">{{day.weekText}} {{day.dateText}} · {{day.category}}</text>
+            <text class="qw-air__day-detail-aqi" style="--aqi-color: {{day.color}};">AQI {{day.aqiDisplay}}</text>
+          </view>
+          <view wx:for="{{day.indexes}}" wx:for-item="entry" wx:key="code" class="qw-air__day-index">
+            <view class="qw-air__day-index-copy">
+              <text class="qw-air__day-index-name">{{entry.name}}</text>
+              <text wx:if="{{entry.level}}" class="qw-air__day-index-meta">等级 {{entry.level}}<text wx:if="{{entry.primaryPollutant}}"> · 首要 {{entry.primaryPollutant}}</text></text>
+            </view>
+            <text class="qw-air__day-index-value">{{entry.aqiDisplay}} · {{entry.category}}</text>
+          </view>
+          <view wx:for="{{day.pollutants}}" wx:for-item="pollutant" wx:key="code" class="qw-air__day-poll">
+            <text class="qw-air__day-poll-name">{{pollutant.name}}</text>
+            <text class="qw-air__day-poll-value">{{pollutant.valueText}}</text>
+            <text wx:if="{{pollutant.subIndexText}}" class="qw-air__day-poll-sub">{{pollutant.subIndexText}}</text>
+          </view>
+          <text wx:if="{{day.indexes[0].health.effect}}" class="qw-air__day-health">{{day.indexes[0].health.effect}}</text>
+          <text wx:if="{{day.indexes[0].health.general}}" class="qw-air__day-health">一般人群：{{day.indexes[0].health.general}}</text>
+          <text wx:if="{{day.indexes[0].health.sensitive}}" class="qw-air__day-health">敏感人群：{{day.indexes[0].health.sensitive}}</text>
+        </view>
+      </block>
+    </view>
+
+    <text wx:if="{{air.stationsText}}" class="qw-source">
+      监测站点：{{air.stationsText}}
+    </text>
+    <text class="qw-source">数据来源 和风天气 QWeather · 空气质量标准由 API 返回</text>
+  </block>
+  <view wx:elif="{{loading}}" class="qw-skeleton qw-air__skeleton"></view>
+  <text wx:else class="qw-empty">当前地点暂无空气质量数据</text>
+</view>

@@ -107,7 +107,7 @@ test('结果导出：结果区渲染导出入口与失败提示', () => {
   assert.match(wxss, /\.tool-shell__export-hint\b/)
 })
 
-test('结果导出：47 个结果卡已接入，排除页保持关闭', () => {
+test('结果导出：48 个结果卡已接入，排除页保持关闭', () => {
   const pages = listPages()
   const enabled = []
   const missingName = []
@@ -121,7 +121,7 @@ test('结果导出：47 个结果卡已接入，排除页保持关闭', () => {
       missingName.push(page)
     }
   }
-  assert.equal(enabled.length, 47, `接入页数量异常：${enabled.length}`)
+  assert.equal(enabled.length, 48, `接入页数量异常：${enabled.length}`)
   assert.deepEqual(missingName, [])
   for (const page of EXCLUDED) {
     const wxml = read(`subpackages/${page}/index.wxml`)

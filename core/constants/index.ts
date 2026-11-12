@@ -10,7 +10,7 @@ export const ROUTES = {
   home: '/pages/index/index',
   favorites: '/pages/favorites/index',
   mine: '/pages/mine/index',
-  legal: '/pages/legal/index',
+  legal: '/subpackages/grow/pages/legal/index',
   /* 简历首页：由主包迁入 grow 分包，入口统一走「我的 → 关于作者」 */
   growHome: '/subpackages/grow/pages/home/index',
   greeting: '/subpackages/grow/pages/greeting/index',
@@ -32,10 +32,16 @@ export const ROUTES = {
   focus: '/subpackages/life/pages/focus/index',
   /* 全息气象站：tools-core 分包，直连高德 Web服务 REST */
   weather: '/subpackages/tools-core/pages/weather/index',
+  /* 元宝搜索：tools-core 分包，腾讯云 WSA SearchPro */
+  webSearch: '/subpackages/tools-core/pages/web-search/index',
+  /* 和风天气：weather 分包，8 组 API / 27 端点 / 官方图标 */
+  qweather: '/subpackages/weather/pages/home/index',
 } as const
 
 /** 当前版本号：设置中心、我的页与更新日志共用同一真相源 */
 export const APP_VERSION = '1.1.0'
+/** 隐私保护指引版本：仅在数据处理方式变化时递增，与 app:privacy.version 比对 */
+export const PRIVACY_VERSION = 1
 
 /** 模态弹窗动作色：破坏性操作必须红/绿分明，避免误触 */
 export const ACTION_COLORS = {
@@ -82,6 +88,7 @@ export const ROUTE_TITLES: Record<string, string> = {
   [ROUTES.cockpit]: '数据驾驶舱',
   [ROUTES.help]: '使用指南',
   [ROUTES.weather]: '全息气象',
+  [ROUTES.webSearch]: '元宝搜索',
 }
 
 /** 带参路由构造器 */
@@ -149,6 +156,10 @@ export const STORAGE_KEYS = {
   preference: 'app:prefs.v1',
   /** 旧版偏好：仅迁移读取，不再写入 */
   preferenceLegacy: 'app:prefs.v0',
+  /** 最近一次备份导出时间：删除备份或重置全部时清除 */
+  backupAt: 'app:backup.at',
+  /** 已确认的隐私保护指引版本：仅重置全部清除 */
+  privacyVersion: 'app:privacy.version',
   /** 会议倒计时悬浮胶囊位置：只存 left / top，跨启动恢复 */
   meetingTimerHud: 'toolbox:meeting-timer.hud.v1',
   /** 官方汇率中间价缓存：只存最近一次牌价与更新时间，用于离线回退 */

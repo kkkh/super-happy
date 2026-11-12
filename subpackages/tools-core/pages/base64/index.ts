@@ -171,6 +171,41 @@ Page({
     })
   },
 
+  /* ---- 草稿：只恢复文本模式与输入；图片不进入草稿 ---- */
+  draftMode(): string {
+    return this.data.mode === 'decode' ? 'decode' : 'encode'
+  },
+
+  collectDraftInput(): Record<string, string> {
+    return { input: this.data.input, imagePrefix: this.data.imagePrefix ? '1' : '0' }
+  },
+
+  applyDraftInput(input: Record<string, string>, mode: string): void {
+    this.setData(
+      {
+        mode: mode === 'decode' ? 'decode' : 'encode',
+        input: input.input ?? '',
+        imagePath: '',
+        imageName: '',
+        imageMeta: '',
+        imagePrefix: input.imagePrefix !== '0',
+        imageReading: false,
+        shellState: 'idle',
+        hasResult: false,
+        error: '',
+        resultLabel: mode === 'decode' ? '解码文本' : 'Base64 结果',
+        outputText: '',
+        outputIsPreview: false,
+        inputSizeText: '',
+        outputSizeText: '',
+        posterData: null,
+      },
+      () => {
+        this.recalculate()
+      },
+    )
+  },
+
   onCopy() {
     const state = this as unknown as Base64State
     if (state.destroyed) {

@@ -76,6 +76,7 @@
   color: var(--glass-text-3);
   font-family: var(--glass-font-mono);
   font-size: 18rpx;
+  font-size: calc(18rpx * var(--fs-scale, 1));
   letter-spacing: 0.12em;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -115,6 +116,7 @@
 .tool-shell__title {
   color: var(--glass-text);
   font-size: 52rpx;
+  font-size: calc(52rpx * var(--fs-scale, 1));
   font-weight: 700;
   line-height: 1.2;
   letter-spacing: -0.01em;
@@ -124,6 +126,7 @@
   margin-top: 12rpx;
   color: var(--glass-text-2);
   font-size: 25rpx;
+  font-size: calc(25rpx * var(--fs-scale, 1));
   line-height: 1.55;
 }
 
@@ -139,6 +142,46 @@
   background-color: var(--glass-bg-soft);
   color: var(--glass-text-3);
   font-size: 19rpx;
+  font-size: calc(19rpx * var(--fs-scale, 1));
+}
+
+.tool-shell__draft {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18rpx;
+  padding: 20rpx 24rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: var(--glass-radius-md);
+  background-color: var(--glass-bg-soft);
+}
+
+.tool-shell__draft-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+  min-width: 0;
+}
+
+.tool-shell__draft-title {
+  color: var(--glass-text-1);
+  font-size: 25rpx;
+  font-size: calc(25rpx * var(--fs-scale, 1));
+  font-weight: 600;
+}
+
+.tool-shell__draft-sub {
+  color: var(--glass-text-3);
+  font-size: 20rpx;
+  font-size: calc(20rpx * var(--fs-scale, 1));
+  line-height: 1.5;
+}
+
+.tool-shell__draft-actions {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 12rpx;
 }
 
 .tool-shell__alert {
@@ -159,7 +202,7 @@
   height: 34rpx;
   border-radius: 50%;
   background-color: var(--sg-danger);
-  color: var(--glass-on-accent);
+  color: var(--glass-on-warm);
   font-size: 22rpx;
   font-weight: 700;
 }
@@ -168,6 +211,7 @@
   flex: 1;
   color: var(--glass-text);
   font-size: 24rpx;
+  font-size: calc(24rpx * var(--fs-scale, 1));
   line-height: 1.5;
 }
 
@@ -220,16 +264,28 @@
 
 .tool-shell__help-text {
   font-size: 21rpx;
+  font-size: calc(21rpx * var(--fs-scale, 1));
   letter-spacing: 1rpx;
   color: var(--glass-text-3);
 }
 
+/* 结果区状态容器：只承接读屏语义，不改变子卡片布局 */
+.tool-shell__result-zone {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
 .tool-shell__footer {
-  padding-top: 8rpx;
+  padding-top: 14rpx;
+  padding-bottom: 4rpx;
   color: var(--glass-text-3);
-  font-family: var(--glass-font-mono);
-  font-size: 16rpx;
-  letter-spacing: 0.08em;
+  font-family: var(--glass-font-sans);
+  font-size: 19rpx;
+  font-size: calc(19rpx * var(--fs-scale, 1));
+  font-weight: 400;
+  letter-spacing: 0.18em;
+  line-height: 1.6;
   text-align: center;
 }
 
@@ -274,6 +330,7 @@
 .tool-shell__export-hint {
   color: var(--glass-text-3);
   font-size: 18rpx;
+  font-size: calc(18rpx * var(--fs-scale, 1));
   line-height: 1.5;
   text-align: center;
 }

@@ -1,10 +1,8 @@
 {
   "pages": [
     "pages/index/index",
-    "pages/lab/index",
     "pages/favorites/index",
-    "pages/mine/index",
-    "pages/legal/index"
+    "pages/mine/index"
   ],
   "subpackages": [
     {
@@ -38,7 +36,9 @@
         "pages/text-convert/index",
         "pages/template/index",
         "pages/regex/index",
-        "pages/weather/index"
+        "pages/weather/index",
+        "pages/web-search/index",
+        "pages/lab/index"
       ]
     },
     {
@@ -100,7 +100,8 @@
         "pages/skills/index",
         "pages/settings/index",
         "pages/cockpit/index",
-        "pages/help/index"
+        "pages/help/index",
+        "pages/legal/index"
       ]
     },
     {
@@ -121,6 +122,12 @@
       "root": "subpackages/life",
       "pages": [
         "pages/focus/index"
+      ]
+    },
+    {
+      "root": "subpackages/weather",
+      "pages": [
+        "pages/home/index"
       ]
     }
   ],
@@ -162,7 +169,7 @@
     "navigationBarTextStyle": "@navText"
   },
   "permission": {
-    "scope.userLocation": {
+    "scope.userFuzzyLocation": {
       "desc": "用于定位当前城市并展示本地天气"
     }
   },

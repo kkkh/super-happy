@@ -1,0 +1,9 @@
+<image
+  class="qw-icon"
+  src="{{src}}"
+  mode="aspectFit"
+  style="width: {{size}}rpx; height: {{size}}rpx;"
+  aria-label="{{alt}}"
+  aria-hidden="true"
+  binderror="onError"
+/>

@@ -1,0 +1,160 @@
+<view class="qw-hero">
+  <view class="qw-hero__top">
+    <view
+      class="qw-hero__city"
+      hover-class="qw-hero__city--press"
+      hover-stay-time="80"
+      bindtap="onCity"
+      aria-role="button"
+      aria-label="切换城市"
+    >
+      <g-icon name="pin" size="{{26}}" tone="ink2" />
+      <view class="qw-hero__city-copy">
+        <text class="qw-hero__city-name">{{city ? city.name : '选择城市'}}</text>
+        <text class="qw-hero__city-sub">{{city ? (city.adm1 || city.country || '和风天气') : '搜索 / 定位 / 热门城市'}}</text>
+      </view>
+      <g-icon name="chevron" size="{{22}}" tone="ink4" />
+    </view>
+
+    <view class="qw-hero__actions">
+      <view
+        class="qw-hero__pill"
+        hover-class="qw-hero__pill--press"
+        hover-stay-time="80"
+        bindtap="onRefresh"
+        aria-role="button"
+        aria-label="刷新天气"
+      >
+        <g-icon name="refresh" size="{{22}}" tone="ink2" />
+        <text>刷新</text>
+      </view>
+      <view
+        wx:if="{{air && air.primary}}"
+        class="qw-hero__pill qw-hero__pill--air"
+        hover-class="qw-hero__pill--press"
+        hover-stay-time="80"
+        bindtap="onAir"
+        aria-role="button"
+        aria-label="查看空气质量"
+      >
+        <text>AQI {{air.primary.aqiDisplay}}</text>
+      </view>
+      <view
+        wx:if="{{alerts.length}}"
+        class="qw-hero__pill qw-hero__pill--alert"
+        hover-class="qw-hero__pill--press"
+        hover-stay-time="80"
+        bindtap="onAlert"
+        aria-role="button"
+        aria-label="查看天气预警"
+      >
+        <text>{{alerts.length}} 条预警</text>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{loading && !current}}" class="qw-hero__skeleton">
+    <view class="qw-skeleton qw-hero__skeleton-icon"></view>
+    <view class="qw-hero__skeleton-copy">
+      <view class="qw-skeleton qw-hero__skeleton-temp"></view>
+      <view class="qw-skeleton qw-hero__skeleton-line"></view>
+      <view class="qw-skeleton qw-hero__skeleton-line qw-hero__skeleton-line--short"></view>
+    </view>
+  </view>
+
+  <block wx:elif="{{current}}">
+    <view class="qw-hero__main">
+      <view class="qw-hero__icon-wrap">
+        <view class="qw-hero__icon-glow" aria-hidden="true"></view>
+        <qw-icon code="{{current.icon}}" size="{{168}}" fill alt="{{current.condition}}" />
+      </view>
+      <view class="qw-hero__reading">
+        <view class="qw-hero__temp-line">
+          <text class="qw-hero__temp">{{current.tempText}}</text>
+          <text class="qw-hero__feels">体感 {{current.feelsLikeText}}</text>
+        </view>
+        <text class="qw-hero__condition">{{current.condition}}</text>
+        <view class="qw-hero__range" wx:if="{{today}}">
+          <text>最低 {{today.tempMinText}}</text>
+          <text class="qw-hero__range-dot">·</text>
+          <text>最高 {{today.tempMaxText}}</text>
+        </view>
+        <view class="qw-hero__update">
+          <text>{{current.validTimeText}} 更新</text>
+          <text wx:if="{{fromCache}}" class="qw-hero__cache">本地缓存</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="qw-grid-2 qw-hero__metrics">
+      <view class="qw-grid__item qw-hero__metric">
+        <text class="qw-hero__metric-label">湿度</text>
+        <text class="qw-hero__metric-value">{{current.humidityText}}</text>
+      </view>
+      <view class="qw-grid__item qw-hero__metric">
+        <text class="qw-hero__metric-label">风</text>
+        <text class="qw-hero__metric-value">{{current.wind.text}}</text>
+      </view>
+      <view class="qw-grid__item qw-hero__metric">
+        <text class="qw-hero__metric-label">阵风</text>
+        <text class="qw-hero__metric-value">{{current.gustText}}</text>
+      </view>
+      <view class="qw-grid__item qw-hero__metric">
+        <text class="qw-hero__metric-label">降水</text>
+        <text class="qw-hero__metric-value">{{current.precipText}} · {{current.precipTypeText}}</text>
+        <text class="qw-hero__metric-sub">强度 {{current.precipIntensityText}}</text>
+      </view>
+      <view class="qw-grid__item qw-hero__metric">
+        <text class="qw-hero__metric-label">气压</text>
+        <text class="qw-hero__metric-value">{{current.pressureText}}</text>
+      </view>
+      <view class="qw-grid__item qw-hero__metric">
+        <text class="qw-hero__metric-label">能见度</text>
+        <text class="qw-hero__metric-value">{{current.visibilityText}}</text>
+      </view>
+      <view class="qw-grid__item qw-hero__metric">
+        <text class="qw-hero__metric-label">露点</text>
+        <text class="qw-hero__metric-value">{{current.dewPointText}}</text>
+      </view>
+      <view class="qw-grid__item qw-hero__metric">
+        <text class="qw-hero__metric-label">云量</text>
+        <text class="qw-hero__metric-value">{{current.cloudText}}</text>
+      </view>
+      <view class="qw-grid__item qw-hero__metric">
+        <text class="qw-hero__metric-label">紫外线</text>
+        <text class="qw-hero__metric-value">{{current.uvText}}</text>
+      </view>
+      <view class="qw-grid__item qw-hero__metric">
+        <text class="qw-hero__metric-label">风向角</text>
+        <text class="qw-hero__metric-value">{{current.wind.degree === null ? '—' : current.wind.degree + '°'}}</text>
+      </view>
+    </view>
+
+    <view
+      wx:if="{{air && air.primary}}"
+      class="qw-hero__air"
+      style="border-color: {{air.primary.color}};"
+      bindtap="onAir"
+      aria-role="button"
+      aria-label="查看空气质量详情"
+    >
+      <view class="qw-hero__air-main">
+        <text class="qw-hero__air-aqi" style="--aqi-color: {{air.primary.color}};">{{air.primary.aqiDisplay}}</text>
+        <view class="qw-hero__air-copy">
+          <text class="qw-hero__air-name">{{air.primary.name}} · {{air.primary.category}}</text>
+          <text class="qw-hero__air-sub">首要污染物 {{air.primary.primaryPollutant}}</text>
+        </view>
+      </view>
+      <text class="qw-hero__air-advice">{{air.generalAdvice || '点击查看污染物与健康建议'}}</text>
+    </view>
+
+    <text class="qw-source">
+      数据来源 和风天气 QWeather · 图标 QWeather Icons (CC BY 4.0)
+    </text>
+  </block>
+
+  <view wx:else class="qw-hero__empty">
+    <text class="qw-title">还没有天气数据</text>
+    <text class="qw-sub">{{error || '选择城市或下拉刷新后重试'}}</text>
+  </view>
+</view>

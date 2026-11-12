@@ -101,6 +101,25 @@ Page({
     })
   },
 
+  /* ---- 草稿：事件名与目标日；恢复后重新计算 ---- */
+  collectDraftInput(): Record<string, string> {
+    return { title: this.data.title, target: this.data.target }
+  },
+
+  applyDraftInput(input: Record<string, string>): void {
+    this.setData(
+      {
+        title: input.title ?? '',
+        target: input.target || (addDays(todayISO(), 30) ?? todayISO()),
+        hasResult: false,
+        error: '',
+      },
+      () => {
+        this.recalculate()
+      },
+    )
+  },
+
   onCopy() {
     copyText(this.data.copyPayload, '倒数日结果已复制')
   },

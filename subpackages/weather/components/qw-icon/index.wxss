@@ -1,0 +1,7 @@
+.qw-icon {
+  display: block;
+  flex: none;
+  /* SVG 统一白色；晨瓷主题通过继承变量反相为深色 */
+  filter: var(--qw-icon-filter, none);
+  opacity: var(--qw-icon-opacity, 1);
+}

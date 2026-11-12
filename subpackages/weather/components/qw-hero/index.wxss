@@ -1,0 +1,331 @@
+@import "../../styles/qweather.wxss";
+
+.qw-hero {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+  padding: 30rpx 28rpx 26rpx;
+  box-sizing: border-box;
+  overflow: hidden;
+  border: 1rpx solid var(--glass-border-strong);
+  border-radius: 40rpx;
+  background:
+    radial-gradient(120% 90% at 12% 0%, rgba(109, 120, 255, 0.22), transparent 56%),
+    radial-gradient(90% 80% at 95% 10%, rgba(95, 220, 199, 0.16), transparent 60%),
+    var(--glass-bg);
+}
+
+.qw-hero__top {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14rpx;
+}
+
+.qw-hero__city {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: row;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.qw-hero__city--press {
+  opacity: 0.78;
+}
+
+.qw-hero__city-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.qw-hero__city-name {
+  color: var(--glass-text);
+  font-size: 38rpx;
+  font-size: calc(38rpx * var(--fs-scale, 1));
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.qw-hero__city-sub {
+  margin-top: 4rpx;
+  color: var(--glass-text-3);
+  font-size: 19rpx;
+  font-size: calc(19rpx * var(--fs-scale, 1));
+  line-height: 1.4;
+}
+
+.qw-hero__actions {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10rpx;
+  flex: none;
+  max-width: 48%;
+}
+
+.qw-hero__pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8rpx;
+  min-height: 48rpx;
+  padding: 0 16rpx;
+  box-sizing: border-box;
+  border: 1rpx solid var(--glass-border);
+  border-radius: 999rpx;
+  background: var(--glass-bg-soft);
+  color: var(--glass-text-2);
+  font-size: 18rpx;
+  font-size: calc(18rpx * var(--fs-scale, 1));
+  line-height: 1.2;
+}
+
+.qw-hero__pill--press {
+  opacity: 0.72;
+}
+
+.qw-hero__pill--air {
+  border-color: var(--glass-accent-glow);
+  color: var(--glass-accent-text);
+}
+
+.qw-hero__pill--alert {
+  border-color: rgba(255, 176, 92, 0.5);
+  color: #ffc477;
+}
+
+.qw-hero__main {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 22rpx;
+}
+
+.qw-hero__icon-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 196rpx;
+  height: 196rpx;
+  flex: none;
+}
+
+.qw-hero__icon-glow {
+  position: absolute;
+  inset: 18rpx;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(159, 124, 255, 0.38), transparent 68%);
+}
+
+.qw-hero__reading {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.qw-hero__temp-line {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 16rpx;
+}
+
+.qw-hero__temp {
+  color: var(--glass-text);
+  font-size: 104rpx;
+  font-size: calc(104rpx * var(--fs-scale, 1));
+  font-weight: 300;
+  letter-spacing: -4rpx;
+  line-height: 1;
+}
+
+.qw-hero__feels {
+  color: var(--glass-text-3);
+  font-size: 22rpx;
+  font-size: calc(22rpx * var(--fs-scale, 1));
+  line-height: 1.2;
+}
+
+.qw-hero__condition {
+  margin-top: 8rpx;
+  color: var(--glass-text);
+  font-size: 30rpx;
+  font-size: calc(30rpx * var(--fs-scale, 1));
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.qw-hero__range {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10rpx;
+  margin-top: 8rpx;
+  color: var(--glass-text-2);
+  font-size: 21rpx;
+  font-size: calc(21rpx * var(--fs-scale, 1));
+  line-height: 1.4;
+}
+
+.qw-hero__range-dot {
+  color: var(--glass-text-4);
+}
+
+.qw-hero__update {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12rpx;
+  margin-top: 12rpx;
+  color: var(--glass-text-3);
+  font-size: 18rpx;
+  font-size: calc(18rpx * var(--fs-scale, 1));
+}
+
+.qw-hero__cache {
+  padding: 4rpx 10rpx;
+  border-radius: 999rpx;
+  background: var(--glass-accent-soft);
+  color: var(--glass-accent-text);
+}
+
+.qw-hero__metrics {
+  margin-top: 4rpx;
+}
+
+.qw-hero__metric {
+  display: flex;
+  min-height: 92rpx;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6rpx;
+  padding: 16rpx 18rpx;
+  box-sizing: border-box;
+  border: 1rpx solid var(--glass-border);
+  border-radius: 22rpx;
+  background: var(--glass-bg-soft);
+}
+
+.qw-hero__metric-label {
+  color: var(--glass-text-3);
+  font-size: 18rpx;
+  font-size: calc(18rpx * var(--fs-scale, 1));
+  line-height: 1.2;
+}
+
+.qw-hero__metric-value {
+  color: var(--glass-text);
+  font-size: 22rpx;
+  font-size: calc(22rpx * var(--fs-scale, 1));
+  font-weight: 600;
+  line-height: 1.35;
+  word-break: break-all;
+}
+
+.qw-hero__metric-sub {
+  color: var(--glass-text-4);
+  font-size: 16rpx;
+  font-size: calc(16rpx * var(--fs-scale, 1));
+  line-height: 1.3;
+}
+
+.qw-hero__air {
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+  padding: 20rpx 22rpx;
+  box-sizing: border-box;
+  border: 1rpx solid var(--glass-border-strong);
+  border-radius: 26rpx;
+  background: var(--glass-bg-soft);
+}
+
+.qw-hero__air-main {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 18rpx;
+}
+
+.qw-hero__air-aqi {
+  color: var(--qw-aqi-text, var(--aqi-color));
+  font-size: 52rpx;
+  font-size: calc(52rpx * var(--fs-scale, 1));
+  font-weight: 700;
+  line-height: 1;
+}
+
+.qw-hero__air-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.qw-hero__air-name {
+  color: var(--glass-text);
+  font-size: 23rpx;
+  font-size: calc(23rpx * var(--fs-scale, 1));
+  font-weight: 600;
+}
+
+.qw-hero__air-sub {
+  color: var(--glass-text-3);
+  font-size: 19rpx;
+  font-size: calc(19rpx * var(--fs-scale, 1));
+}
+
+.qw-hero__air-advice {
+  color: var(--glass-text-2);
+  font-size: 20rpx;
+  font-size: calc(20rpx * var(--fs-scale, 1));
+  line-height: 1.5;
+}
+
+.qw-hero__empty {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+  padding: 40rpx 0;
+}
+
+.qw-hero__skeleton {
+  display: flex;
+  flex-direction: row;
+  gap: 24rpx;
+  align-items: center;
+}
+
+.qw-hero__skeleton-icon {
+  width: 168rpx;
+  height: 168rpx;
+  flex: none;
+}
+
+.qw-hero__skeleton-copy {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.qw-hero__skeleton-temp {
+  width: 45%;
+  height: 80rpx;
+}
+
+.qw-hero__skeleton-line {
+  width: 80%;
+  height: 28rpx;
+}
+
+.qw-hero__skeleton-line--short {
+  width: 55%;
+}

@@ -14,6 +14,41 @@ export type FuzzyLocationResult =
   | { ok: true; point: GeoPoint }
   | { ok: false; reason: LocationFailureReason }
 
+export type FuzzyPermissionStatus = 'granted' | 'denied' | 'unset' | 'unavailable'
+
+export type LocateCityResult =
+  | { ok: true; city: SavedCity }
+  | { ok: false; reason: LocationFailureReason }
+
+interface SettingApi {
+  getSetting?: (options: {
+    success?: (result: { authSetting?: Record<string, unknown> }) => void
+    fail?: () => void
+  }) => void
+}
+
+/** 读取城市级模糊定位授权状态；getSetting 不可用时交给 getFuzzyLocation 自行尝试 */
+export async function readFuzzyLocationPermission(): Promise<FuzzyPermissionStatus> {
+  const api = wx as unknown as SettingApi
+  if (typeof api.getSetting !== 'function') {
+    return 'unavailable'
+  }
+  return new Promise((resolve) => {
+    try {
+      api.getSetting?.({
+        success: (result) => {
+          const auth = (result && result.authSetting) || {}
+          const value = auth['scope.userFuzzyLocation']
+          resolve(value === true ? 'granted' : value === false ? 'denied' : 'unset')
+        },
+        fail: () => resolve('unavailable'),
+      })
+    } catch {
+      resolve('unavailable')
+    }
+  })
+}
+
 interface FuzzyLocationApi {
   getFuzzyLocation?: (options: {
     type?: 'wgs84' | 'gcj02'
@@ -57,6 +92,11 @@ export async function getFuzzyLocation(): Promise<FuzzyLocationResult> {
   const authorized = await ensurePrivacyAuthorized()
   if (!authorized) {
     return { ok: false, reason: 'privacy' }
+  }
+  /* 已明确拒绝时微信不会再弹窗，提前返回，由页面给出“去设置 / 手动选城”引导 */
+  const permission = await readFuzzyLocationPermission()
+  if (permission === 'denied') {
+    return { ok: false, reason: 'denied' }
   }
   return new Promise((resolve) => {
     try {
@@ -121,20 +161,20 @@ export function candidateToCity(
   }
 }
 
-/** 定位 + 逆地理：失败返回 null，由调用方降级到 IP */
+/** 定位 + 逆地理：返回失败原因，由调用方决定降级到 IP 还是引导授权 */
 export async function locateCity(
   service: WeatherService,
   now: number,
-): Promise<SavedCity | null> {
+): Promise<LocateCityResult> {
   const located = await getFuzzyLocation()
   if (!located.ok) {
-    return null
+    return { ok: false, reason: located.reason }
   }
   try {
     const result = await service.fetchRegeo(located.point.lng, located.point.lat).promise
-    return regeoToCity(result, located.point, now)
+    return { ok: true, city: regeoToCity(result, located.point, now) }
   } catch {
-    return null
+    return { ok: false, reason: 'failed' }
   }
 }
 

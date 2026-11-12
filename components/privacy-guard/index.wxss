@@ -154,8 +154,9 @@
 .privacy-link {
   display: block;
   margin-top: 18rpx;
-  color: var(--glass-accent);
+  color: var(--glass-accent-text);
   font-size: 22rpx;
+  font-size: calc(22rpx * var(--fs-scale, 1));
   line-height: 1.6;
   text-align: center;
 }

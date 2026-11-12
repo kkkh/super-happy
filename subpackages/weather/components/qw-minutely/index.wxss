@@ -1,0 +1,81 @@
+@import "../../styles/qweather.wxss";
+
+.qw-minutely__summary {
+  display: block;
+  color: var(--glass-text);
+  font-size: 25rpx;
+  font-size: calc(25rpx * var(--fs-scale, 1));
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.qw-minutely__chart {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+  margin-top: 20rpx;
+}
+
+.qw-minutely__bars {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  gap: 4rpx;
+  height: 150rpx;
+  padding: 12rpx 10rpx 0;
+  box-sizing: border-box;
+  border-radius: 20rpx;
+  background: var(--glass-bg-soft);
+}
+
+/* 无降水时 24 根柱子几乎不可见，用一条零线明确图表基线 */
+.qw-minutely__bars::after {
+  content: '';
+  position: absolute;
+  left: 10rpx;
+  right: 10rpx;
+  bottom: 0;
+  height: 2rpx;
+  border-radius: 999rpx;
+  background: var(--glass-border-strong);
+}
+
+.qw-minutely__bar {
+  flex: 1;
+  min-width: 3rpx;
+  border-radius: 999rpx 999rpx 4rpx 4rpx;
+  background: var(--glass-border-strong);
+}
+
+.qw-minutely__bar--active {
+  background: linear-gradient(180deg, #7fe0c8 0%, #5fd0ff 100%);
+  box-shadow: 0 0 12rpx rgba(95, 220, 199, 0.32);
+}
+
+.qw-minutely__axis {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono, monospace);
+  font-size: 17rpx;
+  font-size: calc(17rpx * var(--fs-scale, 1));
+}
+
+.qw-minutely__meta {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 10rpx 20rpx;
+  margin-top: 16rpx;
+  color: var(--glass-text-3);
+  font-size: 19rpx;
+  font-size: calc(19rpx * var(--fs-scale, 1));
+  line-height: 1.4;
+}
+
+.qw-minutely__skeleton {
+  height: 150rpx;
+  margin-top: 16rpx;
+}

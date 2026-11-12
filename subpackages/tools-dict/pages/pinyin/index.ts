@@ -127,6 +127,32 @@ Page({
     })
   },
 
+  /* ---- 草稿：文本与声调；恢复后重新标注 ---- */
+  draftMode(): string {
+    return this.data.toneKey
+  },
+
+  collectDraftInput(): Record<string, string> {
+    return { inputText: this.data.inputText }
+  },
+
+  applyDraftInput(input: Record<string, string>, mode: string): void {
+    const text = input.inputText ?? ''
+    const toneKey = mode === 'plain' ? 'plain' : 'tone'
+    this.setData(
+      {
+        inputText: text,
+        inputLength: Array.from(text).length,
+        tone: toneKey === 'tone',
+        toneKey,
+        ...emptyResult(),
+      },
+      () => {
+        this.compute()
+      },
+    )
+  },
+
   onCopy() {
     if (!this.data.resultText) {
       toast('没有可复制的内容')

@@ -2,7 +2,7 @@
    canvasGalaxy · 纯手写 Canvas 2D 数据星系物理引擎
    - 中心引力 + 切向涡旋 + 星球间弹性碰撞
    - 单指 pan / 双指 zoom 由页面映射为 engine 调用
-   - 低端机降级：关闭 shadowBlur、减少粒子、跳过文字
+   - 低端机降级：关闭 shadowBlur / 渐变、减少粒子，文字标签始终保留
    - 零 wx 依赖，全部状态在实例内，便于单测与卸载清理
    ========================================================================== */
 
@@ -391,59 +391,62 @@ export class GalaxyEngine {
         ctx.stroke()
       }
 
-      if (!this.degraded) {
-        ctx.font = '600 10px sans-serif'
-        const label =
-          particle.label.length > 8
-            ? `${particle.label.slice(0, 7)}…`
-            : particle.label
-        const textWidth = ctx.measureText(label).width * this.zoom
-        const textHeight = 12 * this.zoom
-        const screenCenterX =
-          this.width / 2 + this.cameraX + particle.x * this.zoom
-        const screenTop =
-          this.height / 2 +
-          this.cameraY +
-          (particle.y + radius + 6) * this.zoom
-        const rect: GalaxyTextRect = {
-          left: screenCenterX - textWidth / 2,
-          top: screenTop,
-          right: screenCenterX + textWidth / 2,
-          bottom: screenTop + textHeight,
-        }
+      /* 文字标签是核心信息，不随动效降级关闭；降级只去掉阴影开销 */
+      ctx.font = '600 10px sans-serif'
+      const label =
+        particle.label.length > 8
+          ? `${particle.label.slice(0, 7)}…`
+          : particle.label
+      const textWidth = ctx.measureText(label).width * this.zoom
+      const textHeight = 12 * this.zoom
+      const screenCenterX =
+        this.width / 2 + this.cameraX + particle.x * this.zoom
+      const screenTop =
+        this.height / 2 +
+        this.cameraY +
+        (particle.y + radius + 6) * this.zoom
+      const rect: GalaxyTextRect = {
+        left: screenCenterX - textWidth / 2,
+        top: screenTop,
+        right: screenCenterX + textWidth / 2,
+        bottom: screenTop + textHeight,
+      }
 
-        const outOfCanvas =
-          rect.left < 6 ||
-          rect.right > this.width - 6 ||
-          rect.top < 4 ||
-          rect.bottom > this.height - 4
-        const overlaps = drawnTextRects.some((other) => {
-          const gap = 3
-          return !(
-            rect.right + gap < other.left ||
-            rect.left - gap > other.right ||
-            rect.bottom + gap < other.top ||
-            rect.top - gap > other.bottom
-          )
-        })
+      const horizontalMargin = this.degraded ? 2 : 6
+      const verticalMargin = this.degraded ? 2 : 4
+      const outOfCanvas =
+        rect.left < horizontalMargin ||
+        rect.right > this.width - horizontalMargin ||
+        rect.top < verticalMargin ||
+        rect.bottom > this.height - verticalMargin
+      const overlaps = drawnTextRects.some((other) => {
+        const gap = 3
+        return !(
+          rect.right + gap < other.left ||
+          rect.left - gap > other.right ||
+          rect.bottom + gap < other.top ||
+          rect.top - gap > other.bottom
+        )
+      })
 
-        if (!outOfCanvas && !overlaps) {
-          drawnTextRects.push(rect)
-          ctx.save()
-          ctx.textAlign = 'center'
-          ctx.textBaseline = 'top'
+      if (!outOfCanvas && !overlaps) {
+        drawnTextRects.push(rect)
+        ctx.save()
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'top'
+        if (!this.degraded) {
           ctx.shadowColor =
             this.theme === 'light'
               ? 'rgba(255,255,255,0.8)'
               : 'rgba(0,0,0,0.65)'
           ctx.shadowBlur = 2
-          ctx.fillStyle =
-            this.theme === 'light'
-              ? 'rgba(0,0,0,0.75)'
-              : 'rgba(255,255,255,0.9)'
-          ctx.fillText(label, particle.x, particle.y + radius + 6)
-          ctx.restore()
         }
+        ctx.fillStyle =
+          this.theme === 'light'
+            ? 'rgba(0,0,0,0.75)'
+            : 'rgba(255,255,255,0.9)'
+        ctx.fillText(label, particle.x, particle.y + radius + 6)
+        ctx.restore()
       }
     }
 

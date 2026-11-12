@@ -99,6 +99,31 @@ Page({
     })
   },
 
+  /* ---- 草稿：数值与进制；恢复后重新转换 ---- */
+  collectDraftInput(): Record<string, string> {
+    return { sourceValue: this.data.sourceValue, sourceBase: `${this.data.sourceBase}` }
+  },
+
+  applyDraftInput(input: Record<string, string>): void {
+    const base = Number(input.sourceBase)
+    const sourceBase = RADIX_BASES.includes(base as RadixBase) ? (base as RadixBase) : 10
+    const sourceValue = input.sourceValue ?? ''
+    this.setData(
+      {
+        sourceValue,
+        sourceBase,
+        canRun: sourceValue.trim().length > 0,
+        shellState: 'idle',
+        hasResult: false,
+        error: '',
+        posterData: null,
+      },
+      () => {
+        this.onRun()
+      },
+    )
+  },
+
   onRun() {
     const state = this as unknown as RadixState
     if (state.destroyed) {

@@ -174,6 +174,37 @@ Page({
     })
   },
 
+  /* ---- 草稿：模式与输入；恢复后重新转换 ---- */
+  draftMode(): string {
+    return this.data.mode
+  },
+
+  collectDraftInput(): Record<string, string> {
+    return { input: this.data.input }
+  },
+
+  applyDraftInput(input: Record<string, string>, mode: string): void {
+    const nextMode: CsvDirection = MODE_META[mode as CsvDirection]
+      ? (mode as CsvDirection)
+      : 'json-to-csv'
+    const value = input.input ?? ''
+    const state = this as unknown as JsonCsvState
+    state.modeInputs[nextMode] = value
+    this.setData(
+      {
+        mode: nextMode,
+        modeMeta: MODE_META[nextMode],
+        input: value,
+        canRun: value.trim().length > 0,
+        ...emptyResult(),
+      },
+      () => {
+        this.updateCanRun()
+        this.onRun()
+      },
+    )
+  },
+
   onRun() {
     this.compute()
   },

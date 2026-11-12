@@ -266,6 +266,47 @@ Page({
     })
   },
 
+  /* ---- 草稿：模式、flags 与测试文本；恢复后重新执行 ---- */
+  collectDraftInput(): Record<string, string> {
+    return {
+      pattern: this.data.pattern,
+      testText: this.data.testText,
+      flags: flagsText(this.data.flagOptions as FlagOption[]),
+    }
+  },
+
+  applyDraftInput(input: Record<string, string>): void {
+    const enabled = new Set(Array.from(input.flags ?? ''))
+    const flagOptions = FLAG_OPTIONS.map((option) => ({ ...option, on: enabled.has(option.key) }))
+    this.setData(
+      {
+        pattern: input.pattern ?? '',
+        testText: input.testText ?? '',
+        flagOptions,
+        stale: false,
+        canRun: false,
+        running: false,
+        shellState: 'idle',
+        hasResult: false,
+        error: '',
+        matchCount: 0,
+        matchesView: [],
+        segments: [],
+        truncated: false,
+        highlightCut: false,
+        resultJson: '',
+        regexSummary: '',
+        posterData: null,
+      },
+      () => {
+        this.refreshCanRun()
+        if (this.data.canRun) {
+          void this.onRun()
+        }
+      },
+    )
+  },
+
   onCopy() {
     if (!this.data.resultJson) {
       return

@@ -1,0 +1,148 @@
+/* 元宝搜索 · 页面样式：只消费 glass 令牌；字号统一「原值 + calc」 */
+.ws-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+}
+
+.ws-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+}
+
+.ws-filter__label {
+  font-size: 20rpx;
+  font-size: calc(20rpx * var(--fs-scale, 1));
+  letter-spacing: 1rpx;
+  color: var(--glass-text-3);
+}
+
+.ws-chips {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 10rpx;
+}
+
+.ws-chip {
+  padding: 10rpx 22rpx;
+  border-radius: 999rpx;
+  border: 1rpx solid var(--glass-border);
+  background: var(--glass-bg-soft);
+  color: var(--glass-text-2);
+  font-size: 22rpx;
+  font-size: calc(22rpx * var(--fs-scale, 1));
+  line-height: 1.3;
+}
+
+.ws-chip--on {
+  border-color: var(--glass-accent);
+  background: var(--glass-accent-soft);
+  color: var(--glass-accent-text);
+  font-weight: 600;
+}
+
+.ws-advanced-toggle {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14rpx 4rpx;
+  border-top: 1rpx solid var(--glass-border);
+}
+
+.ws-advanced-toggle__text {
+  color: var(--glass-text-2);
+  font-size: 22rpx;
+  font-size: calc(22rpx * var(--fs-scale, 1));
+}
+
+.ws-advanced {
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+}
+
+.ws-notice {
+  padding: 16rpx 18rpx;
+  border-radius: 16rpx;
+  background: var(--glass-bg);
+  border: 1rpx solid var(--glass-border);
+}
+
+.ws-notice__text {
+  color: var(--glass-text-3);
+  font-size: 20rpx;
+  font-size: calc(20rpx * var(--fs-scale, 1));
+  line-height: 1.55;
+}
+
+.ws-warning {
+  padding: 16rpx 18rpx;
+  border-radius: 16rpx;
+  border: 1rpx solid var(--glass-danger);
+  background: var(--glass-bg);
+}
+
+.ws-warning__text {
+  color: var(--glass-danger-text);
+  font-size: 20rpx;
+  font-size: calc(20rpx * var(--fs-scale, 1));
+  line-height: 1.55;
+}
+
+/* ---- 自定义时效 ---- */
+.ws-custom {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+  padding: 16rpx;
+  border-radius: 18rpx;
+  border: 1rpx solid var(--glass-border);
+  background: var(--glass-bg);
+}
+
+.ws-custom__error,
+.ws-custom__hint {
+  color: var(--glass-danger-text);
+  font-size: 20rpx;
+  font-size: calc(20rpx * var(--fs-scale, 1));
+  line-height: 1.5;
+}
+
+.ws-custom__hint {
+  color: var(--glass-text-3);
+}
+
+.ws-date-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.ws-date {
+  padding: 12rpx 18rpx;
+  border-radius: 14rpx;
+  border: 1rpx solid var(--glass-border);
+  background: var(--glass-bg-soft);
+  color: var(--glass-text-2);
+  font-family: var(--glass-font-mono);
+  font-size: 21rpx;
+  font-size: calc(21rpx * var(--fs-scale, 1));
+}
+
+.ws-date-sep {
+  flex: none;
+  color: var(--glass-text-3);
+  font-size: 20rpx;
+  font-size: calc(20rpx * var(--fs-scale, 1));
+}
+
+.ws-filter__hint {
+  color: var(--glass-text-3);
+  font-size: 18rpx;
+  font-size: calc(18rpx * var(--fs-scale, 1));
+  line-height: 1.5;
+}

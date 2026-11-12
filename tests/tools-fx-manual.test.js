@@ -266,8 +266,8 @@ test('汇率换算契约：页面 / 注册 / 帮助 / 文本工作流 / 适配�
   assert.match(read('scripts/check-budget.js'), /pages\/fx-manual/)
   assert.match(read('scripts/e2e-tools.js'), /id: 'fx-manual'/)
   assert.match(read('core/constants/index.ts'), /fxOfficialRates: 'tbx:fx\.official\.v1'/)
-  assert.match(read('pages/legal/index.wxml'), /chinamoney\.com\.cn/)
-  assert.match(read('pages/legal/index.wxml'), /tbx:fx\.official\.v1/)
+  assert.match(read('subpackages/grow/pages/legal/index.wxml'), /chinamoney\.com\.cn/)
+  assert.match(read('subpackages/grow/pages/legal/index.wxml'), /tbx:fx\.official\.v1/)
 
   const config = await import(`${URL_ROOT}core/workflow/workflowConfig.ts`)
   assert.equal(config.WORKFLOW_ROUTING['fx-manual'], 'jump')

@@ -1,0 +1,17 @@
+{
+  "component": true,
+  "styleIsolation": "isolated",
+  "usingComponents": {
+    "qw-hero": "../qw-hero/index",
+    "qw-minutely": "../qw-minutely/index",
+    "qw-alerts": "../qw-alerts/index",
+    "qw-hourly": "../qw-hourly/index",
+    "qw-daily": "../qw-daily/index",
+    "qw-air": "../qw-air/index",
+    "qw-indices": "../qw-indices/index",
+    "qw-astronomy": "../qw-astronomy/index",
+    "qw-history": "../qw-history/index",
+    "qw-city-sheet": "../qw-city-sheet/index",
+    "qw-api-sheet": "../qw-api-sheet/index"
+  }
+}

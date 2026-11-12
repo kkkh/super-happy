@@ -160,6 +160,37 @@ Page({
     this.onNow()
   },
 
+  /* ---- 草稿：模式、单位、时间戳与日期时间；恢复后重新转换 ---- */
+  draftMode(): string {
+    return this.data.mode
+  },
+
+  collectDraftInput(): Record<string, string> {
+    return {
+      unit: this.data.unit,
+      stampValue: this.data.stampValue,
+      dateValue: this.data.dateValue,
+      timeValue: this.data.timeValue,
+    }
+  },
+
+  applyDraftInput(input: Record<string, string>, mode: string): void {
+    this.setData(
+      {
+        mode: mode === 'to-stamp' ? 'to-stamp' : 'to-date',
+        unit: input.unit === 'ms' ? 'ms' : 's',
+        stampValue: input.stampValue ?? '',
+        dateValue: input.dateValue || todayISO(),
+        timeValue: input.timeValue || '00:00',
+        hasResult: false,
+        error: '',
+      },
+      () => {
+        this.recalculate()
+      },
+    )
+  },
+
   onCopy() {
     copyText(this.data.copyPayload, '时间戳结果已复制')
   },

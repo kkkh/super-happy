@@ -1,0 +1,236 @@
+<view class="qw-page {{themeClass}}">
+  <view class="qw-page__aurora" aria-hidden="true">
+    <view class="qw-page__blob qw-page__blob--a"></view>
+    <view class="qw-page__blob qw-page__blob--b"></view>
+    <view class="qw-page__grid"></view>
+  </view>
+
+  <view class="qw-nav" style="padding-top: {{navTopPx}}px;">
+    <view class="qw-nav__row" style="height: {{navRowHeightPx}}px;">
+      <view
+        class="qw-nav__back"
+        hover-class="qw-nav__back--press"
+        hover-stay-time="80"
+        bindtap="onBackTap"
+        aria-role="button"
+        aria-label="返回"
+      >‹</view>
+      <view class="qw-nav__title-wrap">
+        <text class="qw-nav__title">和风天气</text>
+        <text class="qw-nav__sub">{{city ? city.name + ' · ' + (updatedText || '加载中') : '定位或选择城市'}}</text>
+      </view>
+      <view
+        class="qw-nav__action"
+        style="margin-right: {{navRightInsetPx}}px;"
+        hover-class="qw-nav__action--press"
+        hover-stay-time="80"
+        bindtap="onApiOpen"
+        aria-role="button"
+        aria-label="打开 API 覆盖自检"
+      >API</view>
+    </view>
+  </view>
+
+  <view class="qw-tabs">
+    <view class="qw-tabs__inner">
+      <view
+        wx:for="{{tabs}}"
+        wx:key="key"
+        class="qw-tab {{tab === item.key ? 'qw-tab--active' : ''}}"
+        data-tab="{{item.key}}"
+        bindtap="onTab"
+        aria-role="tab"
+        aria-selected="{{tab === item.key}}"
+        aria-label="{{item.label}}"
+      >
+        <text>{{item.label}}</text>
+        <view wx:if="{{tab === item.key}}" class="qw-tab__dot" aria-hidden="true"></view>
+      </view>
+    </view>
+  </view>
+
+  <scroll-view
+    class="qw-scroll"
+    scroll-y
+    enhanced
+    show-scrollbar="{{false}}"
+    refresher-enabled="{{true}}"
+    refresher-triggered="{{refreshing}}"
+    scroll-top="{{contentScrollTop}}"
+    scroll-into-view="{{scrollIntoView}}"
+    bindrefresherrefresh="onRefresherRefresh"
+  >
+    <view class="qw-content">
+      <view wx:if="{{locationNotice}}" class="qw-location" aria-live="polite">
+        <text class="qw-location__text">{{locationNotice}}</text>
+        <view
+          class="qw-location__action"
+          hover-class="qw-location__action--press"
+          hover-stay-time="80"
+          bindtap="onLocationAction"
+          aria-role="button"
+          aria-label="{{locationActionText}}"
+        >{{locating ? '定位中…' : locationActionText}}</view>
+      </view>
+
+      <block wx:if="{{tab === 'overview'}}">
+        <qw-hero
+          city="{{city}}"
+          current="{{current}}"
+          today="{{daily.length ? daily[0] : null}}"
+          air="{{air}}"
+          alerts="{{alerts}}"
+          loading="{{loading.current}}"
+          from-cache="{{fromCache}}"
+          error="{{errors.current}}"
+          bind:city="onCityOpen"
+          bind:refresh="onRefresh"
+          bind:air="onHeroAir"
+          bind:alert="onHeroAlert"
+        />
+        <qw-minutely
+          minutely="{{minutely}}"
+          loading="{{loading.minutely}}"
+          error="{{errors.minutely}}"
+        />
+        <view id="qw-alerts">
+          <qw-alerts
+            alerts="{{alerts}}"
+            show-empty="{{true}}"
+            loading="{{loading.alerts}}"
+            error="{{errors.alerts}}"
+          />
+        </view>
+        <qw-indices
+          days="{{overviewIndices}}"
+          loading="{{loading.overviewIndices}}"
+          error="{{errors.overviewIndices}}"
+        />
+      </block>
+
+      <block wx:elif="{{tab === 'hourly'}}">
+        <view class="qw-hint">
+          <text class="qw-hint__kicker">HOURLY FORECAST</text>
+          <text class="qw-hint__text">72 / 168 小时走城市 v7 接口；24 / 240 小时走 v1 增强接口；点击小时卡查看全部字段。</text>
+        </view>
+        <qw-hourly
+          hours="{{hourly}}"
+          range="{{hourlyRange}}"
+          loading="{{loading.hourly}}"
+          error="{{errors.hourly}}"
+          bind:range="onHourlyRange"
+        />
+      </block>
+
+      <block wx:elif="{{tab === 'daily'}}">
+        <view class="qw-hint">
+          <text class="qw-hint__kicker">DAILY FORECAST</text>
+          <text class="qw-hint__text">3 / 7 天走城市 v7 接口，10 天为 v1 增强（含昼 / 夜详情与天文），15 / 30 天走 v7 接口。</text>
+        </view>
+        <qw-daily
+          days="{{daily}}"
+          range="{{dailyRange}}"
+          loading="{{loading.daily}}"
+          error="{{errors.daily}}"
+          bind:range="onDailyRange"
+        />
+      </block>
+
+      <block wx:elif="{{tab === 'air'}}">
+        <qw-air
+          air="{{air}}"
+          loading="{{loading.air}}"
+          error="{{errors.air}}"
+        />
+      </block>
+
+      <block wx:elif="{{tab === 'indices'}}">
+        <qw-indices
+          days="{{indices}}"
+          loading="{{loading.indices}}"
+          error="{{errors.indices}}"
+        />
+      </block>
+
+      <block wx:elif="{{tab === 'astronomy'}}">
+        <qw-astronomy
+          sun="{{sun}}"
+          moon="{{moon}}"
+          solar="{{solar}}"
+          dates="{{astroDates}}"
+          active-date="{{astroDate}}"
+          time="{{astroTime}}"
+          altitude="{{astroAltitude}}"
+          utc-offset="{{city ? city.utcOffset : '+08:00'}}"
+          loading="{{loading.astronomy}}"
+          error="{{errors.astronomy}}"
+          bind:datechange="onAstroDate"
+          bind:timechange="onAstroTime"
+          bind:altchange="onAstroAlt"
+        />
+      </block>
+
+      <block wx:else>
+        <qw-history
+          history="{{history}}"
+          date="{{historyDate}}"
+          min-date="{{historyMin}}"
+          max-date="{{historyMax}}"
+          quick="{{historyQuick}}"
+          today="{{daily.length ? daily[0] : null}}"
+          loading="{{loading.history}}"
+          error="{{errors.history}}"
+          bind:datechange="onHistoryDate"
+        />
+      </block>
+
+      <view
+        class="qw-entry"
+        hover-class="qw-entry--press"
+        hover-stay-time="80"
+        bindtap="onApiOpen"
+        aria-role="button"
+        aria-label="打开 API 覆盖自检"
+      >
+        <view class="qw-entry__copy">
+          <text class="qw-kicker">API COVERAGE</text>
+          <text class="qw-entry__title">8 组 API · 27 个端点</text>
+          <text class="qw-entry__desc">GeoAPI · 分钟降水 · 空气质量 · 时光机 · 天气预报 · 天气预警 · 天气指数 · 天文</text>
+        </view>
+        <view class="qw-entry__go">自检</view>
+      </view>
+
+      <text class="qw-source qw-page__source">
+        数据来源 和风天气 QWeather · 图标 QWeather Icons 1.8.0（507 个，CC BY 4.0）· 缓存与失效策略遵循官方最佳实践
+      </text>
+
+      <view class="qw-safe"></view>
+    </view>
+  </scroll-view>
+
+  <qw-city-sheet
+    show="{{citySheetShow}}"
+    cities="{{cities}}"
+    current="{{city}}"
+    locating="{{locating}}"
+    bind:close="onCityClose"
+    bind:select="onCitySelect"
+    bind:select-saved="onCitySelectSaved"
+    bind:remove="onCityRemove"
+    bind:locate="onLocationAction"
+  />
+
+  <qw-api-sheet
+    show="{{apiSheetShow}}"
+    endpoints="{{endpoints}}"
+    running="{{endpointRunning}}"
+    progress="{{endpointProgress}}"
+    host="{{host}}"
+    auth="{{auth}}"
+    bind:close="onApiClose"
+    bind:run="onEndpointRun"
+    bind:runall="onEndpointRunAll"
+    bind:reset="onEndpointReset"
+  />
+
+</view>

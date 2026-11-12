@@ -260,6 +260,38 @@ test('震动抽屉：渲染三选项，选中后写 Store、刷新高亮并关�
   }
 })
 
+test('字号抽屉：渲染三档，选中后写 Store、刷新类名并关闭', async (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout'] })
+  const { page, preference, toolbox } = await bootPage()
+
+  try {
+    assert.equal(page.data.fsClass, 'fs-standard')
+    page.onFontScaleTap()
+    assert.equal(page.data.pickerShow, true)
+    assert.deepEqual(
+      page.data.pickerOptions.map((option) => option.label),
+      ['标准', '大', '特大'],
+    )
+    assert.equal(page.data.pickerOptions[0].active, true)
+    assert.equal(page.pickerKind, 'font')
+
+    page.onPickerOptionTap(tapOption('large'))
+    flushNextTick()
+
+    assert.equal(preference.preferenceStore.fontScale, 'large')
+    assert.equal(preference.preferenceStore.fontScaleLabel, '大')
+    assert.equal(page.data.fontScaleLabel, '大')
+    assert.equal(page.data.fsClass, 'fs-large')
+    assert.equal(page.data.pickerShow, false)
+    assert.equal(page.pickerKind, '')
+    const active = page.data.pickerOptions.filter((option) => option.active)
+    assert.equal(active.length, 1)
+    assert.equal(active[0].value, 'large')
+  } finally {
+    cleanup(page, preference, toolbox)
+  }
+})
+
 test('清理抽屉：渲染三选项，选中后写 Store 并刷新文案', async (t) => {
   t.mock.timers.enable({ apis: ['setTimeout'] })
   const { page, preference, toolbox } = await bootPage()

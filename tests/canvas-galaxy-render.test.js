@@ -3,7 +3,7 @@
    - 文字 AABB 防重叠：重叠只画一个，拉开距离都画
    - 文字越界裁剪：超出 Canvas 边缘不画
    - 双主题：白昼黑字 + 白描边，夜航白字 + 暗描边
-   - 降级模式：完全不画文字
+   - 降级模式：文字照常绘制，仅关闭阴影
    - 相机平移出界：文字跟随裁剪
    - 最小排斥距离：30 < 40 时被推开
    - 运行：npm test
@@ -160,15 +160,21 @@ test('Canvas 双主题：setTheme 实时切换文字色与描边', async () => {
   assert.equal(light.records[0].blur, 2)
 })
 
-test('Canvas 降级模式：跳过所有文字绘制', async () => {
+test('Canvas 降级模式：文字照常绘制，仅关闭阴影', async () => {
   const { GalaxyEngine } = await loadGalaxy()
   const engine = new GalaxyEngine({ width: 320, height: 240, theme: 'dark' })
   engine.setNodes([makeNode('one', 'one-label')])
+  const particle = engine.getParticles()[0]
+  particle.x = 0
+  particle.y = 0
+  particle.vx = particle.vy = 0
   engine.setDegraded(true)
 
   const { ctx, records } = createTextCtx()
   engine.draw(ctx)
-  assert.equal(records.length, 0)
+  assert.equal(records.length, 1, '降级模式不得丢失文字标签')
+  assert.equal(records[0].fill, 'rgba(255,255,255,0.9)')
+  assert.equal(records[0].blur, 0, '降级模式应关闭文字阴影')
 })
 
 test('Canvas 相机平移：文字随星球移出视口后不再绘制', async () => {

@@ -1,0 +1,210 @@
+@import "../../styles/qweather.wxss";
+
+.qw-history__picker {
+  gap: 6rpx;
+  font-family: var(--glass-font-mono, monospace);
+}
+
+.qw-history__quick {
+  margin-bottom: 18rpx;
+}
+
+.qw-history__summary {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  padding: 20rpx;
+  box-sizing: border-box;
+  border: 1rpx solid var(--glass-border);
+  border-radius: var(--glass-radius-md, 24rpx);
+  background:
+    radial-gradient(120% 120% at 0% 0%, rgba(109, 120, 255, 0.16), transparent 62%),
+    var(--glass-bg-soft);
+}
+
+.qw-history__summary-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2rpx;
+}
+
+.qw-history__summary-date {
+  color: var(--glass-text);
+  font-family: var(--glass-font-mono, monospace);
+  font-size: 34rpx;
+  font-size: calc(34rpx * var(--fs-scale, 1));
+  font-weight: 700;
+}
+
+.qw-history__summary-week {
+  color: var(--glass-text-3);
+  font-size: 20rpx;
+  font-size: calc(20rpx * var(--fs-scale, 1));
+}
+
+.qw-history__summary-temps {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 12rpx;
+}
+
+.qw-history__temp-max {
+  color: #ffb86b;
+  font-size: 40rpx;
+  font-size: calc(40rpx * var(--fs-scale, 1));
+  font-weight: 700;
+}
+
+.qw-history__temp-min {
+  color: var(--glass-accent-text);
+  font-size: 30rpx;
+  font-size: calc(30rpx * var(--fs-scale, 1));
+  font-weight: 600;
+}
+
+.qw-history__temp-avg {
+  color: var(--glass-text-3);
+  font-size: 18rpx;
+  font-size: calc(18rpx * var(--fs-scale, 1));
+}
+
+.qw-history__metrics {
+  margin-top: 14rpx;
+}
+
+.qw-history__compare {
+  display: block;
+  margin-top: 12rpx;
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono, monospace);
+  font-size: 19rpx;
+  font-size: calc(19rpx * var(--fs-scale, 1));
+  line-height: 1.5;
+}
+
+.qw-history__metric {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+  padding: 16rpx;
+  box-sizing: border-box;
+  border: 1rpx solid var(--glass-border);
+  border-radius: 18rpx;
+  background: var(--glass-bg);
+}
+
+.qw-history__metric-label {
+  color: var(--glass-text-3);
+  font-size: 18rpx;
+  font-size: calc(18rpx * var(--fs-scale, 1));
+}
+
+.qw-history__metric-value {
+  color: var(--glass-text);
+  font-size: 22rpx;
+  font-size: calc(22rpx * var(--fs-scale, 1));
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.qw-history__section {
+  margin-top: 20rpx;
+}
+
+.qw-history__section-head {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12rpx;
+}
+
+.qw-history__section-title {
+  color: var(--glass-text);
+  font-size: 24rpx;
+  font-size: calc(24rpx * var(--fs-scale, 1));
+  font-weight: 600;
+}
+
+.qw-history__hours {
+  display: flex;
+  flex-direction: column;
+  border: 1rpx solid var(--glass-border);
+  border-radius: var(--glass-radius-md, 24rpx);
+  overflow: hidden;
+}
+
+.qw-history__hour {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12rpx;
+  padding: 12rpx 16rpx;
+  box-sizing: border-box;
+  border-bottom: 1rpx solid var(--glass-border);
+  background: var(--glass-bg);
+}
+
+.qw-history__hour:last-child {
+  border-bottom: none;
+}
+
+.qw-history__hour-time {
+  width: 84rpx;
+  flex-shrink: 0;
+  color: var(--glass-text-2);
+  font-family: var(--glass-font-mono, monospace);
+  font-size: 20rpx;
+  font-size: calc(20rpx * var(--fs-scale, 1));
+}
+
+.qw-history__hour-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2rpx;
+}
+
+.qw-history__hour-top {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12rpx;
+}
+
+.qw-history__hour-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--glass-text-2);
+  font-size: 20rpx;
+  font-size: calc(20rpx * var(--fs-scale, 1));
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.qw-history__hour-temp {
+  flex-shrink: 0;
+  color: var(--glass-text);
+  font-size: 24rpx;
+  font-size: calc(24rpx * var(--fs-scale, 1));
+  font-weight: 600;
+}
+
+.qw-history__hour-meta {
+  overflow: hidden;
+  color: var(--glass-text-3);
+  font-size: 17rpx;
+  font-size: calc(17rpx * var(--fs-scale, 1));
+  line-height: 1.4;
+  white-space: normal;
+}
+
+.qw-history__skeleton {
+  height: 420rpx;
+}

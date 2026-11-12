@@ -8,10 +8,21 @@ import { uiStore } from '../../../../core/stores/ui'
 import { HOME_SECTIONS, TOOLS, searchTools } from '../../../../core/toolbox/registry'
 import { HELP_ENTRIES, type ToolHelp } from '../../lib/help'
 import type { ToolMeta } from '../../../../core/toolbox/types'
+import { profile } from '../../../../core/data/resume-data'
+import { copyText, toast } from '../../../../core/services/feedback'
+import { canShareFile, cleanupExport, sharePrepared } from '../../../../core/services/export'
+import {
+  buildDiagnosticPreviewFromDevice,
+  prepareDiagnosticFile,
+} from '../../../../core/services/diagnostics'
 import {
   sharePayloadForCurrentPage,
   timelinePayloadForCurrentPage,
 } from '../../../../core/toolbox/share'
+import {
+  fontScaleClass,
+  syncFontScaleClass,
+} from '../../../../core/services/font-scale'
 
 interface HelpEntryView extends ToolMeta {
   summary: string
@@ -33,6 +44,9 @@ interface HelpRuntime {
   destroyed: boolean
   /** 已展开的 toolId 集合，切换搜索时保留 */
   expanded: Set<string>
+  diagnosticPath: string
+  diagnosticName: string
+  diagnosticSeq: number
 }
 
 function toEntryView(tool: ToolMeta, expanded: Set<string>): HelpEntryView {
@@ -58,6 +72,18 @@ function buildGroups(expanded: Set<string>): HelpGroupView[] {
   }))
 }
 
+/** 搜索也产出分组结构，与浏览共用同一套卡片模板 */
+function buildSearchGroups(keyword: string, expanded: Set<string>): HelpGroupView[] {
+  return [
+    {
+      key: 'search',
+      title: '搜索结果',
+      hint: '',
+      entries: searchTools(keyword).map((tool) => toEntryView(tool, expanded)),
+    },
+  ]
+}
+
 Page({
   onShareAppMessage() {
     return sharePayloadForCurrentPage()
@@ -69,17 +95,32 @@ Page({
 
   data: {
     themeClass: '',
+    fsClass: fontScaleClass(),
     keyword: '',
     groups: [] as HelpGroupView[],
-    results: [] as HelpEntryView[],
+    /* 搜索结果为空：卡片区走统一 groups 渲染，空态单独标记 */
+    searchEmpty: false,
     /* 空结果推荐：取权重最高的 3 个工具 */
     recommended: [] as Array<{ id: string; name: string; route: string }>,
+    /* 反馈与诊断包 */
+    feedbackOpen: false,
+    feedbackEmail: profile.email,
+    diagnosticBusy: false,
+    diagnosticPreview: '',
+    diagnosticBytes: 0,
+    diagnosticEntries: 0,
+    diagnosticDropped: 0,
+    diagnosticFileReady: false,
+    diagnosticShareSupported: false,
   },
 
   onLoad(query?: Record<string, string | undefined>) {
     const runtime = this as unknown as HelpRuntime
     runtime.destroyed = false
     runtime.expanded = new Set<string>()
+    runtime.diagnosticPath = ''
+    runtime.diagnosticName = ''
+    runtime.diagnosticSeq = 0
     const toolId = String(query?.tool || '')
     if (toolId) {
       runtime.expanded.add(toolId)
@@ -98,9 +139,18 @@ Page({
     })
   },
 
+  onShow() {
+    this.setData({ fsClass: syncFontScaleClass() })
+  },
+
   onUnload() {
     const runtime = this as unknown as HelpRuntime
     runtime.destroyed = true
+    if (runtime.diagnosticPath) {
+      cleanupExport(runtime.diagnosticPath)
+      runtime.diagnosticPath = ''
+      runtime.diagnosticName = ''
+    }
     if (runtime.themeBindings) {
       runtime.themeBindings.destroyStoreBindings()
       runtime.themeBindings = undefined
@@ -112,12 +162,14 @@ Page({
     const runtime = this as unknown as HelpRuntime
     if (!keyword.trim()) {
       /* 清空搜索：重建分组，保持展开态与 expanded 集合一致 */
-      this.setData({ keyword: '', results: [], groups: buildGroups(runtime.expanded) })
+      this.setData({ keyword: '', groups: buildGroups(runtime.expanded), searchEmpty: false })
       return
     }
+    const groups = buildSearchGroups(keyword, runtime.expanded)
     this.setData({
       keyword,
-      results: searchTools(keyword).map((tool) => toEntryView(tool, runtime.expanded)),
+      groups,
+      searchEmpty: groups[0].entries.length === 0,
     })
   },
 
@@ -132,11 +184,10 @@ Page({
     } else {
       runtime.expanded.add(id)
     }
-    const groups = this.data.keyword ? this.data.groups : buildGroups(runtime.expanded)
-    const results = this.data.keyword
-      ? searchTools(this.data.keyword).map((tool) => toEntryView(tool, runtime.expanded))
-      : this.data.results
-    this.setData({ groups, results })
+    const groups = this.data.keyword
+      ? buildSearchGroups(this.data.keyword, runtime.expanded)
+      : buildGroups(runtime.expanded)
+    this.setData({ groups })
   },
 
   onOpenTool(event: WechatMiniprogram.TouchEvent) {
@@ -145,5 +196,135 @@ Page({
       return
     }
     wx.navigateTo({ url: route })
+  },
+
+  /* ---- 反馈与诊断 ---- */
+  onOpenFeedback(): void {
+    const runtime = this as unknown as HelpRuntime
+    if (runtime.destroyed) {
+      return
+    }
+    if (runtime.diagnosticPath) {
+      cleanupExport(runtime.diagnosticPath)
+      runtime.diagnosticPath = ''
+      runtime.diagnosticName = ''
+    }
+    runtime.diagnosticSeq += 1
+    const preview = buildDiagnosticPreviewFromDevice()
+    this.setData({
+      feedbackOpen: true,
+      diagnosticBusy: false,
+      diagnosticPreview: preview.text,
+      diagnosticBytes: preview.bytes,
+      diagnosticEntries: preview.entries,
+      diagnosticDropped: preview.dropped,
+      diagnosticFileReady: false,
+      diagnosticShareSupported: canShareFile(),
+    })
+  },
+
+  onFeedbackClose(): void {
+    const runtime = this as unknown as HelpRuntime
+    runtime.diagnosticSeq += 1
+    if (runtime.diagnosticPath) {
+      cleanupExport(runtime.diagnosticPath)
+      runtime.diagnosticPath = ''
+      runtime.diagnosticName = ''
+    }
+    this.setData({
+      feedbackOpen: false,
+      diagnosticBusy: false,
+      diagnosticFileReady: false,
+    })
+  },
+
+  onCopyDiagnostic(): void {
+    void copyText(this.data.diagnosticPreview, '诊断包已复制')
+  },
+
+  onCopyEmail(): void {
+    void copyText(this.data.feedbackEmail, '邮箱已复制')
+  },
+
+  onExportDiagnostic(): void {
+    const runtime = this as unknown as HelpRuntime
+    if (runtime.destroyed || this.data.diagnosticBusy) {
+      return
+    }
+    if (this.data.diagnosticFileReady && runtime.diagnosticPath) {
+      sharePrepared(runtime.diagnosticPath, runtime.diagnosticName)
+        .then((outcome) => {
+          if (runtime.destroyed) {
+            return
+          }
+          if (outcome === 'shared') {
+            toast('诊断文件已分享')
+            return
+          }
+          if (outcome === 'cancelled') {
+            toast('已取消分享')
+            return
+          }
+          if (outcome === 'unsupported') {
+            toast('当前基础库不支持文件分享')
+            return
+          }
+          toast('分享失败，请稍后重试')
+        })
+        .catch(() => {
+          if (!runtime.destroyed) {
+            toast('分享失败，请稍后重试')
+          }
+        })
+      return
+    }
+
+    this.setData({ diagnosticBusy: true })
+    const seq = runtime.diagnosticSeq
+    prepareDiagnosticFile({
+      text: this.data.diagnosticPreview,
+      bytes: this.data.diagnosticBytes,
+      entries: this.data.diagnosticEntries,
+      dropped: this.data.diagnosticDropped,
+    })
+      .then((result) => {
+        if (runtime.destroyed) {
+          return
+        }
+        if (seq !== runtime.diagnosticSeq || !this.data.feedbackOpen) {
+          if (result.ok) {
+            cleanupExport(result.path)
+          }
+          return
+        }
+        if (!result.ok) {
+          this.setData({ diagnosticBusy: false })
+          toast(this.diagnosticReasonText(result.reason))
+          return
+        }
+        runtime.diagnosticPath = result.path
+        runtime.diagnosticName = result.name
+        this.setData({ diagnosticBusy: false, diagnosticFileReady: true })
+        toast('诊断文件已生成，请再次点击分享')
+      })
+      .catch(() => {
+        if (!runtime.destroyed) {
+          this.setData({ diagnosticBusy: false })
+          toast('诊断文件生成失败，请稍后重试')
+        }
+      })
+  },
+
+  diagnosticReasonText(reason: 'empty' | 'too-large' | 'write-failed' | 'unsupported'): string {
+    switch (reason) {
+      case 'empty':
+        return '诊断内容为空'
+      case 'too-large':
+        return '诊断包超过 50KB，请稍后重试'
+      case 'write-failed':
+        return '诊断文件写入失败，请稍后重试'
+      default:
+        return '当前基础库不支持文件操作'
+    }
   },
 })

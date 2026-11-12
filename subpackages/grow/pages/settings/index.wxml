@@ -1,5 +1,5 @@
 <view
-  class="settings-page sg-ambient-surface sg-ambient-iris {{themeClass}} {{themeSwitching ? 'theme-breathing' : ''}}"
+  class="settings-page sg-ambient-surface sg-ambient-iris {{themeClass}} {{fsClass}} {{themeSwitching ? 'theme-breathing' : ''}}"
 >
   <!-- 极光背景：light-off 时由 app.wxss 统一降级 -->
   <view class="settings-aurora" aria-hidden="true">
@@ -83,7 +83,7 @@
             </view>
           </view>
 
-          <text class="settings-hero__statusline">{{statusText}}</text>
+          <text class="settings-hero__statusline" aria-role="status">{{statusText}}</text>
         </glass-card>
       </view>
 
@@ -396,7 +396,7 @@
       </view>
 
       <!-- 00.2 · Time Travel -->
-      <view class="settings-group">
+      <view class="settings-group" id="settings-time-travel">
         <view class="settings-group__head">
           <text class="settings-group__title">Time Travel</text>
           <text class="settings-group__code">DEVTOOLS / 00.2</text>
@@ -415,27 +415,37 @@
             enable-flex
             enhanced
             show-scrollbar="{{false}}"
+            scroll-into-view="{{timelineScrollTarget}}"
+            scroll-with-animation
           >
-            <view
-              wx:for="{{timelineFrames}}"
-              wx:key="id"
-              class="tt-card {{item.active ? 'tt-card--active' : ''}}"
-              data-index="{{item.index}}"
-              hover-class="tt-card--press"
-              hover-stay-time="80"
-              aria-role="button"
-              aria-label="预览 {{item.time}} {{item.label}}"
-              bindtap="onTimelineTap"
-            >
-              <view class="tt-dot" aria-hidden="true"></view>
-              <view class="tt-body">
-                <text class="tt-time">{{item.time}}</text>
-                <text class="tt-title">{{item.label}}</text>
-                <text class="tt-detail">{{item.preferenceText}}</text>
+            <view class="cyber-timeline__track">
+              <view
+                wx:for="{{timelineFrames}}"
+                wx:key="id"
+                id="tt-frame-{{item.index}}"
+                class="tt-card {{item.active ? 'tt-card--active' : ''}}"
+                data-index="{{item.index}}"
+                hover-class="tt-card--press"
+                hover-stay-time="80"
+                aria-role="button"
+                aria-label="预览第 {{item.index + 1}} 帧 {{item.time}} {{item.label}}"
+                bindtap="onTimelineTap"
+              >
+                <view class="tt-dot" aria-hidden="true"></view>
+                <text class="tt-index" aria-hidden="true">{{item.index + 1}}</text>
+                <view class="tt-body">
+                  <text class="tt-time">{{item.time}}</text>
+                  <text class="tt-title">{{item.label}}</text>
+                  <text class="tt-detail">{{item.preferenceText}}</text>
+                </view>
               </view>
+              <text wx:if="{{!timelineFrames.length}}" class="cyber-empty">还没有状态帧</text>
             </view>
-            <text wx:if="{{!timelineFrames.length}}" class="cyber-empty">还没有状态帧</text>
           </scroll-view>
+
+          <view class="cyber-timeline__position">
+            <text class="cyber-timeline__position-text">{{timelinePositionText}}</text>
+          </view>
 
           <view class="cyber-timeline__slider">
             <glass-slider
@@ -443,10 +453,17 @@
               min="0"
               max="{{timelineMax}}"
               step="1"
+              marks="{{timelineMarks}}"
               disabled="{{timelineFrames.length < 2}}"
               aria-label="时间旅行轴"
               bind:input="onTimelineSlide"
             />
+            <text wx:if="{{timelineFrames.length > 1}}" class="cyber-timeline__hint">
+              拖动滑轨或点击卡片切换帧，松手不会自动穿越。
+            </text>
+            <text wx:elif="{{timelineFrames.length === 1}}" class="cyber-timeline__hint">
+              当前只有 1 帧，时间轴需至少 2 帧才可拖动；调整任一设置或执行备份后会自动累积。
+            </text>
           </view>
 
           <view class="cyber-preview">
@@ -462,7 +479,7 @@
             loading-text="正在穿越"
             bind:tap="onTimeTravel"
           >
-            穿越到这一帧
+            穿越到第 {{timelineIndex + 1}} 帧
           </glass-button>
         </glass-card>
       </view>
@@ -772,6 +789,28 @@
               省电模式会关闭陀螺仪视差、动态极光与大部分过渡，仅保留必要状态反馈。
             </text>
           </view>
+
+          <view class="settings-divider"></view>
+
+          <view
+            class="settings-row settings-row--action"
+            hover-class="settings-row--press"
+            hover-start-time="0"
+            hover-stay-time="80"
+            aria-role="button"
+            aria-label="选择字号大小"
+            bindtap="onFontScaleTap"
+          >
+            <view class="settings-row__icon">
+              <g-icon name="sliders" size="{{30}}" tone="iris" />
+            </view>
+            <view class="settings-row__copy">
+              <text class="settings-row__title">字号大小</text>
+              <text class="settings-row__sub">标准 / 大 / 特大；只放大文字与行高，不缩放图标与画布</text>
+            </view>
+            <text class="settings-row__value">{{fontScaleLabel}}</text>
+            <g-icon name="chevron" size="{{22}}" tone="ink4" />
+          </view>
         </glass-card>
       </view>
 
@@ -872,6 +911,27 @@
             hover-start-time="0"
             hover-stay-time="80"
             aria-role="button"
+            aria-label="打开备份与恢复"
+            bindtap="onBackupTap"
+          >
+            <view class="settings-row__icon">
+              <g-icon name="save" size="{{30}}" tone="aurora" />
+            </view>
+            <view class="settings-row__copy">
+              <text class="settings-row__title">备份与恢复</text>
+              <text class="settings-row__sub">{{backupAtText}} · 导出 / 导入本机 JSON 备份</text>
+            </view>
+            <g-icon name="chevron" size="{{22}}" tone="ink4" />
+          </view>
+
+          <view class="settings-divider"></view>
+
+          <view
+            class="settings-row settings-row--action"
+            hover-class="settings-row--press"
+            hover-start-time="0"
+            hover-stay-time="80"
+            aria-role="button"
             aria-label="设置自动清理阈值"
             bindtap="onCleanTap"
           >
@@ -910,11 +970,176 @@
         </glass-card>
       </view>
 
-      <!-- 04 实验室 -->
+      <!-- 04 隐私中心 -->
+      <view class="settings-group">
+        <view class="settings-group__head">
+          <text class="settings-group__title">隐私中心</text>
+          <text class="settings-group__code">PRIVACY / 04</text>
+        </view>
+
+        <glass-card
+          wx:if="{{privacyVersionChanged}}"
+          tone="amber"
+          radius="lg"
+          padding="md"
+          depth="soft"
+          card-class="settings-card"
+        >
+          <view class="settings-row">
+            <view class="settings-row__icon settings-row__icon--amber">
+              <g-icon name="eye" size="{{30}}" tone="amber" />
+            </view>
+            <view class="settings-row__copy">
+              <text class="settings-row__title">隐私保护指引已更新</text>
+              <text class="settings-row__sub">
+                当前 v{{privacyVersion}} · 查看后确认，避免错过数据处理说明
+              </text>
+            </view>
+          </view>
+          <view class="settings-privacy__actions">
+            <view class="settings-privacy__action">
+              <glass-button variant="ghost" size="sm" block bind:tap="onPrivacyContract">
+                查看指引
+              </glass-button>
+            </view>
+            <view class="settings-privacy__action">
+              <glass-button variant="warm" size="sm" block bind:tap="onPrivacyVersionAck">
+                我知道了
+              </glass-button>
+            </view>
+          </view>
+        </glass-card>
+
+        <glass-card
+          tone="neutral"
+          radius="lg"
+          padding="none"
+          depth="soft"
+          card-class="settings-card"
+        >
+          <block wx:for="{{privacyPermissions}}" wx:key="key">
+            <view wx:if="{{index > 0}}" class="settings-divider"></view>
+            <view
+              class="settings-row settings-row--action"
+              hover-class="settings-row--press"
+              hover-start-time="0"
+              hover-stay-time="80"
+              aria-role="button"
+              aria-label="查看{{item.label}}权限"
+              data-key="{{item.key}}"
+              bindtap="onPrivacyPermissionTap"
+            >
+              <view class="settings-row__icon">
+                <g-icon
+                  name="{{item.key === 'location' ? 'compass' : item.key === 'album' ? 'image' : 'eye'}}"
+                  size="{{30}}"
+                  tone="iris"
+                />
+              </view>
+              <view class="settings-row__copy">
+                <text class="settings-row__title">{{item.label}}</text>
+                <text class="settings-row__sub">{{item.detail}}</text>
+              </view>
+              <text class="settings-row__value">{{item.statusText}}</text>
+              <g-icon name="chevron" size="{{22}}" tone="ink4" />
+            </view>
+          </block>
+
+          <view class="settings-divider"></view>
+
+          <view
+            class="settings-row settings-row--action"
+            hover-class="settings-row--press"
+            hover-start-time="0"
+            hover-stay-time="80"
+            aria-role="button"
+            aria-label="查看隐私保护指引"
+            bindtap="onPrivacyContract"
+          >
+            <view class="settings-row__icon">
+              <g-icon name="eye" size="{{30}}" tone="iris" />
+            </view>
+            <view class="settings-row__copy">
+              <text class="settings-row__title">查看隐私保护指引</text>
+              <text class="settings-row__sub">{{privacyContractName || '数据处理方式与用户权利说明'}}</text>
+            </view>
+            <g-icon name="chevron" size="{{22}}" tone="ink4" />
+          </view>
+
+          <view class="settings-divider"></view>
+
+          <view
+            class="settings-row settings-row--action"
+            hover-class="settings-row--press"
+            hover-start-time="0"
+            hover-stay-time="80"
+            aria-role="button"
+            aria-label="导出本机数据"
+            bindtap="onPrivacyExport"
+          >
+            <view class="settings-row__icon">
+              <g-icon name="save" size="{{30}}" tone="aurora" />
+            </view>
+            <view class="settings-row__copy">
+              <text class="settings-row__title">导出本机数据</text>
+              <text class="settings-row__sub">生成 JSON 备份，与「备份与恢复」共用同一份文件</text>
+            </view>
+            <g-icon name="chevron" size="{{22}}" tone="ink4" />
+          </view>
+
+          <view class="settings-divider"></view>
+
+          <view
+            class="settings-row settings-row--action settings-row--danger"
+            hover-class="settings-row--press"
+            hover-start-time="0"
+            hover-stay-time="80"
+            aria-role="button"
+            aria-label="清除工具数据"
+            bindtap="onPrivacyClearTap"
+          >
+            <view class="settings-row__icon">
+              <g-icon name="close" size="{{30}}" tone="ink3" />
+            </view>
+            <view class="settings-row__copy">
+              <text class="settings-row__title">清除工具数据</text>
+              <text class="settings-row__sub">只删除 tbx: 收藏、最近、搜索、轨迹与工具草稿</text>
+            </view>
+            <text class="settings-row__value settings-row__value--danger">清除</text>
+          </view>
+
+          <view class="settings-divider"></view>
+
+          <view
+            class="settings-row settings-row--action settings-row--danger"
+            hover-class="settings-row--press"
+            hover-start-time="0"
+            hover-stay-time="80"
+            aria-role="button"
+            aria-label="重置全部本机数据"
+            bindtap="onPrivacyResetTap"
+          >
+            <view class="settings-row__icon">
+              <g-icon name="close" size="{{30}}" tone="ink3" />
+            </view>
+            <view class="settings-row__copy">
+              <text class="settings-row__title">重置全部本机数据</text>
+              <text class="settings-row__sub">含天气、专注、诊断、备份、偏好与隐私确认；保留主题与作品收藏</text>
+            </view>
+            <text class="settings-row__value settings-row__value--danger">重置</text>
+          </view>
+        </glass-card>
+
+        <text class="settings-hint">
+          权限被拒绝后对应功能会降级，其余工具不受影响；重置全部不可恢复。
+        </text>
+      </view>
+
+      <!-- 05 实验室 -->
       <view class="settings-group">
         <view class="settings-group__head">
           <text class="settings-group__title">实验室</text>
-          <text class="settings-group__code">LAB / 04</text>
+          <text class="settings-group__code">LAB / 05</text>
         </view>
 
         <glass-card
@@ -931,7 +1156,7 @@
 
           <view class="settings-lab__head">
             <text class="settings-lab__badge">RESERVED</text>
-            <text class="settings-lab__code">MYSTERY / 05</text>
+            <text class="settings-lab__code">MYSTERY / 06</text>
           </view>
 
           <view class="settings-row settings-row--lab">
@@ -939,12 +1164,12 @@
               <g-icon name="compass" size="{{30}}" tone="amber" />
             </view>
             <view class="settings-row__copy">
-              <text class="settings-row__title">AI 实验席位</text>
+              <text class="settings-row__title">创新实验席位</text>
               <text class="settings-row__sub">未来功能，敬请期待；开启仅登记意向</text>
             </view>
             <glass-switch
               checked="{{flagAi}}"
-              aria-label="AI 实验席位"
+              aria-label="创新实验席位"
               bind:change="onAiFlagChange"
             />
           </view>
@@ -1122,6 +1347,155 @@
     </view>
   </glass-bottom-sheet>
 
+  <!-- 备份与恢复：导出 / 导入 / 删除，只操作本机 JSON 备份 -->
+  <glass-bottom-sheet
+    show="{{backupShow}}"
+    title="备份与恢复"
+    description="备份只写本机；导入会覆盖收藏、最近、搜索、天气、专注与全局偏好。"
+    size="auto"
+    z-index="{{1000}}"
+    show-footer="{{true}}"
+    bind:close="onBackupClose"
+    bind:closed="onBackupClose"
+  >
+    <view slot="footer" class="settings-confirm settings-backup">
+      <view class="settings-backup__status">
+        <text class="settings-backup__status-label">最近备份</text>
+        <text class="settings-backup__status-value">{{backupAtText}}</text>
+      </view>
+
+      <view class="settings-backup__rows">
+        <view
+          class="settings-backup__row"
+          hover-class="settings-backup__row--press"
+          hover-start-time="0"
+          hover-stay-time="80"
+          aria-role="button"
+          aria-label="导出备份并分享"
+          bindtap="onBackupExport"
+        >
+          <view class="settings-backup__icon">
+            <g-icon name="save" size="{{30}}" tone="aurora" />
+          </view>
+          <view class="settings-backup__copy">
+            <text class="settings-backup__title">导出备份</text>
+            <text class="settings-backup__desc">{{backupBusy ? '正在生成备份…' : '生成 JSON，通过系统分享保存或发送'}}</text>
+          </view>
+          <g-icon name="chevron" size="{{22}}" tone="ink4" />
+        </view>
+
+        <view
+          class="settings-backup__row"
+          hover-class="settings-backup__row--press"
+          hover-start-time="0"
+          hover-stay-time="80"
+          aria-role="button"
+          aria-label="导入备份"
+          bindtap="onBackupImport"
+        >
+          <view class="settings-backup__icon">
+            <g-icon name="stack" size="{{30}}" tone="iris" />
+          </view>
+          <view class="settings-backup__copy">
+            <text class="settings-backup__title">导入备份</text>
+            <text class="settings-backup__desc">从聊天文件选择 JSON，校验通过后整体替换</text>
+          </view>
+          <g-icon name="chevron" size="{{22}}" tone="ink4" />
+        </view>
+
+        <view
+          wx:if="{{backupHasFile}}"
+          class="settings-backup__row settings-backup__row--danger"
+          hover-class="settings-backup__row--press"
+          hover-start-time="0"
+          hover-stay-time="80"
+          aria-role="button"
+          aria-label="删除备份文件"
+          bindtap="onBackupDelete"
+        >
+          <view class="settings-backup__icon">
+            <g-icon name="close" size="{{30}}" tone="ink3" />
+          </view>
+          <view class="settings-backup__copy">
+            <text class="settings-backup__title">删除备份文件</text>
+            <text class="settings-backup__desc">只删除本机备份，不影响现有收藏与记录</text>
+          </view>
+          <g-icon name="chevron" size="{{22}}" tone="ink4" />
+        </view>
+      </view>
+
+      <view class="settings-confirm__actions">
+        <view class="settings-confirm__action">
+          <glass-button variant="ghost" block bind:tap="onBackupClose">关闭</glass-button>
+        </view>
+      </view>
+    </view>
+  </glass-bottom-sheet>
+
+  <!-- 导入 / 删除备份确认 -->
+  <glass-bottom-sheet
+    show="{{backupConfirmShow}}"
+    title="{{backupConfirmTitle}}"
+    size="auto"
+    z-index="{{1000}}"
+    show-footer="{{true}}"
+    bind:close="onBackupConfirmClose"
+    bind:closed="onBackupConfirmClose"
+  >
+    <view slot="footer" class="settings-confirm">
+      <view class="settings-confirm__icon" aria-hidden="true">
+        <g-icon name="{{backupConfirmKind === 'delete' ? 'close' : 'stack'}}" size="{{40}}" tone="ink3" />
+      </view>
+      <text class="settings-confirm__title">{{backupConfirmTitle}}</text>
+      <text class="settings-confirm__desc">{{backupConfirmDesc}}</text>
+
+      <view class="settings-confirm__actions">
+        <view class="settings-confirm__action">
+          <glass-button variant="ghost" block bind:tap="onBackupConfirmClose">取消</glass-button>
+        </view>
+        <view class="settings-confirm__action">
+          <glass-button
+            variant="{{backupConfirmKind === 'delete' ? 'danger' : 'primary'}}"
+            block
+            bind:tap="onBackupConfirm"
+          >{{backupConfirmKind === 'delete' ? '删除' : '导入'}}</glass-button>
+        </view>
+      </view>
+    </view>
+  </glass-bottom-sheet>
+
+  <!-- 隐私中心：清除工具数据 / 重置全部确认 -->
+  <glass-bottom-sheet
+    show="{{privacyConfirmShow}}"
+    title="{{privacyConfirmTitle}}"
+    size="auto"
+    z-index="{{1000}}"
+    show-footer="{{true}}"
+    bind:close="onPrivacyConfirmClose"
+    bind:closed="onPrivacyConfirmClose"
+  >
+    <view slot="footer" class="settings-confirm">
+      <view class="settings-confirm__icon" aria-hidden="true">
+        <g-icon
+          name="{{privacyConfirmKind === 'all' ? 'close' : 'stack'}}"
+          size="{{40}}"
+          tone="ink3"
+        />
+      </view>
+      <text class="settings-confirm__title">{{privacyConfirmTitle}}</text>
+      <text class="settings-confirm__desc">{{privacyConfirmDesc}}</text>
+
+      <view class="settings-confirm__actions">
+        <view class="settings-confirm__action">
+          <glass-button variant="ghost" block bind:tap="onPrivacyConfirmClose">取消</glass-button>
+        </view>
+        <view class="settings-confirm__action">
+          <glass-button variant="danger" block bind:tap="onPrivacyConfirm">确认</glass-button>
+        </view>
+      </view>
+    </view>
+  </glass-bottom-sheet>
+
   <glass-toast z-index="{{1200}}" />
 
   <!-- 剪贴板属于微信隐私接口：分片复制 / 从剪贴板追加 / 备份码复制前必须能弹出授权 -->
@@ -1129,6 +1503,6 @@
 
   <!-- AES 加密 / 时间旅行 / 分片 / Auto-Pilot / 页面抽屉期间，更新弹窗只排队 -->
   <update-guard
-    blocked="{{vaultBusy || travelBusy || transportBusy || pilotRunning || pickerShow || confirmShow || focusClearShow}}"
+    blocked="{{vaultBusy || travelBusy || transportBusy || pilotRunning || pickerShow || confirmShow || focusClearShow || backupShow || backupConfirmShow || backupBusy || privacyConfirmShow}}"
   />
 </view>

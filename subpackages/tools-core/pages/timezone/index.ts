@@ -25,6 +25,7 @@ import {
 import type { IPosterData } from '../../../../core/toolbox/poster'
 import type { IWorkflowData } from '../../../../core/workflow/types'
 import { copyText } from '../../lib/ui'
+import { collectTimezoneDraft, timezoneDraftPatch } from '../../lib/draft'
 
 interface ResultRow {
   k: string
@@ -254,6 +255,42 @@ Page({
         error: '',
       },
       () => this.onRun(),
+    )
+  },
+
+  /* ---- 草稿：模式、日期时间、源/目标时区与夏令时；恢复后重算 ---- */
+  draftMode(): string {
+    return this.data.mode
+  },
+
+  collectDraftInput(): Record<string, string> {
+    return collectTimezoneDraft(this.data)
+  },
+
+  applyDraftInput(input: Record<string, string>, mode: string): void {
+    const zones = this.data.zones as TimezoneZone[]
+    const patch = timezoneDraftPatch(zones, input, mode)
+    this.setData(
+      {
+        ...patch,
+        date: (patch.date as string) || todayISO(),
+        time: (patch.time as string) || currentTime(),
+        error: '',
+        shellState: 'idle',
+        hasResult: false,
+        resultMain: '',
+        resultRows: [],
+        worldRows: [],
+        timezoneSummary: '',
+        posterData: null,
+      },
+      () => {
+        if (patch.mode === 'world') {
+          this.runWorldClock()
+        } else {
+          this.onRun()
+        }
+      },
     )
   },
 

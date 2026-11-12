@@ -1,4 +1,4 @@
-<view class="mine-page sg-ambient-surface sg-ambient-iris {{themeClass}} {{themeSwitching ? 'theme-breathing' : ''}}">
+<view class="mine-page sg-ambient-surface sg-ambient-iris {{themeClass}} {{fsClass}} {{themeSwitching ? 'theme-breathing' : ''}}">
   <view class="mine-aurora" aria-hidden="true">
     <view class="sg-aurora-a mine-aurora__a"></view>
     <view class="sg-aurora-b mine-aurora__b"></view>
@@ -85,7 +85,7 @@
         depth="soft"
         card-class="mine-stats"
       >
-        <view class="mine-stats__row">
+        <view class="mine-stats__row" aria-role="status" aria-label="本机统计：收藏 {{favoriteCount}} 个，可用工具 {{toolCount}} 个，云端上传 0">
           <view class="mine-stat">
             <text class="mine-stat__num">{{favoriteCount}}</text>
             <text class="mine-stat__label">收藏工具</text>

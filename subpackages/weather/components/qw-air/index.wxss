@@ -1,0 +1,475 @@
+@import "../../styles/qweather.wxss";
+
+.qw-air {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.qw-air__hero {
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+  padding: 22rpx;
+  box-sizing: border-box;
+  border: 1rpx solid var(--glass-border-strong);
+  border-radius: 28rpx;
+  background: var(--glass-bg-soft);
+}
+
+.qw-air__hero-main {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.qw-air__aqi {
+  color: var(--qw-aqi-text, var(--aqi-color));
+  font-size: 88rpx;
+  font-size: calc(88rpx * var(--fs-scale, 1));
+  font-weight: 800;
+  line-height: 1;
+}
+
+.qw-air__hero-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.qw-air__name {
+  color: var(--glass-text);
+  font-size: 28rpx;
+  font-size: calc(28rpx * var(--fs-scale, 1));
+  font-weight: 700;
+}
+
+.qw-air__sub {
+  color: var(--glass-text-3);
+  font-size: 19rpx;
+  font-size: calc(19rpx * var(--fs-scale, 1));
+  line-height: 1.4;
+}
+
+.qw-air__indexes {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 10rpx;
+}
+
+.qw-air__index {
+  display: flex;
+  min-width: 140rpx;
+  flex: 1;
+  flex-direction: column;
+  gap: 2rpx;
+  padding: 12rpx 14rpx;
+  box-sizing: border-box;
+  border: 1rpx solid var(--glass-border);
+  border-radius: 16rpx;
+  background: var(--glass-bg);
+}
+
+.qw-air__index-name {
+  color: var(--glass-text-3);
+  font-size: 16rpx;
+  font-size: calc(16rpx * var(--fs-scale, 1));
+}
+
+.qw-air__index-value {
+  color: var(--qw-aqi-text, var(--aqi-color));
+  font-size: 26rpx;
+  font-size: calc(26rpx * var(--fs-scale, 1));
+  font-weight: 700;
+}
+
+.qw-air__index-category {
+  color: var(--glass-text-2);
+  font-size: 16rpx;
+  font-size: calc(16rpx * var(--fs-scale, 1));
+}
+
+.qw-air__section {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.qw-air__section-title {
+  color: var(--glass-text);
+  font-size: 23rpx;
+  font-size: calc(23rpx * var(--fs-scale, 1));
+  font-weight: 600;
+}
+
+.qw-air__pollutant {
+  display: flex;
+  flex-direction: column;
+  gap: 2rpx;
+  padding: 14rpx;
+  border-radius: 16rpx;
+  background: var(--glass-bg-soft);
+}
+
+.qw-air__pollutant-name {
+  color: var(--glass-text-3);
+  font-size: 16rpx;
+  font-size: calc(16rpx * var(--fs-scale, 1));
+}
+
+.qw-air__pollutant-value {
+  color: var(--glass-text);
+  font-size: 21rpx;
+  font-size: calc(21rpx * var(--fs-scale, 1));
+  font-weight: 600;
+}
+
+.qw-air__pollutant-sub {
+  color: var(--glass-text-4);
+  font-size: 15rpx;
+  font-size: calc(15rpx * var(--fs-scale, 1));
+}
+
+.qw-air__advice {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.qw-air__advice-item {
+  display: flex;
+  width: 48.6%;
+  margin-bottom: 12rpx;
+  box-sizing: border-box;
+  flex-direction: column;
+  gap: 4rpx;
+  padding: 16rpx;
+  border-radius: 18rpx;
+  background: var(--glass-bg-soft);
+}
+
+.qw-air__advice-label {
+  color: var(--glass-accent-text);
+  font-size: 17rpx;
+  font-size: calc(17rpx * var(--fs-scale, 1));
+  font-weight: 600;
+}
+
+.qw-air__advice-text {
+  color: var(--glass-text-2);
+  font-size: 19rpx;
+  font-size: calc(19rpx * var(--fs-scale, 1));
+  line-height: 1.55;
+}
+
+.qw-air__chart {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.qw-air__bars {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  gap: 4rpx;
+  height: 140rpx;
+  padding: 10rpx 10rpx 0;
+  box-sizing: border-box;
+  border-radius: 18rpx;
+  background: var(--glass-bg-soft);
+}
+
+.qw-air__bar {
+  flex: 1;
+  min-width: 4rpx;
+  border-radius: 8rpx 8rpx 2rpx 2rpx;
+  opacity: 0.9;
+}
+
+.qw-air__axis {
+  display: flex;
+  justify-content: space-between;
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono, monospace);
+  font-size: 16rpx;
+  font-size: calc(16rpx * var(--fs-scale, 1));
+}
+
+.qw-air__days {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.qw-air__day {
+  display: flex;
+  width: 32%;
+  margin-bottom: 12rpx;
+  box-sizing: border-box;
+  flex-direction: column;
+  gap: 4rpx;
+  padding: 16rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: 18rpx;
+  background: var(--glass-bg-soft);
+}
+
+.qw-air__day-date {
+  color: var(--glass-text-3);
+  font-size: 16rpx;
+  font-size: calc(16rpx * var(--fs-scale, 1));
+}
+
+.qw-air__day-aqi {
+  color: var(--qw-aqi-text, var(--aqi-color));
+  font-size: 32rpx;
+  font-size: calc(32rpx * var(--fs-scale, 1));
+  font-weight: 700;
+}
+
+.qw-air__day-category {
+  color: var(--glass-text-2);
+  font-size: 17rpx;
+  font-size: calc(17rpx * var(--fs-scale, 1));
+}
+
+.qw-air__day-pollutant {
+  color: var(--glass-text-4);
+  font-size: 15rpx;
+  font-size: calc(15rpx * var(--fs-scale, 1));
+}
+
+.qw-air__skeleton {
+  height: 320rpx;
+}
+
+.qw-air__index-level {
+  color: var(--glass-text-4);
+  font-size: 16rpx;
+  font-size: calc(16rpx * var(--fs-scale, 1));
+  line-height: 1.4;
+}
+
+.qw-air__index-pollutant {
+  color: var(--glass-text-4);
+  font-size: 15rpx;
+  font-size: calc(15rpx * var(--fs-scale, 1));
+  line-height: 1.4;
+}
+
+.qw-air__effect {
+  display: block;
+  margin-bottom: 12rpx;
+  color: var(--glass-text-2);
+  font-size: 20rpx;
+  font-size: calc(20rpx * var(--fs-scale, 1));
+  line-height: 1.6;
+}
+
+.qw-air__hour-scroll {
+  margin-top: 10rpx;
+  /* Skyline 横向 scroll-view 必须显式高度 */
+  height: calc(150rpx * var(--fs-scale, 1));
+}
+
+.qw-air__hour-card {
+  display: flex;
+  width: 132rpx;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 4rpx;
+  padding: 14rpx 8rpx;
+  box-sizing: border-box;
+  border: 1rpx solid var(--glass-border);
+  border-radius: 16rpx;
+  background: var(--glass-bg-soft);
+}
+
+.qw-air__hour-card--active {
+  background: var(--glass-accent-soft);
+}
+
+.qw-air__hour-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+  margin-top: 10rpx;
+  padding: 18rpx;
+  box-sizing: border-box;
+  border: 1rpx solid var(--glass-border-strong);
+  border-radius: 20rpx;
+  background: var(--glass-bg-soft);
+}
+
+.qw-air__hour-detail-head {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12rpx;
+}
+
+.qw-air__hour-detail-title {
+  color: var(--glass-text);
+  font-size: 22rpx;
+  font-size: calc(22rpx * var(--fs-scale, 1));
+  font-weight: 600;
+}
+
+.qw-air__hour-detail-aqi {
+  color: var(--qw-aqi-text, var(--aqi-color));
+  font-size: 24rpx;
+  font-size: calc(24rpx * var(--fs-scale, 1));
+  font-weight: 700;
+}
+
+.qw-air__hour-time {
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono, monospace);
+  font-size: 17rpx;
+  font-size: calc(17rpx * var(--fs-scale, 1));
+}
+
+.qw-air__hour-aqi {
+  color: var(--qw-aqi-text, var(--aqi-color));
+  font-size: 28rpx;
+  font-size: calc(28rpx * var(--fs-scale, 1));
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.qw-air__hour-cat {
+  color: var(--glass-text-2);
+  font-size: 16rpx;
+  font-size: calc(16rpx * var(--fs-scale, 1));
+  line-height: 1.3;
+  text-align: center;
+}
+
+.qw-air__hour-poll {
+  color: var(--glass-text-4);
+  font-size: 15rpx;
+  font-size: calc(15rpx * var(--fs-scale, 1));
+  line-height: 1.3;
+  text-align: center;
+}
+
+.qw-air__day--active {
+  background: var(--glass-accent-soft);
+}
+
+.qw-air__day-more {
+  margin-top: 4rpx;
+  color: var(--glass-accent-text);
+  font-size: 16rpx;
+  font-size: calc(16rpx * var(--fs-scale, 1));
+  line-height: 1.3;
+}
+
+.qw-air__day-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+  margin-top: 12rpx;
+  padding: 18rpx;
+  box-sizing: border-box;
+  border: 1rpx solid var(--glass-border-strong);
+  border-radius: 20rpx;
+  background: var(--glass-bg-soft);
+}
+
+.qw-air__day-detail-head {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12rpx;
+}
+
+.qw-air__day-detail-title {
+  color: var(--glass-text);
+  font-size: 22rpx;
+  font-size: calc(22rpx * var(--fs-scale, 1));
+  font-weight: 600;
+}
+
+.qw-air__day-detail-aqi {
+  color: var(--qw-aqi-text, var(--aqi-color));
+  font-size: 24rpx;
+  font-size: calc(24rpx * var(--fs-scale, 1));
+  font-weight: 700;
+}
+
+.qw-air__day-index {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12rpx;
+  padding: 10rpx 14rpx;
+  border-radius: 12rpx;
+  background: var(--glass-bg);
+}
+
+.qw-air__day-index-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2rpx;
+}
+
+.qw-air__day-index-meta {
+  color: var(--glass-text-4);
+  font-size: 15rpx;
+  font-size: calc(15rpx * var(--fs-scale, 1));
+  line-height: 1.3;
+}
+
+.qw-air__day-index-name {
+  color: var(--glass-text-3);
+  font-size: 18rpx;
+  font-size: calc(18rpx * var(--fs-scale, 1));
+}
+
+.qw-air__day-index-value {
+  color: var(--glass-text);
+  font-size: 19rpx;
+  font-size: calc(19rpx * var(--fs-scale, 1));
+  font-weight: 600;
+}
+
+.qw-air__day-poll {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8rpx 14rpx;
+  color: var(--glass-text-3);
+  font-size: 17rpx;
+  font-size: calc(17rpx * var(--fs-scale, 1));
+}
+
+.qw-air__day-poll-value {
+  color: var(--glass-text);
+  font-weight: 600;
+}
+
+.qw-air__day-poll-sub {
+  color: var(--glass-text-4);
+  font-size: 15rpx;
+  font-size: calc(15rpx * var(--fs-scale, 1));
+}
+
+.qw-air__day-health {
+  display: block;
+  color: var(--glass-text-2);
+  font-size: 18rpx;
+  font-size: calc(18rpx * var(--fs-scale, 1));
+  line-height: 1.6;
+}

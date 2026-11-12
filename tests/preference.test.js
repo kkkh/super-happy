@@ -84,6 +84,7 @@ test('偏好归一化：合法字段完整映射', async () => {
     lightEffects: false,
     motion: 'saver',
     autoCleanDays: 0,
+    favoriteSort: 'category',
     flags: { enable_ai_assist: true },
   })
 
@@ -96,6 +97,8 @@ test('偏好归一化：合法字段完整映射', async () => {
     autoCleanDays: 0,
     isPrivacyMasked: true,
     isHistoryTrackingEnabled: true,
+    fontScale: 'standard',
+    favoriteSort: 'category',
     flags: { enable_ai_assist: true },
   })
 })
@@ -116,6 +119,7 @@ test('偏好归一化：非法枚举与类型逐项回退', async () => {
   assert.equal(snapshot.lightEffects, DEFAULT_PREFERENCE.lightEffects)
   assert.equal(snapshot.motion, DEFAULT_PREFERENCE.motion)
   assert.equal(snapshot.autoCleanDays, DEFAULT_PREFERENCE.autoCleanDays)
+  assert.equal(snapshot.fontScale, DEFAULT_PREFERENCE.fontScale)
 })
 
 test('隐私盾偏好：默认开启，非法值回退，切换后持久化可恢复', async () => {

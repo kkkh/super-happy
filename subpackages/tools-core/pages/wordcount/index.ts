@@ -68,6 +68,21 @@ Page({
     })
   },
 
+  /* ---- 草稿：只存文本，恢复后重新统计 ---- */
+  collectDraftInput(): Record<string, string> {
+    return { text: this.data.text }
+  },
+
+  applyDraftInput(input: Record<string, string>): void {
+    const text = input.text ?? ''
+    this.setData(
+      { text, counterText: `${Array.from(text).length} / ${LIMITS.TEXT_INPUT}` },
+      () => {
+        this.analyze(text)
+      },
+    )
+  },
+
   onCopy() {
     copyText(this.data.copyPayload, '字数统计结果已复制')
   },

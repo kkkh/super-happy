@@ -57,7 +57,7 @@
 
 /* ---- 卡片 ---- */
 .glass-toast__card {
-  --toast-accent: var(--glass-accent);
+  --toast-accent: var(--glass-accent-text);
   --toast-soft: var(--glass-accent-soft);
 
   position: relative;
@@ -109,22 +109,22 @@
 /* ---- 类型色 ---- */
 .glass-toast_type_info,
 .glass-toast_type_loading {
-  --toast-accent: var(--glass-accent);
+  --toast-accent: var(--glass-accent-text);
   --toast-soft: var(--glass-accent-soft);
 }
 
 .glass-toast_type_success {
-  --toast-accent: var(--glass-accent-2);
+  --toast-accent: var(--glass-accent-2-text);
   --toast-soft: var(--glass-accent-2-soft);
 }
 
 .glass-toast_type_warning {
-  --toast-accent: var(--glass-accent-warm);
+  --toast-accent: var(--glass-accent-warm-text);
   --toast-soft: var(--glass-accent-warm-soft);
 }
 
 .glass-toast_type_error {
-  --toast-accent: var(--glass-danger);
+  --toast-accent: var(--glass-danger-text);
   --toast-soft: var(--glass-accent-warm-soft);
 }
 
@@ -195,8 +195,9 @@
   min-width: 0;
   color: var(--glass-text);
   font-size: 26rpx;
+  font-size: calc(26rpx * var(--fs-scale, 1));
   font-weight: 500;
-  line-height: 1.45;
+  line-height: 1.5;
   word-break: break-all;
 }
 
@@ -214,6 +215,7 @@
   border-left: 1rpx solid var(--glass-border);
   color: var(--toast-accent);
   font-size: 24rpx;
+  font-size: calc(24rpx * var(--fs-scale, 1));
   font-weight: 600;
   letter-spacing: 0.5rpx;
   opacity: 1;
@@ -223,6 +225,7 @@
 .glass-toast__action_text {
   color: var(--toast-accent);
   font-size: 24rpx;
+  font-size: calc(24rpx * var(--fs-scale, 1));
   font-weight: 600;
   line-height: 1;
 }

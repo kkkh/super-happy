@@ -16,6 +16,7 @@
   border-radius: 999rpx;
   font-family: var(--glass-font-sans);
   font-size: 28rpx;
+  font-size: calc(28rpx * var(--fs-scale, 1));
   font-weight: 600;
   line-height: 1;
   letter-spacing: 0.02em;
@@ -31,24 +32,30 @@
 
 /* ---- 尺寸 ---- */
 .glass-button_size_sm {
-  height: 64rpx;
+  min-height: 64rpx;
+  min-height: calc(64rpx * var(--fs-scale, 1));
   min-width: 120rpx;
   padding: 0 28rpx;
   font-size: 24rpx;
+  font-size: calc(24rpx * var(--fs-scale, 1));
 }
 
 .glass-button_size_md {
-  height: 84rpx;
+  min-height: 84rpx;
+  min-height: calc(84rpx * var(--fs-scale, 1));
   min-width: 160rpx;
   padding: 0 36rpx;
   font-size: 28rpx;
+  font-size: calc(28rpx * var(--fs-scale, 1));
 }
 
 .glass-button_size_lg {
-  height: 104rpx;
+  min-height: 104rpx;
+  min-height: calc(104rpx * var(--fs-scale, 1));
   min-width: 200rpx;
   padding: 0 48rpx;
   font-size: 32rpx;
+  font-size: calc(32rpx * var(--fs-scale, 1));
 }
 
 /* ---- 形态 ---- */
@@ -268,7 +275,7 @@
 .glass-button__check {
   display: inline-block;
   margin-right: 8rpx;
-  color: #ffffff;
+  color: currentColor;
   font-size: 24rpx;
   font-weight: 700;
   line-height: 1;

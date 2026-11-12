@@ -1,0 +1,110 @@
+@import "../../styles/qweather.wxss";
+
+.qw-alerts {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.qw-alerts--empty {
+  gap: 8rpx;
+}
+
+.qw-alerts__item {
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+  padding: 18rpx 20rpx;
+  box-sizing: border-box;
+  border: 1rpx solid var(--glass-border);
+  border-left: 6rpx solid #ffb05c;
+  border-radius: 20rpx;
+  background: var(--glass-bg-soft);
+}
+
+.qw-alerts__head {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 14rpx;
+}
+
+.qw-alerts__copy {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.qw-alerts__event {
+  color: var(--glass-text);
+  font-size: 25rpx;
+  font-size: calc(25rpx * var(--fs-scale, 1));
+  font-weight: 700;
+}
+
+.qw-alerts__meta {
+  color: var(--glass-text-3);
+  font-size: 18rpx;
+  font-size: calc(18rpx * var(--fs-scale, 1));
+  line-height: 1.4;
+}
+
+.qw-alerts__chevron {
+  color: var(--glass-text-3);
+  font-size: 24rpx;
+}
+
+.qw-alerts__headline {
+  color: var(--glass-text-2);
+  font-size: 21rpx;
+  font-size: calc(21rpx * var(--fs-scale, 1));
+  line-height: 1.5;
+}
+
+.qw-alerts__detail {
+  display: flex;
+  flex-direction: column;
+  gap: 14rpx;
+  padding-top: 12rpx;
+  border-top: 1rpx solid var(--glass-border);
+}
+
+.qw-alerts__desc {
+  color: var(--glass-text-2);
+  font-size: 20rpx;
+  font-size: calc(20rpx * var(--fs-scale, 1));
+  line-height: 1.65;
+  white-space: pre-wrap;
+}
+
+.qw-alerts__instruction {
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+  padding: 16rpx;
+  border-radius: 18rpx;
+  background: var(--glass-bg);
+}
+
+.qw-alerts__instruction-title {
+  color: var(--glass-accent-text);
+  font-family: var(--glass-font-mono, monospace);
+  font-size: 18rpx;
+  font-size: calc(18rpx * var(--fs-scale, 1));
+}
+
+.qw-alerts__times {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 10rpx 20rpx;
+  color: var(--glass-text-3);
+  font-size: 18rpx;
+  font-size: calc(18rpx * var(--fs-scale, 1));
+}
+
+.qw-alerts__skeleton {
+  height: 160rpx;
+}

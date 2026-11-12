@@ -5,10 +5,10 @@
 > 应用版本：`1.1.0`（`core/constants/index.ts` 的 `APP_VERSION`）
 > 渲染引擎：Skyline + glass-easel
 > 基础库：`3.17.6`
-> 文档基线：2026-11-11（已按当前源码全量核验）
-> 校验状态：`tsc --noEmit` 通过；`npm test` 740/740 通过（复核于 2026-11-11，96 个测试文件）
+> 文档基线：2026-11-12（已按当前源码全量核验）
+> 校验状态：`tsc --noEmit` 通过；`npm test` 824/824 通过（复核于 2026-11-12，110 个测试文件）
 
-本文是面向开发者的完整 Code Wiki，覆盖项目定位、技术栈、整体架构、启动编排、核心 Store、Workflow 流转引擎、63 个工具算法、全息气象站、全息专注引擎、组件库、81 个页面、设计令牌、存储迁移、隐私与更新机制、依赖关系、运行方式、部署发布流程和扩展指南。文中路径均为仓库相对路径，关键公式与常量标注来源文件。
+本文是面向开发者的完整 Code Wiki，覆盖项目定位、技术栈、整体架构、启动编排、核心 Store、Workflow 流转引擎、64 个工具算法、全息气象站、和风天气、全息专注引擎、组件库、83 个页面、设计令牌、存储迁移、隐私与更新机制、依赖关系、运行方式、部署发布流程和扩展指南。文中路径均为仓库相对路径，关键公式与常量标注来源文件。
 
 ---
 
@@ -21,7 +21,7 @@
 5. [状态管理层](#5-状态管理层)
 6. [工具箱领域层](#6-工具箱领域层)
 7. [Workflow 流转引擎](#7-workflow-流转引擎)
-8. [工具算法与 63 个工具](#8-工具算法与-63-个工具)
+8. [工具算法与 64 个工具](#8-工具算法与-63-个工具)
 9. [组件库](#9-组件库)
 10. [页面与路由](#10-页面与路由)
 11. [设计系统与主题引擎](#11-设计系统与主题引擎)
@@ -37,26 +37,26 @@
 
 ## 1. 项目速览
 
-超欢是一个**以本机计算为核心**的微信小程序工具箱：63 个工具（仅「全息气象」直连高德 Web 服务获取天气、「汇率换算」直连中国外汇交易中心获取人民币汇率中间价），附带一套个人简历 / 作品集模块（“曜石画廊”）与独立的全息专注引擎。工具计算、图片处理、二维码生成、海报绘制均在本机完成；不登录、不上传业务数据，外部网络请求只有天气与官方汇率中间价两类：天气只发送城市 adcode，汇率只请求公开 JSON、不发送金额或币种选择。
+超欢是一个**以本机计算为核心**的微信小程序工具箱：64 个工具（仅「全息气象」直连高德 Web 服务获取天气、「汇率换算」直连中国外汇交易中心获取人民币汇率中间价、「元宝搜索」在用户主动搜索时直连腾讯云 WSA），附带一套个人简历 / 作品集模块（“曜石画廊”）与独立的全息专注引擎。工具计算、图片处理、二维码生成、海报绘制均在本机完成；不登录、不上传业务数据，外部网络请求只有天气、官方汇率中间价与元宝搜索三类：天气只发送城市 adcode，汇率只请求公开 JSON、不发送金额或币种选择，元宝搜索只发送查询词与筛选条件、不发送身份或本机存储内容。
 
 ### 1.1 关键数字
 
 | 指标 | 数值 | 说明 |
 |---|---|---|
-| 页面总数 | 81 | 主包 5 页 + 8 个分包共 76 页 |
-| 主包页面 | 5 | `pages/index`、`pages/lab`、`pages/favorites`、`pages/mine`、`pages/legal` |
-| 分包 | 8 | `tools-core`（29 页）、`tools-daily`（17 页）、`tools-media`（14 页）、`tools-dict`（3 页）、`grow`（8 页）、`works`（3 页）、`campus`（1 页）、`life`（1 页） |
-| 工具 | 63 | 6 个分类，唯一注册表 `core/toolbox/registry.ts` |
+| 页面总数 | 83 | 主包 3 页 + 9 个分包共 80 页 |
+| 主包页面 | 3 | `pages/index`、`pages/favorites`、`pages/mine` |
+| 分包 | 9 | `tools-core`（31 页）、`tools-daily`（17 页）、`tools-media`（14 页）、`tools-dict`（3 页）、`grow`（9 页）、`works`（3 页）、`campus`（1 页）、`life`（1 页）、`weather`（1 页） |
+| 工具 | 64 | 6 个分类，唯一注册表 `core/toolbox/registry.ts` |
 | 工具分类 | 6 | `calc` / `date` / `text` / `media` / `life` / `work` |
 | 主包组件 | 29 | `components/` 下 29 个组件目录 + `sound-hook.ts` |
-| 分包组件 | 13 | grow 8 个、works 2 个、campus 2 个、tools-core 1 个（`weather-glyph`） |
-| 核心 TS 模块 | 66 | `core/` 下全部 `.ts` |
-| 分包 TS 模块 | 155 | `subpackages/` 下业务 `.ts`（不含 `node_modules` 与 `.d.ts`） |
+| 分包组件 | 27 | grow 8 个、works 2 个、campus 2 个、tools-core 2 个（`weather-glyph`、`web-search-results`）、weather 13 个（`qw-*`） |
+| 核心 TS 模块 | 70 | `core/` 下全部 `.ts` |
+| 分包 TS 模块 | 211 | `subpackages/` 下业务 `.ts`（含页面 / 组件 / lib / weather，不含 `node_modules` 与 `.d.ts`） |
 | 运行时 npm 依赖 | 2 | `mobx-miniprogram`、`mobx-miniprogram-bindings` |
 | 工具分包依赖 | 2 | `crypto-js`、`diff-match-patch`（仅 tools-core；grow 内有 crypto-js 副本） |
 | AI SKILL 原子接口 | 12 | `core/skill/registry.ts` |
 | 作品数据 | 11 | `core/data/resume-data.ts` 的 `projects` |
-| 单元 / 集成测试 | 740 | 96 个 `.test.js` 文件，全部通过 |
+| 单元 / 集成测试 | 833 | 111 个 `.test.js` 文件，全部通过 |
 | 存储结构版本 | 1 | `app:storage.version` |
 | Spatial Glass 元数据版本 | 2 | `gallery.glass.meta` |
 
@@ -66,8 +66,8 @@
 配置层   app.json / app.ts / theme.json / project.config.json / tsconfig.json
 页面层   pages/*（首页、收藏、我的、隐私、组件样板间）
          subpackages/tools-core/*（29 个计算/文本/日期/颜色/数据/气象工具）
-         subpackages/tools-daily/*（算账 / 工时 / 健康 / 随机决定 / 油耗 / 水电燃气 / 分辨率 / 车贷 / 报价 / 倒计时 / 体脂 / 汇率换算 / 薪资反算 / 百分比计算）
-         subpackages/tools-media/*（二维码名片与 10 个图片工具）
+         subpackages/tools-daily/*（算账 / 工时 / 健康 / 随机决定 / 油耗 / 水电燃气 / 分辨率 / 车贷 / 报价 / 倒计时 / 体脂 / 汇率换算 / 薪资反算 / 百分比计算 / 尺码换算 / 离职补偿 / 证件号校验）
+         subpackages/tools-media/*（二维码 / 名片与 12 个图片工具，共 14 页）
          subpackages/grow/*（简历、设置、数据驾驶舱、使用指南）
          subpackages/life/*（全息专注引擎）
          subpackages/works|campus/*（作品集与园枢图集）
@@ -76,7 +76,7 @@
          core/toolbox/store（收藏 / 最近使用 / 累计打开）
          core/workflow/workflowStore（流转会话 / 流水线 / 撤销）
          store/index.ts（glassStore 门面）
-服务层   core/services（request / resume / sound / motion / update / storage-governor）
+服务层   core/services（request / resume / sound / motion / update / storage-governor / backup / diagnostics / privacy-center / font-scale）
 算法层   core/toolbox + core/workflow + 各分包 lib/utils
 基础层   core/utils（logger / blackbox / haptics / album / privacy / guards / migration）
 样式层   app.wxss + styles/v3.wxss + styles/generated/tailwind.wxss
@@ -93,7 +93,7 @@ flowchart TB
   end
   subgraph L2[页面层]
     P1["主包 pages/*"]
-    P2["tools-core 26 页"]
+    P2["tools-core 31 页"]
     P3["tools-daily / tools-media"]
     P4["grow / works / campus"]
     P5["life 专注引擎"]
@@ -198,7 +198,7 @@ flowchart TB
 | 文件 | 关键配置 |
 |---|---|
 | `app.json` | `renderer: "skyline"`、`componentFramework: "glass-easel"`、`custom` TabBar、`lazyCodeLoading: "requiredComponents"`、`workers: "workers"`、`darkmode: true`、`__usePrivacyCheck__: true`、`requiredBackgroundModes: ["audio"]`（专注 BGM）、`requiredPrivateInfos: ["getFuzzyLocation"]`（天气模糊定位） |
-| `app.json` 分包 | 8 个：`tools-core`、`tools-daily`、`tools-media`、`tools-dict`、`grow`、`works`、`campus`、`life`；共 81 页 |
+| `app.json` 分包 | 9 个：`tools-core`、`tools-daily`、`tools-media`、`tools-dict`、`grow`、`works`、`campus`、`life`、`weather`；共 83 页 |
 | `app.json` 主题 | `navigationStyle: "custom"`、`pageOrientation: "portrait"`、`themeLocation: "theme.json"`、`backgroundColor: "@canvas"` |
 | `app.json` 全局组件 | `update-guard` 与 `meeting-timer-hud` 注册在 `usingComponents`，所有页面可用 |
 | `theme.json` | `light.canvas = #eef1f7`、`dark.canvas = #070a12`，导航文字黑 / 白 |
@@ -214,9 +214,9 @@ flowchart TB
 |---|---|---|
 | `build:style` | `weapp-tw -i styles/tokens.css -o styles/generated/tailwind.wxss --target weapp` | 编译 Tailwind 原子类 |
 | `build:icon` | `npx fantasticon .icon-src -o .icon-dist -n gicon --font-types ttf --asset-types json` | 生成图标字体到 `.icon-dist/` |
-| `pretypecheck` / `pretest` | `node scripts/ensure-weather-config.js` | 自动生成 `weather/config.local.ts`（若缺失），避免 Key 缺失导致编译失败 |
+| `pretypecheck` / `pretest` | `node scripts/ensure-weather-config.js && node scripts/ensure-yuanbao-config.js` | 自动生成 `weather/config.local.ts` 与 `yuanbao/config-local.ts`（若缺失），避免 Key 缺失导致编译失败 |
 | `typecheck` | `tsc --noEmit` | 严格类型检查 |
-| `test` | `node --experimental-strip-types --test tests/*.test.js` | 96 个测试文件、740 项全部单元 / 集成测试 |
+| `test` | `node --experimental-strip-types --test tests/*.test.js` | 110 个测试文件、824 项全部单元 / 集成测试 |
 | `test:hologram` | 仅 `tests/spatial-hologram.test.js` | 空间全息单测 |
 | `test:integration` | `tests/*.integration.test.js` | 集成测试 |
 | `test:integration:hologram` | 仅空间全息集成测试 | 集成测试 |
@@ -268,7 +268,7 @@ graph TD
 4. **Workflow 不使用 URL 传参**：载荷只经 `workflowStore` 内存传递，URL 只承担工具路由。
 5. **纯函数优先**：`workflowSilent`、`history-insights`、`money`、`date`、`rmb`、`radix`、`focus-fsm`、`focus-level`、`ledger`、`crc32` 等均为可独立测试的纯函数。
 6. **组件只消费令牌**：页面 / 组件 WXSS 禁止写裸色值，统一消费 `--g-*` / `--glass-*` / `--sg-*`。
-7. **网络唯一出口**：只有 `subpackages/tools-core/weather/weatherService.ts` 允许 `wx.request`；其他模块一律本机计算。
+7. **网络唯一出口**：只有 `subpackages/tools-core/weather/weatherService.ts`（高德）与 `subpackages/weather/lib/qweather/client.ts`（和风天气）允许 `wx.request`；其他模块一律本机计算。
 
 ### 3.2 启动编排（`app.ts`）
 
@@ -286,6 +286,7 @@ graph TD
 | 2 | `toolboxStore.init()` | 恢复收藏、最近使用、累计打开次数 |
 | 2.1 | `historyStore.init()` | 恢复本机计算轨迹 |
 | 2.2 | `applyAutoClean()` | 按偏好阈值裁剪过期最近使用 |
+| 2.3 | `cleanupStaleExports()` | 清理超过 24h 或总量超过 10MB 的旧导出文件 |
 | 3 | `resumeStore.bootstrap()` | 并发装载 profile / entries / projects |
 | 4 | `installUpdateGuard()` | 初始化 `wx.getUpdateManager()`，只静默下载与暂存，不弹窗 |
 
@@ -293,8 +294,8 @@ graph TD
 
 | 生命周期 | 行为 |
 |---|---|
-| `onShow(options)` | 读取 `options.query.tool` 写入 `deepLinkStore`；补一次 `applyAutoClean()` |
-| `onHide()` | `historyStore.flush()`，把防抖中的轨迹立即落盘 |
+| `onShow(options)` | 读取 `options.query.tool` 写入 `deepLinkStore`；补一次 `applyAutoClean()` 与 `syncMeetingTimer()` |
+| `onHide()` | `historyStore.flush()` 把防抖中的轨迹立即落盘；`suspendMeetingTimer()` 暂停后台计时 |
 | `onError(error)` | `recordDiagnostic('app-error', error)` |
 | `onUnhandledRejection(res)` | 记录 `unhandled-rejection` |
 | `onPageNotFound(res)` | 记录 `page-not-found`，`switchTab` 回首页，失败再 `reLaunch` |
@@ -328,6 +329,7 @@ sequenceDiagram
   App->>TB: init()
   App->>HIS: init()
   App->>App: applyAutoClean()
+  App->>App: cleanupStaleExports()
   App->>RES: bootstrap()（异步，不阻塞首屏）
   App->>UPD: getUpdateManager() / onUpdateReady
   Note over RES,UPD: 简历装载失败只记录；更新只静默下载，不主动弹窗
@@ -494,11 +496,11 @@ sequenceDiagram
 │   ├── mine/                  # 我的
 │   ├── legal/                 # 隐私与说明
 │   └── lab/                   # 组件样板间
-├── components/                # 28 个主包组件
+├── components/                # 29 个主包组件 + sound-hook.ts
 ├── core/
 │   ├── constants/             # 路由、常量、Canvas 调色板
 │   ├── data/                  # 简历 / 作品静态数据
-│   ├── services/              # request / resume / sound / motion / update / storage-governor
+│   ├── services/              # request / resume / sound / motion / update / storage-governor / backup / diagnostics / privacy-center / font-scale / yuanbao
 │   ├── skill/                 # AI SKILL 原子接口
 │   ├── stores/                # ui / preference / history / privacy / deeplink / resume
 │   ├── theme/                 # ambient-theme / contrast-guardian
@@ -518,7 +520,7 @@ sequenceDiagram
 ├── store/index.ts             # glassStore 全局门面
 ├── styles/                    # Design Tokens / V3 / 旧工具箱样式
 ├── workers/compute.js         # Worker 计算入口
-├── tests/                     # 740 项测试 + 视觉 / E2E
+├── tests/                     # 824 项测试 + 视觉 / E2E
 ├── assets/                    # 头像、二维码、作品封面
 └── CODE_WIKI.md               # 本文档
 ```
@@ -538,9 +540,10 @@ sequenceDiagram
 | `components` | 视觉与交互组件 | `glass-tool-shell`、`glass-toast` |
 | `store/index.ts` | 统一门面：主题、收藏、作品收藏、最近使用 | `glassStore` |
 | `pages` | 主包页面 | `index`、`favorites`、`mine` |
-| `subpackages/tools-core` | 计算 / 文本 / 气象工具 | 26 个 `pages/*`、`lib/*`、`weather/*` |
+| `subpackages/tools-core` | 计算 / 文本 / 气象工具 | 29 个 `pages/*`、`lib/*`、`weather/*` |
+| `subpackages/weather` | 和风天气 8 组 API | `pages/home`、`lib/qweather/*`、`components/qw-*`、`assets/icons` |
 | `subpackages/tools-daily` | 生活高频工具 | `pages/ledger`、`worktime`、`wellness`、`random-pick`、`fuel`、`power`、`resolution`、`carloan`、`quote`、`meeting-timer` |
-| `subpackages/tools-media` | 图片与名片工具 | 7 个 `pages/*` |
+| `subpackages/tools-media` | 图片与名片工具 | 14 个 `pages/*`、`lib/*` |
 | `subpackages/grow` | 简历域 + 设置 + 驾驶舱 + 使用指南 | `home`、`settings`、`cockpit`、`help` |
 | `subpackages/life` | 全息专注引擎 | `pages/focus`、`lib/focus-*` |
 | `subpackages/works` | 作品集 | `hub`、`list`、`detail` |
@@ -621,6 +624,7 @@ export const uiStore = observable({
 type HapticLevel = 'off' | 'light' | 'heavy'
 type MotionLevel = 'full' | 'lite' | 'saver'
 type AutoCleanDays = 0 | 7 | 30
+type FontScale = 'standard' | 'large' | 'xlarge'
 
 interface PreferenceSnapshot {
   version: 1
@@ -631,6 +635,7 @@ interface PreferenceSnapshot {
   autoCleanDays: AutoCleanDays
   isPrivacyMasked: boolean
   isHistoryTrackingEnabled: boolean
+  fontScale: FontScale
   flags: { enable_ai_assist: boolean }
 }
 ```
@@ -647,6 +652,7 @@ interface PreferenceSnapshot {
   autoCleanDays: 30,
   isPrivacyMasked: true,
   isHistoryTrackingEnabled: true,
+  fontScale: 'standard',
   flags: { enable_ai_assist: false }
 }
 ```
@@ -663,6 +669,8 @@ interface PreferenceSnapshot {
 | `setAutoCleanDays()` | 设置最近使用清理阈值 |
 | `setPrivacyMasked()` / `togglePrivacyMasked()` | 驾驶舱隐私盾 |
 | `setHistoryTrackingEnabled()` | 计算轨迹总开关 |
+| `setFontScale(scale)` | 字号档 standard / large / xlarge，写 `app:prefs.v1.fontScale` |
+| `fontScaleLabel` | “标准 / 大 / 特大” |
 | `setFlag(key, value)` | 仅允许白名单 Feature Flag |
 | `statusText` | “全效模式 · 光效开启 · 音效开启” |
 
@@ -671,6 +679,7 @@ interface PreferenceSnapshot {
 - 布尔 / 数字 / 旧字符串三套 `haptics` 写法。
 - `motion` 兼容 `reduceMotion`、`animation`、`motionLevel`。
 - `autoCleanDays` 兼容 `autoClearDays`、`cleanDays`、`retentionDays`。
+- `fontScale` 兼容 `normal / default / 标准`、`big / 大`、`huge / 特大` 与 `1 / 1.15 / 1.3` 数值。
 - 未知 Feature Flag 不会注入运行时。
 
 ### 5.3 Toolbox Store（`core/toolbox/store.ts`）
@@ -764,6 +773,24 @@ export const privacyStore = observable({
 - 多个隐私接口同时 pending 时全部入栈，同意 / 拒绝后统一 resolve。
 - 不持久化任何状态，授权由微信基础库记忆。
 - 同意按钮必须是原生 `<button open-type="agreePrivacyAuthorization">`。
+
+### 5.5.1 隐私中心（`core/services/privacy-center.ts`）
+
+```ts
+permissionSnapshot(): Promise<PrivacySnapshot>
+openPrivacySetting(): Promise<boolean>
+openPrivacyContract(): Promise<boolean>
+readPrivacyVersion(): number
+ackPrivacyVersion(version?): boolean
+privacyVersionChanged(version?): boolean
+resetAllLocalData(): { removedKeys: number; backups: number }
+```
+
+- 权限快照：`wx.getSetting` 读取 `scope.userFuzzyLocation`（旧版回退 `scope.userLocation`）/ `scope.writePhotosAlbum`，`wx.getPrivacySetting` 读取 `needAuthorization` 与 `privacyContractName`；API 不可用时统一降级为 `unavailable`。
+- 版本：`PRIVACY_VERSION`（当前 1）与 `app:privacy.version` 比对；设置页隐私中心首次进入提示，用户确认后写回，清空工具数据不重置，只有重置全部才清除。
+- 重置全部：删除 `tbx:` / `weather:` / `focus:` / `diag:` / `cyber:`、`app:prefs.v1`、`app:prefs.v0`、`app:backup.at`、`app:privacy.version` 与 `USER_DATA_PATH/backups`、`exports`；保留 `gallery.*` 与 `app:storage.version`。
+- 设置页入口：权限状态与跳转、查看隐私指引、导出本机数据（复用备份）、清除工具数据、重置全部；`tests/privacy-center.test.js` 7 条契约测试。
+- 隐私版本与重置范围在 legal 页同步披露。
 
 ### 5.6 DeepLink Store（`core/stores/deeplink.ts`）
 
@@ -961,12 +988,28 @@ send<T>(request: TransportRequest<T>): Promise<Result<T>>
 | `core/services/export.ts` | `prepareExport`、`sharePrepared`、`cleanupExport`、`cleanupAllExports`、`cleanupStaleExports`、`canShareFile`、`utf8ByteLength`、`sanitizeExportName`、`escapeCsvCell` | 本机 `USER_DATA_PATH/exports` 预写 txt / md / csv / json（CSV 加 UTF-8 BOM），单文件上限 `MAX_EXPORT_BYTES = 2MB`；分享必须由用户 tap 同步触发；启动清理超过 24h 或总量超过 10MB 的旧导出 |
 | `core/services/feedback.ts` | `copyText(text, message?): Promise<boolean>`、`toast(message)` | 全项目剪贴板写入唯一入口：内部前置 `ensurePrivacyAuthorized()`，拒绝时不写并提示；三份分包 `lib/ui.ts` 只做 re-export |
 | `core/services/meetingTimer.ts` | `startMeetingTimer`、`startMeetingTimerAt`、`pauseMeetingTimer`、`resumeMeetingTimer`、`resetMeetingTimer`、`syncMeetingTimer`、`suspendMeetingTimer`、`subscribeMeetingTimer`、`meetingTimerStore` | 会议倒计时全局单例：跨页面按 deadline 计时、暂停冻结剩余、结束前 5 秒与结束时震动 + 声音；页面与 HUD 共用 |
+| `core/services/backup.ts` | `exportBackup`、`validateBackup`、`parseBackupText`、`pickBackupFile`、`applyBackup`、`applyBackupToStorage`、`deleteBackupFiles`、`readBackupAt`、`hasBackupFile` | 本机 JSON 备份：写 `USER_DATA_PATH/backups`、固定文件名、只保留 1 份、≤256KB；导入先全量校验再原子写入，失败逆序回滚；覆盖收藏 / 最近 / 搜索 / 天气城市 / 专注记录（含校验密钥）/ `app:prefs.v1` |
+| `core/services/diagnostics.ts` | `redactDiagnosticText`、`shouldDropDiagnosticMessage`、`sanitizeDiagnosticEntries`、`buildDiagnosticPreview`、`collectDiagnosticEnvironment`、`prepareDiagnosticFile` | 本地诊断包：版本 / 基础库 / 机型 / 路由 / 黑匣 20 条；路径、Key、Bearer、邮箱、手机号、证件号脱敏；残留用户输入整条丢弃；≤50KB；复用 `prepareExport` 写 `.txt` |
+| `core/services/privacy-center.ts` | `permissionSnapshot`、`openPrivacySetting`、`openPrivacyContract`、`readPrivacyVersion`、`ackPrivacyVersion`、`privacyVersionChanged`、`resetAllLocalData` | 隐私中心：定位 / 相册 / 隐私指引状态；`PRIVACY_VERSION` ↔ `app:privacy.version`；重置全部删除 tbx / weather / focus / diag / cyber / 备份 / 偏好，保留 `gallery.*` 与 `app:storage.version` |
+| `core/services/font-scale.ts` | `FONT_SCALE_OPTIONS`、`scaleFor`、`currentFontScale`、`fontScaleClass`、`syncFontScaleClass`、`applyFontScale` | 字号档：standard / large / xlarge 映射 `fs-standard / fs-large / fs-xlarge`；页面 `onShow`、组件 `pageLifetimes.show` 一行同步；只改字号与行高，不缩放间距 / 图标 / Canvas |
+| `core/services/yuanbao/index.ts` | `searchYuanbao`、`parseYuanbaoResponse`、`summarizeYuanbaoResults`、`isYuanbaoConfigured`、`YuanbaoError` | 元宝搜索：服务 API KEY（Bearer）或 TC3 SecretId/SecretKey；`sign.ts` 提供纯 TS SHA-256 / HMAC / TC3 签名；Pages JSON 字符串解析、HTML 清洗、官方错误码映射、RequestTask 取消；查询词不写草稿与计算轨迹 |
 | `core/toolbox/engines/money.ts` | `parseCents`、`roundHalfUp`、`formatCents`、`parseBasisPoints` | 金额 / 利率唯一实现，tools-core 与 tools-daily 共享 |
 | `core/toolbox/engines/date.ts` | `serialOf`、`serialOfISO`、`isoOf`、`dayDiff`、`countWeekdays`、`addWorkdays`、`countWorkdays`、`addDays`、`addMonths`、`addDate`、`dateAddSummary`、`parseDateAddWorkflow`、`isoWeekOf`、`dayOfYear`、`formatAll`、`dateSummaryText` 等 46 个导出 | 日期唯一实现：UTC 零点日序号、ISO 周、闰年 / 闰日 / 生日推进、工作日推进、月末钳制、日期加减；`tools-core/lib/date.ts` 只做薄 re-export，跨分包共享 |
 | `core/toolbox/engines/color.ts` | `parseColor`、`formatColor`、`rgbToHsl`、`hslToRgb`、`relativeLuminance`、`contrastRatio`、`contrastReport`、`simulateCvd`、`cvdResults`、`colorSummary` | 颜色唯一实现：HEX / RGB / HSL 互转、WCAG 对比度与 AA/AAA、Machado 色觉模拟；页面与 silent 共用 |
 | `core/toolbox/engines/csv.ts` | `escapeCsv`、`buildCsv`、`jsonToCsv`、`csvToJson`、`CSV_MAX_BYTES` | CSV 唯一实现：转义 / 公式注入防护 / 表头并集 / CRLF / 可选 BOM / CSV 解析；quote 与 json-csv 共用 |
 | `core/toolbox/engines/text.ts` | `toCase`、`toNaming`、`encodeHtml`、`decodeHtml`、`escapeUnicode`、`cleanText`、`convertText` | 文本转换唯一实现：页面与 silent 执行器共用；`cleanText` 默认保留段落，支持全角转半角 / 去空格 / 中文标点 / 去空行 / 去不可见 / 并成一行；`tools-core/lib/textCase.ts` 只做薄 re-export |
 | `core/toolbox/engines/random.ts` | `splitOptions`、`shuffle`、`pickOptions`、`pickUnique`、`randomInt`、`rollDice`、`flipCoins` | 随机唯一实现：页面与 silent 执行器共用；抽签 / 随机数 / 骰子 / 硬币共用 RNG；`tools-daily/lib/random.ts` 只做薄 re-export |
+| `core/toolbox/engines/body.ts` | `bmiOf`、`bmiCategory`、`idealWeightRange`、`bmiMarkerPercent` | BMI 唯一实现：中国成人区间、理想体重范围、量表刻度；BMI 页与 silent 共用 |
+| `core/toolbox/engines/loan.ts` | `planLoan`、`LoanPlan`、`LoanScheduleRow`、`LOAN_MAX_RATE_BP`、`LOAN_MAX_PERIODS` | 等额本息 / 等额本金摊还表唯一实现；房贷与车贷共用 |
+| `core/toolbox/engines/resolution.ts` | `simplifyRatio`、`analyzeResolution`、`fitWidth`、`planResolution`、`printPixelSize`、`PAPER_PRESETS`、`DPI_OPTIONS` | 分辨率 / 比例 / 像素 / 高清判定 / 纸张 DPI 唯一实现；`tools-daily/lib/resolution.ts` 只做薄 re-export |
+| `core/toolbox/engines/rmb.ts` | `centsToChinese(cents)` | 人民币大写唯一实现；`tools-core/lib/rmb.ts` 只做薄 re-export |
+| `core/toolbox/engines/template.ts` | `extractPlaceholders`、`parseVariables`、`renderTemplate`、`templateSummaryText`、`TEMPLATE_LIMIT` | `{{变量}}` 模板唯一实现；`tools-core/lib/template.ts` 只做薄 re-export |
+| `core/toolbox/engines/timer.ts` | `planDuration`、`planDeadline`、`remainingMs`、`formatRemaining`、`timerProgress`、`TIMER_TICK_MS` | 倒计时时间规划唯一实现：时长 / 结束时刻 / 跨日；`tools-daily/lib/timer.ts` 只做薄 re-export |
+| `core/toolbox/privacy.ts` | `maskSensitiveText`、`maskSecretTokens`、`maskNumericText`、`maskLegacySummary` | 轨迹脱敏唯一实现：密码 / 金额 / 证件号等敏感 token 掩码 |
+| `core/toolbox/searchHistory.ts` | `readSearchHistory`、`pushSearchHistory`、`removeSearchHistory`、`clearSearchHistory` | 首页搜索历史：去重、最新在前、最多 `MAX_SEARCH_HISTORY = 8` 条、单条截断 24 字 |
+| `core/toolbox/quotes.ts` | `FOOTER_QUOTES`、`pickFooterQuote(random?, exclude?)` | 工具页页脚：70 条 ≤10 字短语，随机且可排除上一条 |
+| `core/toolbox/types.ts` | `ToolMeta`、`ToolCategory`、`ToolSensitivity`、`FavoriteToggleResult`、`HomeSection` | 工具箱领域类型契约，注册表与 Store 共用 |
+| `core/types/index.ts` | `ThemeMode`、`ResolvedTheme`、`Profile`、`ContactLink`、`Project`、`GalleryGroup` 等 | 全局类型宪法：主题、简历、作品、图集、统计 |
 | `subpackages/tools-daily/lib/power.ts` | `powerBill`、`utilityBill`、`powerSummaryText`、`utilitySummaryText` | 水电燃气唯一实现：电费功率 × 时长；水气用量 × 费率表 + 基础费；阶梯与超最高档 |
 | `core/toolbox/tool-session.ts` | `resolveToolSession`、`privacyTextFor`、`toggleFavoriteTool` | 工具会话层：元数据 / 敏感文案 / 收藏 / 最近使用唯一入口 |
 | `core/toolbox/crc32.ts` | `crc32`、`crc32Hex` | 分片传输、Cyber 快照校验共用 |
@@ -1066,6 +1109,32 @@ clearToolboxData(): number
 ```
 
 所有坏数据都被逐项丢弃，不阻塞启动。
+
+### 6.2.1 工具草稿（`core/toolbox/draft.ts`）
+
+```ts
+interface ToolDraft {
+  v: 1
+  mode: string
+  input: Record<string, string>
+  at: number
+}
+
+readDraft(toolId, now?): ToolDraft | null
+saveDraft(toolId, { mode, input }, now?): 'saved' | 'skipped' | 'empty' | 'failed'
+clearDraft(toolId): boolean
+pruneDrafts(now?): { removed: number; kept: number }
+clearAllDrafts(): number
+draftAllowed(toolId): boolean
+```
+
+- 存储键 `tbx:draft.<id>`；单工具 JSON ≤4KB（UTF-8），最多 20 个工具，30 天过期，超限按 `at` 淘汰最旧。
+- 只保存用户主动输入与模式，不保存结果；`sensitive !== ''` 或 `draftExcluded === true` 的工具一律 `skipped`。
+- 空输入返回 `empty` 并清除旧草稿；坏数据 / 版本不符静默丢弃；写入失败返回 `failed`。
+- `app.ts` 启动调用 `pruneDrafts()`；`clearToolboxData()` 按 `tbx:` 前缀扫描，天然覆盖动态草稿键。
+- 页面契约：`collectDraftInput(): Record<string, string>`、`applyDraftInput(input, mode): void`、可选 `draftMode(): string`。
+- 外壳 `glass-tool-shell` 首次 `pageLifetimes.show` 记录基线，600ms 后仅在草稿存在且表单未改动时显示「恢复上次输入」；`onRun`、`pageLifetimes.hide`、`detached` 保存，`onReset` 清除；恢复前再次校验，已有输入时拒绝覆盖。
+- 35 个非敏感工具页接入；`weather` 因城市由 `weather:` 独立持久化登记例外；`tests/draft.test.js` 11 条契约测试。
 
 ### 6.3 最近使用保留策略（`core/toolbox/retention.ts`）
 
@@ -1178,8 +1247,8 @@ purgeHistoryFromSnapshots(): { slots: number; records: number }
 purgeHistoryRecordFromSnapshots(id: string): number
 ```
 
-- 扫描 `cyber:auto:v1`、`cyber:hot:v1` 中的快照 payload。
-- 只修改 `snapshot.history`，保留主题 / 收藏 / 偏好。
+- 扫描 `cyber:auto:v1`、`cyber:hot:v1` 中的快照 payload 与 `cyber:frames:v1` 时间轴帧。
+- 只修改 `snapshot.history` / `frame.history`，保留主题 / 收藏 / 偏好。
 - 修改后重算 CRC32，保证 Time Travel 仍可解码。
 
 ### 6.9 自定义 TabBar（`core/toolbox/tabbar.ts` + `custom-tab-bar/`）
@@ -1227,7 +1296,7 @@ interface WorkflowSession {
 - `context` 只允许基础类型，禁止对象 / 数组。
 - 载荷只经 `workflowStore` 内存传递，禁止 URL 传参。
 - 图片载荷是 `wx.saveFile` 后的本地路径。
-- `WorkflowToolId` 是 63 个工具 id 的联合类型；新增工具必须同步扩展。
+- `WorkflowToolId` 是 64 个工具 id 的联合类型；新增工具必须同步扩展。
 
 ### 7.2 路由配置（`core/workflow/workflowConfig.ts`）
 
@@ -1291,6 +1360,7 @@ interface WorkflowSession {
 | `qr` | jump | text |
 | `watermark` | jump | image |
 | `weather` | jump | 空（纯产出，不可作为目标） |
+| `qweather` | jump | 空（纯产出，不可作为目标） |
 
 导出函数：
 
@@ -1306,7 +1376,7 @@ workflowToolName(id): string
 
 ### 7.3 来源提取（`core/workflow/workflowSource.ts`）
 
-`readWorkflowSource(toolId, page.data)` 按工具逐一声明结果字段，绝不猜测 `posterData`。63 卡字段统一登记在导出的 `WORKFLOW_SOURCE_KEYS` 中，运行时读取与 `tests/workflow-coverage.test.js` 的动态 fixture 共用同一份清单。
+`readWorkflowSource(toolId, page.data)` 按工具逐一声明结果字段，绝不猜测 `posterData`。64 张运行时卡字段统一登记在导出的 `WORKFLOW_SOURCE_KEYS` 中，运行时读取与 `tests/workflow-coverage.test.js` 的动态 fixture 共用同一份清单。
 
 | 工具 | 文本字段优先级 |
 |---|---|
@@ -1360,6 +1430,7 @@ workflowToolName(id): string
 | `password` | `password` |
 | `bmi` | `copyPayload` |
 | `weather` | `weatherSummary` → `weatherText` |
+| `qweather` | `weatherSummary` |
 | `palette` | `dominantHex` → `averageHex` |
 
 图片字段：
@@ -1518,7 +1589,7 @@ capturePageData(page)
 isSameValue(left, right): boolean
 ```
 
-`isSameValue` 对数组 / 对象递归比较，超过 12 层保守判为“已修改”，宁可跳过也不误伤。
+`isSameValue` 对数组 / 对象递归比较；深度达到 12 层后改用 `JSON.stringify` 比对，序列化失败时才保守判为“已修改”，避免无限递归。
 
 ### 7.7 流转面板（`components/workflow-panel/`）
 
@@ -1547,7 +1618,7 @@ idle → computing → showing_result
 
 ---
 
-## 8. 工具算法与 63 个工具
+## 8. 工具算法与 64 个工具
 
 ### 8.1 金额与数值（`core/toolbox/engines/money.ts`）
 
@@ -1617,7 +1688,7 @@ centsToChinese(cents: number): string
 - 支持负数；`0` 返回“零元整”。
 - 最大 1 万亿元，超出返回“金额超出支持范围”。
 
-### 8.4 63 个工具总表
+### 8.4 64 个工具总表
 
 | id | 名称 | 分类 | 路由 | 权重 | Workflow | 关键行为 |
 |---|---|---|---|---|---|---|
@@ -1684,6 +1755,8 @@ centsToChinese(cents: number): string
 | `qr` | 二维码生成 | media | `/subpackages/tools-media/pages/qr/index` | 85 | jump/text | 纯 JS 编码 + 1-bit PNG；不用 Canvas |
 | `watermark` | 水印工作台 | media | `/subpackages/tools-media/pages/watermark/index` | 95 | jump/image | 文字 / Logo / 打码；WXS 手势 |
 | `weather` | 全息气象 | life | `/subpackages/tools-core/pages/weather/index` | 98 | jump（仅来源） | 高德实况 + 4 天预报；模糊定位降级 |
+| `qweather` | 和风天气 | life | `/subpackages/weather/pages/home/index` | 97 | jump（仅来源） | 8 组 API / 27 端点；7 Tab、官方图标 507 个；JWT 认证 |
+| `web-search` | 元宝搜索 | text | `/subpackages/tools-core/pages/web-search/index` | 97 | jump（接受文本） | 腾讯云 WSA SearchPro；全网结果、筛选、详情、复制链接 |
 
 ### 8.5 个税（`tax`）
 
@@ -1985,7 +2058,7 @@ Worker → 主线程: { kind: 'pong', id }
 |---|---|---|
 | 星系图 | `utils/canvasGalaxy.ts` | Canvas 粒子星系，支持平移 / 缩放 / 选中 / 降级 |
 | Auto-Pilot | `utils/cronParser.ts` | 5 段 Cron 解析与分钟级调度 |
-| Time Travel | `utils/timeTravelEngine.ts` | 状态快照 / 时间旅行 / 热备 / 自动快照 |
+| Time Travel | `utils/timeTravelEngine.ts` | 状态快照 / 时间旅行 / 热备 / 自动快照；时间轴帧经 `cyber:frames:v1` 跨页面恢复 |
 | 分片传输 | `utils/slicedTransfer.ts` | `[Part i/n] CSOS1|sid|index|total|crc|jsonChunk` 文本协议 |
 | AES 保险箱 | `utils/aesVault.ts` | AES-256-CBC + PKCS7，`CYBER-AES1|ivHex|cipherHex` |
 | 事件流 | `timeTravelEngine.ts` 的 `EventLog` | 内存环形 50 条，不落盘 |
@@ -2019,8 +2092,13 @@ getFrames(): CyberSnapshot[]
 views(activeIndex): TimeTravelFrameView[]
 preview(index): CyberSnapshot | null
 travel(index): { ok, message, frame? }
+restorePersisted(): number
+persist(): boolean
 clear(): void
 ```
+
+- 时间轴用显式横向 flex 轨道承载卡片，避免 `white-space: normal` 下在 Skyline 纵向堆叠压住滑轨。
+- 拖动滑轨时同步卡片高亮、`scroll-into-view` 与「第 N / M 帧 · 时间 · 标签」位置文案，松手不自动穿越。
 
 `GalaxyEngine`：
 
@@ -2041,7 +2119,7 @@ select(id): GalaxyParticle | null
 
 ### 8.22 进制转换（`radix`）
 
-来源：`subpackages/tools-core/lib/radix.ts` + `pages/radix/index.ts`。
+来源：`subpackages/tools-core/lib/radix.ts` + `subpackages/tools-core/pages/radix/index.ts`。
 
 - 支持 2 / 8 / 10 / 16 四种进制，`RADIX_LABELS` 分别映射「二进制 / 八进制 / 十进制 / 十六进制」。
 - 纯字符串大数运算，不依赖 `BigInt`：逐位乘加 `mulAdd()` + 除法取余完成任意进制互转。
@@ -2052,7 +2130,7 @@ select(id): GalaxyParticle | null
 
 ### 8.23 算账助手（`ledger`）
 
-来源：`subpackages/tools-daily/lib/ledger.ts` + `pages/ledger/index.ts`（`tools-daily` 分包，独立于 tools-core）。
+来源：`subpackages/tools-daily/lib/ledger.ts` + `subpackages/tools-daily/pages/ledger/index.ts`（`tools-daily` 分包，独立于 tools-core）。
 
 三种模式：`discount`（折扣）/ `threshold`（满减）/ `aa`（AA 分摊）。所有金额以「分」整数计算，展示层才转元。
 
@@ -2081,7 +2159,7 @@ select(id): GalaxyParticle | null
 
 ### 8.24 全息气象（`weather`）
 
-来源：`subpackages/tools-core/pages/weather/` + `weather/*`。这是全项目两个**发起外部网络请求**的工具之一（另一个是汇率换算），也是唯一不套 `glass-tool-shell` 的工具页之一（另一个是水印工作台）。
+来源：`subpackages/tools-core/pages/weather/` + `weather/*`。这是全项目三个**发起外部网络请求**的工具之一（另两个是汇率换算与元宝搜索），也是唯一不套 `glass-tool-shell` 的工具页之一（另一个是水印工作台）。
 
 #### 网络层（`weather/weatherService.ts`）
 
@@ -2111,7 +2189,8 @@ wx.getFuzzyLocation（gcj02，城市级）
 ```
 
 - 定位前必须 `ensurePrivacyAuthorized()`；拒绝 / 低版本 / 局域网 / IPv6-only 全部优雅降级，不伪造数据。
-- `app.json` 只声明 `requiredPrivateInfos: ["getFuzzyLocation"]`，不申请精确位置。
+- `app.json` 只声明 `requiredPrivateInfos: ["getFuzzyLocation"]`，不申请精确位置；必须同时配置 `permission["scope.userFuzzyLocation"].desc`，否则微信不会弹出定位授权窗。
+- 未申请时先展示应用内说明（只获取城市级模糊位置），确认后再由微信弹出系统授权；已拒绝时提供「去设置 / 手动选城」，设置页权限行读取 `scope.userFuzzyLocation` 实时同步。
 
 一次完整刷新（定位 → 数据 → 缓存）的时序如下：
 
@@ -2157,6 +2236,23 @@ sequenceDiagram
   end
   Page->>Page: 渲染实况、粒子、图表与环境音
 ```
+
+#### 模块构成（`weather/*`）
+
+| 模块 | 职责 |
+|---|---|
+| `weatherService.ts` | 高德 REST 唯一网络入口：实况 / 预报 / 逆地理 / IP / 行政区搜索，超时、重试与 `WeatherError` |
+| `weatherLocation.ts` | 模糊定位 → 逆地理 → IP 兜底 → 手动城市搜索的定位链 |
+| `weatherCache.ts` | 城市表、当前城市、实况 / 预报 / 负缓存与 TTL |
+| `weatherParse.ts` | 原始响应 → 领域模型，字段缺失 / `null` 归一化 |
+| `weatherCode.ts` | 天气现象码 → 现象家族 / 中文标签 / 环境光场景 |
+| `weatherAstro.ts` | 日出日落本机计算，支持极昼 / 极夜 |
+| `weatherChart.ts` | 预报与逐小时静态图表绘制 |
+| `weatherFx.ts` | 全屏天气粒子（雨 / 雪 / 晴等） |
+| `weatherAudio.ts` | `WeatherAmbientAudio`：WebAudio 环境音合成（雨 / 风），默认关闭、按需创建 |
+| `weatherDiagnostics.ts` | `WeatherRequestLog`、`describeInfoCode`、`buildDiagnosticText`：诊断码解释与请求日志 |
+| `weatherHourly.ts` | 逐小时数据组装与展示口径 |
+| `types.ts` / `config.ts` | 天气领域类型与 Key / 端点 / 超时配置；`config.local.ts` 由脚本生成 |
 
 #### 缓存与城市（`weather/weatherCache.ts`）
 
@@ -2249,6 +2345,20 @@ stateDiagram-v2
 
 #### 存储与存证（`lib/focus-storage.ts` / `focus-crypto.ts` / `focus-level.ts`）
 
+补充模块：
+
+| 模块 | 职责 |
+|---|---|
+| `focus-types.ts` | `FocusFsm` / `FocusTrack` / `FocusSession` / `FocusRecord` / `FocusStats` 等类型契约，无副作用 |
+| `focus-fsm.ts` | 纯函数状态机：开始 / 暂停 / 继续 / 完成 / 休息 / 过热 / 恢复 |
+| `focus-storage.ts` | 6 个 `focus:*` 键的白名单读写、验签、幂等结算 |
+| `focus-crypto.ts` | SHA-256 / HMAC-SHA256、canonical 序列化、会话 / 战报 / 统计签名与验签 |
+| `focus-level.ts` | 等级阈值、等级标签、连续天数推进 |
+| `focus-nebula.ts` | 按 `record.seed` 生成的确定性星云战报绘制 |
+| `focus-audio.ts` | `FocusAudioEngine`：16kHz 单声道噪声采样、雨 / 火 / 键盘 3 轨、淡入淡出；AudioContext 依赖注入，Node 可单测 |
+
+存储键：
+
 | 键 | 内容 |
 |---|---|
 | `focus:session:v1` | 当前会话断点（FocusSession，含签名） |
@@ -2297,7 +2407,7 @@ sequenceDiagram
   Page->>Page: openReport(record, stats)
 ```
 
-#### 页面运行时（`pages/focus/index.ts`）
+#### 页面运行时（`subpackages/life/pages/focus/index.ts`）
 
 - 计时：`TICK_MS = 250`、每 30s 落盘一次会话、每 60s 写心跳；`Date.now()` 与单调时钟双锚点，漂移超过 `CLOCK_DRIFT_LIMIT_MS = 5000` 判时钟异常，本次不计入等级。
 - 翻转检测：加速度计姿态 `FACE_DOWN_RAD = 2.35` 持续 600ms 进入黑屏；拿起 `PICKUP_RAD = 1.2` 持续 300ms 退出；黑屏时亮度降至 `0.05`，普通专注降至 `0.2`，`onHide` / `onUnload` 幂等恢复原始亮度。
@@ -2497,6 +2607,33 @@ sequenceDiagram
 - 方向映射：up / down / left / right 及 4 种 mirrored 组合；未知方向显示“未知”。
 - `privacy`；jump + image：适配器调用 `onReceiveWorkflow`，`exifSummary`（尺寸 · 格式 · 体积[ · 方向]）作为 Workflow 文本来源。
 
+### 8.42 元宝搜索（`web-search`）
+
+- 服务：腾讯云元宝搜索 WSA `SearchPro`（`Version=2025-05-08`）；支持服务 API KEY 方式（`POST https://api.wsa.cloud.tencent.com/SearchPro` + `Authorization: Bearer <API KEY>`）或标准 TC3 方式（`POST https://wsa.tencentcloudapi.com/` + `SecretId/SecretKey` 签名）。
+- 签名：`core/services/yuanbao/sign.ts` 纯 TS SHA-256 / HMAC-SHA256 / TC3-HMAC-SHA256；固定时间戳向量已与 Node crypto 对照。
+- 入参：`Query` 必填；`Cnt` 10 / 20 / 30 / 40 / 50；`Freshness` 支持 `d7 / m1 / y1`、自定义 `dN / mN / yN`（天 1–30 / 月 1–12 / 年 1–5）、单日 `yyyy-mm-dd` 与区间 `yyyy-mm-dd,yyyy-mm-dd`；`Industry` 支持 `news / acad / finance / gov`；`Site` 支持单域名或 `exclude:域名|域名`；`Deeplinks` 仅旗舰版。
+- 出参：`Response.Pages` 为 JSON 字符串数组；逐条解析 title / url / site / date / passage / content / score / authority_level / favicon / pics / deeplinks，HTML 标签与实体清洗为纯文本，非法条目丢弃；页面同时展示 `Version`（极速版 / 标准版 / 旗舰版）、`Msg` 与 `RequestId`。
+- 错误：`UnauthorizedOperation` / `ResourceNotFound` / `RequestLimitExceeded` / `ResourceUnavailable` / `InvalidParameter` 映射为可读文案；HTTP 401/403 按未授权处理，超时与网络失败可重试；`url not in domain list` 明确提示添加 `wsa.tencentcloudapi.com`。
+- 配置：`core/services/yuanbao/config-local.ts` 保存服务 API KEY 或 SecretId / SecretKey（git 忽略）；`scripts/ensure-yuanbao-config.js` 在缺失时生成占位文件；MP 后台按凭证方式加入 request 合法域名：Bearer 用 `api.wsa.cloud.tencent.com`，TC3 用 `wsa.tencentcloudapi.com`。
+- 入口：独立工具卡 + 独立页 + 首页搜索「用元宝搜索」+ 首页内联前 4 条结果；首页 520ms 防抖并在新输入 / 卸载时 abort 在途请求；首页搜索框与元宝搜索词输入框均支持一键清空，首页清空会中断在途请求并复位结果。
+- 结果区：`subpackages/tools-core/components/web-search-results/` 承载结果卡、权威度 / 相关性徽标、复制、详情抽屉（配图描述、图标地址、附件子链、RequestId）与空态；页面因此保持 24KB 预算内。
+- 导出：`summarizeYuanbaoResults` 只取前 3 条并标注剩余数量用于复制摘要；`exportYuanbaoResults` 输出全部结果的标题 / 来源 / 日期 / 链接 / 摘要，供 `.txt` 导出与分享；详情抽屉通过 `toArticleExport` 预写单篇文章（标题 / 来源 / 链接 / 摘要 / 正文 / 配图地址 / 子链），tap 时同步调用 `sharePrepared`。
+- 页面拆分：`subpackages/tools-core/lib/web-search-view.ts` 承载筛选选项、结果卡片映射与空态，`subpackages/tools-core/lib/freshness.ts` 统一自定义时效归一化与校验，页面只保留交互，保持 24KB 预算内。
+- 隐私：查询词会上传至腾讯云；查询词不写草稿与计算轨迹；海报 / 轨迹只保存结果数量与筛选条件。
+- 边界：外链不能直接被小程序打开，统一复制后在浏览器打开；`pics` / `favicon` 展示描述与地址复制，受小程序图片下载域名限制；`deeplinks` 需旗舰版权限，标准版 / 极速版忽略并提示；极速版不支持部分筛选参数。
+
+### 8.43 和风天气（`qweather`）
+
+来源：`subpackages/weather/`；独立分包，不改变 63 卡口径，只扩展运行时工具数。
+
+- **数据层**：`lib/qweather/endpoints.ts`（20 个接口 / 27 个范围变体与 TTL）、`client.ts`（JWT / API KEY、12s 超时、可 abort、错误映射）、`service.ts`（组合、缓存、v1 与 v7 合并、取消）、`parse.ts`（全部响应归一化为 ViewModel）、`cache.ts`（单键 40 条、650KB 上限、跨自然日失效）、`city.ts`（GeoAPI + 最多 5 城市）、`location.ts`（只申请 `wx.getFuzzyLocation`）、`icons.ts`（官方图标映射与夜间码转换）。
+- **认证**：JWT Header `{alg:"EdDSA",kid}`、Payload `{iss,sub,iat,exp}`，有效期 24 小时；`scripts/qweather-token.js` 读取 Ed25519 私钥生成并写入 gitignored `config-local.ts`；API KEY 走 `X-QW-Api-Key`，优先于 JWT。
+- **日期口径**：天文 `date` 与时光机 `date` 统一转 `yyyyMMdd`；天文只允许今天及未来 60 天，时光机只允许最近 10 天；空气质量三接口均带 `localTime=true`，避免 UTC 与本地日期错位。
+- **页面**：`pages/home` 7 Tab（总览 / 逐小时 / 每日 / 空气 / 指数 / 天文 / 时光机）+ 自定义导航（胶囊安全区实测）+ 下拉刷新；组件 `qw-hero`、`qw-minutely`、`qw-alerts`、`qw-hourly`、`qw-daily`、`qw-air`、`qw-indices`、`qw-astronomy`、`qw-history`、`qw-city-sheet`、`qw-api-sheet`、`qw-icon`。
+- **图标**：QWeather Icons 1.8.0 全量 507 个 SVG（505 个天气 / 预警 / 月相 + 2 个品牌），保留 `LICENSE.md`；`qw-icon` 在 `-fill` 缺失时自动退回线框版，再失败回退 `9999`。
+- **自检**：`qw-api-sheet` 逐个真实请求 27 个端点，显示通过 / 失败 / 延迟 / 条数；全部通过时 toast 提示。
+- **测试**：`tests/qweather.test.js` 8 条覆盖端点 / 图标 / 映射 / 解析 / 缓存 / 凭据 / 页面契约；`npm run qweather:token` 可在 Token 过期前重新生成。
+
 ---
 
 ## 9. 组件库
@@ -2506,7 +2643,7 @@ sequenceDiagram
 | 组件 | 作用 | 关键属性 / 事件 |
 |---|---|---|
 | `animated-number` | 数字滚动 | `value`、`duration`、`decimals`、`separator` |
-| `command-palette` | 全局指令面板 | `useBuiltins`、`commands`、`placeholder`、`maxResults` |
+| `command-palette` | 全局指令面板 | `useBuiltins`、`commands`、`placeholder`、`maxResults`（默认 12） |
 | `g-button` | 旧版按钮（少量页面使用） | `variant`、`block`、`disabled`、`loading`、`tap` |
 | `g-card` | 旧版卡片 | `padding`、`solid`、`sheen`、`hover`、`tap` |
 | `g-gallery` | 旧版图集（当前页面主要用分包副本） | `groups`、`tone`、`dark` |
@@ -2539,7 +2676,7 @@ sequenceDiagram
 
 文件：`components/glass-tool-shell/index.ts` / `.wxml` / `.wxss`。
 
-用途：63 个工具中 61 个工具页的统一外壳（`watermark` 自定义工作台与 `weather` 全屏气象舞台除外）。
+用途：64 个工具中 61 个工具页的统一外壳（`watermark` 自定义工作台与 `weather` 全屏气象舞台除外）。
 
 组件协作关系：
 
@@ -2610,6 +2747,7 @@ flowchart LR
 - 输入卡片、结果卡片、空态、错误提示。
 - 结果下方「流转到其他工具」与「生成专属海报」。
 - 结果导出：`exportContent` 变化后 300ms 防抖预写；tap「导出结果文件」同步分享；低版本 / 准备失败 / 分享失败降级为复制；结果变化与卸载清理本页文件；`quote` CSV 与 `image-pdf` PDF 保留专用导出。
+- 页脚：每次进入工具页从 `core/toolbox/quotes.ts` 随机取一条 ≤10 字人生哲理，避免连续重复；只展示「短语」，不再显示长文案。
 - 自动埋点：`hasResult` / `posterData` 变化后 160ms 防抖写入轨迹。
 - 自动挂载 `workflow-receiver`、`workflow-panel`、`poster-generator`、`poster-preview`、`privacy-guard`、`meeting-timer-hud`、`update-guard`。
 - `update-guard` 的 `blocked` 绑定 `state === 'running' || workflowPanelVisible || posterVisible || isGenerating || updateBlocked`。
@@ -2650,7 +2788,7 @@ glassToastBehavior // 为组件注入 this.$toast()
 
 ### 9.4 指令面板（`command-palette`）
 
-- 63 个工具自动生成命令 + 6 个全局导航命令。
+- 64 个工具自动生成命令 + 6 个全局导航命令。
 - 模糊匹配：完全匹配 / 前缀 / 包含 / 字符子序列 / 关键词。
 - 内置拼音全拼、拼音首字母、中英文别名、分类别名。
 - 支持 `navigateTo` 与 `switchTab` 两种跳转模式。
@@ -2716,7 +2854,7 @@ glass-tool-shell.onGeneratePoster()
 - 全局静音、音量、iOS 静音开关策略、销毁清理。
 - `useSound()` 是唯一业务入口，受 `preferenceStore.sound` 闸门控制。
 
-### 9.10 分包组件（13 个）
+### 9.10 分包组件（14 个）
 
 | 分包 | 组件 | 关键属性 / 事件 | 作用 |
 |---|---|---|---|
@@ -2733,6 +2871,7 @@ glass-tool-shell.onGeneratePoster()
 | campus | `g-gallery` | `groups`、`tone`、`dark` | 园枢图集 / 大图查看 |
 | campus | `g-placeholder` | `title`、`tone`、`glyph` | 图片占位 |
 | tools-core | `weather-glyph` | `family`、`size`、`tone`、`night` | 气象图标族（白昼 / 夜航两套 SVG，按 `WeatherFamily` 映射；夜间晴天/多云切月亮版） |
+| tools-core | `web-search-results` | `results`、`query`、`summary`、`version-label`、`version-hint`、`message`、`request-id` | 元宝搜索结果区：结果卡、权威度 / 相关性徽标、复制、空态、详情抽屉（配图 / 子链 / 图标地址） |
 
 ---
 
@@ -2743,18 +2882,16 @@ glass-tool-shell.onGeneratePoster()
 | 路由 | 文件 | 职责 |
 |---|---|---|
 | `/pages/index/index` | `pages/index/` | 工具箱首页：Hero 数据、搜索、最近使用、收藏、魔法棒指令面板、深链、分享 |
-| `/pages/favorites/index` | `pages/favorites/` | 工具收藏列表、取消收藏、空态 CTA、TabBar 选中 |
-| `/pages/mine/index` | `pages/mine/` | 外观切换、关于作者、隐私说明、设置中心、数据驾驶舱、邮箱复制、清空工具数据、版本号 |
-| `/pages/legal/index` | `pages/legal/` | 隐私说明 / 本机数据 / 免责声明 / 开源许可；隐私授权弹窗 |
-| `/pages/lab/index` | `pages/lab/` | 组件样板间：空间全息、玻璃输入、底部抽屉、数字滚动 |
+| `/pages/favorites/index` | `pages/favorites/` | 工具收藏列表、三排序、多选管理、批量移除、清空确认、空态 CTA、TabBar 选中 |
+| `/pages/mine/index` | `pages/mine/` | 外观切换、关于作者、隐私说明、设置中心、数据驾驶舱、邮箱复制、清空工具数据、版本号；隐私中心与重置全部已迁入设置页 |
 
-### 10.2 `subpackages/tools-core`（29 页）
+### 10.2 `subpackages/tools-core`（31 页）
 
-单位换算、个税计算、房贷试算、存款复利、进制转换、日期格式、日期加减、颜色转换、JSON ↔ CSV、时区换算、工期排期、文本转换、模板填充、正则测试、日期间隔、年龄周岁、倒数日、时间戳、金额大写、字数统计、文本对比、Hash 加密、去重排序、JSON 格式化、URL 编解码、Base64、随机密码、BMI 指数、全息气象。
+单位换算、个税计算、房贷试算、存款复利、进制转换、日期格式、日期加减、颜色转换、JSON ↔ CSV、时区换算、工期排期、文本转换、模板填充、正则测试、日期间隔、年龄周岁、倒数日、时间戳、金额大写、字数统计、文本对比、Hash 加密、去重排序、JSON 格式化、URL 编解码、Base64、随机密码、BMI 指数、全息气象、元宝搜索；另有组件样板间 `lab`。
 
 所有页面：
 
-- 除 `weather`、`watermark` 外全部使用 `glass-tool-shell`（全项目 61/63 工具套壳）。
+- 除 `weather`、`watermark` 外全部使用 `glass-tool-shell`（全项目 62/64 工具套壳）。
 - 所有工具页均已实现 `onShareAppMessage` / `onShareTimeline`，分享路径统一由 `core/toolbox/share.ts` 反查当前工具。
 - 状态机 `idle / running / done / invalid / error`。
 - 输出 `posterData` 供海报与埋点。
@@ -2801,7 +2938,7 @@ glass-tool-shell.onGeneratePoster()
 | `/subpackages/tools-media/pages/vcard/index` | 二维码名片：vCard / 图片名片 / 二维码 |
 | `/subpackages/tools-media/pages/watermark/index` | 水印 / 打码 / Logo / 手势工作台 |
 
-### 10.4 `subpackages/grow`（8 页）
+### 10.4 `subpackages/grow`（9 页）
 
 | 路由 | 职责 |
 |---|---|
@@ -2810,9 +2947,10 @@ glass-tool-shell.onGeneratePoster()
 | `/subpackages/grow/pages/profile/index` | 个人简介、社交坐标、Canvas 名片生成器 |
 | `/subpackages/grow/pages/about/index` | 关于我、成长时间线 |
 | `/subpackages/grow/pages/skills/index` | 技能矩阵、分段控件、量表重播 |
-| `/subpackages/grow/pages/settings/index` | 全局设置 + Cyber Space OS 极客实验室 + 专注引擎入口 / 清空 |
+| `/subpackages/grow/pages/settings/index` | 全局设置 + 隐私中心（权限 / 版本 / 重置）+ Cyber Space OS 极客实验室 + 专注引擎入口 / 清空 |
 | `/subpackages/grow/pages/cockpit/index` | 数据驾驶舱：轨迹 / 周报 / 环形图 / 折线图 / 隐私盾 |
-| `/subpackages/grow/pages/help/index` | 使用指南：覆盖 63 个工具的步骤 / 提示 / FAQ，搜索复用 `searchTools` |
+| `/subpackages/grow/pages/help/index` | 使用指南：覆盖 64 个工具的步骤 / 提示 / FAQ，搜索复用 `searchTools`；底部「问题未解决？」可复制反馈邮箱、预览并导出脱敏诊断包 |
+| `/subpackages/grow/pages/legal/index` | 隐私说明 / 本机数据 / 免责声明 / 开源许可；隐私授权弹窗 |
 
 #### 10.4.1 设置页功能分区
 
@@ -2822,9 +2960,10 @@ glass-tool-shell.onGeneratePoster()
 | 极客实验室 `EXPERIMENTAL` | 快速上手、数据星系、Auto-Pilot、Time Travel、Sliced Transport、AES Vault、Event Stream |
 | 感官体验 `SENSORY / 01` | 系统音效、物理震动（关闭 / 轻震 / 重震） |
 | 视觉与性能 `VISION / 02` | 动态光效、动画强度（全效 / 精简 / 省电） |
-| 存储与数据 `STORAGE / 03` | 数据驾驶舱入口、全息专注入口 / 清空专注数据、本机缓存、自动清理最近使用（7 / 30 / 永不）、仅清空最近使用 |
-| 实验室 `LAB / 04` | 保留分区 |
-| AI 实验席位 `MYSTERY / 05` | `enable_ai_assist` Feature Flag，仅登记意向 |
+| 存储与数据 `STORAGE / 03` | 数据驾驶舱入口、全息专注入口 / 清空专注数据、本机缓存、备份与恢复（导出 / 导入 / 删除 JSON 备份）、自动清理最近使用（7 / 30 / 永不）、仅清空最近使用 |
+| 隐私中心 `PRIVACY / 04` | 定位 / 相册 / 隐私指引状态、跳转系统设置与微信指引、版本变更提示、导出本机数据、清除工具数据、重置全部 |
+| 实验室 `LAB / 05` | 保留分区 |
+| 创新实验席位 `MYSTERY / 06` | `enable_ai_assist` Feature Flag，仅登记意向 |
 | 版本与说明 `CHANGELOG` | 版本号、更新日志、更新就绪提示 |
 
 设置页原则：
@@ -2833,7 +2972,8 @@ glass-tool-shell.onGeneratePoster()
 - 高频滑块只在 `touchend` 落盘，`onInput` 只做文案预览。
 - 清理 / 阈值 / Feature Flag 全部有边界兜底与玻璃 Toast 反馈。
 - 极客实验室默认收起；展开后才挂载 Canvas 与对应模块。
-- 高危操作（AES、Time Travel、分片传输、Auto-Pilot、抽屉）会阻塞全局更新弹窗。
+- 高危操作（AES、Time Travel、分片传输、Auto-Pilot、抽屉、重置全部）会阻塞全局更新弹窗。
+- 隐私中心只读取权限状态，不主动申请权限；拒绝后由各工具自行降级。
 
 #### 10.4.2 数据驾驶舱能力
 
@@ -2841,7 +2981,7 @@ glass-tool-shell.onGeneratePoster()
 |---|---|
 | 效率洞察 | 总数 / 近 7 日 / 连续天数 / 最常用工具 / 分类 / 昼夜占比 / 人格标签 |
 | 分类占比 | Canvas 环形图，按分类统计本机轨迹 |
-| 近 7 日活动 | Canvas 折线图，每天完成的计算次数 |
+| 近 7 日活动 | Canvas 折线图，每天完成的计算次数；省电 / 关闭动画直接画终态，rAF 不回帧由 watchdog（时长 + 220ms）兜底 |
 | 计算轨迹 | 分页展示本机轨迹，展开后按 24 条一批追加，可单条删除 |
 | 隐私盾 | 默认脱敏；只隐藏金额 / 密码 / 健康等敏感值 |
 | 记录开关 | `isHistoryTrackingEnabled`，关闭后不再写入新轨迹 |
@@ -2868,7 +3008,11 @@ glass-tool-shell.onGeneratePoster()
 
 `life` 是独立分包：主包只新增 `ROUTES.focus`、`requiredBackgroundModes: ["audio"]` 与设置页入口，不增加主包组件 / 算法体积。设置页通过只读 Storage 契约读取 `focus:session/v1` 与 `focus:stats/v1`，不 import life 分包。
 
-### 10.7 页面通用约定
+### 10.7 `subpackages/weather`（1 页）
+
+和风天气独立页 `pages/home`：自定义导航 + 胶囊安全区实测、7 个 Tab、下拉刷新、城市抽屉、API 自检抽屉；数据层与 12 个 `qw-*` 组件同分包，官方 507 个 SVG 图标位于 `assets/icons`，不进入主包。
+
+### 10.8 页面通用约定
 
 1. **分享**：全部页面实现 `onShareAppMessage` / `onShareTimeline`，工具页自动反查当前工具；分享路径与标题统一由 `core/toolbox/share.ts` 生成。
 2. **主题**：页面根节点绑定 `uiStore.themeClass`；需要原生状态栏同步的页面在 `onShow` 调用 `uiStore.syncNativeChrome()`，工具页由 `glass-tool-shell` 的 `pageLifetimes.show` 统一调用。
@@ -3005,6 +3149,10 @@ buildContrastVars(result): string
 | `--glass-text` | `#f5f7fc` | `#151a24` |
 | `--glass-accent` | `#8f9bff` | `#5367ff` |
 | `--glass-accent-glow` | `rgba(143,155,255,0.3)` | `rgba(83,103,255,0.26)` |
+| `--glass-accent-text` | `#8f9bff` | `#4453e0` |
+| `--glass-danger-text` | `#ff7a63` | `#b83a26` |
+| `--glass-accent-2-text` | `#6ee7c8` | `#067a68` |
+| `--glass-accent-warm-text` | `#ffcf8a` | `#8a5a0a` |
 
 按压态：
 
@@ -3034,6 +3182,9 @@ buildContrastVars(result): string
 | `gallery.glass.meta` | gallery | Spatial Glass 元数据 | `store/index.ts` |
 | `app:prefs.v1` | app | 全局偏好 v1 | `preferenceStore` |
 | `app:prefs.v0` | app | 旧偏好（只读） | 迁移 |
+| `app:backup.at` | app | 最近一次备份导出时间 | `core/services/backup.ts` |
+| `app:privacy.version` | app | 已确认的隐私保护指引版本 | `core/services/privacy-center.ts` |
+| `tbx:draft.<id>` | tbx | 单工具草稿（输入 + 模式，≤4KB） | `core/toolbox/draft.ts` |
 | `tbx:recent` | tbx | 最近使用 | `toolboxStore` |
 | `tbx:recent.at` | tbx | 最近使用时间戳 | `toolboxStore` |
 | `tbx:favorites` | tbx | 工具收藏 | `toolboxStore` |
@@ -3052,6 +3203,7 @@ buildContrastVars(result): string
 | `tbx:legacy-tip-home` | tbx | 首页旧收藏提示 | `storage.ts` |
 | `cyber:hot:v1` | cyber | 热备 3 槽 | `timeTravelEngine` |
 | `cyber:auto:v1` | cyber | 自动快照 5 槽 | `timeTravelEngine` |
+| `cyber:frames:v1` | cyber | 时间轴帧（持久化最近 8 帧） | `timeTravelEngine` |
 | `cyber:pilot:v1` | cyber | Auto-Pilot 配置 | 设置页 |
 | `weather:cities:v1` | weather | 城市表（≤5） | `weatherCache.ts` |
 | `weather:current:v1` | weather | 当前城市 adcode | `weatherCache.ts` |
@@ -3302,7 +3454,7 @@ graph LR
 | 使用方 | 主要组件 |
 |---|---|
 | 主包页面 | `glass-card`、`glass-button`、`glass-toast`、`g-icon`、`g-navbar`、`privacy-guard`、`update-guard` |
-| 工具页（39 个，watermark / weather 除外） | `glass-tool-shell` + `glass-card` / `glass-input` / `glass-button` / `g-icon` |
+| 工具页（61 个，watermark / weather 除外） | `glass-tool-shell` + `glass-card` / `glass-input` / `glass-button` / `g-icon` |
 | 水印页 | 自定义工作台 + `privacy-guard` + `update-guard` + `glass-toast` |
 | 气象页 | 自定义全屏舞台 + `weather-glyph` + `privacy-guard` + `update-guard` + `glass-toast` |
 | 专注页 | `glass-modal` / `glass-bottom-sheet` / `glass-slider` / `glass-switch` / `poster-preview` / `update-guard` |
@@ -3326,7 +3478,23 @@ graph LR
 
 ## 14. 运行方式
 
-> 目标：用最短路径把项目跑起来。首次启动按 §14.0 的 6 步执行；需要逐项解释时再看 §14.1–§14.10。
+> 目标：用最短路径把项目跑起来。首次启动按 §14.2 的完整步骤执行；只想做静态校验看 §14.1.1 的路线 A；需要逐项解释时再看 §14.3–§14.10。
+
+本章导航：
+
+| 小节 | 内容 |
+|---|---|
+| §14.0 | 最短路径与一键命令 |
+| §14.1 / §14.1.1 | 环境清单、四条启动路线 |
+| §14.2 | 从零启动 8 步（含分包依赖） |
+| §14.3 | 构建体系：产物总览、Tailwind、npm、TS、Worker、发布 |
+| §14.3.8 / §14.3.9 | 构建后自检、构建脚本索引 |
+| §14.4 | 导入开发者工具与首次编译 |
+| §14.5 | 首次启动运行序列 |
+| §14.6 / §14.7 | 自动化、真机预览 |
+| §14.8 | 调试与诊断 |
+| §14.9 | 部署与发布 |
+| §14.10 | 常见启动问题 |
 
 ### 14.0 快速开始（最短路径）
 
@@ -3347,16 +3515,17 @@ flowchart LR
 
 | 步骤 | 命令 / 操作 | 验收标准 |
 |---|---|---|
-| 1 | 安装 Node.js `>= 22.6`，在仓库根目录执行 `npm ci` | 无报错，生成 `node_modules/` |
+| 1 | 安装 Node.js `>= 22.6`，在仓库根目录执行 `npm ci` 与 `npm ci --prefix subpackages/tools-core` | 无报错，根包与 tools-core 的 `node_modules/` 均生成 |
 | 2 | `npm run build:style` | 生成 `styles/generated/tailwind.wxss`，文件非空 |
-| 3 | `npm run typecheck && npm test` | 类型检查无输出；测试 `697 pass / 0 fail` |
+| 3 | `npm run typecheck && npm test` | 类型检查无输出；测试 `802 pass / 0 fail` |
 | 4 | 微信开发者工具「导入项目」选择仓库根目录，AppID 填 `wx0f5c60d97c1ce6e2`（无权限可用测试号） | 能识别为小程序项目，基础库 `3.17.6` |
-| 5 | 工具 → 构建 npm，分别构建根包与 `subpackages/tools-core` | `miniprogram_npm/` 与 `subpackages/tools-core/miniprogram_npm/` 生成 |
-| 6 | 编译 `pages/index/index` | 首页显示 63 个工具、Hero 数据、搜索与 Dock 正常 |
+| 5 | 工具 → 构建 npm，分别构建根包与 `subpackages/tools-core` | 根包与 tools-core 两处 `miniprogram_npm/` 均生成 |
+| 6 | 编译 `pages/index/index` | 首页显示 64 个工具、Hero 数据、搜索与 Dock 正常 |
 
 可选步骤：
 
-- **全息气象**：复制 `subpackages/tools-core/weather/config.example.ts` 为 `config.local.ts`，填入高德 **Web 服务 Key**，并在 MP 后台把 `https://restapi.amap.com` 加入 request 合法域名。未配置时只有天气工具显示配置错误，其余 61 个工具不受影响。
+- **全息气象**：复制 `subpackages/tools-core/weather/config.example.ts` 为 `config.local.ts`，填入高德 **Web 服务 Key**，并在 MP 后台把 `https://restapi.amap.com` 加入 request 合法域名。未配置时只有天气工具显示配置错误，其余 63 个工具不受影响。
+- **和风天气**：`subpackages/weather/config-local.ts` 由 `npm run qweather:token` 自动生成（Ed25519 私钥本机读取，JWT 24 小时有效），API Host 为 `mq46h5tchy.re.qweatherapi.com`；MP 后台需把该 Host 加入 request 合法域名。Token 过期后重新运行脚本并重新编译。
 - **汇率换算**：在小程序后台把 `https://www.chinamoney.com.cn` 加入 request 合法域名；未配置时官方中间价请求失败，页面提示错误并允许切换手动牌价，其余工具不受影响。
 - **真机验证**：Canvas、Worker、陀螺仪、相册、定位、专注 BGM 建议在真机完成；开发者工具只能覆盖大部分 UI 与纯计算逻辑。
 - **CI 上传**：配置 `private/private.key` 后执行 `npm run ci:upload`，详见 §14.9.11。
@@ -3370,9 +3539,28 @@ flowchart LR
 | Node.js | `>= 22.6`，当前验证 `v24.19.0` | `npm test` 使用 `--experimental-strip-types` |
 | npm | 当前验证 `12.2.0` | `package-lock.json` 已锁定 |
 | TypeScript | 仓库内 `typescript` | `tsc --noEmit` |
-| 高德 Key（可选） | Web 服务类型 Key | 只有「全息气象」需要；未配置时工具显示配置错误，其余 50 个工具不受影响 |
+| 高德 Key（可选） | Web 服务类型 Key | 只有「全息气象」需要；未配置时工具显示配置错误，其余 62 个工具不受影响 |
 | 汇率域名（官方中间价） | `https://www.chinamoney.com.cn` | 「汇率换算」默认来源；未配置时回退手动牌价 |
 | 真机（可选） | iOS / Android 微信 | Canvas / Worker / 陀螺仪 / 相册 / 定位需真机验证 |
+
+### 14.1.1 选择启动路线
+
+不同目标只需要走到不同阶段，不必每次都从零全量构建：
+
+| 路线 | 适用场景 | 必做步骤 | 不需要 |
+|---|---|---|---|
+| A. 静态校验 | 只改纯 TS / 算法、CI 预检、没有开发者工具 | `npm ci` → 分包 `npm ci` → `build:style` → `typecheck` → `test` | 开发者工具、npm 构建、真机 |
+| B. 模拟器开发（推荐） | 日常 UI / 页面 / 主题开发 | 路线 A → 导入开发者工具 → 构建 npm → 编译 | 真机、上传 |
+| C. 真机验收 | Canvas / Worker / 相册 / 定位 / 陀螺仪 / BGM | 路线 B → 预览或真机调试 2.0 | 上传 |
+| D. 发布构建 | 提审、灰度、正式发布 | 路线 A → 构建 npm → 编译 → 真机走查 → 上传或 `ci:upload` | 无 |
+
+判断口诀：
+
+- **改纯逻辑**：A 足够，`npm test` 会直接跑 Node 单测。
+- **改样式 / WXML / 组件**：至少 B，并且改了 `styles/tokens.css` 或新增原子类时必须重跑 `build:style`。
+- **改依赖**：A + 重新构建 npm。
+- **改图标**：额外执行 `build:icon` 并同步 `font.wxss`。
+- **发版**：D，且必须过 §14.3.8 的构建后自检。
 
 ### 14.2 从零启动：完整步骤
 
@@ -3389,6 +3577,27 @@ npm ci
   → 首屏验收
   → 真机预览
 ```
+
+**一键执行（路线 A，可直接复制）**：
+
+```bash
+set -e
+
+# 1. 根包依赖
+npm ci
+
+# 2. tools-core 分包依赖（根包 npm ci 不会安装它）
+npm ci --prefix subpackages/tools-core
+
+# 3. 生成 Tailwind 产物
+npm run build:style
+
+# 4. 类型检查 + 全量测试
+npm run typecheck
+npm test
+```
+
+执行完成后，Node 侧应全部通过；接下来只需在开发者工具完成「导入 → 构建 npm → 编译」三步（见步骤 5–7）。
 
 #### 步骤 1：确认目录与基础环境
 
@@ -3411,16 +3620,37 @@ ls app.json app.ts project.config.json package.json
 #### 步骤 2：安装依赖
 
 ```bash
+# 根包：mobx-miniprogram / mobx-miniprogram-bindings + 构建工具
 npm ci
+
+# tools-core 分包：crypto-js / diff-match-patch
+npm ci --prefix subpackages/tools-core
 ```
 
 说明：
 
 - 优先使用 `npm ci`，严格按 `package-lock.json` 安装，避免依赖漂移。
-- 只有需要升级依赖时才使用 `npm install`。
-- `node_modules/` 已被 `project.config.json` 的 `packOptions.ignore` 排除，不会上传。
-- `subpackages/tools-core` 的 `crypto-js` / `diff-match-patch` 声明在分包自己的 `package.json` 中，根目录 `npm ci` 不会替代分包 npm 构建。
-- 天气配置：`pretypecheck` / `pretest` 会执行 `scripts/ensure-weather-config.js`，若 `subpackages/tools-core/weather/config.local.ts` 缺失则自动生成占位文件。需要真实天气时，复制 `weather/config.example.ts`，填入**高德 Web 服务 Key**，并在 MP 后台把 `https://restapi.amap.com` 加入 request 合法域名；`config.local.ts` 已被 `.gitignore` 忽略。
+- 只有需要升级依赖时才使用 `npm install`；升级后必须提交新的 `package-lock.json`。
+- **根包与 tools-core 是两套独立依赖**：根 `package.json` 没有 workspaces，根目录 `npm ci` 不会安装 `crypto-js` / `diff-match-patch`，必须再执行一次 `npm ci --prefix subpackages/tools-core`。
+- `node_modules/` 与 `subpackages/tools-core/node_modules/` 均已被 `project.config.json` 的 `packOptions.ignore` 排除，不会上传。
+- 天气配置：`pretypecheck` / `pretest` 会执行 `scripts/ensure-weather-config.js`，若 `subpackages/tools-core/weather/config.local.ts` 缺失则自动从 `config.example.ts` 生成占位文件。需要真实天气时，填入**高德 Web 服务 Key**，并在 MP 后台把 `https://restapi.amap.com` 加入 request 合法域名；`config.local.ts` 已被 `.gitignore` 忽略。
+
+安装后自检：
+
+```bash
+# 根包两个运行时依赖
+test -d node_modules/mobx-miniprogram && echo "root mobx OK"
+test -d node_modules/mobx-miniprogram-bindings && echo "root bindings OK"
+
+# tools-core 两个运行时依赖
+test -d subpackages/tools-core/node_modules/crypto-js && echo "tools-core crypto-js OK"
+test -d subpackages/tools-core/node_modules/diff-match-patch && echo "tools-core dmp OK"
+
+# 天气占位配置（typecheck / test 的前置脚本会自动生成）
+test -f subpackages/tools-core/weather/config.local.ts && echo "weather config OK"
+```
+
+如果某一行没有输出 `OK`，不要继续后面步骤，先回到对应目录重新安装。
 
 #### 步骤 3：编译 Tailwind 样式
 
@@ -3464,7 +3694,7 @@ npm test
 预期：
 
 - `tsc --noEmit` 无输出即为通过。
-- `npm test` 输出 `tests 740`、`pass 740`、`fail 0`。
+- `npm test` 输出 `tests 802`、`pass 802`、`fail 0`。
 
 说明：
 
@@ -3529,7 +3759,7 @@ ls subpackages/tools-core/miniprogram_npm/diff-match-patch
 | 检查项 | 预期 |
 |---|---|
 | 首页背景 | 白昼纸面 / 夜航深空两套材质正常 |
-| 工具总数 | 首页显示 52 个本机工具（含算账助手、全息气象、简繁转换、拼音标注、薪资反算） |
+| 工具总数 | 首页显示 63 个本机工具（含算账助手、全息气象、简繁转换、拼音标注、薪资反算等） |
 | 搜索 | 输入“房贷”“图片”等能命中工具 |
 | 收藏 | 点击星标后收藏页出现该工具 |
 | 最近使用 | 打开工具后返回首页，最近使用出现记录 |
@@ -3562,6 +3792,45 @@ ls subpackages/tools-core/miniprogram_npm/diff-match-patch
 
 项目不使用 webpack / vite 等前端打包器；小程序整体编译由微信开发者工具完成，npm scripts 只负责样式、图标、类型检查、测试与验收。
 
+#### 14.3.0 构建产物总览与刷新时机
+
+先建立“什么产物由谁生成”的心智模型，排查问题时就不会把编译产物当成源码：
+
+| 产物 | 生成方式 | 是否入库 | 缺失后的现象 | 何时必须重建 |
+|---|---|---|---|---|
+| `node_modules/` | `npm ci` | 否 | 脚本无法运行、npm 构建 0 个包 | 首次、依赖变更 |
+| `subpackages/tools-core/node_modules/` | `npm ci --prefix subpackages/tools-core` | 否 | Hash / 文本对比报分包依赖缺失 | 首次、分包依赖变更 |
+| `styles/generated/tailwind.wxss` | `npm run build:style` | 否 | 原子类全部失效、页面排版塌陷 | 改 `tokens.css`、新增原子类 / 页面 |
+| 根包 `miniprogram_npm/` | 开发者工具「构建 npm」或 CI | 否 | `module is not defined`、白屏 | 首次、根包依赖变更 |
+| `subpackages/tools-core/miniprogram_npm/` | 同上（第二条 `packNpmRelationList`） | 否 | 分包内模块找不到 | 首次、分包依赖变更 |
+| `.icon-dist/gicon.ttf` / `gicon.json` | `npm run build:icon` | 否 | 图标空白 / 码位不符 | 新增或修改图标 |
+| `components/g-icon/font.wxss` | 手工把 ttf 转 base64 内嵌 | 是 | 图标全部空白 | 字体重新生成后 |
+| `subpackages/tools-core/weather/config.local.ts` | `ensure-weather-config.js` 或手工复制 | 否 | 类型检查 / 编译报缺少模块 | 首次、换 Key |
+| 运行时 JS | 开发者工具 TS 插件编译 | 否 | — | 每次编译，无需单独命令 |
+| 预览包 / 上传包 | 开发者工具「预览 / 上传」或 `ci:upload` | 否 | — | 验收 / 发布 |
+
+构建与刷新的决策路径：
+
+```mermaid
+flowchart TB
+  A["修改源码"] --> B{"改了什么"}
+  B -->|TS / WXML / WXSS| C["DevTools 重新编译"]
+  B -->|tokens.css / 新增原子类| D["npm run build:style"]
+  B -->|package.json 依赖| E["npm ci + 构建 npm"]
+  B -->|tools-core 依赖| F["npm ci --prefix + 构建 npm"]
+  B -->|图标 SVG| G["npm run build:icon"]
+  D --> C
+  E --> C
+  F --> C
+  G --> H["同步 font.wxss + GLYPH_CODEPOINTS"]
+  H --> C
+  C --> I["模拟器验收"]
+  I --> J["真机验收"]
+  J --> K["上传 / CI"]
+```
+
+一条经验规则：**源码改动只需要 DevTools 编译；跨文件产物（样式、npm、字体、配置）改动必须先跑对应生成命令，再编译。**
+
 #### 14.3.1 构建矩阵
 
 | 构建类型 | 命令 / 操作 | 输入 | 输出 | 触发时机 |
@@ -3589,7 +3858,7 @@ npm run build:icon
 ```
 
 3. 命令会生成 `.icon-dist/gicon.ttf` 与 `.icon-dist/gicon.json`。
-4. 在 `gicon.json` 中查到新图标码位；当前码位范围为 `61697–61725`。
+4. 在 `gicon.json` 中查到新图标码位；当前共 29 个图标，码位范围为 `61697–61725`。
 5. 更新 `components/g-icon/index.ts` 的 `GLYPH_CODEPOINTS`。
 6. 将 `.icon-dist/gicon.ttf` 以 base64 内嵌到 `components/g-icon/font.wxss` 的 `@font-face`。
 7. 更新 `font.wxss` 与 `g-icon` 顶部注释中的图标数量。
@@ -3675,18 +3944,34 @@ tools-core 运行时依赖：
 }
 ```
 
-操作：
+操作（本地开发者工具）：
 
-1. 确认 `npm ci` 已成功。
+1. 确认根包与 tools-core 的依赖都已安装：`npm ci` + `npm ci --prefix subpackages/tools-core`。
 2. 开发者工具「详情 → 本地设置」确认已启用 npm 模块与增强编译。
 3. 开发者工具菜单「工具 → 构建 npm」。
 4. 检查根包与 tools-core 两处 `miniprogram_npm/`。
-5. 如有依赖变更，先重新 `npm ci`，再构建 npm。
+5. 如有依赖变更，先重新安装，再构建 npm。
+
+操作（CI / 无开发者工具）：
+
+```bash
+npm run ci:upload
+```
+
+`scripts/ci-upload.js` 默认就会构建 npm（只有显式传 `--skip-npm` 才跳过），并读取与 `project.config.json` 相同的两条 `packNpmRelationList`，调用 `miniprogram-ci` 的 `packNpmManually` 自动构建两处 npm 产物；如果 `node_modules` 缺失会直接报错，不会静默跳过。
+
+构建结果自检：
+
+```bash
+test -d miniprogram_npm/mobx-miniprogram && echo "root OK"
+test -d subpackages/tools-core/miniprogram_npm/crypto-js && echo "tools-core OK"
+```
 
 为什么不能只靠 `npm install`：
 
-- 微信小程序不会直接执行 `node_modules` 中的 ESM / CJS 包，必须由开发者工具转换为 `miniprogram_npm`。
+- 微信小程序不会直接执行 `node_modules` 中的 ESM / CJS 包，必须由开发者工具或 `miniprogram-ci` 转换为 `miniprogram_npm`。
 - tools-core 的 npm 产物必须落在 `subpackages/tools-core/miniprogram_npm/`，否则分包内引用失败。
+- 根包与分包是两条独立构建关系，只构建其中一条仍会白屏或缺少 Hash / 文本对比能力。
 
 #### 14.3.5 TypeScript 编译与类型检查
 
@@ -3753,7 +4038,7 @@ npm test
 | 项 | 要求 |
 |---|---|
 | 类型检查 | `npm run typecheck` 通过 |
-| 单元 / 集成测试 | `npm test` 740/740 通过 |
+| 单元 / 集成测试 | `npm test` 824/824 通过 |
 | 样式产物 | `styles/generated/tailwind.wxss` 存在且为最新 |
 | npm 产物 | 根包与 tools-core 的 `miniprogram_npm` 均存在 |
 | 版本号 | `APP_VERSION` 与后台版本说明一致 |
@@ -3762,7 +4047,125 @@ npm test
 | 分享 | 首页与工具页分享路径、`?tool=` 深链正常 |
 | 更新 | 更新弹窗、稍后红点、查看更新日志正常 |
 
+#### 14.3.8 构建后自检（Node + 产物 + 门禁）
+
+在开发者工具编译之前，先用一条命令确认所有 Node 侧产物齐全：
+
+```bash
+set -e
+
+# 1. Tailwind 产物非空
+test -s styles/generated/tailwind.wxss && echo "tailwind OK"
+
+# 2. 根包 npm 产物
+test -d miniprogram_npm/mobx-miniprogram && echo "root npm OK"
+test -d miniprogram_npm/mobx-miniprogram-bindings && echo "root bindings OK"
+
+# 3. tools-core npm 产物
+test -d subpackages/tools-core/miniprogram_npm/crypto-js && echo "tools-core crypto OK"
+test -d subpackages/tools-core/miniprogram_npm/diff-match-patch && echo "tools-core dmp OK"
+
+# 4. 天气占位配置
+test -f subpackages/tools-core/weather/config.local.ts && echo "weather config OK"
+```
+
+再跑三项项目自带门禁：
+
+```bash
+npm run check:version   # package.json / package-lock / APP_VERSION / 设置页 CHANGELOG 四源一致
+npm run budget          # 主包 1900KB 警戒线 + 各分包体积
+npm run plan            # 81 项能力 / 63 张工具卡与注册表一致
+```
+
+当前基线（可对照）：
+
+| 门禁 | 通过输出 | 当前值 |
+|---|---|---|
+| `check:version` | `✔ 版本四源一致：1.1.0` | `1.1.0` |
+| `budget` | `✔ 包体预算通过` | 主包 1857.5 KB / 1900 KB；tools-core 1454.6 KB；grow 797.7 KB |
+| `plan` | `✔ 方案自检通过` | 能力 81 项 / 卡片 63 张 |
+| `typecheck` | 无输出 | 通过 |
+| `test` | `tests 824`、`pass 824`、`fail 0` | 824/824 |
+
+任一项失败时的处理顺序：
+
+1. **产物缺失** → 回到 §14.3.0 找到对应生成命令，先补产物，不要改代码。
+2. **版本不一致** → 按 §14.9.2 同步四个版本源，再跑 `check:version`。
+3. **预算超限** → 检查是否有大图误放主包，压缩或迁入分包；不要直接修改 `check-budget.js` 阈值。
+4. **plan 失败** → 通常是新增工具后没有同步 `scripts/check-plan.js` 的 `EXPECT` 清单或帮助文案。
+5. **typecheck / test 失败** → 先修代码，禁止带病上传。
+
+彻底重建（仅在依赖或产物疑似损坏时）：
+
+```bash
+# 1. 删除可再生成的依赖与产物
+rm -rf node_modules
+rm -rf subpackages/tools-core/node_modules
+rm -rf miniprogram_npm
+rm -rf subpackages/tools-core/miniprogram_npm
+rm -rf styles/generated
+
+# 2. 重新安装
+npm ci
+npm ci --prefix subpackages/tools-core
+
+# 3. 重新生成样式
+npm run build:style
+
+# 4. 回到开发者工具：工具 → 构建 npm → 编译
+```
+
+注意：`rm -rf` 只删除上述可再生成目录，不要删除 `styles/tokens.css`、`styles/v3.wxss`、`components/g-icon/font.wxss` 等手写 / 需入库文件。
+
+#### 14.3.9 构建与门禁脚本索引
+
+所有脚本位于 `scripts/`，由 `package.json` 的 npm scripts 调用：
+
+| 脚本 | 调用方式 | 作用 | 失败含义 |
+|---|---|---|---|
+| `ensure-weather-config.js` | `pretypecheck` / `pretest` 自动执行 | 缺失时从 `config.example.ts` 复制 `config.local.ts` | 模板文件缺失 / 目录不可写 |
+| `ensure-yuanbao-config.js` | `pretypecheck` / `pretest` 自动执行 | 缺失时生成 `core/services/yuanbao/config-local.ts`（服务 API KEY 占位） | 模板文件缺失 / 目录不可写 |
+| `check-version.js` | `npm run check:version` | 校验 `package.json`、`package-lock.json`、`APP_VERSION`、设置页 `CHANGELOG[0]` 四源一致 | 四处版本漂移 |
+| `check-budget.js` | `npm run budget` | 主包 1900KB 警戒线与各分包体积 | 资源误放主包或分包膨胀 |
+| `check-plan.js` | `npm run plan` | 校验 81 项能力 / 63 张工具卡与注册表、路由、帮助文案一致 | 新增工具后清单未同步 |
+| `check-contrast.js` | `npm run check:contrast` | 校验 `app.wxss` 深 / 浅主题文字令牌：正文 ≥4.5:1、accent / danger ≥3:1；按钮填充白字只输出 warning | 正文或文字令牌对比度不足 |
+| `ci-upload.js` | `npm run ci:upload` | 构建两处 `miniprogram_npm` 并上传开发版本 | 缺密钥 / 依赖 / Tailwind 产物 |
+| `e2e-tools.js` | `npm run test:e2e` | 通过 automator 跑批 1 十卡端到端 | 开发者工具未开服务端口 |
+
+`ci-upload.js` 的上传前检查顺序：
+
+```text
+读取 APP_VERSION
+  → 校验版本号格式
+  → 查找上传密钥（--key / MP_CI_PRIVATE_KEY_PATH / private/private.key）
+  → 读取 project.config.json 的 appid
+  → 检查 styles/generated/tailwind.wxss
+  → 构建根包与 tools-core 的 miniprogram_npm
+  → miniprogram-ci 上传
+```
+
+因此 CI 环境最少需要：Node 22.6+、根包与 tools-core 依赖、`build:style` 产物、上传密钥。
+
 ### 14.4 导入开发者工具
+
+#### 14.4.0 准备开发者工具
+
+| 项 | 操作 / 要求 |
+|---|---|
+| 版本 | 安装支持 Skyline 的稳定版；基础库使用 `3.17.6` |
+| 登录 | 使用具备该 AppID 开发者权限的微信扫码登录；无权限时改用测试号 |
+| 服务端口 | 「设置 → 安全设置 → 服务端口」开启；视觉 / E2E 自动化依赖它 |
+| 代理 / 网络 | 关闭会拦截 `restapi.amap.com` / `chinamoney.com.cn` 的代理，否则天气与汇率会失败 |
+| 本地配置 | 保留仓库内的 `project.private.config.json`，其中 `skylineRenderEnable: true`、`bigPackageSizeSupport: false` |
+| 缓存 | 首次导入前无需清缓存；出现样式 / 组件异常时再执行「清缓存 → 全部清除」 |
+
+macOS 的 CLI 常见路径（自动化脚本会按顺序探测）：
+
+```text
+/Applications/wechatwebdevtools.app/Contents/MacOS/cli
+/Applications/微信开发者工具.app/Contents/MacOS/cli
+/Applications/微信web开发者工具.app/Contents/MacOS/cli
+```
 
 #### 14.4.1 导入步骤
 
@@ -3772,6 +4175,7 @@ npm test
 4. 项目名可保留 `chaohuan-toolbox`。
 5. 选择「不使用云服务」（项目为纯本地方案）。
 6. 确认项目配置未被本地覆盖。
+7. 导入后先不要点「编译」；按 §14.2 步骤 6 完成 npm 构建后再编译，否则首次编译会因 `miniprogram_npm` 缺失而白屏。
 
 #### 14.4.2 必须保持的配置
 
@@ -3791,6 +4195,18 @@ npm test
 
 #### 14.4.3 首次编译检查
 
+点击「编译」后，开发者工具大致按以下顺序工作：
+
+| 阶段 | 读取 / 执行 | 失败时的典型现象 |
+|---|---|---|
+| 1. 读取工程配置 | `project.config.json`、`project.private.config.json` | 不识别为小程序、Skyline 未开启 |
+| 2. 解析 `app.json` | 5 个主包页、8 个分包、TabBar、全局组件、`workers` | 页面不存在、分包路由报错 |
+| 3. TS 编译 | `app.ts`、页面 / 组件 `.ts`、`useCompilerPlugins` | 语法 / 类型错误、`undefined is not a function` |
+| 4. 样式编译 | `app.wxss` → `styles/generated/tailwind.wxss` + `styles/v3.wxss` | 无样式、排版塌陷 |
+| 5. npm 解析 | 根包与 tools-core 的 `miniprogram_npm` | `module is not defined`、白屏 |
+| 6. 运行时启动 | `App.onLaunch` → 首页 `onLoad` / `onShow` | 首屏空、主题闪烁、Storage 异常 |
+| 7. 首次渲染 | Hero、搜索、最近使用、收藏、Dock | 工具数不对、图标空白 |
+
 编译成功后：
 
 - 首页出现「工具箱」标题与液态玻璃 Hero；
@@ -3799,13 +4215,15 @@ npm test
 - 页面没有裸 HTML / 裸文本样式；
 - 状态栏前景色与当前主题一致。
 
-如果白屏：
+如果白屏，按上面的阶段顺序定位：
 
-1. 检查 `miniprogram_npm` 是否生成。
-2. 检查 `styles/generated/tailwind.wxss` 是否存在。
-3. 检查 `pages/index/index.json` 的 `usingComponents` 路径。
-4. 清除开发者工具缓存后重新编译。
-5. 仍失败时查看 `diag:errors.v1` 与控制台 `[gallery]` 日志。
+1. 阶段 2：确认 `app.json` 的页面路径与文件系统一致。
+2. 阶段 3：看控制台第一条 TS / JS 报错，先修第一条。
+3. 阶段 4：检查 `styles/generated/tailwind.wxss` 是否存在且非空。
+4. 阶段 5：检查两处 `miniprogram_npm` 是否生成。
+5. 阶段 6：检查 `diag:errors.v1` 与控制台 `[gallery]` 日志。
+6. 阶段 7：检查 `pages/index/index.json` 的 `usingComponents` 路径。
+7. 以上都正常仍白屏时，执行「清缓存 → 全部清除」并重启开发者工具。
 
 ### 14.5 首次启动会发生什么
 
@@ -3958,7 +4376,7 @@ wx.getStorageSync('diag:errors.v1')
 | 服务器域名 | request 合法域名：`https://restapi.amap.com`（全息气象）、`https://www.chinamoney.com.cn`（汇率换算官方中间价） | 除这两个公开数据请求外，`localTransport` 只读本地数据 |
 | 云开发 / 云函数 | 不使用 | 不需要创建云环境、云数据库或云存储 |
 | 微信支付 / 订阅消息 | 未接入 | 不需要商户号、支付目录或订阅模板 |
-| 应用内隐私入口 | `pages/legal/index` | 隐私说明、本机数据、免责声明、开源许可 |
+| 应用内隐私入口 | `subpackages/grow/pages/legal/index` | 隐私说明、本机数据、免责声明、开源许可 |
 
 涉及授权 / 系统能力的 API 与声明口径：
 
@@ -4005,8 +4423,8 @@ npm test
 | 依赖安装 | `npm ci`（根包 + tools-core） | 无报错，`node_modules` 与分包依赖齐全 |
 | Tailwind 产物 | `npm run build:style` | `styles/generated/tailwind.wxss` 存在且为最新 |
 | 类型检查 | `npm run typecheck` | `tsc --noEmit` 无输出 |
-| 单元 / 集成测试 | `npm test` | `tests 740`、`pass 740`、`fail 0` |
-| Workflow 覆盖 | `tests/workflow-coverage.test.js` | 63 个工具全部注册，适配器 / 来源 / 收发端完整 |
+| 单元 / 集成测试 | `npm test` | `tests 802`、`pass 802`、`fail 0` |
+| Workflow 覆盖 | `tests/workflow-coverage.test.js` | 64 个工具全部注册，适配器 / 来源 / 收发端完整 |
 | 分包路由 | `tests/subpackage-routing.test.js` | 通过 |
 | npm 产物 | 开发者工具「构建 npm」 | 根包 2 个依赖 + tools-core 2 个依赖均生成 |
 | 编译 | 开发者工具「编译」 | 无 `module is not defined`，首页不白屏 |
@@ -4107,7 +4525,7 @@ Worker 用于长文本统计与去重；设备方向用于空间全息动效，�
 | 检查项 | 预期 |
 |---|---|
 | 版本号 | 我的页 / 隐私页 / 设置页显示 `1.1.0`，与后台一致 |
-| 首屏 | 63 个工具、Hero 数据、搜索、Dock 正常 |
+| 首屏 | 64 个工具、Hero 数据、搜索、Dock 正常 |
 | 主题 | 白昼 / 夜航 / 自动跟随系统，状态栏与背景同步 |
 | 搜索与指令面板 | 中文、拼音全拼、首字母均可命中 |
 | 收藏 / 最近 / 累计打开 | 收藏、最近使用、数字滚轮正常 |
@@ -4310,8 +4728,12 @@ MP_CI_PRIVATE_KEY_PATH="$MP_CI_KEY_FILE" npm run ci:upload
 
 | 场景 | 命令 | 说明 |
 |---|---|---|
+| 首次克隆 / 换机 | `npm ci && npm ci --prefix subpackages/tools-core` | 根包与 tools-core 两套依赖都要装 |
 | 改完 TS / 页面逻辑 | `npm run typecheck && npm test` | 提交前最低门禁 |
 | 改了 `styles/tokens.css` 或 Tailwind 类 | `npm run build:style` | 重新生成 `styles/generated/tailwind.wxss` |
+| 依赖变更后 | `npm ci`（或 `npm ci --prefix ...`）+ 开发者工具「构建 npm」 | 两处 `miniprogram_npm` 都要重建 |
+| 构建后自检 | 执行 §14.3.8 的 `test -s/-d` 清单 | 产物缺失先补产物 |
+| 版本一致性 | `npm run check:version` | 四源必须为同一版本 |
 | 只跑专注引擎测试 | `npm run test:hologram` | 快速回归 FSM / 存储 |
 | 只跑集成测试 | `npm run test:integration` | 含 `*.integration.test.js` |
 | 视觉验收预检 | `npm run test:visual:hologram:dry` | 不启动开发者工具 |
@@ -4350,13 +4772,14 @@ MP_CI_PRIVATE_KEY_PATH="$MP_CI_KEY_FILE" npm run ci:upload
 
 ### 15.1 测试构成
 
-`npm test` 当前 **740 项全部通过**。
+`npm test` 当前 **824 项全部通过**。
 
 | 测试组 | 文件 | 覆盖主题 |
 |---|---|---|
 | 应用 / 更新 | `app-brightness`、`app-update`、`update-guard`、`update-guard-flow`、`privacy-update-blocker` | 启动亮度兜底、更新运行时、待更新标记、全局阻塞互斥 |
-| 状态 / 存储 | `preference`、`theme-engines`、`storage-governor`、`history`、`history-snapshots`、`export`、`budget`、`plan` | 偏好归一化、主题引擎、自动清理、轨迹防抖、导出清理、体积与计划门禁 |
-| 注册 / 路由 / 搜索 | `tool-registry`、`subpackage-routing`、`magic-wand-palette`、`help-search` | 63 工具元数据、分包路由、指令面板、帮助搜索 |
+| 状态 / 存储 | `preference`、`font-scale`、`theme-engines`、`storage-governor`、`history`、`history-snapshots`、`export`、`budget`、`plan` | 偏好归一化、字号档三档与降级契约、主题引擎、自动清理、轨迹防抖、导出清理、体积与计划门禁 |
+| 联网搜索 | `yuanbao-search`、`web-search-page` | 元宝搜索 Pages 解析 / 错误码 / Bearer 请求 / 网络失败 / 摘要、页面成功态 / 错误态 / Workflow 注入 |
+| 注册 / 路由 / 搜索 | `tool-registry`、`subpackage-routing`、`magic-wand-palette`、`help-search`、`help-page` | 63 工具元数据、分包路由、指令面板、帮助搜索、帮助页单一 groups 渲染 |
 | 工具算法 | `hash-engine`、`text-diff`、`money-engine`、`date-engine`、`text-engine`、`random-engine`、`tools-batch1`、`tools-ledger`、`tools-date-format`、`tools-timezone`、`tools-schedule`、`tools-fuel`、`tools-power`、`tools-resolution`、`tools-carloan`、`tools-quote`、`tools-meeting-timer`、`meeting-timer-service`、`tools-bodyfat`、`tools-avatar`、`tools-collage`、`tools-idphoto`、`tools-qrdecode`、`tools-lunar`、`tools-zh-convert`、`tools-pinyin`、`tools-fx-manual`、`tools-salary-inverse`、`tools-percent`、`tools-size-convert`、`tools-severance`、`tools-id-validate`、`tools-image-pdf`、`tools-barcode`、`tools-exif`、`tools-unit-extended`、`tools-password`、`tools-date-add`、`tools-color`、`tools-json-csv`、`tools-text-convert`、`tools-regex`、`tools-photo-edit`、`tools-worktime`、`tools-wellness`、`tools-random-pick`、`tools-vcard`、`span-watermark-workflow`、`watermark-gesture` | Hash/HMAC、Diff、金额分/基点、日期日序号与闰日、时区墙钟与手动夏令时、工作日推进、油耗与油费、阶梯电费、分辨率化简 / 打印像素、车贷月供 / 方案对比 / 提前还款、报价守恒与 CSV 转义、倒计时跨日与后台补算、体脂围度公式、拼图布局与跳过摘要、证件照纯色检测 / 换底 / 羽化 / 复杂背景拒绝、二维码 8 掩码 / 中文 / 模糊 / 截断、农历春节 / 闰月 / 节气 / 边界、简繁词组优先 / 一词多繁 / 方向切换 / 20k 截断、拼音多音词消歧 / 去声调 / 逐字对照 / 2k 截断、官方中间价解析 / 交叉汇率 / 缓存回退 / 手动牌价双向一致、个税月度 / 年度黄金值、薪资反算误差 / 边界 / 不收敛、百分比三模式 / 除零 / 1000% / silent 解析、日期加减月末 / 闰日 / 跨年 / 超范围 / silent 解析、颜色解析 / 黑白 21:1 / 红绿 / 3 位 HEX / 透明度忽略 / AA-AAA 阈值 / 色觉模拟、JSON 与 CSV 往返 / 字段并集 / 嵌套有损 / 引号换行 / 2MB、尺码男鞋 / 女装 / 戒指 / 半码 / 超范围、离职补偿 N / N+1 / 封顶 / 年假 / 年限 0、证件号身份证 / 银行卡 / 末位 X / 15 位旧证 / 超长 / 脱敏、PDF JPEG 解析 / 结构 / xref / 页面尺寸 / 9 页与 2MB、条形码 CODE128B 黄金值 / 校验位 / 静区 / 80 字符 / PNG 尺寸、图片信息尺寸 / 体积 / 格式 / 方向 / 损坏拒绝、单位扩展 13 类黄金值 / 解析格式化、文本转换与清洗四组合 / 空行 / 不可见 / 中文标点 / 中英文去空格 / 保留段落、密码强度阈值 / 空密码 / 熵公式、随机抽签、工具批测、算账、日期格式、文本转换卡、正则 Worker、图片几何、工时请假、每日健康、随机决定、vCard 折行、跨工具 Workflow、水印手势 |
 | 全息专注 | `focus-fsm`、`focus-storage`、`focus-crypto`、`focus-level`、`focus-audio`、`focus-nebula`、`focus-page`、`focus-page-flow`、`focus-copy`、`cockpit-focus` | 状态机、6 键存储 / 验签、等级、音频、星云、页面流程、文案、驾驶舱专注卡 |
 | 全息气象 | `weather-parse`、`weather-cache`、`weather-chart-audio`、`weather-astro-hourly`、`weather-page` | 字段解析、缓存 TTL、图表/音频、日出日落/逐小时、页面状态 |
@@ -4379,7 +4802,8 @@ MP_CI_PRIVATE_KEY_PATH="$MP_CI_KEY_FILE" npm run ci:upload
 | 门禁 | 命令 | 当前状态 |
 |---|---|---|
 | 类型检查 | `npm run typecheck` | 通过 |
-| 单元 / 集成 | `npm test` | 740/740 通过 |
+| 单元 / 集成 | `npm test` | 824/824 通过 |
+| 文字对比度 | `npm run check:contrast` | 通过（正文全绿，按钮 6 条 warning 设计债） |
 | Workflow 覆盖率 | `tests/workflow-coverage.test.js` | 63 工具全部注册 / 适配器 / 来源 / 收发端；15 silent + 48 jump |
 | 分包路由 | `tests/subpackage-routing.test.js` | 通过 |
 | 视觉验收 | `npm run test:visual:hologram` | 需开发者工具 |
@@ -4460,7 +4884,7 @@ MP_CI_PRIVATE_KEY_PATH="$MP_CI_KEY_FILE" npm run ci:upload
 
 | 项 | 说明 | 影响 |
 |---|---|---|
-| 旧注释数量不一致 | 部分历史注释写“20 个工具”，当前注册表为 52 个 | 以 `core/toolbox/registry.ts` 为准 |
+| 旧注释数量不一致 | 部分历史注释写“20 个工具”，当前注册表为 63 个 | 以 `core/toolbox/registry.ts` 为准 |
 | `password` / `bmi` / `weather` 仅来源 | `WORKFLOW_ROUTING` 为 `jump`，但 `accepts` 为空 | 不能作为流转目标，面板中置灰 |
 | 主包 `g-gallery` 保留 | 当前作品详情页使用 works / campus 分包副本 | 主包副本可能是历史资产 |
 | 主包 `g-toast` 与 `glass-toast` 并存 | 旧简历页面仍使用 `g-toast` | 新页面统一使用 `glass-toast` |
@@ -4480,10 +4904,10 @@ MP_CI_PRIVATE_KEY_PATH="$MP_CI_KEY_FILE" npm run ci:upload
 | 路由 | 页面 | 包 |
 |---|---|---|
 | `/pages/index/index` | 工具箱首页 | 主包 |
-| `/pages/lab/index` | 组件样板间 | 主包 |
+| `/subpackages/tools-core/pages/lab/index` | 组件样板间 | tools-core |
 | `/pages/favorites/index` | 收藏 | 主包 |
 | `/pages/mine/index` | 我的 | 主包 |
-| `/pages/legal/index` | 隐私与说明 | 主包 |
+| `/subpackages/grow/pages/legal/index` | 隐私与说明 | grow |
 | `/subpackages/tools-core/pages/unit/index` | 单位换算 | tools-core |
 | `/subpackages/tools-core/pages/tax/index` | 个税计算 | tools-core |
 | `/subpackages/tools-core/pages/loan/index` | 房贷试算 | tools-core |
@@ -4519,6 +4943,7 @@ MP_CI_PRIVATE_KEY_PATH="$MP_CI_KEY_FILE" npm run ci:upload
 | `/subpackages/tools-core/pages/password/index` | 随机密码 | tools-core |
 | `/subpackages/tools-core/pages/bmi/index` | BMI 指数 | tools-core |
 | `/subpackages/tools-core/pages/weather/index` | 全息气象 | tools-core |
+| `/subpackages/tools-core/pages/web-search/index` | 元宝搜索 | tools-core |
 | `/subpackages/tools-daily/pages/ledger/index` | 算账助手 | tools-daily |
 | `/subpackages/tools-daily/pages/fuel/index` | 油耗计算 | tools-daily |
 | `/subpackages/tools-daily/pages/power/index` | 水电燃气费 | tools-daily |
@@ -4603,6 +5028,10 @@ MP_CI_PRIVATE_KEY_PATH="$MP_CI_KEY_FILE" npm run ci:upload
 | `app.ts` | 启动编排 |
 | `app.json` | 页面 / 分包 / TabBar / Skyline / Worker |
 | `core/toolbox/registry.ts` | 63 工具注册表 |
+| `core/toolbox/quotes.ts` | 工具页页脚短语与去重随机 |
+| `core/toolbox/searchHistory.ts` | 首页搜索历史（最多 8 条） |
+| `core/toolbox/privacy.ts` | 轨迹脱敏 |
+| `core/toolbox/tool-session.ts` | 工具会话层 |
 | `core/toolbox/store.ts` | 收藏 / 最近使用 |
 | `core/stores/ui.ts` | 主题状态机 |
 | `core/stores/preference.ts` | 全局偏好 |
@@ -4618,6 +5047,9 @@ MP_CI_PRIVATE_KEY_PATH="$MP_CI_KEY_FILE" npm run ci:upload
 | `core/theme/ambient-theme.ts` | 环境光引擎 |
 | `core/theme/contrast-guardian.ts` | 对比度守护 |
 | `components/glass-tool-shell/index.ts` | 工具页骨架 |
+| `subpackages/grow/pages/settings/index.ts` | 全局设置：偏好、存储、备份与恢复、驾驶舱、专注入口、Cyber Space OS |
+| `core/services/backup.ts` | 本机 JSON 备份：导出 / 校验 / 原子导入 / 删除 |
+| `core/services/diagnostics.ts` | 本地诊断包：脱敏 / 预览 / 生成 `.txt` |
 | `components/glass-toast/toast.ts` | 全局 Toast |
 | `components/command-palette/palette.ts` | 指令面板 |
 | `components/update-guard/index.ts` | 更新守卫 |
@@ -4635,7 +5067,7 @@ MP_CI_PRIVATE_KEY_PATH="$MP_CI_KEY_FILE" npm run ci:upload
 | `subpackages/tools-daily/lib/severance.ts` | 离职补偿唯一实现：N/N+1、年限折算、社平封顶、年假 200% |
 | `subpackages/tools-daily/lib/id.ts` | 证件号唯一实现：身份证加权校验 + 生日 / 性别、银行卡 Luhn、脱敏摘要 |
 | `subpackages/tools-media/lib/pdf.ts` | PDF 唯一实现：JPEG SOF 解析、PDF 1.4 组装、xref、A4 / Letter / 原图、9 页 / 2MB |
-| `subpackages/tools-media/lib/barcode.ts` | CODE128B 唯一实现：107 项码表、校验位、静区、80 字符上限；1-bit PNG 复用 `png.ts` |
+| `subpackages/tools-media/lib/barcode.ts` | CODE128B 唯一实现：107 项码表、校验位、静区、80 字符上限；1-bit PNG 复用 `subpackages/tools-media/lib/png.ts` |
 | `subpackages/tools-media/lib/exif.ts` | 图片信息唯一实现：尺寸 / 体积 / 格式 / 方向 / 宽高比 / 万像素；不解析隐私字段 |
 | `subpackages/tools-core/lib/units.ts` | 单位换算唯一实现：13 类单位、浮点因子、分类目录 |
 | `subpackages/tools-core/lib/base64.ts` | Base64 唯一实现：文本 UTF-8 / URL-safe 编解码、`imageToBase64`、2MB 上限、MIME 与 data URL |
@@ -4647,8 +5079,18 @@ MP_CI_PRIVATE_KEY_PATH="$MP_CI_KEY_FILE" npm run ci:upload
 | `subpackages/tools-core/lib/radix.ts` | 进制大数引擎 |
 | `subpackages/tools-core/weather/weatherService.ts` | 高德 REST 唯一网络入口 |
 | `subpackages/tools-core/weather/weatherCache.ts` | 天气缓存 / 城市表 |
+| `subpackages/tools-core/weather/weatherCode.ts` | 现象码 → 家族 / 文案 / 环境光场景 |
+| `subpackages/tools-core/weather/weatherAudio.ts` | `WeatherAmbientAudio`：WebAudio 环境音合成 |
+| `subpackages/tools-core/weather/weatherDiagnostics.ts` | `WeatherRequestLog` 与诊断文本构建 |
 | `subpackages/tools-daily/lib/ledger.ts` | 算账助手算法 |
+| `subpackages/tools-daily/lib/fuel.ts` | 油耗：百公里油耗 / 每公里油费 / 里程复核阈值 |
+| `subpackages/tools-daily/lib/carloan.ts` | 车贷：复用 `planLoan` 的双方案、首付比例 / 金额、提前还款 |
+| `subpackages/tools-daily/lib/bodyfat.ts` | 体脂率：海军围度公式、区间分类与极端值复核 |
+| `subpackages/tools-daily/lib/quote.ts` | 报价单：行小计守恒、优惠先于计税、上限 50 行、CSV |
 | `subpackages/life/lib/focus-fsm.ts` | 专注状态机 |
+| `subpackages/life/lib/focus-audio.ts` | 专注 BGM：16kHz 噪声采样 / 3 轨 / 淡入淡出 |
+| `subpackages/life/lib/focus-types.ts` | 专注领域类型契约 |
+| `subpackages/life/lib/focus-crypto.ts` | 专注存证：SHA-256 / HMAC / canonical 签名 |
 | `subpackages/life/lib/focus-storage.ts` | 专注 6 键存储 / 验签 / 幂等结算 |
 | `subpackages/life/lib/focus-level.ts` | 专注等级 / 连续天数 |
 | `subpackages/life/lib/focus-nebula.ts` | 星云战报渲染 |
@@ -4683,7 +5125,10 @@ MP_CI_PRIVATE_KEY_PATH="$MP_CI_KEY_FILE" npm run ci:upload
 | `subpackages/grow/utils/cronParser.ts` | Cron 调度 |
 | `subpackages/grow/utils/slicedTransfer.ts` | 分片传输 |
 | `subpackages/grow/utils/aesVault.ts` | AES 保险箱 |
+| `subpackages/grow/utils/canvasGalaxy.ts` | `GalaxyEngine`：节点 / 粒子 / 文字矩形 / `buildGalaxyNodes` 数据构建 |
 | `subpackages/grow/lib/cockpit-chart.ts` | 驾驶舱图表 |
+| `subpackages/tools-core/utils/diffToRichText.ts` | Diff 分段 → `rich-text` 节点与高亮 |
+| `subpackages/tools-core/lib/timezone.ts` | 时区薄 re-export（唯一实现 `core/toolbox/engines/timezone.ts`） |
 | `workers/compute.js` | Worker 入口 |
 | `scripts/ci-upload.js` | miniprogram-ci 自动上传脚本 |
 | `.github/workflows/miniprogram-ci.yml` | GitHub Actions 自动上传流水线 |
@@ -4725,16 +5170,17 @@ MP_CI_PRIVATE_KEY_PATH="$MP_CI_KEY_FILE" npm run ci:upload
 
 | 核对项 | 结果 |
 |---|---|
-| 页面路由 | 81 / 81，全部在 10.1–10.6 与 18.1 中列出 |
+| 页面路由 | 82 / 82，全部在 10.1–10.6 与 18.1 中列出 |
 | 主包组件 | 29 / 29，全部在 9.1 中列出 |
-| 分包组件 | 13 / 13，全部在 9.10 中列出 |
+| 分包组件 | 14 / 14，全部在 9.10 中列出 |
 | 工具 | 63 / 63，全部在 6.1 与 8.4 中列出 |
-| `core/` TypeScript 模块 | 66 / 66，均在 5.x、6.x、7.x、8.x、11.x、12.x 或 5.11 中出现 |
-| 测试文件 | 96 个 `.test.js`；`npm test` 740 项通过 |
+| `core/` TypeScript 模块 | 69 / 69，均在 5.x、6.x、7.x、8.x、11.x、12.x 或 5.11 中出现 |
+| `subpackages/` TypeScript 模块 | 178 / 178，页面 / 组件在 10.x、9.10 中按路由列出，lib / utils / weather 在 8.x、5.11、18.3 中说明 |
+| 测试文件 | 110 个 `.test.js`；`npm test` 824 项通过 |
 | 运行时依赖 | 根包 2 个 + tools-core 2 个，均在 2.1 / 13.2 中列出 |
 | 配置文件 | `app.json`、`app.ts`、`theme.json`、`project.config.json`、`project.private.config.json`、`tsconfig.json`、`package.json`、`postcss.config.js`、`sitemap.json` |
-| 存储键 | 41 个运行期键（含 `weather:*` 动态后缀），见 12.1 |
-| Workflow 工具 | 63 个工具均有路由 / accepts 配置；15 个 silent、48 个 jump；`password` / `bmi` / `weather` / `worktime` / `wellness` / `vcard` 仅作为来源 |
+| 存储键 | 42 个运行期键（含 `weather:*` 动态后缀），见 12.1 |
+| Workflow 工具 | 64 个工具均有路由 / accepts 配置；15 个 silent、48 个 jump；`password` / `bmi` / `weather` / `worktime` / `wellness` / `vcard` 仅作为来源 |
 
 自查口径：
 

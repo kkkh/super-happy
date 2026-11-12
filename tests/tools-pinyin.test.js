@@ -149,5 +149,5 @@ test('拼音契约：tools-dict / 页面 / 注册 / 帮助 / 文本工作流 / �
 
   const adapters = await import(`${URL_ROOT}core/workflow/workflowAdapters.ts`)
   assert.ok(adapters.getWorkflowAdapter('pinyin'), '缺少 pinyin 文本适配器')
-  assert.match(read('pages/legal/index.wxml'), /pinyin-pro 3\.29\.5/)
+  assert.match(read('subpackages/grow/pages/legal/index.wxml'), /pinyin-pro 3\.29\.5/)
 })

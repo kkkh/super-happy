@@ -39,9 +39,36 @@ import { showGlassToast } from '../../components/glass-toast/toast'
 import { TBX_KEYS, readStorage, writeStorage } from '../../core/toolbox/storage'
 import { tapTick } from '../../core/utils/haptics'
 import { logger } from '../../core/utils/logger'
+import { fontScaleClass, syncFontScaleClass } from '../../core/services/font-scale'
+import {
+  isYuanbaoConfigured,
+  searchYuanbao,
+  type YuanbaoResult,
+} from '../../core/services/yuanbao/index'
+import { copyText } from '../../core/services/feedback'
 
 interface HomeToolView extends ToolMeta {
   favorite: boolean
+}
+
+interface HomeWebResultView {
+  index: number
+  title: string
+  meta: string
+  passage: string
+  url: string
+}
+
+function toWebResultView(result: YuanbaoResult, index: number): HomeWebResultView {
+  const meta = [result.site, result.date].filter((item) => Boolean(item)).join(' · ')
+  const passage = result.passage || result.content
+  return {
+    index,
+    title: result.title || '未命名结果',
+    meta,
+    passage: passage.length > 120 ? `${passage.slice(0, 120).trim()}…` : passage,
+    url: result.url,
+  }
 }
 
 interface HomeSectionView {
@@ -89,6 +116,9 @@ interface HomeRuntime {
   usagePrimed: boolean
   lastEnterTool: string
   lastEnterAt: number
+  webTimer: number
+  webTask?: WechatMiniprogram.RequestTask
+  webSeq: number
 }
 
 function buildSections(favorites: string[]): HomeSectionView[] {
@@ -145,6 +175,7 @@ Component({
   data: {
     themeClass: glassStore.themeClass,
     themeSwitching: false,
+    fsClass: fontScaleClass(),
     favoriteCount: 0,
     toolTotal: TOOLS.length,
     usageCount: 0,
@@ -171,6 +202,12 @@ Component({
     /* 使用指南横幅：关闭后永久隐藏，状态存本机 */
     showHelpBanner: false,
     results: [] as HomeToolView[],
+    /* 全网搜索：与本地工具结果并列展示，只在配置了服务 API KEY 时启用 */
+    webReady: isYuanbaoConfigured(),
+    webLoading: false,
+    webError: '',
+    webQuery: '',
+    webResults: [] as HomeWebResultView[],
     /* 深链自动跳转期间挂起全局更新弹窗，避免弹窗与跳转互相打断 */
     updateNavHold: true,
   },
@@ -217,6 +254,9 @@ Component({
       runtime.usagePrimed = false
       runtime.lastEnterTool = ''
       runtime.lastEnterAt = 0
+      runtime.webTimer = 0
+      runtime.webTask = undefined
+      runtime.webSeq = 0
 
       glassStore.init()
 
@@ -249,6 +289,7 @@ Component({
     onShow() {
       const runtime = this as unknown as HomeRuntime
       runtime.navigating = false
+      this.setData({ fsClass: syncFontScaleClass() })
       /* 先进先出：任何深链跳转落定前，update-guard 都要保持排队 */
       this.setData({ updateNavHold: true })
       selectTabBar(this, 0)
@@ -309,6 +350,7 @@ Component({
         runtime.unsubscribeAmbient()
         runtime.unsubscribeAmbient = null
       }
+      this.cancelWebSearch()
     },
 
     /**
@@ -442,12 +484,37 @@ Component({
     onSearchInput(event: WechatMiniprogram.Input) {
       const keyword = event.detail.value
       if (!keyword.trim()) {
-        this.setData({ keyword: '', results: [] })
+        this.cancelWebSearch()
+        this.setData({
+          keyword: '',
+          results: [],
+          webResults: [],
+          webLoading: false,
+          webError: '',
+          webQuery: '',
+        })
         return
       }
       this.setData({
         keyword,
         results: buildResults(keyword, glassStore.toolFavorites),
+        webError: '',
+      })
+      this.scheduleWebSearch(keyword)
+    },
+
+    /** 搜索框内一键清空：中断在途请求并回到初始搜索态 */
+    onClearSearch() {
+      tapTick()
+      this.cancelWebSearch()
+      this.setData({
+        keyword: '',
+        results: [],
+        webResults: [],
+        webLoading: false,
+        webError: '',
+        webQuery: '',
+        searchHistory: readSearchHistory(),
       })
     },
 
@@ -459,6 +526,7 @@ Component({
         searchHistory: history,
         results: buildResults(keyword, glassStore.toolFavorites),
       })
+      this.scheduleWebSearch(keyword, true)
     },
 
     onSearchFocus() {
@@ -489,6 +557,122 @@ Component({
       this.setData({
         keyword,
         results: buildResults(keyword, glassStore.toolFavorites),
+      })
+      this.scheduleWebSearch(keyword, true)
+    },
+
+    /* ---- 全网搜索：本地工具结果之外的元宝结果 ---- */
+    scheduleWebSearch(keyword: string, immediate = false): void {
+      const runtime = this as unknown as HomeRuntime
+      const query = keyword.trim()
+      if (!this.data.webReady || query.length < 2) {
+        this.cancelWebSearch()
+        if (this.data.webResults.length || this.data.webQuery) {
+          this.setData({ webResults: [], webError: '', webQuery: '', webLoading: false })
+        }
+        return
+      }
+      if (runtime.webTimer) {
+        clearTimeout(runtime.webTimer)
+        runtime.webTimer = 0
+      }
+      runtime.webTimer = setTimeout(() => {
+        runtime.webTimer = 0
+        this.runWebSearch(query)
+      }, immediate ? 0 : 520) as unknown as number
+    },
+
+    runWebSearch(query: string): void {
+      const runtime = this as unknown as HomeRuntime
+      if (runtime.cleaned || !query) {
+        return
+      }
+      runtime.webSeq += 1
+      const seq = runtime.webSeq
+      if (runtime.webTask) {
+        runtime.webTask.abort()
+        runtime.webTask = undefined
+      }
+      this.setData({ webLoading: true, webError: '', webQuery: query })
+      searchYuanbao(
+        { query, cnt: 10 },
+        {
+          onTask: (task) => {
+            runtime.webTask = task
+          },
+        },
+      )
+        .then((response) => {
+          if (runtime.cleaned || seq !== runtime.webSeq) {
+            return
+          }
+          runtime.webTask = undefined
+          this.setData({
+            webLoading: false,
+            webError: '',
+            webQuery: query,
+            webResults: response.results.slice(0, 4).map(toWebResultView),
+          })
+        })
+        .catch((error: unknown) => {
+          if (runtime.cleaned || seq !== runtime.webSeq) {
+            return
+          }
+          runtime.webTask = undefined
+          const message =
+            error && typeof error === 'object' && 'message' in error
+              ? String((error as { message?: unknown }).message || '')
+              : ''
+          this.setData({
+            webLoading: false,
+            webError: message || '全网搜索暂不可用，请稍后再试',
+            webResults: [],
+          })
+        })
+    },
+
+    cancelWebSearch(): void {
+      const runtime = this as unknown as HomeRuntime
+      if (!runtime) {
+        return
+      }
+      if (runtime.webTimer) {
+        clearTimeout(runtime.webTimer)
+        runtime.webTimer = 0
+      }
+      runtime.webSeq += 1
+      if (runtime.webTask) {
+        runtime.webTask.abort()
+        runtime.webTask = undefined
+      }
+    },
+
+    onRetryWebSearch(): void {
+      const query = this.data.keyword.trim()
+      if (query) {
+        this.runWebSearch(query)
+      }
+    },
+
+    onCopyWebResult(event: WechatMiniprogram.TouchEvent) {
+      const url = String(event.currentTarget.dataset.url || '')
+      if (!url) {
+        return
+      }
+      tapTick()
+      void copyText(url, '链接已复制')
+    },
+
+    onOpenWebSearch(): void {
+      const query = this.data.keyword.trim()
+      if (!query) {
+        return
+      }
+      wx.navigateTo({
+        url: `${ROUTES.webSearch}?query=${encodeURIComponent(query)}`,
+        fail: () => {
+          showGlassToast('元宝搜索打开失败')
+        },
       })
     },
 

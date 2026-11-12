@@ -94,6 +94,33 @@ Page({
     })
   },
 
+  /* ---- 草稿：模式、范围与输入；恢复后重新编码 ---- */
+  draftMode(): string {
+    return this.data.mode
+  },
+
+  collectDraftInput(): Record<string, string> {
+    return {
+      scope: this.data.scope,
+      plusAsSpace: this.data.plusAsSpace ? '1' : '0',
+      input: this.data.input,
+    }
+  },
+
+  applyDraftInput(input: Record<string, string>, mode: string): void {
+    this.setData(
+      {
+        mode: mode === 'decode' ? 'decode' : 'encode',
+        scope: input.scope === 'full' ? 'full' : 'component',
+        plusAsSpace: input.plusAsSpace !== '0',
+        input: input.input ?? '',
+      },
+      () => {
+        this.recalculate()
+      },
+    )
+  },
+
   onCopy() {
     copyText(this.data.outputText, 'URL 结果已复制')
   },

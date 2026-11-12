@@ -192,6 +192,37 @@ Page({
     })
   },
 
+  /* ---- 草稿：模式与两个数值；恢复后重算 ---- */
+  draftMode(): string {
+    return this.data.mode
+  },
+
+  collectDraftInput(): Record<string, string> {
+    return { aValue: this.data.aValue, bValue: this.data.bValue }
+  },
+
+  applyDraftInput(input: Record<string, string>, mode: string): void {
+    const nextMode = MODE_OPTIONS.some((item) => item.key === mode)
+      ? (mode as PercentMode)
+      : 'share'
+    const state = this as unknown as PercentState
+    const a = input.aValue ?? ''
+    const b = input.bValue ?? ''
+    state.modeInputs[nextMode] = { a, b }
+    this.setData(
+      {
+        mode: nextMode,
+        modeMeta: MODE_META[nextMode],
+        aValue: a,
+        bValue: b,
+        ...emptyResult(),
+      },
+      () => {
+        this.compute()
+      },
+    )
+  },
+
   onRun() {
     this.compute()
   },

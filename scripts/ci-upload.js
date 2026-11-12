@@ -39,7 +39,13 @@ const IGNORES = [
   '.github/**/*',
   'chaohuan-ci-guide/**/*',
   'preview-qr.png',
+  'preview-*.png',
+  'preview-*.json',
+  '全息专注引擎-真机预览二维码.png',
   '未命名.png',
+  'package-lock.json',
+  'project.private.config.json',
+  '*.pem',
 ]
 
 const HELP = `

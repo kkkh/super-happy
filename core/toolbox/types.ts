@@ -6,6 +6,9 @@
 
 export type ToolCategory = 'calc' | 'date' | 'text' | 'media' | 'life' | 'work'
 
+/** 收藏页排序：最近收藏 / 名称 / 分类 */
+export type FavoriteSort = 'recent' | 'name' | 'category'
+
 /** 隐私 / 金融 / 健康提示类型，由外壳统一渲染 */
 export type ToolSensitivity = '' | 'privacy' | 'personal' | 'finance' | 'health'
 

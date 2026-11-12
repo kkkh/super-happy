@@ -315,6 +315,45 @@ test('TimeTravel：相同状态去重，最多保留 20 帧', async () => {
   assert.equal(views[0].active, true)
 })
 
+/* ---- 11.1 时间旅行：跨页面持久化 ---- */
+test('TimeTravel：帧持久化后跨页面恢复，坏帧自动丢弃', async () => {
+  const storage = installWxMock()
+  const engineModule = await load('subpackages/grow/utils/timeTravelEngine.ts')
+  const store = await load('core/toolbox/store.ts')
+  const engine = new engineModule.TimeTravelEngine(20)
+
+  assert.ok(engine.capture('初始'))
+  store.toolboxStore.usageCount = 3
+  assert.ok(engine.capture('使用 3 次'))
+  assert.equal(engine.persist(), true)
+
+  const restored = new engineModule.TimeTravelEngine(20)
+  assert.equal(restored.restorePersisted(), 2, '新引擎应恢复两帧')
+  assert.deepEqual(
+    restored.views(1).map((frame) => frame.label),
+    ['初始', '使用 3 次'],
+  )
+  assert.equal(restored.preview(1).toolbox.usageCount, 3)
+
+  for (let index = 0; index < 10; index += 1) {
+    store.toolboxStore.usageCount = 10 + index
+    engine.capture(`帧 ${index}`)
+  }
+  assert.equal(engine.persist(), true)
+  const capped = new engineModule.TimeTravelEngine(20)
+  assert.equal(capped.restorePersisted(), 8, '磁盘只保留最近 8 帧')
+  assert.equal(capped.views().length, 8)
+
+  storage.set('cyber:frames:v1', [{ id: 'broken' }, ...restored.getFrames()])
+  const sanitized = new engineModule.TimeTravelEngine(20)
+  assert.equal(sanitized.restorePersisted(), 2, '坏帧必须被过滤')
+  assert.equal(sanitized.getFrames().every((frame) => frame.id !== 'broken'), true)
+
+  storage.set('cyber:frames:v1', 'not-an-array')
+  const empty = new engineModule.TimeTravelEngine(20)
+  assert.equal(empty.restorePersisted(), 0)
+})
+
 /* ---- 12. 时间旅行：回滚 Store ---- */
 test('TimeTravel：穿越可回滚偏好 / 收藏 / 历史', async () => {
   installWxMock()
@@ -646,6 +685,38 @@ test('Geek Lab：默认收起，展开后才查询 Canvas，初始化失败自�
   )
   assert.ok(wxml.includes('scroll-x'), '时间轴必须使用 scroll-view scroll-x')
   assert.ok(wxml.includes('enable-flex'), '时间轴 scroll-view 必须启用 flex 布局')
+  assert.ok(
+    ts.includes('restorePersisted()'),
+    '时间旅行帧必须跨页面恢复，避免每次只剩系统启动',
+  )
+  assert.ok(ts.includes('.persist()'), '新增帧后必须持久化')
+  assert.ok(
+    wxml.includes('cyber-timeline__hint'),
+    '只有 1 帧时必须解释时间轴为何不可拖动',
+  )
+  assert.ok(wxss.includes('.cyber-timeline__hint'), '缺少时间轴提示样式')
+  assert.ok(
+    wxml.includes('cyber-timeline__track'),
+    '时间轴卡片必须放在显式横向 flex 轨道内，避免纵向堆叠',
+  )
+  assert.ok(
+    wxml.includes('scroll-into-view="{{timelineScrollTarget}}"'),
+    '选中帧必须自动滚入可视区',
+  )
+  assert.ok(
+    wxml.includes('timelinePositionText'),
+    '必须显示当前帧序号 / 总数 / 时间',
+  )
+  assert.ok(
+    ts.includes('active: item.index === index'),
+    '拖动滑轨必须同步高亮对应卡片',
+  )
+  assert.ok(
+    ts.includes('timelineScrollTarget: `tt-frame-${index}`'),
+    '预览帧必须更新滚动目标',
+  )
+  assert.ok(wxss.includes('.cyber-timeline__track'), '缺少横向轨道样式')
+  assert.ok(wxss.includes('.cyber-timeline__position'), '缺少帧位置反馈样式')
   const timelineBlock = wxss.match(/\.cyber-timeline\s*\{[^}]*\}/)
   assert.ok(timelineBlock, '缺少 .cyber-timeline 样式')
   assert.ok(

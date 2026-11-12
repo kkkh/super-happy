@@ -1,0 +1,301 @@
+@import "../../styles/qweather.wxss";
+
+.qw-astro__time {
+  gap: 6rpx;
+}
+
+.qw-astro__controls {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.qw-astro__alt {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 4rpx;
+  min-height: 44rpx;
+  padding: 0 14rpx;
+  box-sizing: border-box;
+  border: 1rpx solid var(--glass-border);
+  border-radius: 999rpx;
+  background: var(--glass-bg-soft);
+}
+
+.qw-astro__alt-label,
+.qw-astro__alt-unit {
+  color: var(--glass-text-3);
+  font-size: 16rpx;
+  font-size: calc(16rpx * var(--fs-scale, 1));
+}
+
+.qw-astro__alt-input {
+  width: 64rpx;
+  color: var(--glass-text);
+  font-family: var(--glass-font-mono, monospace);
+  font-size: 19rpx;
+  font-size: calc(19rpx * var(--fs-scale, 1));
+  text-align: right;
+}
+
+.qw-astro__dates {
+  margin-bottom: 18rpx;
+}
+
+.qw-astro__sun,
+.qw-astro__moon,
+.qw-astro__solar {
+  padding: 22rpx;
+  box-sizing: border-box;
+  border: 1rpx solid var(--glass-border);
+  border-radius: var(--glass-radius-md, 24rpx);
+  background: var(--glass-bg-soft);
+}
+
+.qw-astro__sun {
+  background:
+    radial-gradient(120% 120% at 50% 0%, rgba(255, 190, 92, 0.16), transparent 62%),
+    var(--glass-bg-soft);
+}
+
+.qw-astro__moon,
+.qw-astro__solar {
+  margin-top: 14rpx;
+}
+
+.qw-astro__sun-head {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12rpx;
+  margin-bottom: 18rpx;
+}
+
+.qw-astro__label {
+  color: var(--glass-text);
+  font-size: 24rpx;
+  font-size: calc(24rpx * var(--fs-scale, 1));
+  font-weight: 600;
+}
+
+.qw-astro__length {
+  color: var(--glass-text-3);
+  font-size: 20rpx;
+  font-size: calc(20rpx * var(--fs-scale, 1));
+}
+
+.qw-astro__track {
+  position: relative;
+  height: 14rpx;
+  border-radius: 999rpx;
+  overflow: visible;
+}
+
+.qw-astro__track-glow {
+  position: absolute;
+  inset: 0;
+  border-radius: 999rpx;
+  background: linear-gradient(90deg, #5b6bff 0%, #ffcf5c 46%, #ff9f5a 72%, #6b7bff 100%);
+  opacity: 0.85;
+}
+
+.qw-astro__marker {
+  position: absolute;
+  top: -16rpx;
+  width: 46rpx;
+  height: 46rpx;
+  margin-left: -23rpx;
+  border-radius: 50%;
+  border: 2rpx solid rgba(255, 219, 140, 0.9);
+  background: rgba(255, 200, 90, 0.22);
+  box-shadow: 0 0 26rpx rgba(255, 200, 90, 0.55);
+}
+
+.qw-astro__marker-core {
+  position: absolute;
+  inset: 11rpx;
+  border-radius: 50%;
+  background: #ffe6a3;
+}
+
+.qw-astro__track-labels {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 22rpx;
+  color: var(--glass-text-2);
+  font-family: var(--glass-font-mono, monospace);
+  font-size: 21rpx;
+  font-size: calc(21rpx * var(--fs-scale, 1));
+}
+
+.qw-astro__night {
+  color: var(--glass-accent-text);
+  font-family: inherit;
+  font-size: 18rpx;
+  font-size: calc(18rpx * var(--fs-scale, 1));
+}
+
+.qw-astro__phases {
+  width: 100%;
+  /* Skyline 横向 scroll-view 必须显式高度 */
+  height: calc(200rpx * var(--fs-scale, 1));
+}
+
+.qw-astro__phases-inner {
+  display: inline-flex;
+  flex-direction: row;
+  gap: 10rpx;
+  padding-bottom: 4rpx;
+}
+
+.qw-astro__phase {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4rpx;
+  width: 132rpx;
+  padding: 14rpx 8rpx;
+  box-sizing: border-box;
+  border: 1rpx solid var(--glass-border);
+  border-radius: 20rpx;
+  background: var(--glass-bg);
+}
+
+.qw-astro__phase--active {
+  border-color: var(--glass-accent-glow);
+  background: var(--glass-accent-soft);
+}
+
+.qw-astro__phase-name {
+  color: var(--glass-text);
+  font-size: 20rpx;
+  font-size: calc(20rpx * var(--fs-scale, 1));
+  line-height: 1.4;
+}
+
+.qw-astro__phase-time,
+.qw-astro__phase-light {
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono, monospace);
+  font-size: 17rpx;
+  font-size: calc(17rpx * var(--fs-scale, 1));
+  line-height: 1.4;
+}
+
+.qw-astro__phase-light {
+  color: var(--glass-accent-text);
+}
+
+.qw-astro__solar-body {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 24rpx;
+}
+
+.qw-astro__compass {
+  position: relative;
+  width: 220rpx;
+  height: 220rpx;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%, var(--glass-bg) 46%, transparent 47%);
+}
+
+.qw-astro__compass-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1rpx solid var(--glass-border);
+}
+
+.qw-astro__compass-dir {
+  position: absolute;
+  color: var(--glass-text-4);
+  font-family: var(--glass-font-mono, monospace);
+  font-size: 17rpx;
+  font-size: calc(17rpx * var(--fs-scale, 1));
+}
+
+.qw-astro__compass-dir--n { top: 8rpx; left: 50%; margin-left: -8rpx; }
+.qw-astro__compass-dir--e { right: 10rpx; top: 50%; margin-top: -10rpx; }
+.qw-astro__compass-dir--s { bottom: 8rpx; left: 50%; margin-left: -8rpx; }
+.qw-astro__compass-dir--w { left: 10rpx; top: 50%; margin-top: -10rpx; }
+
+.qw-astro__needle {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+}
+
+.qw-astro__needle-core {
+  position: absolute;
+  top: 14rpx;
+  left: 50%;
+  width: 10rpx;
+  height: 96rpx;
+  margin-left: -5rpx;
+  border-radius: 999rpx;
+  background: linear-gradient(180deg, #ffd166, rgba(255, 209, 102, 0.12));
+  box-shadow: 0 0 18rpx rgba(255, 209, 102, 0.5);
+}
+
+.qw-astro__solar-metrics {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.qw-astro__metric {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10rpx;
+  padding-bottom: 8rpx;
+  border-bottom: 1rpx solid var(--glass-border);
+}
+
+.qw-astro__metric-label {
+  color: var(--glass-text-3);
+  font-size: 19rpx;
+  font-size: calc(19rpx * var(--fs-scale, 1));
+}
+
+.qw-astro__metric-value {
+  color: var(--glass-text);
+  font-family: var(--glass-font-mono, monospace);
+  font-size: 24rpx;
+  font-size: calc(24rpx * var(--fs-scale, 1));
+  font-weight: 600;
+}
+
+.qw-astro__elevation {
+  position: relative;
+  width: 10rpx;
+  height: 72rpx;
+  border-radius: 999rpx;
+  background: var(--glass-bg);
+  overflow: hidden;
+}
+
+.qw-astro__elevation-fill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  border-radius: 999rpx;
+  background: linear-gradient(180deg, #ffd166, #ff9f5a);
+}
+
+.qw-astro__skeleton {
+  height: 520rpx;
+}

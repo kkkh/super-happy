@@ -155,7 +155,7 @@
 }
 
 .wf-pipe__glyph {
-  color: var(--glass-accent);
+  color: var(--glass-accent-text);
   font-size: 28rpx;
   line-height: 1;
   text-shadow: 0 0 14rpx var(--glass-accent-soft);
@@ -226,7 +226,7 @@
   height: 64rpx;
   border-radius: 20rpx;
   background-color: var(--glass-accent-soft);
-  color: var(--glass-accent);
+  color: var(--glass-accent-text);
   font-size: 26rpx;
   font-weight: 700;
 }
@@ -267,12 +267,12 @@
 
 .wf-tool__mode_silent {
   background-color: var(--glass-accent-2-soft);
-  color: var(--glass-accent-2);
+  color: var(--glass-accent-2-text);
 }
 
 .wf-tool__mode_jump {
   background-color: var(--glass-accent-warm-soft);
-  color: var(--glass-accent-warm);
+  color: var(--glass-accent-warm-text);
 }
 
 .wf-tool__desc {
@@ -368,7 +368,7 @@
 }
 
 .wf-console__title_error {
-  color: var(--glass-danger);
+  color: var(--glass-danger-text);
 }
 
 .wf-console__meta {
@@ -454,7 +454,7 @@
 }
 
 .wf-reader-link__text {
-  color: var(--glass-accent);
+  color: var(--glass-accent-text);
   font-size: 23rpx;
   font-weight: 500;
 }

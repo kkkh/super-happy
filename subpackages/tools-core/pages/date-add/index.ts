@@ -165,6 +165,37 @@ Page({
     })
   },
 
+  /* ---- 草稿：日期、方向、数量与单位；恢复后重算 ---- */
+  collectDraftInput(): Record<string, string> {
+    return {
+      dateValue: this.data.dateValue,
+      direction: this.data.direction,
+      amountValue: this.data.amountValue,
+      unit: this.data.unit,
+    }
+  },
+
+  applyDraftInput(input: Record<string, string>, mode: string): void {
+    const unit = isDateAddUnit(input.unit) ? input.unit : 'day'
+    const direction: Direction = mode === 'subtract' || input.direction === 'subtract'
+      ? 'subtract'
+      : 'add'
+    this.setData(
+      {
+        dateValue: input.dateValue || todayISO(),
+        direction,
+        amountValue: input.amountValue ?? '1',
+        unit,
+        unitHint: unitHintOf(unit),
+        ...emptyResult(),
+      },
+      () => {
+        this.updateCanRun()
+        this.onRun()
+      },
+    )
+  },
+
   onRun() {
     this.compute()
   },

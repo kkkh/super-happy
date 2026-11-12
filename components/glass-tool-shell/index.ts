@@ -23,8 +23,18 @@ import {
   type ExportFormat,
 } from '../../core/services/export'
 import { copyText } from '../../core/services/feedback'
+import { fontScaleClass, syncFontScaleClass } from '../../core/services/font-scale'
 import { normalizePosterData, resolvePosterCategory } from '../../core/toolbox/poster'
+import { pickFooterQuote } from '../../core/toolbox/quotes'
 import { recordToolResult } from '../../core/toolbox/tracker'
+import {
+  clearDraft,
+  draftAllowed,
+  readDraft,
+  saveDraft,
+  type DraftPageBridge,
+} from '../../core/toolbox/draft'
+import { isWorkflowToolId } from '../../core/workflow/workflowConfig'
 import { workflowStore } from '../../core/workflow/workflowStore'
 import type { PosterPayload } from '../poster-generator/index'
 
@@ -43,10 +53,21 @@ interface ShellState {
   exportTimer: number
   exportSeq: number
   exportPath: string
+  /** 草稿：当前页最小接口、首次 show 基线、延迟检查计时器 */
+  draftPage: DraftPageBridge | null
+  draftPromptTimer: number
+  draftPromptChecked: boolean
+  draftBaseline: string | null
+  draftBaselineTimer: number
 }
 
 interface PosterGeneratorInstance {
   generate(payload: PosterPayload): Promise<string>
+}
+
+interface DraftSnapshot {
+  mode: string
+  input: Record<string, string>
 }
 
 /** 预览弹簧入场约 550ms：等它完全落位后再开始 Canvas 绘制，绘制不抢过渡帧 */
@@ -56,7 +77,18 @@ const POSTER_SAVER_DELAY = 240
 /** 结果埋点短防抖：只合并同一结果的多路触发，160ms 内连续计算仍分别记录 */
 const TRACK_DEBOUNCE_MS = 160
 const EXPORT_DEBOUNCE_MS = 300
+/** 草稿恢复条：等页面 onShow / workflow 注入落位后再判断，避免抢输入 */
+const DRAFT_PROMPT_DELAY = 600
 const EXPORT_FORMATS: ExportFormat[] = ['txt', 'md', 'csv', 'json']
+
+/** 跨页面连续打开工具时，避免页脚出现同一条哲理 */
+let lastFooterQuote = ''
+
+function nextFooterQuote(): string {
+  const quote = pickFooterQuote(Math.random, lastFooterQuote)
+  lastFooterQuote = quote
+  return quote
+}
 
 Component({
   options: {
@@ -101,6 +133,8 @@ Component({
   data: {
     themeClass: uiStore.themeClass,
     themeSwitching: false,
+    /** 全局字号档：根节点挂类，共享外壳文字与按钮跟随缩放 */
+    fsClass: fontScaleClass(),
     isFavorite: false,
     privacyText: '',
     codeLabel: '',
@@ -116,11 +150,14 @@ Component({
     posterSaver: false,
     /** 流转面板开关：由结果区按钮打开，面板关闭时反向复位 */
     workflowPanelVisible: false,
+    /** 草稿恢复条：仅在表单未被改动时出现 */
+    draftPromptVisible: false,
     /** 结果导出状态 */
     exportReady: false,
     exportPending: false,
     exportHint: '',
     exportShareSupported: true,
+    footerQuote: '',
   },
 
   observers: {
@@ -164,6 +201,7 @@ Component({
 
   lifetimes: {
     attached() {
+      this.setData({ fsClass: syncFontScaleClass() })
       const holder = this as unknown as ShellState
       holder.scrollTimer = 0
       holder.posterStartTimer = 0
@@ -175,6 +213,18 @@ Component({
       holder.exportTimer = 0
       holder.exportSeq = 0
       holder.exportPath = ''
+      holder.draftPage = null
+      holder.draftPromptTimer = 0
+      holder.draftPromptChecked = false
+      holder.draftBaseline = null
+      holder.draftBaselineTimer = 0
+      try {
+        const pages = getCurrentPages()
+        const current = pages.length ? pages[pages.length - 1] : null
+        holder.draftPage = (current as unknown as DraftPageBridge) ?? null
+      } catch {
+        /* 页面栈不可读时草稿能力静默关闭 */
+      }
       const session = resolveToolSession(this.data.toolId)
       const codeLabel = (this.data.toolId || 'local').toUpperCase()
       const windowInfo = wx.getWindowInfo()
@@ -188,6 +238,7 @@ Component({
         headInset,
         navRight,
         exportShareSupported: canShareFile(),
+        footerQuote: nextFooterQuote(),
       })
 
       holder.themeBindings = createStoreBindings(this, {
@@ -216,6 +267,19 @@ Component({
 
     detached() {
       const holder = this as unknown as ShellState
+      /* 页面卸载前最后落一次草稿；失败静默，不打断返回 */
+      const draftSelf = this as unknown as {
+        saveDraftFromPage: (notifyFailure: boolean) => void
+      }
+      draftSelf.saveDraftFromPage(false)
+      if (holder.draftPromptTimer) {
+        clearTimeout(holder.draftPromptTimer)
+        holder.draftPromptTimer = 0
+      }
+      if (holder.draftBaselineTimer) {
+        clearTimeout(holder.draftBaselineTimer)
+        holder.draftBaselineTimer = 0
+      }
       /* 页面离开时把防抖中的结果立即入轨迹，避免「刚算完就返回」丢记录 */
       if (holder.trackTimer) {
         clearTimeout(holder.trackTimer)
@@ -253,10 +317,18 @@ Component({
 
   pageLifetimes: {
     show() {
+      /* 从设置页返回时字号档可能已变化，先同步根类再处理其它页面逻辑 */
+      this.setData({ fsClass: syncFontScaleClass() })
       uiStore.syncNativeChrome()
+      const self = this as unknown as { scheduleDraftPrompt: () => void }
+      self.scheduleDraftPrompt()
     },
-    /** 切后台前把防抖中的结果轨迹立即落盘 */
+    /** 切后台 / 去下一级页面前保存草稿；保留原有轨迹落盘逻辑 */
     hide() {
+      const draftSelf = this as unknown as {
+        saveDraftFromPage: (notifyFailure: boolean) => void
+      }
+      draftSelf.saveDraftFromPage(false)
       const holder = this as unknown as ShellState
       if (!holder.trackTimer) {
         return
@@ -318,6 +390,11 @@ Component({
         return
       }
       tapTick()
+      if (this.data.draftPromptVisible) {
+        this.setData({ draftPromptVisible: false })
+      }
+      /* 计算前先落草稿：此时页面数据仍是纯输入态，不包含即将生成的结果 */
+      this.saveDraftFromPage(true)
       wx.hideKeyboard({ fail: () => undefined })
       this.triggerEvent('run')
     },
@@ -325,7 +402,20 @@ Component({
     onReset() {
       tapTick()
       this.triggerEvent('reset')
+      if (this.data.toolId) {
+        clearDraft(this.data.toolId)
+      }
+      if (this.data.draftPromptVisible) {
+        this.setData({ draftPromptVisible: false })
+      }
+      /* 重置后的默认值作为新基线，避免离开页面时把默认值误写成草稿 */
       const holder = this as unknown as ShellState
+      if (holder.draftBaselineTimer) {
+        clearTimeout(holder.draftBaselineTimer)
+      }
+      holder.draftBaselineTimer = setTimeout(() => {
+        holder.draftBaseline = this.resolveDraftSnapshot()
+      }, 0) as unknown as number
       if (holder.scrollTimer) {
         clearTimeout(holder.scrollTimer)
       }
@@ -338,7 +428,166 @@ Component({
 
     onExample() {
       tapTick()
+      if (this.data.draftPromptVisible) {
+        this.setData({ draftPromptVisible: false })
+      }
       this.triggerEvent('example')
+    },
+
+    /* ---- 草稿：首次 show 记录基线，600ms 后确认表单未被改动才提示恢复 ---- */
+    /** 读取当前页输入快照；未接入草稿或读取失败返回 null */
+    resolveDraftSnapshot(): string | null {
+      const holder = this as unknown as ShellState
+      const page = holder.draftPage
+      if (!page || typeof page.collectDraftInput !== 'function') {
+        return null
+      }
+      try {
+        const input = page.collectDraftInput() || {}
+        const mode = typeof page.draftMode === 'function' ? page.draftMode() : ''
+        const normalized: DraftSnapshot = {
+          mode: typeof mode === 'string' ? mode : '',
+          input,
+        }
+        return JSON.stringify(normalized)
+      } catch {
+        return null
+      }
+    },
+
+    /** 首次 show：同步记录基线，再延迟检查草稿，避开 workflow 注入与异步初始化 */
+    scheduleDraftPrompt() {
+      const holder = this as unknown as ShellState
+      if (holder.draftPromptChecked) {
+        return
+      }
+      holder.draftPromptChecked = true
+      holder.draftBaseline = this.resolveDraftSnapshot()
+      if (holder.draftBaseline === null || !this.data.toolId) {
+        return
+      }
+      if (holder.draftPromptTimer) {
+        clearTimeout(holder.draftPromptTimer)
+      }
+      holder.draftPromptTimer = setTimeout(() => {
+        holder.draftPromptTimer = 0
+        this.checkDraftPrompt()
+      }, DRAFT_PROMPT_DELAY) as unknown as number
+    },
+
+    checkDraftPrompt() {
+      const toolId = this.data.toolId
+      const holder = this as unknown as ShellState
+      const page = holder.draftPage
+      if (
+        !toolId ||
+        !page ||
+        typeof page.collectDraftInput !== 'function' ||
+        typeof page.applyDraftInput !== 'function'
+      ) {
+        return
+      }
+      if (!draftAllowed(toolId)) {
+        return
+      }
+      /* 有 workflow 待注入时优先让流转数据落位，不弹恢复条 */
+      if (isWorkflowToolId(toolId) && workflowStore.peekPendingJump(toolId)) {
+        return
+      }
+      const snapshot = this.resolveDraftSnapshot()
+      if (snapshot === null || snapshot !== holder.draftBaseline) {
+        return
+      }
+      if (!readDraft(toolId)) {
+        return
+      }
+      this.setData({ draftPromptVisible: true })
+    },
+
+    /** 页面动过才写草稿；未动过时绝不把默认值写成“上次输入” */
+    saveDraftFromPage(notifyFailure: boolean) {
+      const toolId = this.data.toolId
+      const holder = this as unknown as ShellState
+      const page = holder.draftPage
+      if (!toolId || !page || typeof page.collectDraftInput !== 'function') {
+        return
+      }
+      if (!draftAllowed(toolId)) {
+        return
+      }
+      const snapshot = this.resolveDraftSnapshot()
+      if (snapshot === null) {
+        return
+      }
+      let parsed: DraftSnapshot
+      try {
+        parsed = JSON.parse(snapshot) as DraftSnapshot
+      } catch {
+        return
+      }
+      const empty = Object.keys(parsed.input).length === 0
+      if (holder.draftBaseline === null) {
+        /* 基线缺失（show 未触发）：只在有输入时保存，避免写默认值 */
+        if (empty) {
+          return
+        }
+      } else if (snapshot === holder.draftBaseline) {
+        return
+      }
+      if (empty) {
+        clearDraft(toolId)
+        return
+      }
+      const result = saveDraft(toolId, { mode: parsed.mode, input: parsed.input })
+      if (result === 'failed' && notifyFailure) {
+        showGlassToast({ message: '草稿保存失败，本次输入未保留', type: 'warning' })
+      }
+    },
+
+    onDraftDismiss() {
+      tapTick()
+      this.setData({ draftPromptVisible: false })
+    },
+
+    onDraftRestore() {
+      const toolId = this.data.toolId
+      const holder = this as unknown as ShellState
+      const page = holder.draftPage
+      if (!toolId || !page || typeof page.applyDraftInput !== 'function') {
+        this.setData({ draftPromptVisible: false })
+        return
+      }
+      const draft = readDraft(toolId)
+      if (!draft) {
+        this.setData({ draftPromptVisible: false })
+        return
+      }
+      /* 用户可能在提示条出现后继续输入：已有内容时绝不覆盖 */
+      const snapshot = this.resolveDraftSnapshot()
+      if (snapshot !== null && holder.draftBaseline !== null && snapshot !== holder.draftBaseline) {
+        this.setData({ draftPromptVisible: false })
+        showGlassToast({ message: '表单已有内容，已取消恢复', type: 'warning' })
+        return
+      }
+      tapTick()
+      try {
+        page.applyDraftInput(draft.input, draft.mode)
+      } catch {
+        showGlassToast({ message: '恢复失败，请重新输入', type: 'error' })
+        return
+      }
+      this.setData({ draftPromptVisible: false })
+      /* 恢复即视为一次使用：刷新 at，避免用户只恢复不修改时 30 天后被淘汰 */
+      saveDraft(toolId, { mode: draft.mode, input: draft.input })
+      /* 恢复后页面会重算结果；把恢复态作为新基线，避免再被判定为“已修改” */
+      holder.draftBaseline = JSON.stringify({ mode: draft.mode, input: draft.input })
+      if (holder.draftBaselineTimer) {
+        clearTimeout(holder.draftBaselineTimer)
+      }
+      holder.draftBaselineTimer = setTimeout(() => {
+        holder.draftBaseline = this.resolveDraftSnapshot()
+      }, 0) as unknown as number
+      showGlassToast({ message: '已恢复上次输入', type: 'success' })
     },
 
     /** 使用说明：跳帮助页并自动展开当前工具 */
