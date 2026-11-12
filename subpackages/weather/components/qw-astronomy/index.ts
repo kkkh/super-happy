@@ -54,21 +54,26 @@ Component({
   data: {
     sunProgress: 0,
     isDay: true,
+    isToday: true,
     elevationPercent: 0,
     azimuth: 0,
   },
 
   observers: {
-    'sun, utcOffset'() {
+    'sun, utcOffset, activeDate'() {
       const value = this.data.sun as SunView | null
+      const now = new Date()
+      const pad = (input: number): string => String(input).padStart(2, '0')
+      const today = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`
+      const active = String(this.data.activeDate || '')
+      const isToday = !active || active === today
       const rise = value ? minutesOf(value.sunriseText) : null
       const set = value ? minutesOf(value.sunsetText) : null
       if (rise === null || set === null || set <= rise) {
-        this.setData({ sunProgress: 0, isDay: true })
+        this.setData({ sunProgress: 0, isDay: true, isToday })
         return
       }
       const match = /^([+-])(\d{2}):(\d{2})$/.exec(String(this.data.utcOffset || ''))
-      const now = new Date()
       let current = now.getUTCHours() * 60 + now.getUTCMinutes()
       if (match) {
         const offset = Number(match[2]) * 60 + Number(match[3])
@@ -81,6 +86,7 @@ Component({
       this.setData({
         sunProgress: Math.max(0, Math.min(100, Math.round(progress))),
         isDay: current >= rise && current <= set,
+        isToday,
       })
     },
     solar(value: SolarView | null) {

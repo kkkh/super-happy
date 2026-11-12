@@ -63,7 +63,7 @@
           <view class="qw-daily__part">
             <text class="qw-daily__part-title">白天</text>
             <view wx:if="{{item.daytime.periodText}}" class="qw-daily__part-row"><text>时段</text><text>{{item.daytime.periodText}}</text></view>
-            <view class="qw-daily__part-row"><text>温度</text><text>{{item.daytime.tempMinText}} ~ {{item.daytime.tempMaxText}}</text></view>
+            <view wx:if="{{item.daytime.tempMaxText !== '—'}}" class="qw-daily__part-row"><text>温度</text><text>{{item.daytime.tempMinText}} ~ {{item.daytime.tempMaxText}}</text></view>
             <view class="qw-daily__part-row"><text>风</text><text>{{item.daytime.windText}}</text></view>
             <view wx:if="{{item.daytime.gustText !== '—'}}" class="qw-daily__part-row"><text>阵风</text><text>{{item.daytime.gustText}}</text></view>
             <view class="qw-daily__part-row"><text>降水</text><text>{{item.daytime.precipText}}</text></view>
@@ -75,7 +75,7 @@
           <view class="qw-daily__part">
             <text class="qw-daily__part-title">夜间</text>
             <view wx:if="{{item.nighttime.periodText}}" class="qw-daily__part-row"><text>时段</text><text>{{item.nighttime.periodText}}</text></view>
-            <view class="qw-daily__part-row"><text>温度</text><text>{{item.nighttime.tempMinText}} ~ {{item.nighttime.tempMaxText}}</text></view>
+            <view wx:if="{{item.nighttime.tempMaxText !== '—'}}" class="qw-daily__part-row"><text>温度</text><text>{{item.nighttime.tempMinText}} ~ {{item.nighttime.tempMaxText}}</text></view>
             <view class="qw-daily__part-row"><text>风</text><text>{{item.nighttime.windText}}</text></view>
             <view wx:if="{{item.nighttime.gustText !== '—'}}" class="qw-daily__part-row"><text>阵风</text><text>{{item.nighttime.gustText}}</text></view>
             <view class="qw-daily__part-row"><text>降水</text><text>{{item.nighttime.precipText}}</text></view>

@@ -93,7 +93,7 @@
       </view>
       <view class="qw-grid__item qw-hero__metric">
         <text class="qw-hero__metric-label">风</text>
-        <text class="qw-hero__metric-value">{{current.wind.text}}</text>
+        <text class="qw-hero__metric-value">{{current.wind.heroText}}</text>
       </view>
       <view class="qw-grid__item qw-hero__metric">
         <text class="qw-hero__metric-label">阵风</text>

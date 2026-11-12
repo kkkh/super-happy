@@ -227,7 +227,8 @@
   font-size: calc(22rpx * var(--fs-scale, 1));
   font-weight: 600;
   line-height: 1.35;
-  word-break: break-all;
+  word-break: normal;
+  overflow-wrap: break-word;
 }
 
 .qw-hero__metric-sub {

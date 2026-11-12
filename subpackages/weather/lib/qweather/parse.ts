@@ -265,12 +265,13 @@ function moonIcon(value: string): string {
 function windView(value: unknown, legacy = false): QwWindView {
   const record = obj(value)
   if (!record) {
-    return { degree: null, compass: '', speed: 0, speedText: '—', scale: null, text: '—' }
+    return { degree: null, compass: '', speed: 0, speedText: '—', scale: null, text: '—', heroText: '—' }
   }
   if (legacy) {
     const dir = str(record.windDir, '')
     const scale = nullableNum(record.windScale)
     const speed = num(record.windSpeed, NaN)
+    const compactDir = dir.replace(/风$/, '')
     return {
       degree: nullableNum(record.wind360),
       compass: dir,
@@ -280,6 +281,10 @@ function windView(value: unknown, legacy = false): QwWindView {
       text: [dir, scale !== null ? windScaleText(scale) : '', Number.isFinite(speed) ? `${speed} km/h` : '']
         .filter(Boolean)
         .join(' · ') || '—',
+      heroText:
+        [compactDir, scale !== null ? `${Math.round(scale)}级` : '', Number.isFinite(speed) ? `${speed}km/h` : '']
+          .filter(Boolean)
+          .join(' ') || '—',
     }
   }
   const direction = obj(record.direction)
@@ -296,6 +301,14 @@ function windView(value: unknown, legacy = false): QwWindView {
     text: [dirText, scale !== null ? windScaleText(scale) : '', `${speed.value || 0} ${speed.unit || 'm/s'}`]
       .filter(Boolean)
       .join(' · '),
+    heroText:
+      [
+        dirText.replace(/风$/, ''),
+        scale !== null ? `${Math.round(scale)}级` : '',
+        `${speed.value || 0}${speed.unit || 'm/s'}`,
+      ]
+        .filter(Boolean)
+        .join(' '),
   }
 }
 
@@ -473,8 +486,9 @@ export function parseDailyV7(raw: unknown, range: QwDailyRange = 15): QwDailyVie
       icon: normalizeIconCode(str(day.iconDay), false),
       condition: str(day.textDay, '—'),
       periodText: '',
-      tempMaxText: tempText(num(day.tempMax, NaN)),
-      tempMinText: tempText(num(day.tempMin, NaN)),
+      /* v7 只提供全天最高/最低，没有独立的昼/夜温度，避免昼夜显示成同一组数 */
+      tempMaxText: '—',
+      tempMinText: '—',
       windText: windDay.text,
       gustText: '—',
       precipText: `${str(day.precip, '0.0')} mm`,
@@ -487,8 +501,8 @@ export function parseDailyV7(raw: unknown, range: QwDailyRange = 15): QwDailyVie
       icon: normalizeIconCode(str(day.iconNight), true),
       condition: str(day.textNight, '—'),
       periodText: '',
-      tempMaxText: tempText(num(day.tempMax, NaN)),
-      tempMinText: tempText(num(day.tempMin, NaN)),
+      tempMaxText: '—',
+      tempMinText: '—',
       windText: windNight.text,
       gustText: '—',
       precipText: `${str(day.precip, '0.0')} mm`,
@@ -751,7 +765,6 @@ export function parseAirCurrent(raw: unknown): QwAirView {
     .filter((item): item is QwAirIndexView => Boolean(item))
   const primary = pickPrimary(indexes)
   return {
-    updatedText: '',
     indexes,
     primary,
     pollutants: pollutants(record.pollutants),
