@@ -1,0 +1,8 @@
+{
+  "component": true,
+  "styleIsolation": "isolated",
+  "usingComponents": {
+    "glass-bottom-sheet": "/components/glass-bottom-sheet/index",
+    "g-icon": "/components/g-icon/index"
+  }
+}

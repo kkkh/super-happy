@@ -35,7 +35,7 @@ export interface ResetAllResult {
 }
 
 /** 重置全部删除的命名空间：gallery.* 与 app:storage.version 不在其中 */
-const RESET_PREFIXES = ['tbx:', 'weather:', 'focus:', 'diag:', 'cyber:'] as const
+const RESET_PREFIXES = ['tbx:', 'weather:', 'qweather:', 'focus:', 'diag:', 'cyber:'] as const
 const RESET_KEYS: string[] = [
   STORAGE_KEYS.preference,
   STORAGE_KEYS.preferenceLegacy,
@@ -217,7 +217,7 @@ export function privacyVersionChanged(version = PRIVACY_VERSION): boolean {
 
 /**
  * 重置全部本机数据。
- * - 删除 tbx: / weather: / focus: / diag: / cyber: 与 app 偏好、备份时间、隐私版本
+ * - 删除 tbx: / weather: / qweather: / focus: / diag: / cyber: 与 app 偏好、备份时间、隐私版本
  * - 删除 USER_DATA_PATH/backups 与 exports
  * - 保留 gallery.*（主题与作品收藏）与 app:storage.version（迁移判断）
  */

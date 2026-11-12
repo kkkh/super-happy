@@ -1,0 +1,123 @@
+<view class="qw-card qw-astro">
+  <view class="qw-card__head">
+    <view>
+      <text class="qw-kicker">ASTRONOMY</text>
+      <text class="qw-title">天文</text>
+    </view>
+    <view class="qw-astro__controls">
+      <view class="qw-astro__alt">
+        <text class="qw-astro__alt-label">海拔</text>
+        <input
+          class="qw-astro__alt-input"
+          type="number"
+          value="{{altitude}}"
+          bindblur="onAltitude"
+          aria-label="太阳高度角海拔，单位米"
+        />
+        <text class="qw-astro__alt-unit">m</text>
+      </view>
+      <picker mode="time" value="{{time}}" bindchange="onTime">
+        <view class="qw-badge qw-astro__time" aria-role="button" aria-label="选择太阳高度角时间，当前 {{time}}">
+          <g-icon name="clock" size="{{20}}" tone="ink4" />
+          <text>{{time}}</text>
+        </view>
+      </picker>
+    </view>
+  </view>
+
+  <view wx:if="{{dates.length}}" class="qw-chip-row qw-astro__dates">
+    <view
+      wx:for="{{dates}}"
+      wx:key="date"
+      class="qw-chip {{activeDate === item.date ? 'qw-chip--active' : ''}}"
+      data-date="{{item.date}}"
+      bindtap="onDate"
+      aria-role="button"
+      aria-label="{{item.label}}天文数据"
+    >{{item.label}}</view>
+  </view>
+
+  <view wx:if="{{error}}" class="qw-error">{{error}}</view>
+  <block wx:elif="{{sun}}">
+    <view class="qw-astro__sun">
+      <view class="qw-astro__sun-head">
+        <text class="qw-astro__label">日出 · 日落</text>
+        <text class="qw-astro__length">白昼 {{sun.dayLengthText}}</text>
+      </view>
+      <view class="qw-astro__track" aria-hidden="true">
+        <view class="qw-astro__track-glow"></view>
+        <view wx:if="{{isDay}}" class="qw-astro__marker" style="left: {{sunProgress}}%;">
+          <view class="qw-astro__marker-core"></view>
+        </view>
+      </view>
+      <view class="qw-astro__track-labels">
+        <text>{{sun.sunriseText}}</text>
+        <text wx:if="{{!isDay}}" class="qw-astro__night">当前夜间</text>
+        <text>{{sun.sunsetText}}</text>
+      </view>
+    </view>
+
+    <view wx:if="{{moon}}" class="qw-astro__moon">
+      <view class="qw-astro__sun-head">
+        <text class="qw-astro__label">月升 · 月落</text>
+        <text class="qw-astro__length">{{moon.moonriseText}} / {{moon.moonsetText}}</text>
+      </view>
+      <scroll-view wx:if="{{moon.phases.length}}" scroll-x enhanced show-scrollbar="{{false}}" class="qw-astro__phases">
+        <view class="qw-astro__phases-inner">
+          <view
+            wx:for="{{moon.phases}}"
+            wx:key="timeText"
+            class="qw-astro__phase {{moon.current && moon.current.timeText === item.timeText ? 'qw-astro__phase--active' : ''}}"
+          >
+            <qw-icon code="{{item.icon}}" size="{{64}}" moon alt="{{item.name}}" />
+            <text class="qw-astro__phase-name">{{item.name}}</text>
+            <text class="qw-astro__phase-time">{{item.timeText}}</text>
+            <text class="qw-astro__phase-light">{{item.illuminationText}}</text>
+          </view>
+        </view>
+      </scroll-view>
+      <text wx:else class="qw-empty">暂无月相数据</text>
+    </view>
+
+    <view wx:if="{{solar}}" class="qw-astro__solar">
+      <view class="qw-astro__sun-head">
+        <text class="qw-astro__label">太阳高度角</text>
+        <text class="qw-astro__length">太阳时 {{solar.solarHourText}}</text>
+      </view>
+      <view class="qw-astro__solar-body">
+        <view class="qw-astro__compass" aria-hidden="true">
+          <view class="qw-astro__compass-ring"></view>
+          <text class="qw-astro__compass-dir qw-astro__compass-dir--n">N</text>
+          <text class="qw-astro__compass-dir qw-astro__compass-dir--e">E</text>
+          <text class="qw-astro__compass-dir qw-astro__compass-dir--s">S</text>
+          <text class="qw-astro__compass-dir qw-astro__compass-dir--w">W</text>
+          <view class="qw-astro__needle" style="transform: rotate({{azimuth}}deg);">
+            <view class="qw-astro__needle-core"></view>
+          </view>
+        </view>
+        <view class="qw-astro__solar-metrics">
+          <view class="qw-astro__metric">
+            <text class="qw-astro__metric-label">高度角</text>
+            <text class="qw-astro__metric-value">{{solar.elevationText}}</text>
+            <view class="qw-astro__elevation">
+              <view class="qw-astro__elevation-fill" style="height: {{elevationPercent}}%;"></view>
+            </view>
+          </view>
+          <view class="qw-astro__metric">
+            <text class="qw-astro__metric-label">方位角</text>
+            <text class="qw-astro__metric-value">{{solar.azimuthText}}</text>
+          </view>
+          <view class="qw-astro__metric">
+            <text class="qw-astro__metric-label">时角</text>
+            <text class="qw-astro__metric-value">{{solar.hourAngleText}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+    <text wx:else class="qw-empty">太阳高度角暂不可用，可调整时间或海拔后重试</text>
+
+    <text class="qw-source">数据来源 和风天气 QWeather · 天文 API（日出日落 / 月相 / 太阳高度角）</text>
+  </block>
+  <view wx:elif="{{loading}}" class="qw-skeleton qw-astro__skeleton"></view>
+  <text wx:else class="qw-empty">暂无天文数据</text>
+</view>

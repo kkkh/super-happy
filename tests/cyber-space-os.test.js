@@ -695,6 +695,28 @@ test('Geek Lab：默认收起，展开后才查询 Canvas，初始化失败自�
     '只有 1 帧时必须解释时间轴为何不可拖动',
   )
   assert.ok(wxss.includes('.cyber-timeline__hint'), '缺少时间轴提示样式')
+  assert.ok(
+    wxml.includes('cyber-timeline__track'),
+    '时间轴卡片必须放在显式横向 flex 轨道内，避免纵向堆叠',
+  )
+  assert.ok(
+    wxml.includes('scroll-into-view="{{timelineScrollTarget}}"'),
+    '选中帧必须自动滚入可视区',
+  )
+  assert.ok(
+    wxml.includes('timelinePositionText'),
+    '必须显示当前帧序号 / 总数 / 时间',
+  )
+  assert.ok(
+    ts.includes('active: item.index === index'),
+    '拖动滑轨必须同步高亮对应卡片',
+  )
+  assert.ok(
+    ts.includes('timelineScrollTarget: `tt-frame-${index}`'),
+    '预览帧必须更新滚动目标',
+  )
+  assert.ok(wxss.includes('.cyber-timeline__track'), '缺少横向轨道样式')
+  assert.ok(wxss.includes('.cyber-timeline__position'), '缺少帧位置反馈样式')
   const timelineBlock = wxss.match(/\.cyber-timeline\s*\{[^}]*\}/)
   assert.ok(timelineBlock, '缺少 .cyber-timeline 样式')
   assert.ok(

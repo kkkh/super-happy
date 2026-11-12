@@ -11,7 +11,7 @@
     "useCompilerPlugins": [
       "typescript"
     ],
-    "ignoreUploadUnusedFiles": true,
+    "ignoreUploadUnusedFiles": false,
     "uploadWithSourceMap": true,
     "minifyWXSS": true,
     "minifyWXML": true,
@@ -58,6 +58,70 @@
       {
         "value": "subpackages/tools-core/package-lock.json",
         "type": "file"
+      },
+      {
+        "value": "package-lock.json",
+        "type": "file"
+      },
+      {
+        "value": "preview-",
+        "type": "prefix"
+      },
+      {
+        "value": "预览码-",
+        "type": "prefix"
+      },
+      {
+        "value": "preview-m5-6.png",
+        "type": "file"
+      },
+      {
+        "value": "preview-m5-6.json",
+        "type": "file"
+      },
+      {
+        "value": "preview-m5-7.png",
+        "type": "file"
+      },
+      {
+        "value": "preview-m5-7.json",
+        "type": "file"
+      },
+      {
+        "value": "preview-m5-8.png",
+        "type": "file"
+      },
+      {
+        "value": "preview-m5-8.json",
+        "type": "file"
+      },
+      {
+        "value": "preview-m5-9.png",
+        "type": "file"
+      },
+      {
+        "value": "preview-m5-9.json",
+        "type": "file"
+      },
+      {
+        "value": "preview-m5-10.png",
+        "type": "file"
+      },
+      {
+        "value": "preview-m5-10.json",
+        "type": "file"
+      },
+      {
+        "value": "全息专注引擎-真机预览二维码",
+        "type": "prefix"
+      },
+      {
+        "value": "全息专注引擎-真机预览二维码.png",
+        "type": "file"
+      },
+      {
+        "value": ".pem",
+        "type": "suffix"
       },
       {
         "value": ".git",

@@ -1,0 +1,181 @@
+/* ==========================================================================
+   和风天气 · 共享样式（组件与页面按需 @import）
+   - 玻璃卡片 / 章标题 / chips / 空态 / 错误态 / 来源脚注
+   - 字号统一「原值 + calc」双声明，兼容 --fs-scale
+   ========================================================================== */
+
+.qw-card {
+  display: block;
+  padding: 28rpx;
+  box-sizing: border-box;
+  border: 1rpx solid var(--glass-border);
+  border-radius: var(--glass-radius-lg, 32rpx);
+  background: var(--glass-bg);
+}
+
+.qw-card--soft {
+  background: var(--glass-bg-soft);
+}
+
+.qw-card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16rpx;
+  margin-bottom: 20rpx;
+}
+
+.qw-kicker {
+  color: var(--glass-accent-text);
+  font-family: var(--glass-font-mono, monospace);
+  font-size: 18rpx;
+  font-size: calc(18rpx * var(--fs-scale, 1));
+  letter-spacing: 1.5rpx;
+  line-height: 1.4;
+}
+
+.qw-title {
+  color: var(--glass-text);
+  font-size: 30rpx;
+  font-size: calc(30rpx * var(--fs-scale, 1));
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.qw-sub {
+  color: var(--glass-text-3);
+  font-size: 21rpx;
+  font-size: calc(21rpx * var(--fs-scale, 1));
+  line-height: 1.5;
+}
+
+.qw-chip-row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.qw-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 56rpx;
+  padding: 0 22rpx;
+  box-sizing: border-box;
+  border: 1rpx solid var(--glass-border);
+  border-radius: 999rpx;
+  background: var(--glass-bg-soft);
+  color: var(--glass-text-2);
+  font-size: 21rpx;
+  font-size: calc(21rpx * var(--fs-scale, 1));
+  line-height: 1.2;
+}
+
+.qw-chip--active {
+  border-color: var(--glass-accent-glow);
+  background: var(--glass-accent-soft);
+  color: var(--glass-text);
+  font-weight: 600;
+}
+
+.qw-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 6rpx 14rpx;
+  border-radius: 999rpx;
+  border: 1rpx solid var(--glass-border);
+  background: var(--glass-bg-soft);
+  color: var(--glass-text-2);
+  font-size: 18rpx;
+  font-size: calc(18rpx * var(--fs-scale, 1));
+  line-height: 1.3;
+}
+
+.qw-empty {
+  display: block;
+  padding: 36rpx 20rpx;
+  color: var(--glass-text-3);
+  font-size: 22rpx;
+  font-size: calc(22rpx * var(--fs-scale, 1));
+  line-height: 1.6;
+  text-align: center;
+}
+
+.qw-error {
+  display: block;
+  padding: 24rpx;
+  border: 1rpx solid rgba(255, 120, 120, 0.32);
+  border-radius: var(--glass-radius-md, 24rpx);
+  background: rgba(255, 80, 80, 0.08);
+  color: #ffb3b3;
+  font-size: 21rpx;
+  font-size: calc(21rpx * var(--fs-scale, 1));
+  line-height: 1.5;
+}
+
+.qw-source {
+  display: block;
+  margin-top: 18rpx;
+  color: var(--glass-text-4);
+  font-size: 17rpx;
+  font-size: calc(17rpx * var(--fs-scale, 1));
+  line-height: 1.5;
+}
+
+.qw-divider {
+  height: 1rpx;
+  margin: 22rpx 0;
+  background: var(--glass-border);
+}
+
+.qw-grid-2,
+.qw-grid-3 {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.qw-grid-2 > .qw-grid__item {
+  width: 48.6%;
+  margin-bottom: 12rpx;
+  box-sizing: border-box;
+}
+
+.qw-grid-3 > .qw-grid__item {
+  width: 32%;
+  margin-bottom: 12rpx;
+  box-sizing: border-box;
+}
+
+.qw-scroll-x {
+  width: 100%;
+  white-space: nowrap;
+}
+
+.qw-scroll-x__inner {
+  display: inline-flex;
+  flex-direction: row;
+  gap: 14rpx;
+  padding-bottom: 4rpx;
+}
+
+.qw-skeleton {
+  border-radius: 16rpx;
+  background: linear-gradient(90deg, var(--glass-bg-soft), var(--glass-bg), var(--glass-bg-soft));
+  background-size: 200% 100%;
+  animation: qw-skeleton 1.4s ease-in-out infinite;
+}
+
+@keyframes qw-skeleton {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .qw-skeleton {
+    animation: none;
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "navigationBarTitleText": "和风天气",
+  "disableScroll": true,
+  "usingComponents": {
+    "qw-screen": "../../components/qw-screen/index",
+    "workflow-receiver": "../../../../components/workflow-receiver/index",
+    "workflow-panel": "../../../../components/workflow-panel/index"
+  }
+}

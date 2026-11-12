@@ -53,6 +53,7 @@ const NEW_PAGES = [
   'subpackages/tools-dict/pages/pinyin',
   'subpackages/grow/pages/help',
   'subpackages/tools-core/pages/web-search',
+  'subpackages/weather/pages/home',
 ]
 
 for (const page of NEW_PAGES) {
@@ -69,6 +70,7 @@ const LIMITS = {
   'subpackages/grow': 1500,
   'subpackages/tools-daily': 600,
   'subpackages/tools-dict': 1536,
+  'subpackages/weather': 1400,
   defaultSubpackage: 2048,
   page: 24,
 }

@@ -34,6 +34,8 @@ export const ROUTES = {
   weather: '/subpackages/tools-core/pages/weather/index',
   /* 元宝搜索：tools-core 分包，腾讯云 WSA SearchPro */
   webSearch: '/subpackages/tools-core/pages/web-search/index',
+  /* 和风天气：weather 分包，8 组 API / 27 端点 / 官方图标 */
+  qweather: '/subpackages/weather/pages/home/index',
 } as const
 
 /** 当前版本号：设置中心、我的页与更新日志共用同一真相源 */

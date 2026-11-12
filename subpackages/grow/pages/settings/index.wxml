@@ -396,7 +396,7 @@
       </view>
 
       <!-- 00.2 · Time Travel -->
-      <view class="settings-group">
+      <view class="settings-group" id="settings-time-travel">
         <view class="settings-group__head">
           <text class="settings-group__title">Time Travel</text>
           <text class="settings-group__code">DEVTOOLS / 00.2</text>
@@ -415,27 +415,37 @@
             enable-flex
             enhanced
             show-scrollbar="{{false}}"
+            scroll-into-view="{{timelineScrollTarget}}"
+            scroll-with-animation
           >
-            <view
-              wx:for="{{timelineFrames}}"
-              wx:key="id"
-              class="tt-card {{item.active ? 'tt-card--active' : ''}}"
-              data-index="{{item.index}}"
-              hover-class="tt-card--press"
-              hover-stay-time="80"
-              aria-role="button"
-              aria-label="预览 {{item.time}} {{item.label}}"
-              bindtap="onTimelineTap"
-            >
-              <view class="tt-dot" aria-hidden="true"></view>
-              <view class="tt-body">
-                <text class="tt-time">{{item.time}}</text>
-                <text class="tt-title">{{item.label}}</text>
-                <text class="tt-detail">{{item.preferenceText}}</text>
+            <view class="cyber-timeline__track">
+              <view
+                wx:for="{{timelineFrames}}"
+                wx:key="id"
+                id="tt-frame-{{item.index}}"
+                class="tt-card {{item.active ? 'tt-card--active' : ''}}"
+                data-index="{{item.index}}"
+                hover-class="tt-card--press"
+                hover-stay-time="80"
+                aria-role="button"
+                aria-label="预览第 {{item.index + 1}} 帧 {{item.time}} {{item.label}}"
+                bindtap="onTimelineTap"
+              >
+                <view class="tt-dot" aria-hidden="true"></view>
+                <text class="tt-index" aria-hidden="true">{{item.index + 1}}</text>
+                <view class="tt-body">
+                  <text class="tt-time">{{item.time}}</text>
+                  <text class="tt-title">{{item.label}}</text>
+                  <text class="tt-detail">{{item.preferenceText}}</text>
+                </view>
               </view>
+              <text wx:if="{{!timelineFrames.length}}" class="cyber-empty">还没有状态帧</text>
             </view>
-            <text wx:if="{{!timelineFrames.length}}" class="cyber-empty">还没有状态帧</text>
           </scroll-view>
+
+          <view class="cyber-timeline__position">
+            <text class="cyber-timeline__position-text">{{timelinePositionText}}</text>
+          </view>
 
           <view class="cyber-timeline__slider">
             <glass-slider
@@ -443,11 +453,15 @@
               min="0"
               max="{{timelineMax}}"
               step="1"
+              marks="{{timelineMarks}}"
               disabled="{{timelineFrames.length < 2}}"
               aria-label="时间旅行轴"
               bind:input="onTimelineSlide"
             />
-            <text wx:if="{{timelineFrames.length === 1}}" class="cyber-timeline__hint">
+            <text wx:if="{{timelineFrames.length > 1}}" class="cyber-timeline__hint">
+              拖动滑轨或点击卡片切换帧，松手不会自动穿越。
+            </text>
+            <text wx:elif="{{timelineFrames.length === 1}}" class="cyber-timeline__hint">
               当前只有 1 帧，时间轴需至少 2 帧才可拖动；调整任一设置或执行备份后会自动累积。
             </text>
           </view>
@@ -465,7 +479,7 @@
             loading-text="正在穿越"
             bind:tap="onTimeTravel"
           >
-            穿越到这一帧
+            穿越到第 {{timelineIndex + 1}} 帧
           </glass-button>
         </glass-card>
       </view>

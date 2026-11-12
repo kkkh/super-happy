@@ -1561,6 +1561,18 @@
   white-space: normal;
 }
 
+/* 横向卡片轨道：scroll-view 只负责滚动，flex 行由内层显式声明，
+   避免 white-space: normal 让卡片在 Skyline 下纵向堆叠并压住滑块 */
+.cyber-timeline__track {
+  display: flex;
+  flex: none;
+  flex-direction: row;
+  align-items: stretch;
+  height: 250rpx;
+  box-sizing: border-box;
+  white-space: nowrap;
+}
+
 .tt-card {
   position: relative;
   display: flex;
@@ -1589,6 +1601,22 @@
   border-radius: 50%;
   background-color: var(--glass-accent-text);
   box-shadow: none;
+}
+
+.tt-index {
+  position: absolute;
+  top: 18rpx;
+  right: 20rpx;
+  color: var(--glass-text-3);
+  font-family: var(--glass-font-mono, monospace);
+  font-size: 18rpx;
+  font-size: calc(18rpx * var(--fs-scale, 1));
+  line-height: 1;
+}
+
+.tt-card--active .tt-index {
+  color: var(--glass-accent-text);
+  font-weight: 600;
 }
 
 .tt-body {
@@ -1640,6 +1668,25 @@
   color: var(--glass-text-3);
   font-size: 18rpx;
   line-height: 1.45;
+}
+
+.cyber-timeline__position {
+  display: flex;
+  align-items: center;
+  padding: 12rpx 4rpx 0;
+  box-sizing: border-box;
+}
+
+.cyber-timeline__position-text {
+  display: block;
+  width: 100%;
+  color: var(--glass-accent-text);
+  font-family: var(--glass-font-mono);
+  font-size: 20rpx;
+  font-size: calc(20rpx * var(--fs-scale, 1));
+  line-height: 1.45;
+  white-space: normal;
+  word-break: break-all;
 }
 
 .cyber-timeline__slider {

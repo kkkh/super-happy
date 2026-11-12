@@ -123,6 +123,12 @@
       "pages": [
         "pages/focus/index"
       ]
+    },
+    {
+      "root": "subpackages/weather",
+      "pages": [
+        "pages/home/index"
+      ]
     }
   ],
   "requiredBackgroundModes": [

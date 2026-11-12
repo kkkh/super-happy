@@ -1,0 +1,101 @@
+<view class="qw-card qw-history">
+  <view class="qw-card__head">
+    <view>
+      <text class="qw-kicker">TIME MACHINE</text>
+      <text class="qw-title">天气时光机</text>
+    </view>
+    <picker
+      mode="date"
+      value="{{date}}"
+      start="{{minDate}}"
+      end="{{maxDate}}"
+      bindchange="onPicker"
+    >
+      <view class="qw-badge qw-history__picker" aria-role="button" aria-label="选择历史日期，当前 {{date}}">
+        <g-icon name="history" size="{{20}}" tone="ink4" />
+        <text>{{date}}</text>
+      </view>
+    </picker>
+  </view>
+
+  <view wx:if="{{quick.length}}" class="qw-chip-row qw-history__quick">
+    <view
+      wx:for="{{quick}}"
+      wx:key="date"
+      class="qw-chip {{date === item.date ? 'qw-chip--active' : ''}}"
+      data-date="{{item.date}}"
+      bindtap="onQuick"
+      aria-role="button"
+      aria-label="{{item.label}}，{{item.date}}"
+    >{{item.label}}</view>
+  </view>
+
+  <view wx:if="{{error}}" class="qw-error">{{error}}</view>
+  <block wx:elif="{{history && history.daily}}">
+    <view class="qw-history__summary">
+      <view class="qw-history__summary-left">
+        <text class="qw-history__summary-date">{{history.daily.dateText}}</text>
+        <text class="qw-history__summary-week">{{history.daily.weekText}}</text>
+      </view>
+      <view class="qw-history__summary-temps">
+        <text class="qw-history__temp-max">{{history.daily.tempMaxText}}</text>
+        <text class="qw-history__temp-min">{{history.daily.tempMinText}}</text>
+        <text class="qw-history__temp-avg">均值 {{history.daily.tempAvgText}}</text>
+      </view>
+    </view>
+
+    <text wx:if="{{compareText}}" class="qw-history__compare">{{compareText}}</text>
+
+    <view class="qw-grid-3 qw-history__metrics">
+      <view class="qw-grid__item qw-history__metric">
+        <text class="qw-history__metric-label">湿度</text>
+        <text class="qw-history__metric-value">{{history.daily.humidityText}}</text>
+      </view>
+      <view class="qw-grid__item qw-history__metric">
+        <text class="qw-history__metric-label">降水</text>
+        <text class="qw-history__metric-value">{{history.daily.precipText}}</text>
+      </view>
+      <view class="qw-grid__item qw-history__metric">
+        <text class="qw-history__metric-label">气压</text>
+        <text class="qw-history__metric-value">{{history.daily.pressureText}}</text>
+      </view>
+      <view class="qw-grid__item qw-history__metric">
+        <text class="qw-history__metric-label">日出 / 日落</text>
+        <text class="qw-history__metric-value">{{history.daily.sunriseText}} / {{history.daily.sunsetText}}</text>
+      </view>
+      <view class="qw-grid__item qw-history__metric">
+        <text class="qw-history__metric-label">月升 / 月落</text>
+        <text class="qw-history__metric-value">{{history.daily.moonriseText}} / {{history.daily.moonsetText}}</text>
+      </view>
+      <view class="qw-grid__item qw-history__metric">
+        <text class="qw-history__metric-label">月相</text>
+        <text class="qw-history__metric-value">{{history.daily.moonPhase}}</text>
+      </view>
+    </view>
+
+    <view class="qw-history__section">
+      <view class="qw-history__section-head">
+        <text class="qw-history__section-title">逐时历史</text>
+        <text class="qw-badge">{{history.hourly.length}} 个时次</text>
+      </view>
+      <view wx:if="{{history.hourly.length}}" class="qw-history__hours">
+        <view wx:for="{{history.hourly}}" wx:key="time" class="qw-history__hour">
+          <text class="qw-history__hour-time">{{item.timeText}}</text>
+          <qw-icon code="{{item.icon}}" size="{{44}}" alt="{{item.condition}}" />
+          <view class="qw-history__hour-main">
+            <view class="qw-history__hour-top">
+              <text class="qw-history__hour-text">{{item.condition}}</text>
+              <text class="qw-history__hour-temp">{{item.tempText}}</text>
+            </view>
+            <text class="qw-history__hour-meta">风 {{item.windText}} · 湿度 {{item.humidityText}} · 降水 {{item.precipText}} · 气压 {{item.pressureText}}</text>
+          </view>
+        </view>
+      </view>
+      <text wx:else class="qw-empty">该日期暂无逐时历史</text>
+    </view>
+
+    <text class="qw-source">数据来源 和风天气 QWeather · 时光机 API（历史再分析，最近 10 天）</text>
+  </block>
+  <view wx:elif="{{loading}}" class="qw-skeleton qw-history__skeleton"></view>
+  <text wx:else class="qw-empty">选择日期查看历史天气</text>
+</view>

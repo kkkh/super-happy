@@ -598,6 +598,9 @@ Page({
     timelineFrames: [] as TimeTravelFrameView[],
     timelineIndex: 0,
     timelineMax: 0,
+    timelineScrollTarget: '',
+    timelinePositionText: '第 1 / 1 帧',
+    timelineMarks: [] as Array<{ label: string }>,
     timelinePreviewLabel: '尚未选择帧',
     timelinePreviewText: '左右滑动时间轴，预览任意一秒的完整状态。',
     travelBusy: false,
@@ -2034,11 +2037,14 @@ Page({
       timelineFrames: frames,
       timelineMax: max,
       timelineIndex: index,
+      timelineMarks: frames.map((frame) => ({ label: String(frame.index + 1) })),
     })
     if (frames.length > 0) {
       this.previewTimeline(index)
     } else {
       this.setData({
+        timelineScrollTarget: '',
+        timelinePositionText: '暂无状态帧',
         timelinePreviewLabel: '尚未选择帧',
         timelinePreviewText: '左右滑动时间轴，预览任意一秒的完整状态。',
       })
@@ -2051,6 +2057,7 @@ Page({
     if (!frame) {
       return
     }
+    const total = runtime.timeTravel ? runtime.timeTravel.size() : this.data.timelineFrames.length
     const preference = frame.preference
     const preview = [
       `主题 ${frame.themeMode}`,
@@ -2063,8 +2070,18 @@ Page({
       `使用 ${frame.toolbox.usageCount}`,
       `轨迹 ${frame.history.length} 条`,
     ].join(' · ')
+    /* 拖动滑轨时同步高亮卡片并把选中帧滚入可视区，给出明确位置反馈 */
+    const activeFrames = this.data.timelineFrames.map((item) => ({
+      ...item,
+      active: item.index === index,
+    }))
     this.setData({
       timelineIndex: index,
+      timelineFrames: activeFrames,
+      timelineScrollTarget: `tt-frame-${index}`,
+      timelinePositionText: `第 ${index + 1} / ${Math.max(1, total)} 帧 · ${formatClock(
+        frame.createdAt,
+      )} · ${frame.label}`,
       timelinePreviewLabel: `${frame.label} · ${formatClock(frame.createdAt)}`,
       timelinePreviewText: preview,
     })

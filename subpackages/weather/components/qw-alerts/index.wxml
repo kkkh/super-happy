@@ -1,0 +1,80 @@
+<view wx:if="{{error}}" class="qw-card qw-alerts">
+  <view class="qw-card__head">
+    <view>
+      <text class="qw-kicker">WEATHER ALERT</text>
+      <text class="qw-title">天气预警</text>
+    </view>
+  </view>
+  <view class="qw-error">{{error}}</view>
+</view>
+
+<view wx:elif="{{loading && !alerts.length}}" class="qw-card qw-alerts">
+  <view class="qw-card__head">
+    <view>
+      <text class="qw-kicker">WEATHER ALERT</text>
+      <text class="qw-title">天气预警</text>
+    </view>
+  </view>
+  <view class="qw-skeleton qw-alerts__skeleton"></view>
+</view>
+
+<view wx:elif="{{alerts.length}}" class="qw-card qw-alerts">
+  <view class="qw-card__head">
+    <view>
+      <text class="qw-kicker">WEATHER ALERT</text>
+      <text class="qw-title">正在生效的天气预警</text>
+    </view>
+    <text class="qw-badge">{{alerts.length}} 条</text>
+  </view>
+
+  <view
+    wx:for="{{alerts}}"
+    wx:key="id"
+    class="qw-alerts__item"
+    style="border-left-color: {{item.color}};"
+    data-id="{{item.id}}"
+    bindtap="onToggle"
+    aria-role="button"
+    aria-expanded="{{expandedId === item.id}}"
+  >
+    <view class="qw-alerts__head">
+      <qw-icon code="{{item.icon}}" size="{{46}}" warning alt="{{item.event}}" />
+      <view class="qw-alerts__copy">
+        <text class="qw-alerts__event">{{item.event}}</text>
+        <text class="qw-alerts__meta">{{item.severityText}} · {{item.sender || '官方发布'}} · {{item.issuedText}}</text>
+        <text wx:if="{{item.messageTypeText}}" class="qw-alerts__meta">状态 {{item.messageTypeText}}<text wx:if="{{item.eventCode}}"> · 类型码 {{item.eventCode}}</text></text>
+      </view>
+      <text class="qw-alerts__chevron">{{expandedId === item.id ? '⌃' : '⌄'}}</text>
+    </view>
+    <text class="qw-alerts__headline">{{item.headline}}</text>
+    <view wx:if="{{expandedId === item.id}}" class="qw-alerts__detail">
+      <text class="qw-alerts__desc">{{item.description}}</text>
+      <view wx:if="{{item.criteria}}" class="qw-alerts__instruction">
+        <text class="qw-alerts__instruction-title">预警标准</text>
+        <text class="qw-alerts__desc">{{item.criteria}}</text>
+      </view>
+      <view wx:if="{{item.instruction}}" class="qw-alerts__instruction">
+        <text class="qw-alerts__instruction-title">防御指南</text>
+        <text class="qw-alerts__desc">{{item.instruction}}</text>
+      </view>
+      <view wx:if="{{item.responseTypesText}}" class="qw-alerts__instruction">
+        <text class="qw-alerts__instruction-title">响应类型</text>
+        <text class="qw-alerts__desc">{{item.responseTypesText}}</text>
+      </view>
+      <view class="qw-alerts__times">
+        <text>发布 {{item.issuedText}}</text>
+        <text>生效 {{item.effectiveText}}</text>
+        <text wx:if="{{item.onsetText && item.onsetText !== '—'}}">预计生效 {{item.onsetText}}</text>
+        <text>失效 {{item.expireText}}</text>
+        <text wx:if="{{item.urgency}}">紧急度 {{item.urgency}}</text>
+        <text wx:if="{{item.certainty}}">确定性 {{item.certainty}}</text>
+      </view>
+    </view>
+  </view>
+</view>
+
+<view wx:elif="{{showEmpty}}" class="qw-card qw-alerts qw-alerts--empty">
+  <text class="qw-kicker">WEATHER ALERT</text>
+  <text class="qw-title">当前无生效预警</text>
+  <text class="qw-sub">和风天气会持续同步官方发布的灾害预警。</text>
+</view>

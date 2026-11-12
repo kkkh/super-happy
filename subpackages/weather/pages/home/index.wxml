@@ -1,0 +1,9 @@
+<qw-screen bind:summary="onSummary" />
+
+<workflow-receiver tool-id="qweather" />
+<workflow-panel
+  show="{{workflowPanelVisible}}"
+  source-tool-id="qweather"
+  bind:close="onWorkflowPanelClose"
+/>
+<update-guard />

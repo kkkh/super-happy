@@ -1,0 +1,88 @@
+<glass-bottom-sheet
+  show="{{show}}"
+  title="API 覆盖自检"
+  description="逐个请求真实端点，验证 8 组 API 全部可用（约 1 秒间隔，避免触发限流）"
+  size="tall"
+  bind:close="onClose"
+>
+  <view class="qw-api">
+    <view class="qw-api__summary">
+      <view class="qw-api__stat">
+        <text class="qw-api__stat-value">{{total}}</text>
+        <text class="qw-api__stat-label">端点</text>
+      </view>
+      <view class="qw-api__stat">
+        <text class="qw-api__stat-value qw-api__stat-value--ok">{{okCount}}</text>
+        <text class="qw-api__stat-label">通过</text>
+      </view>
+      <view class="qw-api__stat">
+        <text class="qw-api__stat-value qw-api__stat-value--fail">{{failCount}}</text>
+        <text class="qw-api__stat-label">失败</text>
+      </view>
+      <view class="qw-api__stat">
+        <text class="qw-api__stat-value">{{pendingCount}}</text>
+        <text class="qw-api__stat-label">待测</text>
+      </view>
+    </view>
+
+    <view class="qw-api__actions">
+      <view
+        class="qw-api__btn qw-api__btn--primary {{running ? 'qw-api__btn--disabled' : ''}}"
+        hover-class="qw-api__press"
+        hover-stay-time="80"
+        bindtap="onRunAll"
+        aria-role="button"
+        aria-label="全部测试"
+      >{{running ? '测试中…' : '全部测试'}}</view>
+      <view
+        class="qw-api__btn {{running ? 'qw-api__btn--disabled' : ''}}"
+        hover-class="qw-api__press"
+        hover-stay-time="80"
+        bindtap="onReset"
+        aria-role="button"
+        aria-label="重置状态"
+      >重置</view>
+    </view>
+
+    <text wx:if="{{progress}}" class="qw-api__progress" aria-live="polite">{{progress}}</text>
+
+    <view wx:for="{{groups}}" wx:key="name" class="qw-api__group">
+      <view class="qw-api__group-head">
+        <text class="qw-api__group-name">{{item.name}}</text>
+        <text class="qw-api__group-count">{{item.rows.length}} 个端点</text>
+      </view>
+      <view class="qw-api__rows">
+        <view
+          wx:for="{{item.rows}}"
+          wx:for-item="row"
+          wx:key="key"
+          class="qw-api__row"
+          data-key="{{row.key}}"
+          bindtap="onRun"
+          aria-role="button"
+          aria-label="{{row.label}}，{{row.status === 'ok' ? '通过' : row.status === 'error' ? '失败' : '待测'}}，点击重测"
+        >
+          <view class="qw-api__dot qw-api__dot--{{row.status}}" aria-hidden="true"></view>
+          <view class="qw-api__row-copy">
+            <text class="qw-api__row-label">{{row.label}}</text>
+            <text class="qw-api__row-desc">{{row.description}}</text>
+            <text wx:if="{{row.error}}" class="qw-api__row-error">{{row.error}}</text>
+          </view>
+          <view class="qw-api__row-meta">
+            <text class="qw-api__row-status">{{row.status === 'ok' ? '通过' : row.status === 'error' ? '失败' : row.status === 'loading' ? '请求中' : '待测'}}</text>
+            <text wx:if="{{row.status === 'ok'}}" class="qw-api__row-time">{{row.latency}}ms · {{row.count}} 条</text>
+            <text wx:elif="{{row.status === 'error'}}" class="qw-api__row-time">{{row.latency}}ms</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="qw-api__meta">
+      <text class="qw-api__meta-line">API Host：{{host || '未配置'}}</text>
+      <text class="qw-api__meta-line">认证方式：{{auth}}</text>
+      <text class="qw-api__meta-line">凭据有效期最长 24 小时；过期后接口会提示「凭据无效或已过期」</text>
+      <text class="qw-api__meta-line">若提示网络不可用：确认此 Host 已加入 MP 后台「request 合法域名」，并在开发者工具重新登录 / 重启后重试</text>
+      <text class="qw-api__meta-line">图标：QWeather Icons 1.8.0 · CC BY 4.0</text>
+    </view>
+  </view>
+</glass-bottom-sheet>

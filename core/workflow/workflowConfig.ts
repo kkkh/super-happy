@@ -86,6 +86,7 @@ export const WORKFLOW_ROUTING: Record<WorkflowToolId, WorkflowRouteMode> = {
   qr: 'jump',
   watermark: 'jump',
   weather: 'jump',
+  qweather: 'jump',
   'web-search': 'jump',
 }
 
@@ -158,6 +159,7 @@ export const WORKFLOW_ACCEPTS: Record<WorkflowToolId, WorkflowDataType[]> = {
   watermark: ['image'],
   /* 气象站为纯产出：天气摘要可复制/流转，但不接受任意文本注入 */
   weather: [],
+  qweather: [],
   'web-search': ['text'],
 }
 

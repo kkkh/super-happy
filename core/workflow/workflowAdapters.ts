@@ -853,6 +853,7 @@ const ADAPTERS: Partial<Record<WorkflowToolId, WorkflowAdapter>> = {
   vcard: createUnsupportedAdapter('vcard'),
   bmi: createUnsupportedAdapter('bmi'),
   weather: createUnsupportedAdapter('weather'),
+  qweather: createUnsupportedAdapter('qweather'),
   'web-search': createTextAdapter('web-search', 'query', 'runSearch'),
   compress: compressAdapter,
   'photo-edit': photoEditAdapter,

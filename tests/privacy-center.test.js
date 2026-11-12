@@ -165,6 +165,8 @@ test('重置全部：删除约定范围，保留 gallery 与存储版本', async
       'tbx:recent': ['unit'],
       'tbx:draft.unit': { v: 1, mode: '', input: { value: '1' }, at: 1 },
       'weather:cities:v1': [],
+      'qweather:cities:v1': [],
+      'qweather:cache:v1': {},
       'focus:ledger:v1': [],
       'diag:errors.v1': [],
       'cyber:auto:v1': [],
@@ -181,12 +183,14 @@ test('重置全部：删除约定范围，保留 gallery 与存储版本', async
   })
   const privacy = await loadPrivacyCenter()
   const result = privacy.resetAllLocalData()
-  assert.equal(result.removedKeys, 10)
+  assert.equal(result.removedKeys, 12)
   assert.equal(result.backups, 1)
   for (const key of [
     'tbx:recent',
     'tbx:draft.unit',
     'weather:cities:v1',
+    'qweather:cities:v1',
+    'qweather:cache:v1',
     'focus:ledger:v1',
     'diag:errors.v1',
     'cyber:auto:v1',

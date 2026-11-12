@@ -97,6 +97,7 @@ export const WORKFLOW_SOURCE_KEYS: Record<WorkflowToolId, WorkflowSourceKeys> = 
   qr: { text: [], number: [], image: ['qrImagePath'] },
   watermark: { text: [], number: [], image: ['previewSrc', 'imagePath'] },
   weather: { text: ['weatherSummary', 'weatherText'], number: [], image: [] },
+  qweather: { text: ['weatherSummary'], number: [], image: [] },
   'web-search': { text: ['searchSummary'], number: [], image: [] },
 }
 

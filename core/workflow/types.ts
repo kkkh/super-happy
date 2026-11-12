@@ -78,6 +78,7 @@ export type WorkflowToolId =
   | 'qr'
   | 'watermark'
   | 'weather'
+  | 'qweather'
   | 'web-search'
 
 /** silent：面板内纯函数计算；jump：navigateTo 带参跳转 */

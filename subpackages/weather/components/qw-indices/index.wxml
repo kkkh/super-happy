@@ -1,0 +1,66 @@
+<view class="qw-card qw-indices">
+  <view class="qw-card__head">
+    <view>
+      <text class="qw-kicker">LIFE INDEX</text>
+      <text class="qw-title">生活指数</text>
+    </view>
+    <text wx:if="{{countText}}" class="qw-badge">{{countText}}</text>
+  </view>
+
+  <view wx:if="{{error}}" class="qw-error">{{error}}</view>
+  <block wx:elif="{{days.length}}">
+    <view class="qw-chip-row qw-indices__dates">
+      <view
+        wx:for="{{days}}"
+        wx:key="date"
+        class="qw-chip {{activeDate === item.date ? 'qw-chip--active' : ''}}"
+        data-date="{{item.date}}"
+        bindtap="onDate"
+        aria-role="button"
+        aria-label="{{item.weekText}} {{item.dateText}} 生活指数"
+      >{{item.weekText}} {{item.dateText}}</view>
+    </view>
+
+    <text class="qw-indices__hint">左侧「类型 1–16」是和风天气的指数类型码（如 1=运动、2=洗车、3=穿衣），用于区分指数种类，不是排名。</text>
+
+    <view wx:for="{{days}}" wx:key="date">
+      <block wx:if="{{activeDate === item.date}}">
+        <view class="qw-indices__list">
+          <view
+            wx:for="{{item.items}}"
+            wx:for-item="entry"
+            wx:key="type"
+            class="qw-indices__row"
+            aria-label="类型码 {{entry.type}}，{{entry.name}}，{{entry.level}}，{{entry.category}}。{{entry.text}}"
+          >
+            <view
+              class="qw-indices__badge"
+              hover-class="qw-indices__badge--hover"
+              hover-start-time="0"
+              hover-stay-time="1600"
+              aria-hidden="true"
+            >
+              <text class="qw-indices__badge-label">类型</text>
+              <text class="qw-indices__badge-code">{{entry.type}}</text>
+              <view class="qw-indices__tooltip">类型 {{entry.type}} · {{entry.name}}</view>
+            </view>
+            <view class="qw-indices__body">
+              <view class="qw-indices__head">
+                <text class="qw-indices__name">{{entry.name}}</text>
+                <view class="qw-indices__tags">
+                  <text wx:if="{{entry.level}}" class="qw-indices__level">{{entry.level}}</text>
+                  <text wx:if="{{entry.category}}" class="qw-indices__category">{{entry.category}}</text>
+                </view>
+              </view>
+              <text class="qw-indices__text">{{entry.text || '暂无建议'}}</text>
+            </view>
+          </view>
+        </view>
+      </block>
+    </view>
+
+    <text class="qw-source">数据来源 和风天气 QWeather · 天气指数 API（type=0 全部分类）</text>
+  </block>
+  <view wx:elif="{{loading}}" class="qw-skeleton qw-indices__skeleton"></view>
+  <text wx:else class="qw-empty">暂无生活指数数据</text>
+</view>

@@ -1,0 +1,163 @@
+<glass-bottom-sheet
+  show="{{show}}"
+  title="城市"
+  description="GeoAPI v2 · 城市搜索 / 热门城市 / 附近景点"
+  size="tall"
+  bind:close="onClose"
+>
+  <view class="qw-city">
+    <view class="qw-city__toolbar">
+      <view
+        class="qw-city__locate"
+        hover-class="qw-city__press"
+        hover-stay-time="80"
+        bindtap="onLocate"
+        aria-role="button"
+        aria-label="使用模糊定位获取当前城市"
+      >
+        <g-icon name="pin" size="{{24}}" tone="ink2" />
+        <text>{{locating ? '正在定位…' : '定位当前城市'}}</text>
+      </view>
+      <text class="qw-city__count">{{cities.length}} / 5</text>
+    </view>
+
+    <view class="qw-city__search">
+      <g-icon name="search" size="{{24}}" tone="ink4" />
+      <input
+        class="qw-city__input"
+        value="{{keyword}}"
+        placeholder="{{searchHint}}"
+        placeholder-class="qw-city__placeholder"
+        confirm-type="search"
+        bindinput="onInput"
+        bindconfirm="onConfirm"
+        aria-label="{{searchHint}}"
+      />
+      <view
+        class="qw-city__search-btn"
+        hover-class="qw-city__press"
+        hover-stay-time="80"
+        bindtap="onConfirm"
+        aria-role="button"
+        aria-label="搜索"
+      >搜索</view>
+    </view>
+
+    <view class="qw-chip-row qw-city__tabs">
+      <view
+        wx:for="{{tabs}}"
+        wx:key="key"
+        class="qw-chip {{tab === item.key ? 'qw-chip--active' : ''}}"
+        data-tab="{{item.key}}"
+        bindtap="onTab"
+        aria-role="button"
+        aria-label="{{item.label}}"
+      >{{item.label}}</view>
+    </view>
+
+    <view wx:if="{{busy}}" class="qw-city__status" aria-live="polite">正在加载…</view>
+    <view wx:if="{{error}}" class="qw-error qw-city__error">{{error}}</view>
+
+    <block wx:if="{{tab === 'saved'}}">
+      <view wx:if="{{cities.length}}" class="qw-city__list">
+        <view
+          wx:for="{{cities}}"
+          wx:key="id"
+          class="qw-city__row {{current && item.id && current.id === item.id ? 'qw-city__row--active' : ''}}"
+          data-index="{{index}}"
+          bindtap="onSavedPick"
+          aria-role="button"
+          aria-label="切换到 {{item.name}}"
+        >
+          <g-icon name="pin" size="{{22}}" tone="ink4" />
+          <view class="qw-city__row-copy">
+            <view class="qw-city__row-title">
+              <text class="qw-city__row-name">{{item.name}}</text>
+              <text wx:if="{{current && item.id && current.id === item.id}}" class="qw-city__current">当前</text>
+            </view>
+            <text class="qw-city__row-sub">{{item.adm1}} {{item.adm2}} {{item.country}}</text>
+          </view>
+          <view
+            class="qw-city__remove"
+            data-token="{{item.id}}"
+            catchtap="onRemove"
+            aria-role="button"
+            aria-label="移除 {{item.name}}"
+          >×</view>
+        </view>
+      </view>
+      <text wx:else class="qw-empty">还没有保存城市，搜索或使用定位添加</text>
+      <text class="qw-source">最多保存 5 个城市 · 点击右侧 × 可移除</text>
+    </block>
+
+    <block wx:elif="{{tab === 'search'}}">
+      <view wx:if="{{results.length}}" class="qw-city__list">
+        <view
+          wx:for="{{results}}"
+          wx:key="id"
+          class="qw-city__row"
+          data-list="results"
+          data-index="{{index}}"
+          bindtap="onPick"
+          aria-role="button"
+          aria-label="选择 {{item.name}}"
+        >
+          <g-icon name="pin" size="{{22}}" tone="ink4" />
+          <view class="qw-city__row-copy">
+            <text class="qw-city__row-name">{{item.name}}</text>
+            <text class="qw-city__row-sub">{{item.adm1}} {{item.adm2}} {{item.country}} · {{item.id}}</text>
+          </view>
+          <text class="qw-city__row-meta">添加</text>
+        </view>
+      </view>
+      <text wx:else class="qw-empty">输入关键词后点击搜索</text>
+    </block>
+
+    <block wx:elif="{{tab === 'top'}}">
+      <view wx:if="{{top.length}}" class="qw-city__list">
+        <view
+          wx:for="{{top}}"
+          wx:key="id"
+          class="qw-city__row"
+          data-list="top"
+          data-index="{{index}}"
+          bindtap="onPick"
+          aria-role="button"
+          aria-label="选择 {{item.name}}"
+        >
+          <g-icon name="pin" size="{{22}}" tone="ink4" />
+          <view class="qw-city__row-copy">
+            <text class="qw-city__row-name">{{item.name}}</text>
+            <text class="qw-city__row-sub">{{item.adm1}} {{item.adm2}} {{item.country}}</text>
+          </view>
+          <text class="qw-city__row-meta">添加</text>
+        </view>
+      </view>
+      <text wx:else class="qw-empty">{{busy ? '正在获取热门城市…' : '暂无热门城市数据'}}</text>
+    </block>
+
+    <block wx:else>
+      <view wx:if="{{scenic.length}}" class="qw-city__list">
+        <view
+          wx:for="{{scenic}}"
+          wx:key="id"
+          class="qw-city__row"
+          data-list="scenic"
+          data-index="{{index}}"
+          bindtap="onPick"
+          aria-role="button"
+          aria-label="选择 {{item.name}}"
+        >
+          <g-icon name="pin" size="{{22}}" tone="ink4" />
+          <view class="qw-city__row-copy">
+            <text class="qw-city__row-name">{{item.name}}</text>
+            <text class="qw-city__row-sub">{{item.adm1}} {{item.adm2}} · {{item.type === 'scenic' ? '景点' : '潮汐站'}}</text>
+          </view>
+          <text class="qw-city__row-meta">添加</text>
+        </view>
+      </view>
+      <text wx:else class="qw-empty">{{busy ? '正在搜索附近景点…' : '暂无附近景点，试试输入景点名称搜索'}}</text>
+      <text class="qw-source">数据来源 和风天气 GeoAPI v2 · POI 范围查询半径 20km</text>
+    </block>
+  </view>
+</glass-bottom-sheet>

@@ -6,6 +6,8 @@ subpackages/tools-core/node_modules/
 subpackages/tools-core/weather/config.local.ts
 # 本地密钥（腾讯云元宝搜索服务 API KEY 不进仓库）
 core/services/yuanbao/config-local.ts
+# 本地密钥（和风天气 API Host / JWT / API KEY 不进仓库）
+subpackages/weather/config-local.ts
 
 # miniprogram-ci 上传密钥
 private/
@@ -25,3 +27,6 @@ project.private.config.json
 tests/visual/reports/
 未命名.png
 preview-qr.png
+preview-*.png
+preview-*.json
+全息专注引擎-真机预览二维码.png
