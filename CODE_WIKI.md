@@ -4130,6 +4130,7 @@ npm run plan            # 计划文档 81 项能力 / 63 张计划卡（运行�
 | `plan` | `✔ 方案自检通过` | 计划文档能力 81 项 / 计划卡 63 张（注册表 65 个工具） |
 | `typecheck` | 无输出 | 通过 |
 | `test` | `tests 836`、`pass 836`、`fail 0` | 836/836 |
+| `audit:prod` | `found 0 vulnerabilities` | 根包 + tools-core，官方 npm registry |
 
 任一项失败时的处理顺序：
 
