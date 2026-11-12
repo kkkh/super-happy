@@ -463,7 +463,7 @@ const CHANGELOG: ChangelogEntry[] = [
     date: '2026-10-20',
     title: '工具箱首发',
     notes: [
-      '20 个纯本机工具，覆盖计算、日期、文本与图片',
+      '首发 20 个工具，覆盖计算、日期、文本与图片',
       '全局隐私授权、最近使用与分享深链闭环',
       'Skyline + glass-easel 液态玻璃视觉体系',
     ],

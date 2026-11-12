@@ -112,7 +112,7 @@ Component({
     hasResult: { type: Boolean, value: false },
     error: { type: String, value: '' },
     emptyTitle: { type: String, value: '输入内容后，结果会显示在这里' },
-    emptySub: { type: String, value: '所有计算只在本机完成' },
+    emptySub: { type: String, value: '结果只用于本次操作' },
     /** 是否展示生成海报入口 */
     posterEnabled: { type: Boolean, value: true },
     /** 页面显式指定的海报主值；为空时从当前页结果字段安全回退 */
@@ -833,7 +833,7 @@ Component({
       } catch {
         /* 页面数据不可读时静默回退 */
       }
-      return '本机计算已完成 · 结果只留在你的设备'
+      return '结果已生成 · 仅用于本次操作'
     },
 
     resolvePosterSubtitle(): string {
@@ -853,7 +853,7 @@ Component({
       } catch {
         /* 静默回退 */
       }
-      return this.data.desc || '本机计算 · 不上传 · 轨迹摘要仅存本机'
+      return this.data.desc || '结果仅用于本次操作 · 轨迹摘要仅存本机'
     },
 
     onGeneratePoster() {

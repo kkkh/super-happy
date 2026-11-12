@@ -1248,7 +1248,7 @@
       </view>
 
       <view class="settings-colophon">
-        <text>CHAOHUAN · CONTROL CENTER · LOCAL ONLY · V{{version}}</text>
+        <text>CHAOHUAN · CONTROL CENTER · LOCAL-FIRST · V{{version}}</text>
       </view>
     </view>
   </scroll-view>

@@ -68,7 +68,7 @@
         <view class="cockpit-hero__top">
           <view class="cockpit-hero__status">
             <view class="cockpit-hero__pulse" aria-hidden="true"></view>
-            <text>LOCAL ONLY</text>
+            <text>LOCAL DATA</text>
           </view>
           <text class="cockpit-hero__code">{{themeLabel}} / LIVE</text>
         </view>
@@ -460,7 +460,7 @@
       </glass-card>
 
       <view class="cockpit-colophon">
-        <text>CHAOHUAN · DATA COCKPIT · LOCAL ONLY · V{{appVersion}}</text>
+        <text>CHAOHUAN · DATA COCKPIT · LOCAL DATA · V{{appVersion}}</text>
       </view>
     </view>
   </scroll-view>

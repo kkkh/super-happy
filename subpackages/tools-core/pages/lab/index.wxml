@@ -37,7 +37,7 @@
 
     <view slot="back" class="lab-hero-orb"></view>
     <view slot="front" class="lab-hero-chip">
-      <text>LOCAL ONLY</text>
+      <text>LOCAL DEMO</text>
     </view>
   </spatial-hologram>
 

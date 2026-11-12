@@ -189,7 +189,7 @@ export function drawVCardCard(
   ctx.fillText('超欢', 72, 56)
   ctx.fillStyle = 'rgba(154, 163, 178, 0.9)'
   ctx.font = '500 15px Menlo, monospace'
-  ctx.fillText('CHAOHUAN · LOCAL TOOLBOX', 72, 104)
+  ctx.fillText('CHAOHUAN · TOOLBOX', 72, 104)
 
   /* 姓名与身份 */
   const name = data.name.trim() || '未命名'

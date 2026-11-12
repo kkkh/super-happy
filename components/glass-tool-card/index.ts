@@ -17,7 +17,7 @@ Component({
     code: { type: String, value: '' },
     hasResult: { type: Boolean, value: false },
     emptyTitle: { type: String, value: '输入内容后，结果会显示在这里' },
-    emptySub: { type: String, value: '所有计算只在本机完成' },
+    emptySub: { type: String, value: '结果只用于本次操作' },
     showActions: { type: Boolean, value: false },
     tone: { type: String, value: '' },
     depth: { type: String, value: '' },

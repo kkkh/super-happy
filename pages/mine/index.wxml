@@ -85,7 +85,7 @@
         depth="soft"
         card-class="mine-stats"
       >
-        <view class="mine-stats__row" aria-role="status" aria-label="本机统计：收藏 {{favoriteCount}} 个，可用工具 {{toolCount}} 个，云端上传 0">
+        <view class="mine-stats__row" aria-role="status" aria-label="本机统计：收藏 {{favoriteCount}} 个，可用工具 {{toolCount}} 个，业务数据上传 0">
           <view class="mine-stat">
             <text class="mine-stat__num">{{favoriteCount}}</text>
             <text class="mine-stat__label">收藏工具</text>
@@ -96,7 +96,7 @@
           </view>
           <view class="mine-stat">
             <text class="mine-stat__num">0</text>
-            <text class="mine-stat__label">云端上传</text>
+            <text class="mine-stat__label">业务数据上传</text>
           </view>
         </view>
       </glass-card>
@@ -132,7 +132,7 @@
 
       <view class="mine-group-head">
         <text class="mine-group-head__title">数据与隐私</text>
-        <text class="mine-group-head__spec">LOCAL ONLY</text>
+        <text class="mine-group-head__spec">LOCAL DATA</text>
       </view>
 
       <glass-card
@@ -276,12 +276,12 @@
             <text class="mine-row__title">版本</text>
             <text class="mine-row__sub">v{{version}} · {{toolCount}} 个实用工具 · 无广告 · 无登录</text>
           </view>
-          <text class="mine-row__tag">LOCAL</text>
+          <text class="mine-row__tag">LOCAL-FIRST</text>
         </view>
       </glass-card>
 
       <view class="mine-colophon">
-        <text class="mine-colophon__meta">CHAOHUAN · MADE LOCAL · NO CLOUD / NO LOGIN · V{{version}}</text>
+        <text class="mine-colophon__meta">CHAOHUAN · LOCAL-FIRST · NO CLOUD / NO LOGIN · V{{version}}</text>
       </view>
     </view>
   </scroll-view>

@@ -15,10 +15,10 @@
       card-class="privacy-card"
     >
       <view class="privacy-head">
-        <text class="privacy-kicker">PRIVACY / LOCAL ONLY</text>
+        <text class="privacy-kicker">PRIVACY / LOCAL FIRST</text>
         <text class="privacy-title">隐私保护指引</text>
         <text class="privacy-desc">
-          访问相册、定位或读写剪贴板前，需要您同意《超欢隐私保护指引》。所有处理只在本机完成，不上传任何内容。
+          访问相册、定位或读写剪贴板前，需要您同意《超欢隐私保护指引》。除您主动使用的天气、汇率与搜索外，处理在本机完成；联网时仅发送必要参数。
         </text>
       </view>
 
@@ -33,7 +33,7 @@
         </view>
         <view class="privacy-point">
           <view class="privacy-point__dot"></view>
-          <text class="privacy-point__text">不收集、不存储、不上传您的任何内容。</text>
+          <text class="privacy-point__text">不收集、不存储、不上传与功能无关的内容。</text>
         </view>
       </view>
 
