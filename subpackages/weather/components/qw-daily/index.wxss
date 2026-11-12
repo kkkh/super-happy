@@ -224,7 +224,24 @@
   line-height: 1.4;
 }
 
+.qw-daily__part-row text:first-child {
+  flex: none;
+}
+
 .qw-daily__part-row text:last-child {
+  flex: 1;
+  min-width: 0;
   color: var(--glass-text-2);
   text-align: right;
+  /* 允许在「·」空格处换行，但不把 m/s 这类单位拆开 */
+  word-break: keep-all;
+  overflow-wrap: normal;
+}
+
+.qw-daily__total-precip {
+  margin-bottom: 12rpx;
+  padding: 12rpx 16rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: 16rpx;
+  background: var(--glass-bg);
 }

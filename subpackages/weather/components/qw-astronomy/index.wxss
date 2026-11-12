@@ -119,7 +119,10 @@
 
 .qw-astro__marker-core {
   position: absolute;
-  inset: 11rpx;
+  top: 11rpx;
+  left: 11rpx;
+  width: 24rpx;
+  height: 24rpx;
   border-radius: 50%;
   background: #ffe6a3;
 }

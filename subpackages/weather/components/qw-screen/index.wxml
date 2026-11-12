@@ -1,4 +1,4 @@
-<view class="qw-page {{themeClass}}">
+<view class="qw-page {{themeClass}} {{fsClass}}">
   <view class="qw-page__aurora" aria-hidden="true">
     <view class="qw-page__blob qw-page__blob--a"></view>
     <view class="qw-page__blob qw-page__blob--b"></view>
@@ -73,21 +73,23 @@
         >{{locating ? '定位中…' : locationActionText}}</view>
       </view>
 
+      <qw-hero
+        city="{{city}}"
+        current="{{current}}"
+        today="{{daily.length ? daily[0] : null}}"
+        air="{{air}}"
+        alerts="{{alerts}}"
+        loading="{{loading.current}}"
+        from-cache="{{fromCache}}"
+        error="{{errors.current}}"
+        bind:city="onCityOpen"
+        bind:refresh="onRefresh"
+        bind:flow="onFlow"
+        bind:air="onHeroAir"
+        bind:alert="onHeroAlert"
+      />
+
       <block wx:if="{{tab === 'overview'}}">
-        <qw-hero
-          city="{{city}}"
-          current="{{current}}"
-          today="{{daily.length ? daily[0] : null}}"
-          air="{{air}}"
-          alerts="{{alerts}}"
-          loading="{{loading.current}}"
-          from-cache="{{fromCache}}"
-          error="{{errors.current}}"
-          bind:city="onCityOpen"
-          bind:refresh="onRefresh"
-          bind:air="onHeroAir"
-          bind:alert="onHeroAlert"
-        />
         <qw-minutely
           minutely="{{minutely}}"
           loading="{{loading.minutely}}"
@@ -116,6 +118,7 @@
         <qw-hourly
           hours="{{hourly}}"
           range="{{hourlyRange}}"
+          city-token="{{city ? (city.id || (city.lon + ',' + city.lat)) : ''}}"
           loading="{{loading.hourly}}"
           error="{{errors.hourly}}"
           bind:range="onHourlyRange"
@@ -130,6 +133,7 @@
         <qw-daily
           days="{{daily}}"
           range="{{dailyRange}}"
+          city-token="{{city ? (city.id || (city.lon + ',' + city.lat)) : ''}}"
           loading="{{loading.daily}}"
           error="{{errors.daily}}"
           bind:range="onDailyRange"
@@ -139,6 +143,7 @@
       <block wx:elif="{{tab === 'air'}}">
         <qw-air
           air="{{air}}"
+          city-token="{{city ? (city.id || (city.lon + ',' + city.lat)) : ''}}"
           loading="{{loading.air}}"
           error="{{errors.air}}"
         />
@@ -149,6 +154,9 @@
           days="{{indices}}"
           loading="{{loading.indices}}"
           error="{{errors.indices}}"
+          range="{{indicesRange}}"
+          show-range="{{true}}"
+          bind:range="onIndicesRange"
         />
       </block>
 

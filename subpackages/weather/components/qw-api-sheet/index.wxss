@@ -39,11 +39,11 @@
 }
 
 .qw-api__stat-value--ok {
-  color: #5fdcc7;
+  color: var(--glass-accent-2-text);
 }
 
 .qw-api__stat-value--fail {
-  color: #ff9a9a;
+  color: var(--glass-danger-text);
 }
 
 .qw-api__stat-label {
@@ -151,17 +151,17 @@
 }
 
 .qw-api__dot--ok {
-  background: #5fdcc7;
-  box-shadow: 0 0 12rpx rgba(95, 220, 199, 0.6);
+  background: var(--glass-accent-2-text);
+  box-shadow: 0 0 12rpx var(--glass-accent-glow);
 }
 
 .qw-api__dot--error {
-  background: #ff8e8e;
-  box-shadow: 0 0 12rpx rgba(255, 142, 142, 0.55);
+  background: var(--glass-danger);
+  box-shadow: 0 0 12rpx var(--glass-danger);
 }
 
 .qw-api__dot--loading {
-  background: #ffd166;
+  background: var(--glass-accent-text);
   animation: qw-api-pulse 1s ease-in-out infinite;
 }
 
@@ -194,7 +194,7 @@
 }
 
 .qw-api__row-error {
-  color: #ff9a9a;
+  color: var(--glass-danger-text);
   font-size: 17rpx;
   font-size: calc(17rpx * var(--fs-scale, 1));
   line-height: 1.4;

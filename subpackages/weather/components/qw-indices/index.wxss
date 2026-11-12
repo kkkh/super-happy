@@ -4,6 +4,10 @@
   margin-bottom: 18rpx;
 }
 
+.qw-indices__ranges {
+  margin-bottom: 18rpx;
+}
+
 .qw-indices__list {
   display: flex;
   flex-direction: column;

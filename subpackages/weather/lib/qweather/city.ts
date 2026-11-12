@@ -31,6 +31,15 @@ function num(value: unknown, fallback = 0): number {
   return Number.isFinite(parsed) ? parsed : fallback
 }
 
+/** 城市中心点只保留两位小数，避免持久化高精度坐标 */
+function roundCoord(value: number): number {
+  return Math.round(value * 100) / 100
+}
+
+export function clearQwGeoMemory(): void {
+  memoryGeo.clear()
+}
+
 function geoItem(raw: unknown, source: QwCitySource): QwGeoItem | null {
   if (!raw || typeof raw !== 'object') {
     return null
@@ -51,8 +60,8 @@ function geoItem(raw: unknown, source: QwCitySource): QwGeoItem | null {
     adm1: text(record.adm1),
     adm2: text(record.adm2),
     country: text(record.country),
-    lat,
-    lon,
+    lat: roundCoord(lat),
+    lon: roundCoord(lon),
     tz: text(record.tz, 'Asia/Shanghai'),
     utcOffset: text(record.utcOffset, '+08:00'),
     type: text(record.type, 'city'),
@@ -142,8 +151,8 @@ export function readQwCities(): QwCity[] {
       adm1: text(record.adm1),
       adm2: text(record.adm2),
       country: text(record.country),
-      lat,
-      lon,
+      lat: roundCoord(lat),
+      lon: roundCoord(lon),
       tz: text(record.tz, 'Asia/Shanghai'),
       utcOffset: text(record.utcOffset, '+08:00'),
       source:
@@ -202,6 +211,8 @@ export function removeQwCity(city: QwCity): QwCity[] {
   const token = cityToken(city)
   const currentId = readStorage(CURRENT_KEY)
   const next = writeQwCities(readQwCities().filter((item) => cityToken(item) !== token))
+  /* 已保存城市被移除时，同步丢弃仅存在于会话内的 Geo 结果 */
+  clearQwGeoMemory()
   if (!next.length) {
     writeStorage(CURRENT_KEY, '')
   } else if (

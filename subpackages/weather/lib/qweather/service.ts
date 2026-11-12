@@ -46,6 +46,8 @@ import {
   parseSolar,
   parseSun,
   todayKey,
+  todayKeyFor,
+  dateKeyForOffset,
 } from './parse'
 import type {
   QwAirDayView,
@@ -90,18 +92,10 @@ export interface QwAstronomyResult {
 }
 
 export interface QwEndpointRunResult {
-  spec: QwRequestSpec
   ok: boolean
-  status: number
   latency: number
   count: number
   error: string
-}
-
-function yesterdayKey(): string {
-  const date = new Date(Date.now() - 24 * 60 * 60 * 1000)
-  const pad = (value: number): string => String(value).padStart(2, '0')
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
 }
 
 function yyyymmdd(value: string): string {
@@ -116,7 +110,7 @@ function countRaw(raw: unknown): number {
     return 0
   }
   const record = raw as Record<string, unknown>
-  for (const key of ['days', 'hours', 'minutely', 'alerts', 'daily', 'location', 'topCityList', 'poi']) {
+  for (const key of ['days', 'hours', 'hourly', 'weatherHourly', 'minutely', 'alerts', 'daily', 'location', 'topCityList', 'poi', 'indexes', 'pollutants']) {
     const value = record[key]
     if (Array.isArray(value)) {
       return value.length
@@ -136,10 +130,23 @@ export class QWeatherService {
     this.handles.clear()
   }
 
+  /** 仅取消指定前缀的请求（如 astro| / history|），不影响其他 Tab */
+  abortPrefix(prefix: string): void {
+    if (!prefix) {
+      return
+    }
+    Array.from(this.handles.entries()).forEach(([key, handle]) => {
+      if (key.startsWith(prefix)) {
+        handle.abort()
+        this.handles.delete(key)
+      }
+    })
+  }
+
   private async call<T>(
     spec: QwRequestSpec,
     parser: (raw: unknown) => T,
-    options: { force?: boolean } = {},
+    options: { force?: boolean; utcOffset?: string } = {},
   ): Promise<QwLoadResult<T>> {
     if (spec.cacheable && !options.force) {
       const cached = readQwCache<T>(spec.cacheKey)
@@ -158,7 +165,7 @@ export class QWeatherService {
       const raw = await handle.promise
       const data = parser(raw)
       if (spec.cacheable) {
-        writeQwCache(spec.cacheKey, data, spec.ttlMs)
+        writeQwCache(spec.cacheKey, data, spec.ttlMs, options.utcOffset)
       }
       return { data, fromCache: false, at: Date.now() }
     } finally {
@@ -170,12 +177,12 @@ export class QWeatherService {
 
   async loadCurrent(city: QwCity, force = false): Promise<QwLoadResult<QwCurrentView>> {
     const [current, now] = await Promise.all([
-      this.call(weatherCurrent(city), (raw) => raw, { force }),
+      this.call(weatherCurrent(city), (raw) => raw, { force, utcOffset: city.utcOffset }),
       /* v7 只用于昼夜图标对照，失败不应拖垮 v1 实况 */
-      this.call(weatherNowV7(city), (raw) => parseNowV7(raw), { force }).catch(() => null),
+      this.call(weatherNowV7(city), (raw) => parseNowV7(raw), { force, utcOffset: city.utcOffset }).catch(() => null),
     ])
     return {
-      data: parseCurrentV1(current.data, now ? now.data.icon : ''),
+      data: parseCurrentV1(current.data, now ? now.data.icon : '', now ? now.data.obsTime : ''),
       fromCache: current.fromCache && (!now || now.fromCache),
       at: now ? Math.min(current.at, now.at) : current.at,
     }
@@ -183,20 +190,36 @@ export class QWeatherService {
 
   async loadHourly(city: QwCity, range: QwHourlyRange, force = false): Promise<QwLoadResult<QwHourlyView[]>> {
     if (range === 72 || range === 168) {
-      return this.call(weatherHourlyV7(city, range), (raw) => parseHourlyV7(raw, range), { force })
+      return this.call(weatherHourlyV7(city, range), (raw) => parseHourlyV7(raw, range), {
+        force,
+        utcOffset: city.utcOffset,
+      })
     }
-    return this.call(weatherHourlyV1(city, range), (raw) => parseHourlyV1(raw, range), { force })
+    return this.call(weatherHourlyV1(city, range), (raw) => parseHourlyV1(raw, range), {
+      force,
+      utcOffset: city.utcOffset,
+    })
   }
 
   async loadDaily(city: QwCity, range: QwDailyRange, force = false): Promise<QwLoadResult<QwDailyResult>> {
+    const today = todayKeyFor(city.utcOffset)
     if (range === 3 || range === 7 || range === 15 || range === 30) {
-      const result = await this.call(weatherDailyV7(city, range), (raw) => parseDailyV7(raw, range), { force })
+      const result = await this.call(weatherDailyV7(city, range), (raw) => parseDailyV7(raw, range, today), {
+        force,
+        utcOffset: city.utcOffset,
+      })
       return { ...result, data: { days: result.data, source: 'v7' } }
     }
     const [v1, v7] = await Promise.all([
-      this.call(weatherDailyV1(city, 10), (raw) => parseDailyV1(raw, 10), { force }),
+      this.call(weatherDailyV1(city, 10), (raw) => parseDailyV1(raw, 10, today), {
+        force,
+        utcOffset: city.utcOffset,
+      }),
       /* v7 只补充气压 / 能见度 / 月相，失败时保留 v1 全部字段 */
-      this.call(weatherDailyV7(city, 10), (raw) => parseDailyV7(raw, 10), { force }).catch(() => null),
+      this.call(weatherDailyV7(city, 10), (raw) => parseDailyV7(raw, 10, today), {
+        force,
+        utcOffset: city.utcOffset,
+      }).catch(() => null),
     ])
     const merged = v1.data.map((day) => {
       const extra = v7 ? v7.data.find((item) => item.date === day.date) : undefined
@@ -205,12 +228,12 @@ export class QWeatherService {
       }
       return {
         ...day,
-        iconDay: extra.iconDay || day.iconDay,
-        iconNight: extra.iconNight || day.iconNight,
-        pressureText: extra.pressureText !== '— hPa' ? extra.pressureText : day.pressureText,
-        visibilityText: extra.visibilityText !== '— km' ? extra.visibilityText : day.visibilityText,
+        iconDay: extra.iconDay && extra.iconDay !== '9999' ? extra.iconDay : day.iconDay,
+        iconNight: extra.iconNight && extra.iconNight !== '9999' ? extra.iconNight : day.iconNight,
+        pressureText: extra.pressureText !== '—' ? extra.pressureText : day.pressureText,
+        visibilityText: extra.visibilityText !== '—' ? extra.visibilityText : day.visibilityText,
         moonPhase: extra.moonPhase !== '—' ? extra.moonPhase : day.moonPhase,
-        moonIcon: extra.moonIcon || day.moonIcon,
+        moonIcon: extra.moonPhase !== '—' && extra.moonIcon !== '9999' ? extra.moonIcon : day.moonIcon,
       }
     })
     return {
@@ -221,19 +244,23 @@ export class QWeatherService {
   }
 
   async loadMinutely(city: QwCity, force = false): Promise<QwLoadResult<QwMinutelyView>> {
-    return this.call(minutely(city), parseMinutely, { force })
+    return this.call(minutely(city), parseMinutely, { force, utcOffset: city.utcOffset })
   }
 
   async loadAlerts(city: QwCity, force = false): Promise<QwLoadResult<QwAlertView[]>> {
-    return this.call(weatherAlert(city), parseAlerts, { force })
+    return this.call(weatherAlert(city), parseAlerts, { force, utcOffset: city.utcOffset })
   }
 
   async loadAir(city: QwCity, force = false): Promise<QwLoadResult<QwAirResult>> {
+    const today = todayKeyFor(city.utcOffset)
     const [current, hourly, daily] = await Promise.all([
-      this.call(airCurrent(city), parseAirCurrent, { force }),
+      this.call(airCurrent(city), parseAirCurrent, { force, utcOffset: city.utcOffset }),
       /* 24 小时与 3 天是增强信息，失败不影响实时 AQI */
-      this.call(airHourly(city), parseAirHourly, { force }).catch(() => null),
-      this.call(airDaily(city), parseAirDaily, { force }).catch(() => null),
+      this.call(airHourly(city), parseAirHourly, { force, utcOffset: city.utcOffset }).catch(() => null),
+      this.call(airDaily(city), (raw) => parseAirDaily(raw, today), {
+        force,
+        utcOffset: city.utcOffset,
+      }).catch(() => null),
     ])
     return {
       data: {
@@ -247,7 +274,10 @@ export class QWeatherService {
   }
 
   async loadIndices(city: QwCity, days: 1 | 3, force = false): Promise<QwLoadResult<QwIndicesView[]>> {
-    return this.call(indices(city, days), parseIndices, { force })
+    return this.call(indices(city, days), (raw) => parseIndices(raw, todayKeyFor(city.utcOffset)), {
+      force,
+      utcOffset: city.utcOffset,
+    })
   }
 
   async loadAstronomy(
@@ -259,13 +289,16 @@ export class QWeatherService {
   ): Promise<QwLoadResult<QwAstronomyResult>> {
     const tz = city.utcOffset.replace(':', '').replace('+', '')
     const [sun, moon, solar] = await Promise.all([
-      this.call(astronomySun(city, date), parseSun, { force }),
-      this.call(astronomyMoon(city, date), parseMoon, { force }),
+      this.call(astronomySun(city, date), parseSun, { force, utcOffset: city.utcOffset }),
+      this.call(astronomyMoon(city, date), (raw) => parseMoon(raw, todayKeyFor(city.utcOffset)), {
+        force,
+        utcOffset: city.utcOffset,
+      }),
       /* 太阳高度角是增强信息，单独失败时保留日出日落与月相 */
       this.call(
         astronomySolar({ city, date, time, tz, alt: altitude }),
         parseSolar,
-        { force },
+        { force, utcOffset: city.utcOffset },
       ).catch(() => null),
     ])
     return {
@@ -284,33 +317,38 @@ export class QWeatherService {
         target = { ...city, parentId: parent.id }
       }
     }
-    return this.call(history(target, yyyymmdd(date)), parseHistory, { force })
+    return this.call(history(target, yyyymmdd(date)), parseHistory, { force, utcOffset: city.utcOffset })
   }
 
   catalog(city: QwCity): QwRequestSpec[] {
-    return endpointCatalog(city, yesterdayKey())
+    return endpointCatalog(city, dateKeyForOffset(city.utcOffset, -1))
   }
 
   async runEndpoint(spec: QwRequestSpec): Promise<QwEndpointRunResult> {
     const start = Date.now()
+    const handleKey = `run|${spec.key}`
+    /* 同端点重复自检：先取消旧请求，避免旧响应写回 */
+    this.handles.get(handleKey)?.abort()
+    const handle = requestQWeather<unknown>(spec)
+    this.handles.set(handleKey, handle)
     try {
-      const raw = await requestQWeather<unknown>(spec).promise
+      const raw = await handle.promise
       return {
-        spec,
         ok: true,
-        status: 200,
         latency: Date.now() - start,
         count: countRaw(raw),
         error: '',
       }
     } catch (error) {
       return {
-        spec,
         ok: false,
-        status: 0,
         latency: Date.now() - start,
         count: 0,
         error: describeQWeatherError(error),
+      }
+    } finally {
+      if (this.handles.get(handleKey) === handle) {
+        this.handles.delete(handleKey)
       }
     }
   }

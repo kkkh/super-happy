@@ -79,7 +79,7 @@
           </view>
           <view
             class="qw-city__remove"
-            data-token="{{item.id}}"
+            data-token="{{item.id || (item.lon + ',' + item.lat)}}"
             catchtap="onRemove"
             aria-role="button"
             aria-label="移除 {{item.name}}"
@@ -151,7 +151,7 @@
           <g-icon name="pin" size="{{22}}" tone="ink4" />
           <view class="qw-city__row-copy">
             <text class="qw-city__row-name">{{item.name}}</text>
-            <text class="qw-city__row-sub">{{item.adm1}} {{item.adm2}} · {{item.type === 'scenic' ? '景点' : '潮汐站'}}</text>
+            <text class="qw-city__row-sub">{{item.adm1}} {{item.adm2}} · 景点</text>
           </view>
           <text class="qw-city__row-meta">添加</text>
         </view>

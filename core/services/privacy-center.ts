@@ -35,7 +35,7 @@ export interface ResetAllResult {
 }
 
 /** 重置全部删除的命名空间：gallery.* 与 app:storage.version 不在其中 */
-const RESET_PREFIXES = ['tbx:', 'weather:', 'qweather:', 'focus:', 'diag:', 'cyber:'] as const
+const RESET_PREFIXES = ['tbx:', 'toolbox:', 'weather:', 'qweather:', 'focus:', 'diag:', 'cyber:'] as const
 const RESET_KEYS: string[] = [
   STORAGE_KEYS.preference,
   STORAGE_KEYS.preferenceLegacy,

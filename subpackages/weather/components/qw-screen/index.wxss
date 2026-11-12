@@ -9,6 +9,21 @@
   overflow: hidden;
   background: var(--glass-canvas);
   color: var(--glass-text);
+  /* 天气页补充四级文字色：来源脚注 / 指标副标题 / 待测圆点 */
+  --glass-text-4: rgba(245, 247, 252, 0.42);
+}
+
+/* 字号档：组件隔离样式，需在天气页根节点显式声明 */
+.qw-page.fs-standard {
+  --fs-scale: 1;
+}
+
+.qw-page.fs-large {
+  --fs-scale: 1.15;
+}
+
+.qw-page.fs-xlarge {
+  --fs-scale: 1.3;
 }
 
 /* 晨瓷主题：白色 SVG 图标反相为深色 */
@@ -18,6 +33,7 @@
   --qw-icon-opacity: 0.8;
   /* AQI 官方色在浅色底上对比度不足，文字改用主墨色，颜色保留在边框与圆点上 */
   --qw-aqi-text: var(--glass-text);
+  --glass-text-4: rgba(21, 26, 36, 0.46);
 }
 
 .qw-page__aurora {

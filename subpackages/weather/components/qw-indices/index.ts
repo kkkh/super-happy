@@ -29,11 +29,14 @@ Component({
     days: { type: Array, value: [] },
     loading: { type: Boolean, value: false },
     error: { type: String, value: '' },
+    range: { type: Number, value: 3 },
+    showRange: { type: Boolean, value: false },
   },
 
   data: {
     activeDate: '',
     countText: '',
+    ranges: [1, 3] as Array<1 | 3>,
   },
 
   observers: {
@@ -53,6 +56,14 @@ Component({
   },
 
   methods: {
+    onRange(event: WechatMiniprogram.TouchEvent): void {
+      const range = Number(event.currentTarget.dataset.range)
+      if ((range !== 1 && range !== 3) || range === this.data.range) {
+        return
+      }
+      this.triggerEvent('range', { range })
+    },
+
     onDate(event: WechatMiniprogram.TouchEvent): void {
       const date = String(event.currentTarget.dataset.date || '')
       if (!date || date === this.data.activeDate) {

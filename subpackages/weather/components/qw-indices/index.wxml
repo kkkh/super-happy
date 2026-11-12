@@ -7,6 +7,18 @@
     <text wx:if="{{countText}}" class="qw-badge">{{countText}}</text>
   </view>
 
+  <view wx:if="{{showRange}}" class="qw-chip-row qw-indices__ranges">
+    <view
+      wx:for="{{ranges}}"
+      wx:key="*this"
+      class="qw-chip {{range === item ? 'qw-chip--active' : ''}}"
+      data-range="{{item}}"
+      bindtap="onRange"
+      aria-role="button"
+      aria-label="{{item}} 天生活指数"
+    >{{item}}天</view>
+  </view>
+
   <view wx:if="{{error}}" class="qw-error">{{error}}</view>
   <block wx:elif="{{days.length}}">
     <view class="qw-chip-row qw-indices__dates">

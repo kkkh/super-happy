@@ -58,6 +58,9 @@ test('端点：URL 构造、坐标精度与 27 个目录变体', async () => {
   assert.match(E.weatherDailyV7(city, 30).path, /^\/v7\/weather\/30d\?/)
   assert.match(E.weatherDailyV7(city, 7).path, /^\/v7\/weather\/7d\?/)
   assert.match(E.weatherDailyV7(city, 3).path, /^\/v7\/weather\/3d\?/)
+  assert.match(E.weatherDailyV7(city, 15).path, /^\/v7\/weather\/15d\?/)
+  assert.match(E.weatherHourlyV7(city, 24).path, /^\/v7\/weather\/24h\?/)
+  assert.match(E.weatherHourlyV7(city, 72).path, /^\/v7\/weather\/72h\?/)
   assert.match(E.weatherHourlyV7(city, 168).path, /^\/v7\/weather\/168h\?/)
   assert.match(E.minutely(city).path, /^\/v7\/minutely\/5m\?location=116\.41(%2C|,)39\.9/)
   assert.match(E.airCurrent(city).path, /^\/airquality\/v1\/current\/39\.9\/116\.41/)
@@ -107,6 +110,7 @@ test('图标：507 个官方 SVG，关键图标齐全且命名合法', () => {
     assert.ok(files.includes(`${code}.svg`), `缺少关键图标 ${code}.svg`)
   }
   assert.ok(fs.existsSync(path.join(ICON_ROOT, 'LICENSE.md')), '缺少图标许可文件')
+  assert.ok(fs.existsSync(path.join(ICON_ROOT, 'LICENSE.txt')), '缺少随包上传的 LICENSE.txt')
 })
 
 test('图标映射：夜间转换、预警、月相与风向文案', async () => {
@@ -121,7 +125,8 @@ test('图标映射：夜间转换、预警、月相与风向文案', async () =>
   assert.equal(icons.warningIconPath('1006'), '/subpackages/weather/assets/icons/1006.svg')
   assert.equal(icons.warningIconPath('200'), '/subpackages/weather/assets/icons/9999.svg')
   assert.equal(icons.moonIconPath('804'), '/subpackages/weather/assets/icons/804.svg')
-  assert.equal(icons.moonIconPath('1'), '/subpackages/weather/assets/icons/800.svg')
+  assert.equal(icons.moonIconPath('1'), '/subpackages/weather/assets/icons/9999.svg')
+  assert.equal(icons.fallbackIconPath(true), '/subpackages/weather/assets/icons/9999.svg')
   assert.equal(icons.compassText('ne'), '东北风')
   assert.equal(icons.uvText(8), '8 · 强')
 })
@@ -162,6 +167,10 @@ test('解析：实时 / 每日 / 逐小时 / 分钟降水', async () => {
   assert.equal(current.wind.text, '东北风 · 2 级 · 3.2 m/s')
   assert.equal(current.precipTypeText, '雨')
   assert.equal(current.precipIntensityText, '0.6 mm/h')
+
+  /* v1 实况没有 validTime 时，服务层会用 v7 obsTime 兜底 */
+  const currentWithObsTime = P.parseCurrentV1({}, '', '2026-01-01T10:30+08:00')
+  assert.equal(currentWithObsTime.validTimeText, '10:30')
 
   const daily = P.parseDailyV1({
     days: [
@@ -211,7 +220,7 @@ test('解析：实时 / 每日 / 逐小时 / 分钟降水', async () => {
   assert.equal(daily[0].daytime.precipTypeText, '雨')
 
   const hourlyV7 = P.parseHourlyV7({
-    hours: [
+    hourly: [
       {
         fxTime: '2026-01-01T11:00+08:00',
         temp: '15',
@@ -231,10 +240,41 @@ test('解析：实时 / 每日 / 逐小时 / 分钟降水', async () => {
       },
     ],
   })
+  assert.equal(hourlyV7.length, 1, 'v7 逐小时必须读取 hourly 字段')
   assert.equal(hourlyV7[0].hourText, '11:00')
   assert.equal(hourlyV7[0].tempText, '15°')
   assert.equal(hourlyV7[0].popText, '10%')
   assert.equal(hourlyV7[0].windText, '东北风 · 2 级 · 6 km/h')
+
+  const dailyV7 = P.parseDailyV7({
+    daily: [
+      {
+        fxDate: '2026-01-01',
+        tempMax: '18',
+        tempMin: '3',
+        textDay: '晴',
+        textNight: '多云',
+        iconDay: '100',
+        iconNight: '151',
+        windDirDay: '东北风',
+        wind360Day: '45',
+        windScaleDay: '3-4',
+        windSpeedDay: '6',
+        precip: '0.0',
+        humidity: '55',
+        cloud: '20',
+        pressure: '1012',
+        vis: '20',
+        uvIndex: '6',
+      },
+    ],
+  })
+  assert.equal(dailyV7.length, 1)
+  assert.equal(dailyV7[0].tempMaxText, '18°', 'v7 顶层最高温必须来自 tempMax')
+  assert.equal(dailyV7[0].tempMinText, '3°', 'v7 顶层最低温必须来自 tempMin')
+  assert.equal(dailyV7[0].daytime.tempMaxText, '—', 'v7 昼夜没有独立温度，不应伪造')
+  assert.equal(dailyV7[0].tempAvgText, '11°')
+  assert.equal(dailyV7[0].windDayText, '东北风 · 3-4 级 · 6 km/h', 'v7 风力区间必须保留')
 
   const hourlyV1 = P.parseHourlyV1({
     hours: [
@@ -288,7 +328,7 @@ test('解析：空气质量 / 预警 / 指数 / 天文 / 时光机', async () =>
         primaryPollutant: { code: 'pm2p5', name: 'PM2.5', fullName: '细颗粒物' },
         health: {
           effect: '可接受',
-          advice: { generalPopulation: '可以正常活动', sensitivePopulation: '减少户外活动' },
+          advice: { generalPopulation: '一般人群可正常活动。', sensitivePopulation: '儿童、老年人应减少户外活动' },
         },
       },
     ],
@@ -306,7 +346,7 @@ test('解析：空气质量 / 预警 / 指数 / 天文 / 时光机', async () =>
   assert.equal(air.primary.code, 'cn-mee')
   assert.equal(air.primary.category, '良')
   assert.equal(air.stationsText, '天安门 · 奥体中心')
-  assert.equal(air.generalAdvice, '可以正常活动')
+  assert.equal(air.generalAdvice, '可正常活动。', '一般人群前缀不应在标签外重复')
   assert.equal(air.pollutants[0].valueText, '42 μg/m³')
 
   const airHourIndex = {
@@ -395,18 +435,21 @@ test('解析：空气质量 / 预警 / 指数 / 天文 / 时光机', async () =>
   assert.equal(sun.dayLengthText, '9 小时 35 分')
   assert.equal(sun.sunriseText, '07:30')
 
-  const moon = P.parseMoon({
-    moonrise: '2026-01-01T20:10+08:00',
-    moonset: '2026-01-02T09:20+08:00',
-    updateTime: '2026-01-01T20:10+08:00',
-    moonPhase: [
-      { fxTime: '2026-01-01T20:10+08:00', name: '满月', icon: '804', illumination: '100' },
-      { fxTime: '2026-01-02T04:00+08:00', name: '亏凸月', icon: '805', illumination: '88' },
-    ],
+  const moonHours = Array.from({ length: 24 }, (_, index) => {
+    const hour = String(index).padStart(2, '0')
+    return index < 20
+      ? { fxTime: `2026-01-01T${hour}:00+08:00`, name: '蛾眉月', icon: '801', illumination: '12' }
+      : { fxTime: `2026-01-01T${hour}:00+08:00`, name: '上弦月', icon: '802', illumination: '48' }
   })
-  assert.equal(moon.phases.length, 2)
-  assert.equal(moon.current.name, '满月')
-  assert.equal(moon.current.illuminationText, '100%')
+  const moon = P.parseMoon({
+    moonrise: '2026-01-01T08:10+08:00',
+    moonset: '2026-01-01T20:20+08:00',
+    updateTime: '2026-01-01T02:00+08:00',
+    moonPhase: moonHours,
+  })
+  assert.equal(moon.phases.length, 2, '逐小时重复月相必须按相位去重')
+  assert.equal(moon.current.name, '蛾眉月', '当前月相应取最接近 updateTime 的相位')
+  assert.equal(moon.current.illuminationText, '12%')
 
   const solar = P.parseSolar({
     solarElevationAngle: '32.5',
@@ -468,21 +511,107 @@ test('缓存：TTL、城市隔离与清空', async () => {
     setStorageSync(key, value) {
       values.set(key, value)
     },
+    removeStorageSync(key) {
+      values.delete(key)
+    },
   }
   const cache = await load('subpackages/weather/lib/qweather/cache.ts')
   cache.clearQwCache()
-  cache.writeQwCache('weather|current|101010100', { temp: 1 }, 60_000)
+  cache.writeQwCache('weather|current|101010100', { temp: 1 }, 60_000, '+08:00')
   assert.deepEqual(cache.readQwCache('weather|current|101010100'), { temp: 1 })
 
-  cache.writeQwCache('weather|current|101010100|expire', { temp: 2 }, 1)
+  cache.writeQwCache('weather|current|101010100|expire', { temp: 2 }, 1, '+08:00')
   await new Promise((resolve) => setTimeout(resolve, 8))
   assert.equal(cache.readQwCache('weather|current|101010100|expire'), null)
 
-  cache.writeQwCache('weather|current|101010100', { temp: 3 }, 60_000)
-  cache.writeQwCache('weather|current|101020100', { temp: 4 }, 60_000)
+  cache.writeQwCache('weather|current|101010100', { temp: 3 }, 60_000, '+08:00')
+  cache.writeQwCache('weather|current|101020100', { temp: 4 }, 60_000, '+08:00')
   cache.clearQwCacheForCity('101010100')
   assert.equal(cache.readQwCache('weather|current|101010100'), null)
   assert.deepEqual(cache.readQwCache('weather|current|101020100'), { temp: 4 })
+
+  values.set('qweather:cache:v1', { legacy: true })
+  cache.clearLegacyQwCache()
+  assert.equal(values.has('qweather:cache:v1'), false)
+})
+
+test('城市本地日期：时区换算与逐日递增', async () => {
+  const D = await load('subpackages/weather/lib/qweather/date.ts')
+  for (const offset of ['+08:00', '-05:00', '+14:00', '-12:00', '']) {
+    const today = D.todayKeyFor(offset)
+    const yesterday = D.dateKeyForOffset(offset, -1)
+    assert.match(today, /^\d{4}-\d{2}-\d{2}$/)
+    assert.equal(
+      Date.parse(today) - Date.parse(yesterday),
+      86_400_000,
+      `${offset || '设备时区'} 的昨天必须恰好相差一天`,
+    )
+  }
+  assert.equal(D.todayKeyFor('+08:00'), D.dateKeyForOffset('+08:00', 0))
+  assert.match(D.dateKeyForOffset('bad-offset', 1), /^\d{4}-\d{2}-\d{2}$/)
+
+  /* 固定 UTC 00:30：+14 已是当天 14:30，-12 仍是前一天 12:30 */
+  const realNow = Date.now
+  try {
+    Date.now = () => Date.UTC(2026, 0, 1, 0, 30)
+    assert.equal(D.todayKeyFor('+14:00'), '2026-01-01')
+    assert.equal(D.todayKeyFor('-12:00'), '2025-12-31')
+    assert.equal(D.dateKeyForOffset('+25:00'), D.todayKeyFor(''))
+  } finally {
+    Date.now = realNow
+  }
+})
+
+test('缺失字段：统一显示「—」，不伪造 0 值', async () => {
+  const P = await load('subpackages/weather/lib/qweather/parse.ts')
+
+  const emptyCurrent = P.parseCurrentV1({})
+  assert.equal(emptyCurrent.tempText, '—')
+  assert.equal(emptyCurrent.feelsLikeText, '—')
+  assert.equal(emptyCurrent.gustText, '—')
+  assert.equal(emptyCurrent.precipText, '—')
+  assert.equal(emptyCurrent.precipIntensityText, '—')
+  assert.equal(emptyCurrent.pressureText, '—')
+  assert.equal(emptyCurrent.visibilityText, '—')
+  assert.equal(emptyCurrent.dewPointText, '—')
+  assert.equal(emptyCurrent.wind.text, '—')
+  assert.equal(emptyCurrent.wind.heroText, '—')
+
+  /* null / 空串同样是缺失值，不能被 Number() 转成 0 */
+  const nullCurrent = P.parseCurrentV1({
+    temperature: { value: null, unit: '°C' },
+    pressure: { value: '', unit: 'hPa' },
+    wind: { speed: { value: null, unit: 'm/s' } },
+  })
+  assert.equal(nullCurrent.tempText, '—')
+  assert.equal(nullCurrent.pressureText, '—')
+  assert.equal(nullCurrent.wind.text, '—')
+
+  const nullHour = P.parseHourlyV7({ hourly: [{ fxTime: '2026-01-01T11:00+08:00', temp: null, humidity: null }] })[0]
+  assert.equal(nullHour.tempText, '—')
+  assert.equal(nullHour.humidityText, '—')
+
+  const emptyHour = P.parseHourlyV1({ hours: [{}] })[0]
+  assert.equal(emptyHour.hourText, '—')
+  assert.equal(emptyHour.precipText, '—')
+  assert.equal(emptyHour.gustText, '—')
+  assert.equal(emptyHour.pressureText, '—')
+
+  const dailyV7 = P.parseDailyV7({
+    daily: [{ fxDate: '2026-01-01', tempMax: '18', tempMin: '3', pop: '40' }],
+  })[0]
+  assert.equal(dailyV7.popText, '40%', 'v7 daily 必须读取 pop')
+  assert.equal(dailyV7.precipText, '—', 'v7 缺失降水时不得显示 0.0 mm')
+
+  const emptyMinutely = P.parseMinutely({})
+  assert.equal(emptyMinutely.summary, '暂无分钟级降水数据')
+  assert.equal(emptyMinutely.typeText, '暂无数据')
+  assert.equal(emptyMinutely.peakTimeText, '—')
+
+  const ice = P.parseMinutely({
+    minutely: [{ fxTime: '2026-01-01T10:35+08:00', precip: '0.1', type: 'ice' }],
+  })
+  assert.equal(ice.typeText, '冰粒 / 冻雨')
 })
 
 test('凭据：config-local 存在且 JWT 结构合法、有效期不超过 24 小时', () => {

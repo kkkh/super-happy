@@ -6,11 +6,11 @@
 
 import {
   compassText,
-  iconFamily,
   normalizeIconCode,
   uvText,
   windScaleText,
 } from './icons'
+import { dateKeyForOffset, todayKeyFor } from './date'
 import type {
   QwAirDayView,
   QwAirHealthView,
@@ -50,7 +50,8 @@ function list(value: unknown): unknown[] {
 
 function str(value: unknown, fallback = ''): string {
   if (typeof value === 'string') {
-    return value
+    const text = value.trim()
+    return text || fallback
   }
   if (typeof value === 'number' && Number.isFinite(value)) {
     return String(value)
@@ -58,22 +59,40 @@ function str(value: unknown, fallback = ''): string {
   return fallback
 }
 
-function num(value: unknown, fallback = 0): number {
-  const parsed = typeof value === 'number' ? value : Number(value)
-  return Number.isFinite(parsed) ? parsed : fallback
-}
-
-function nullableNum(value: unknown): number | null {
+function toNumber(value: unknown): number | null {
+  if (value === null || value === undefined) {
+    return null
+  }
+  if (typeof value === 'string' && !value.trim()) {
+    return null
+  }
   const parsed = typeof value === 'number' ? value : Number(value)
   return Number.isFinite(parsed) ? parsed : null
 }
 
-function unitValue(value: unknown): { value: number; unit: string } {
+function num(value: unknown, fallback = 0): number {
+  const parsed = toNumber(value)
+  return parsed === null ? fallback : parsed
+}
+
+function nullableNum(value: unknown): number | null {
+  return toNumber(value)
+}
+
+function unitValue(value: unknown): { value: number; unit: string; has: boolean } {
   const record = obj(value)
+  const parsed = nullableNum(record?.value)
   return {
-    value: num(record?.value, 0),
+    value: parsed === null ? 0 : parsed,
     unit: str(record?.unit),
+    has: parsed !== null,
   }
+}
+
+/** 时间缺失时不要生成 ':00' 这类半截标签 */
+function hourTextOf(value: unknown): string {
+  const time = isoParts(value).time
+  return /^\d{2}:\d{2}$/.test(time) ? `${time.slice(0, 2)}:00` : '—'
 }
 
 function isoParts(value: unknown): { date: string; time: string } {
@@ -107,8 +126,8 @@ export function dateOnly(value: unknown): string {
   return isoParts(value).date || ''
 }
 
-function isToday(value: string): boolean {
-  return dateOnly(value) === todayKey()
+function isToday(value: string, today = todayKey()): boolean {
+  return dateOnly(value) === today
 }
 
 export function todayKey(): string {
@@ -117,12 +136,25 @@ export function todayKey(): string {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
 }
 
+export { dateKeyForOffset, todayKeyFor }
+
 function tempText(value: number): string {
   return Number.isFinite(value) ? `${Math.round(value)}°` : '—'
 }
 
 function percentText(value: number): string {
   return Number.isFinite(value) ? `${Math.round(value)}%` : '—'
+}
+
+/** 缺失值只显示「—」，避免出现「— hPa」这类半截单位 */
+function unitText(value: unknown, unit: string): string {
+  const text = str(value, '')
+  return text ? `${text} ${unit}` : '—'
+}
+
+function degreeText(value: unknown): string {
+  const text = str(value, '')
+  return text ? `${text}°` : '—'
 }
 
 function humidityText(value: unknown, isRatio = true): string {
@@ -259,7 +291,7 @@ function moonIcon(value: string): string {
     'last-quarter': '806',
     'waning-crescent': '807',
   }
-  return map[value] || '800'
+  return map[value] || '9999'
 }
 
 function windView(value: unknown, legacy = false): QwWindView {
@@ -269,7 +301,21 @@ function windView(value: unknown, legacy = false): QwWindView {
   }
   if (legacy) {
     const dir = str(record.windDir, '')
-    const scale = nullableNum(record.windScale)
+    const rawScale = str(record.windScale, '')
+    const scaleMatch = /^(\d+(?:\.\d+)?)(?:\s*[-~至]\s*(\d+(?:\.\d+)?))?$/.exec(rawScale)
+    const scale = scaleMatch
+      ? Number(scaleMatch[2] || scaleMatch[1])
+      : nullableNum(record.windScale)
+    const scaleLabel = scaleMatch
+      ? `${scaleMatch[2] ? `${scaleMatch[1]}-${scaleMatch[2]}` : scaleMatch[1]} 级`
+      : scale !== null
+        ? windScaleText(scale)
+        : ''
+    const heroScale = scaleMatch
+      ? `${scaleMatch[2] ? `${scaleMatch[1]}-${scaleMatch[2]}` : scaleMatch[1]}级`
+      : scale !== null
+        ? `${Math.round(scale)}级`
+        : ''
     const speed = num(record.windSpeed, NaN)
     const compactDir = dir.replace(/风$/, '')
     return {
@@ -278,11 +324,11 @@ function windView(value: unknown, legacy = false): QwWindView {
       speed: Number.isFinite(speed) ? speed : 0,
       speedText: Number.isFinite(speed) ? `${speed} km/h` : '—',
       scale,
-      text: [dir, scale !== null ? windScaleText(scale) : '', Number.isFinite(speed) ? `${speed} km/h` : '']
+      text: [dir, scaleLabel, Number.isFinite(speed) ? `${speed} km/h` : '']
         .filter(Boolean)
         .join(' · ') || '—',
       heroText:
-        [compactDir, scale !== null ? `${Math.round(scale)}级` : '', Number.isFinite(speed) ? `${speed}km/h` : '']
+        [compactDir, heroScale, Number.isFinite(speed) ? `${speed}km/h` : '']
           .filter(Boolean)
           .join(' ') || '—',
     }
@@ -292,29 +338,32 @@ function windView(value: unknown, legacy = false): QwWindView {
   const scale = nullableNum(record.scale)
   const compass = str(direction?.compass, '')
   const dirText = compassText(compass, '风向')
+  const speedText = speed.has ? `${speed.value} ${speed.unit || 'm/s'}` : ''
+  const hasAny = Boolean(compass) || scale !== null || speed.has
   return {
     degree: nullableNum(direction?.degree),
     compass,
     speed: speed.value,
-    speedText: `${speed.value || 0} ${speed.unit || 'm/s'}`,
+    speedText: speedText || '—',
     scale,
-    text: [dirText, scale !== null ? windScaleText(scale) : '', `${speed.value || 0} ${speed.unit || 'm/s'}`]
-      .filter(Boolean)
-      .join(' · '),
-    heroText:
-      [
-        dirText.replace(/风$/, ''),
-        scale !== null ? `${Math.round(scale)}级` : '',
-        `${speed.value || 0}${speed.unit || 'm/s'}`,
-      ]
-        .filter(Boolean)
-        .join(' '),
+    text: hasAny
+      ? [dirText, scale !== null ? windScaleText(scale) : '', speedText].filter(Boolean).join(' · ')
+      : '—',
+    heroText: hasAny
+      ? [
+          dirText.replace(/风$/, ''),
+          scale !== null ? `${Math.round(scale)}级` : '',
+          speed.has ? `${speed.value}${speed.unit || 'm/s'}` : '',
+        ]
+          .filter(Boolean)
+          .join(' ')
+      : '—',
   }
 }
 
 /* ---- v1 实时 ---- */
 
-export function parseCurrentV1(raw: unknown, iconOverride = ''): QwCurrentView {
+export function parseCurrentV1(raw: unknown, iconOverride = '', obsTime = ''): QwCurrentView {
   const record = obj(raw) || {}
   const condition = obj(record.condition)
   const wind = obj(record.wind)
@@ -328,34 +377,36 @@ export function parseCurrentV1(raw: unknown, iconOverride = ''): QwCurrentView {
   const visibility = unitValue(record.visibility)
   const dew = unitValue(record.dewPoint)
   const code = str(condition?.code)
+  const iconCode = iconOverride && iconOverride !== '9999' ? iconOverride : code
   const humidity = num(record.humidity, NaN)
   const cloud = num(record.cloudCover, NaN)
   const uv = num(record.uvIndex, NaN)
+  const validTime = str(record.validTime) || str(obsTime)
   return {
-    validTime: str(record.validTime),
-    validTimeText: timeText(record.validTime),
-    icon: normalizeIconCode(iconOverride || code, false),
+    validTime,
+    validTimeText: timeText(validTime),
+    icon: normalizeIconCode(iconCode, false),
     condition: str(condition?.text, '—'),
     temp: temp.value,
-    tempText: tempText(temp.value),
+    tempText: temp.has ? tempText(temp.value) : '—',
     feelsLike: feels.value,
-    feelsLikeText: tempText(feels.value),
+    feelsLikeText: feels.has ? tempText(feels.value) : '—',
     humidity: Number.isFinite(humidity) ? humidity * 100 : 0,
     humidityText: humidityText(humidity, true),
     wind: windView(wind, false),
     gust: gust.value,
-    gustText: `${gust.value || 0} ${gust.unit || 'm/s'}`,
+    gustText: gust.has ? `${gust.value} ${gust.unit || 'm/s'}` : '—',
     precip: amount.value,
-    precipText: `${amount.value || 0} ${amount.unit || 'mm'}`,
+    precipText: amount.has ? `${amount.value} ${amount.unit || 'mm'}` : '—',
     precipType: str(precip?.type, 'none'),
     precipTypeText: precipTypeText(str(precip?.type, 'none')),
-    precipIntensityText: `${intensity.value || 0} ${intensity.unit || 'mm/h'}`,
+    precipIntensityText: intensity.has ? `${intensity.value} ${intensity.unit || 'mm/h'}` : '—',
     pressure: pressure.value,
-    pressureText: `${Math.round(pressure.value || 0)} ${pressure.unit || 'hPa'}`,
+    pressureText: pressure.has ? `${Math.round(pressure.value)} ${pressure.unit || 'hPa'}` : '—',
     visibility: visibility.value,
-    visibilityText: visibilityText(visibility.value, visibility.unit === 'km' ? 'km' : 'm'),
+    visibilityText: visibility.has ? visibilityText(visibility.value, visibility.unit === 'km' ? 'km' : 'm') : '—',
     dewPoint: dew.value,
-    dewPointText: tempText(dew.value),
+    dewPointText: dew.has ? tempText(dew.value) : '—',
     cloud: Number.isFinite(cloud) ? cloud * 100 : 0,
     cloudText: cloudText(cloud, true),
     uv: Number.isFinite(uv) ? uv : 0,
@@ -387,15 +438,17 @@ function parseDailyPart(value: unknown, isNight: boolean): QwDailyPartView {
   const pop = num(precip?.probability, NaN)
   const start = timeText(record.forecastStartTime)
   const end = timeText(record.forecastEndTime)
+  const tempMax = unitValue(record.temperatureMax)
+  const tempMin = unitValue(record.temperatureMin)
   return {
     icon: normalizeIconCode(str(condition?.code), isNight),
     condition: str(condition?.text, '—'),
     periodText: start !== '—' && end !== '—' ? `${start}–${end}` : '',
-    tempMaxText: tempText(unitValue(record.temperatureMax).value),
-    tempMinText: tempText(unitValue(record.temperatureMin).value),
+    tempMaxText: tempMax.has ? tempText(tempMax.value) : '—',
+    tempMinText: tempMin.has ? tempText(tempMin.value) : '—',
     windText: wind.text,
-    gustText: `${gust.value || 0} ${gust.unit || 'm/s'}`,
-    precipText: `${amount.value || 0} ${amount.unit || 'mm'}`,
+    gustText: gust.has ? `${gust.value} ${gust.unit || 'm/s'}` : '—',
+    precipText: amount.has ? `${amount.value} ${amount.unit || 'mm'}` : '—',
     precipTypeText: precipTypeText(str(precip?.type, 'none')),
     popText: Number.isFinite(pop) ? percentText(pop * 100) : '—',
     humidityText: humidityText(record.humidity, true),
@@ -403,7 +456,7 @@ function parseDailyPart(value: unknown, isNight: boolean): QwDailyPartView {
   }
 }
 
-export function parseDailyV1(raw: unknown, range: QwDailyRange = 10): QwDailyView[] {
+export function parseDailyV1(raw: unknown, range: QwDailyRange = 10, today = todayKey()): QwDailyView[] {
   const record = obj(raw) || {}
   return list(record.days).map((item) => {
     const day = obj(item) || {}
@@ -413,20 +466,23 @@ export function parseDailyV1(raw: unknown, range: QwDailyRange = 10): QwDailyVie
     const dayPrecipAmount = unitValue(obj(obj(day.daytime)?.precipitation)?.amount)
     const date = dateOnly(day.forecastStartTime)
     const moonPhase = str(astro.moonPhase)
+    const tempMax = unitValue(day.temperatureMax)
+    const tempMin = unitValue(day.temperatureMin)
+    const tempAvg = unitValue(day.temperatureAvg)
     return {
       date,
       dateText: dateText(date),
-      weekText: isToday(date) ? '今天' : weekText(date),
+      weekText: isToday(date, today) ? '今天' : weekText(date),
       iconDay: dayPart.icon,
       iconNight: nightPart.icon,
       textDay: dayPart.condition,
       textNight: nightPart.condition,
-      tempMax: unitValue(day.temperatureMax).value,
-      tempMin: unitValue(day.temperatureMin).value,
-      tempAvg: unitValue(day.temperatureAvg).value,
-      tempMaxText: tempText(unitValue(day.temperatureMax).value),
-      tempMinText: tempText(unitValue(day.temperatureMin).value),
-      tempAvgText: tempText(unitValue(day.temperatureAvg).value),
+      tempMax: tempMax.value,
+      tempMin: tempMin.value,
+      tempAvg: tempAvg.value,
+      tempMaxText: tempMax.has ? tempText(tempMax.value) : '—',
+      tempMinText: tempMin.has ? tempText(tempMin.value) : '—',
+      tempAvgText: tempAvg.has ? tempText(tempAvg.value) : '—',
       humidityText: dayPart.humidityText,
       precip: dayPrecipAmount.value,
       precipText: dayPart.precipText,
@@ -469,7 +525,7 @@ export function parseDailyV1(raw: unknown, range: QwDailyRange = 10): QwDailyVie
 
 /* ---- v7 每日 ---- */
 
-export function parseDailyV7(raw: unknown, range: QwDailyRange = 15): QwDailyView[] {
+export function parseDailyV7(raw: unknown, range: QwDailyRange = 15, today = todayKey()): QwDailyView[] {
   const record = obj(raw) || {}
   return list(record.daily).map((item) => {
     const day = obj(item) || {}
@@ -491,7 +547,8 @@ export function parseDailyV7(raw: unknown, range: QwDailyRange = 15): QwDailyVie
       tempMinText: '—',
       windText: windDay.text,
       gustText: '—',
-      precipText: `${str(day.precip, '0.0')} mm`,
+      /* v7 只有全天降水，没有昼/夜拆分，避免把全天值伪装成夜间值 */
+      precipText: '—',
       precipTypeText: '—',
       popText: '—',
       humidityText: humidityText(day.humidity, false),
@@ -505,41 +562,47 @@ export function parseDailyV7(raw: unknown, range: QwDailyRange = 15): QwDailyVie
       tempMinText: '—',
       windText: windNight.text,
       gustText: '—',
-      precipText: `${str(day.precip, '0.0')} mm`,
+      precipText: '—',
       precipTypeText: '—',
       popText: '—',
       humidityText: humidityText(day.humidity, false),
       cloudText: cloudText(day.cloud, false),
     }
+    const tempMax = num(day.tempMax, NaN)
+    const tempMin = num(day.tempMin, NaN)
+    const tempAvg =
+      Number.isFinite(tempMax) && Number.isFinite(tempMin) ? (tempMax + tempMin) / 2 : NaN
+    const pop = str(day.pop, '')
     return {
       date,
       dateText: dateText(date),
-      weekText: isToday(date) ? '今天' : weekText(date),
+      weekText: isToday(date, today) ? '今天' : weekText(date),
       iconDay: dayPart.icon,
       iconNight: nightPart.icon,
       textDay: dayPart.condition,
       textNight: nightPart.condition,
-      tempMax: num(day.tempMax, NaN),
-      tempMin: num(day.tempMin, NaN),
-      tempAvg: (num(day.tempMax, 0) + num(day.tempMin, 0)) / 2,
-      tempMaxText: dayPart.tempMaxText,
-      tempMinText: dayPart.tempMinText,
-      tempAvgText: tempText((num(day.tempMax, 0) + num(day.tempMin, 0)) / 2),
+      tempMax,
+      tempMin,
+      tempAvg: Number.isFinite(tempAvg) ? tempAvg : 0,
+      /* v7 昼夜没有独立温度，顶层仍使用接口返回的全天最高/最低 */
+      tempMaxText: tempText(tempMax),
+      tempMinText: tempText(tempMin),
+      tempAvgText: tempText(tempAvg),
       humidityText: dayPart.humidityText,
       precip: num(day.precip, 0),
-      precipText: `${str(day.precip, '0.0')} mm`,
-      popText: '—',
-      pressureText: `${str(day.pressure, '—')} hPa`,
-      visibilityText: `${str(day.vis, '—')} km`,
+      precipText: unitText(day.precip, 'mm'),
+      popText: pop ? `${pop}%` : '—',
+      pressureText: unitText(day.pressure, 'hPa'),
+      visibilityText: unitText(day.vis, 'km'),
       cloudText: dayPart.cloudText,
       uvText: uvText(num(day.uvIndex, NaN)),
       windDayText: windDay.text,
       windNightText: windNight.text,
-      sunriseText: str(day.sunrise, '—'),
-      sunsetText: str(day.sunset, '—'),
-      moonriseText: str(day.moonrise, '—'),
-      moonsetText: str(day.moonset, '—'),
-      moonPhase: str(day.moonPhase, '—'),
+      sunriseText: str(day.sunrise) || '—',
+      sunsetText: str(day.sunset) || '—',
+      moonriseText: str(day.moonrise) || '—',
+      moonsetText: str(day.moonset) || '—',
+      moonPhase: str(day.moonPhase) || '—',
       moonIcon: normalizeIconCode(str(day.moonPhaseIcon), false),
       astro: {
         sunrise: str(day.sunrise),
@@ -586,24 +649,24 @@ export function parseHourlyV1(raw: unknown, range: QwHourlyRange = 24): QwHourly
     return {
       time: str(hour.forecastTime),
       timeText: timeText(hour.forecastTime),
-      hourText: `${isoParts(hour.forecastTime).time.slice(0, 2)}:00`,
+      hourText: hourTextOf(hour.forecastTime),
       icon: normalizeIconCode(str(condition?.code), false),
       condition: str(condition?.text, '—'),
-      temp: temp.value,
-      tempText: tempText(temp.value),
-      feelsLikeText: tempText(feels.value),
+      temp: temp.has ? temp.value : NaN,
+      tempText: temp.has ? tempText(temp.value) : '—',
+      feelsLikeText: feels.has ? tempText(feels.value) : '—',
       humidityText: humidityText(hour.humidity, true),
       windText: wind.text,
-      gustText: `${gust.value || 0} ${gust.unit || 'm/s'}`,
+      gustText: gust.has ? `${gust.value} ${gust.unit || 'm/s'}` : '—',
       precip: amount.value,
-      precipText: `${amount.value || 0} ${amount.unit || 'mm'}`,
+      precipText: amount.has ? `${amount.value} ${amount.unit || 'mm'}` : '—',
       precipTypeText: precipTypeText(str(precip?.type, 'none')),
-      precipIntensityText: `${intensity.value || 0} ${intensity.unit || 'mm/h'}`,
+      precipIntensityText: intensity.has ? `${intensity.value} ${intensity.unit || 'mm/h'}` : '—',
       pop: Number.isFinite(pop) ? pop * 100 : 0,
       popText: Number.isFinite(pop) ? percentText(pop * 100) : '—',
-      pressureText: `${Math.round(pressure.value || 0)} ${pressure.unit || 'hPa'}`,
-      visibilityText: visibilityText(visibility.value, visibility.unit === 'km' ? 'km' : 'm'),
-      dewPointText: tempText(dew.value),
+      pressureText: pressure.has ? `${Math.round(pressure.value)} ${pressure.unit || 'hPa'}` : '—',
+      visibilityText: visibility.has ? visibilityText(visibility.value, visibility.unit === 'km' ? 'km' : 'm') : '—',
+      dewPointText: dew.has ? tempText(dew.value) : '—',
       cloudText: cloudText(hour.cloudCover, true),
       uvText: uvText(num(hour.uvIndex, NaN)),
       range,
@@ -613,16 +676,17 @@ export function parseHourlyV1(raw: unknown, range: QwHourlyRange = 24): QwHourly
 
 export function parseHourlyV7(raw: unknown, range: QwHourlyRange = 24): QwHourlyView[] {
   const record = obj(raw) || {}
-  return list(record.hours).map((item) => {
+  return list(record.hourly).map((item) => {
     const hour = obj(item) || {}
     const wind = windView(
       { windDir: hour.windDir, wind360: hour.wind360, windScale: hour.windScale, windSpeed: hour.windSpeed },
       true,
     )
+    const pop = str(hour.pop, '')
     return {
       time: str(hour.fxTime),
       timeText: timeText(hour.fxTime),
-      hourText: `${isoParts(hour.fxTime).time.slice(0, 2)}:00`,
+      hourText: hourTextOf(hour.fxTime),
       icon: normalizeIconCode(str(hour.icon), false),
       condition: str(hour.text, '—'),
       temp: num(hour.temp, NaN),
@@ -632,14 +696,14 @@ export function parseHourlyV7(raw: unknown, range: QwHourlyRange = 24): QwHourly
       windText: wind.text,
       gustText: '—',
       precip: num(hour.precip, 0),
-      precipText: `${str(hour.precip, '0.0')} mm`,
+      precipText: unitText(hour.precip, 'mm'),
       precipTypeText: '—',
       precipIntensityText: '—',
       pop: num(hour.pop, 0),
-      popText: `${str(hour.pop, '0')}%`,
-      pressureText: `${str(hour.pressure, '—')} hPa`,
-      visibilityText: `${str(hour.vis, '—')} km`,
-      dewPointText: `${str(hour.dew, '—')}°`,
+      popText: pop ? `${pop}%` : '—',
+      pressureText: unitText(hour.pressure, 'hPa'),
+      visibilityText: unitText(hour.vis, 'km'),
+      dewPointText: degreeText(hour.dew),
       cloudText: cloudText(hour.cloud, false),
       uvText: uvText(num(hour.uvIndex, NaN)),
       range,
@@ -659,7 +723,7 @@ export function parseMinutely(raw: unknown): QwMinutelyView {
       timeText: timeText(point.fxTime),
       precip,
       type: str(point.type, 'rain'),
-      typeText: str(point.type) === 'snow' ? '雪' : '雨',
+      typeText: precipTypeText(str(point.type, 'rain')),
     }
   })
   const maxPrecip = points.reduce((max, point) => Math.max(max, point.precip), 0)
@@ -670,30 +734,36 @@ export function parseMinutely(raw: unknown): QwMinutelyView {
     null,
   )
   const peakType = points.find((point) => point.precip > 0)?.typeText || ''
+  const empty = !points.length
   return {
-    summary: str(record.summary, '未来两小时暂无降水'),
+    summary: str(record.summary, empty ? '暂无分钟级降水数据' : '未来两小时暂无降水'),
     updateTimeText: timeText(record.updateTime),
     points,
     maxPrecip,
     totalPrecip,
-    maxPrecipText: `${maxPrecip.toFixed(2)} mm`,
-    totalPrecipText: `${totalPrecip.toFixed(2)} mm`,
+    maxPrecipText: empty ? '—' : `${maxPrecip.toFixed(2)} mm`,
+    totalPrecipText: empty ? '—' : `${totalPrecip.toFixed(2)} mm`,
     hasRain,
-    peakText: maxPrecip > 0 ? `峰值 ${maxPrecip.toFixed(2)} mm / 5 分钟` : '无降水',
-    typeText: hasRain ? peakType : '无降水',
+    peakText: empty ? '—' : maxPrecip > 0 ? `峰值 ${maxPrecip.toFixed(2)} mm / 5 分钟` : '无降水',
+    typeText: hasRain ? peakType : empty ? '暂无数据' : '无降水',
     peakTimeText: hasRain && peakPoint ? peakPoint.timeText : '—',
   }
 }
 
 /* ---- 空气质量 ---- */
 
+/* 接口文案可能自带「一般人群」/「敏感人群」前缀，视图已用标签展示，避免重复 */
+function stripPopulationPrefix(value: string): string {
+  return value.replace(/^一般人群[：:]?\s*/, '').replace(/^敏感人群[：:]?\s*/, '')
+}
+
 function airHealth(value: unknown): QwAirHealthView {
   const record = obj(value) || {}
   const advice = obj(record.advice) || {}
   return {
     effect: str(record.effect, ''),
-    general: str(advice.generalPopulation, ''),
-    sensitive: str(advice.sensitivePopulation, ''),
+    general: stripPopulationPrefix(str(advice.generalPopulation, '')),
+    sensitive: stripPopulationPrefix(str(advice.sensitivePopulation, '')),
   }
 }
 
@@ -733,6 +803,7 @@ function pollutants(value: unknown): QwPollutantView[] {
         return null
       }
       const concentration = obj(record.concentration) || {}
+      const value = nullableNum(concentration.value)
       const subIndexes = list(record.subIndexes)
         .map((sub) => {
           const entry = obj(sub)
@@ -743,8 +814,8 @@ function pollutants(value: unknown): QwPollutantView[] {
         code: str(record.code),
         name: str(record.name),
         fullName: str(record.fullName),
-        value: num(concentration.value, 0),
-        valueText: `${str(concentration.value, '0')} ${str(concentration.unit, '')}`,
+        value: value === null ? 0 : value,
+        valueText: value === null ? '—' : `${value} ${str(concentration.unit, '')}`,
         unit: str(concentration.unit),
         subIndexText: subIndexes.join(' · '),
       }
@@ -794,7 +865,7 @@ export function parseAirHourly(raw: unknown): QwAirHourView[] {
       }
       return {
         timeText: timeText(hour.forecastTime),
-        hourText: `${isoParts(hour.forecastTime).time.slice(0, 2)}:00`,
+        hourText: hourTextOf(hour.forecastTime),
         aqi: primary.aqi,
         aqiDisplay: primary.aqiDisplay,
         category: primary.category,
@@ -807,7 +878,7 @@ export function parseAirHourly(raw: unknown): QwAirHourView[] {
     .filter((item): item is QwAirHourView => Boolean(item))
 }
 
-export function parseAirDaily(raw: unknown): QwAirDayView[] {
+export function parseAirDaily(raw: unknown, today = todayKey()): QwAirDayView[] {
   const record = obj(raw) || {}
   return list(record.days)
     .map((item) => {
@@ -825,7 +896,7 @@ export function parseAirDaily(raw: unknown): QwAirDayView[] {
       const date = dateOnly(day.forecastStartTime)
       return {
         dateText: dateText(date),
-        weekText: isToday(date) ? '今天' : weekText(date),
+        weekText: isToday(date, today) ? '今天' : weekText(date),
         aqi: primary.aqi,
         aqiDisplay: primary.aqiDisplay,
         category: primary.category,
@@ -883,7 +954,7 @@ export function parseAlerts(raw: unknown): QwAlertView[] {
 
 /* ---- 生活指数 ---- */
 
-export function parseIndices(raw: unknown): QwIndicesView[] {
+export function parseIndices(raw: unknown, today = todayKey()): QwIndicesView[] {
   const record = obj(raw) || {}
   const groups = new Map<string, QwIndicesView['items']>()
   list(record.daily).forEach((item) => {
@@ -907,7 +978,7 @@ export function parseIndices(raw: unknown): QwIndicesView[] {
     .map(([date, items]) => ({
       date,
       dateText: dateText(date),
-      weekText: isToday(date) ? '今天' : weekText(date),
+      weekText: isToday(date, today) ? '今天' : weekText(date),
       items: items.sort((left, right) => Number(left.type) - Number(right.type)),
     }))
 }
@@ -935,24 +1006,60 @@ export function parseSun(raw: unknown): QwSunView {
   }
 }
 
-export function parseMoon(raw: unknown): QwMoonView {
+export function parseMoon(raw: unknown, today = todayKey()): QwMoonView {
   const record = obj(raw) || {}
-  const phases: QwMoonPhasePoint[] = list(record.moonPhase).map((item) => {
+  const source = list(record.moonPhase)
+  const times = source.map((item) => Date.parse(str((obj(item) || {}).fxTime)))
+  const all: QwMoonPhasePoint[] = source.map((item) => {
     const point = obj(item) || {}
+    const illumination = str(point.illumination, '')
     return {
       timeText: timeText(point.fxTime),
       name: str(point.name, '—'),
       icon: normalizeIconCode(str(point.icon), false),
       illumination: num(point.illumination, 0),
-      illuminationText: `${str(point.illumination, '0')}%`,
+      illuminationText: illumination ? `${illumination}%` : '—',
     }
   })
+  /* 官方返回逐小时月相，同一相位会重复 24 次；按相位去重，避免渲染 24 张相同卡片 */
+  const phases: QwMoonPhasePoint[] = []
+  const seen = new Set<string>()
+  all.forEach((point) => {
+    const key = `${point.icon}|${point.name}`
+    if (!seen.has(key)) {
+      seen.add(key)
+      phases.push(point)
+    }
+  })
+  /* 用完整时间戳找最接近 updateTime 的月相，跨午夜也不会错位 */
+  const updateAt = Date.parse(str(record.updateTime))
+  let nearest: QwMoonPhasePoint | null = all[0] || null
+  if (Number.isFinite(updateAt)) {
+    let best = Number.POSITIVE_INFINITY
+    times.forEach((time, index) => {
+      if (!Number.isFinite(time)) {
+        return
+      }
+      const distance = Math.abs(time - updateAt)
+      if (distance < best) {
+        best = distance
+        nearest = all[index]
+      }
+    })
+  }
+  const current = nearest ? { ...nearest } : null
+  if (current) {
+    const index = phases.findIndex((point) => point.icon === current.icon && point.name === current.name)
+    if (index >= 0) {
+      phases[index] = current
+    }
+  }
   return {
-    date: dateOnly(record.moonrise) || todayKey(),
+    date: dateOnly(record.moonrise) || today,
     moonriseText: timeText(record.moonrise),
     moonsetText: timeText(record.moonset),
     phases,
-    current: phases.find((point) => point.timeText === timeText(record.updateTime)) || phases[0] || null,
+    current,
   }
 }
 
@@ -963,12 +1070,12 @@ export function parseSolar(raw: unknown): QwSolarView {
     ? `${solarHour.slice(0, -2).padStart(2, '0')}:${solarHour.slice(-2)}`
     : solarHour || '—'
   return {
-    elevation: num(record.solarElevationAngle, 0),
-    azimuth: num(record.solarAzimuthAngle, 0),
-    elevationText: `${str(record.solarElevationAngle, '—')}°`,
-    azimuthText: `${str(record.solarAzimuthAngle, '—')}°`,
+    elevation: num(record.solarElevationAngle, NaN),
+    azimuth: num(record.solarAzimuthAngle, NaN),
+    elevationText: degreeText(record.solarElevationAngle),
+    azimuthText: degreeText(record.solarAzimuthAngle),
     solarHourText,
-    hourAngleText: `${str(record.hourAngle, '—')}°`,
+    hourAngleText: degreeText(record.hourAngle),
   }
 }
 
@@ -998,25 +1105,29 @@ function historyDaily(raw: unknown): QwDailyView | null {
     cloudText: '—',
   }
   const moonPhase = str(day.moonPhase, '—')
+  const tempMax = num(day.tempMax, NaN)
+  const tempMin = num(day.tempMin, NaN)
+  const tempAvg =
+    Number.isFinite(tempMax) && Number.isFinite(tempMin) ? (tempMax + tempMin) / 2 : NaN
   return {
     date,
     dateText: dateText(date),
-    weekText: isToday(date) ? '今天' : weekText(date),
+    weekText: weekText(date),
     iconDay: '9999',
     iconNight: '9999',
     textDay: '历史再分析',
     textNight: '历史再分析',
-    tempMax: num(day.tempMax, NaN),
-    tempMin: num(day.tempMin, NaN),
-    tempAvg: (num(day.tempMax, 0) + num(day.tempMin, 0)) / 2,
-    tempMaxText: tempText(num(day.tempMax, NaN)),
-    tempMinText: tempText(num(day.tempMin, NaN)),
-    tempAvgText: tempText((num(day.tempMax, 0) + num(day.tempMin, 0)) / 2),
+    tempMax,
+    tempMin,
+    tempAvg: Number.isFinite(tempAvg) ? tempAvg : 0,
+    tempMaxText: tempText(tempMax),
+    tempMinText: tempText(tempMin),
+    tempAvgText: tempText(tempAvg),
     humidityText: humidityText(day.humidity, false),
     precip: num(day.precip, 0),
-    precipText: `${str(day.precip, '0.0')} mm`,
+    precipText: unitText(day.precip, 'mm'),
     popText: '—',
-    pressureText: `${str(day.pressure, '—')} hPa`,
+    pressureText: unitText(day.pressure, 'hPa'),
     visibilityText: '—',
     cloudText: '—',
     uvText: '—',
@@ -1027,7 +1138,7 @@ function historyDaily(raw: unknown): QwDailyView | null {
     moonriseText: str(day.moonrise, '—'),
     moonsetText: str(day.moonset, '—'),
     moonPhase,
-    moonIcon: '800',
+    moonIcon: normalizeIconCode(str(day.moonPhaseIcon), false),
     astro: {
       sunrise: str(day.sunrise),
       sunset: str(day.sunset),
@@ -1061,7 +1172,7 @@ function historyHourly(raw: unknown): QwHourlyView[] {
     return {
       time: str(hour.time),
       timeText: timeText(hour.time),
-      hourText: `${timeText(hour.time).slice(0, 2)}:00`,
+      hourText: hourTextOf(hour.time),
       icon: normalizeIconCode(str(hour.icon), false),
       condition: str(hour.text, '—'),
       temp: num(hour.temp, NaN),
@@ -1071,15 +1182,15 @@ function historyHourly(raw: unknown): QwHourlyView[] {
       windText: wind.text,
       gustText: '—',
       precip: num(hour.precip, 0),
-      precipText: `${str(hour.precip, '0.0')} mm`,
+      precipText: unitText(hour.precip, 'mm'),
       precipTypeText: '—',
       precipIntensityText: '—',
       pop: 0,
       popText: '—',
-      pressureText: `${str(hour.pressure, '—')} hPa`,
-      visibilityText: '—',
-      dewPointText: '—',
-      cloudText: '—',
+      pressureText: unitText(hour.pressure, 'hPa'),
+      visibilityText: unitText(hour.vis, 'km'),
+      dewPointText: degreeText(hour.dew),
+      cloudText: cloudText(hour.cloud, false),
       uvText: '—',
       range: 24,
     }
@@ -1096,22 +1207,4 @@ export function parseHistory(raw: unknown): QwHistoryView {
     daily: historyDaily(dailyRaw),
     hourly: historyHourly(record.weatherHourly),
   }
-}
-
-/* ---- 便捷展示 ---- */
-
-export function humidityOf(value: unknown): string {
-  return humidityText(value, true)
-}
-
-export function cloudOf(value: unknown): string {
-  return cloudText(value, true)
-}
-
-export function alertColor(value: unknown): string {
-  return rgba(value)
-}
-
-export function familyOf(icon: string): string {
-  return iconFamily(icon)
 }

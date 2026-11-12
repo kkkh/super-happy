@@ -13,6 +13,7 @@ Component({
   properties: {
     days: { type: Array, value: [] },
     range: { type: Number, value: 10 },
+    cityToken: { type: String, value: '' },
     loading: { type: Boolean, value: false },
     error: { type: String, value: '' },
   },
@@ -20,6 +21,14 @@ Component({
   data: {
     expandedDate: '',
     ranges: [3, 7, 10, 15, 30],
+  },
+
+  observers: {
+    cityToken() {
+      if (this.data.expandedDate) {
+        this.setData({ expandedDate: '' })
+      }
+    },
   },
 
   methods: {

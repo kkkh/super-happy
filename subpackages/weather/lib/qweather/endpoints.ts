@@ -5,6 +5,8 @@
    - cacheable/TTL 遵循官方最佳实践；Geo 只允许会话内使用
    ========================================================================== */
 
+import { dateKeyForOffset } from './date'
+
 export type QwEndpointGroup =
   | 'GeoAPI'
   | '天气预报'
@@ -70,11 +72,6 @@ export function lngLat(lat: number, lon: number): string {
 
 export function latLonPath(lat: number, lon: number): string {
   return `${number2(lat)}/${number2(lon)}`
-}
-
-export function yyyymmdd(date: Date): string {
-  const pad = (value: number): string => String(value).padStart(2, '0')
-  return `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}`
 }
 
 /** 和风天气 date 参数统一为 yyyyMMdd；页面传入 yyyy-MM-dd 也能兼容 */
@@ -213,7 +210,7 @@ export function geoPoiRange(input: {
     path,
     cacheable: false,
     ttlMs: 0,
-    cacheKey: `geo|range|${lngLat(input.lat, input.lon)}|${input.radius || 10}|${input.number || 10}|${input.lang || 'zh'}`,
+    cacheKey: `geo|range|${lngLat(input.lat, input.lon)}|${input.type || 'scenic'}|${input.radius || 10}|${input.number || 10}|${input.lang || 'zh'}`,
   }
 }
 
@@ -518,7 +515,7 @@ export function astronomySolar(input: {
 /** API 覆盖抽屉使用的完整目录（含所有 v7 范围变体） */
 export function endpointCatalog(city: QwCityLike, historyDate: string): QwRequestSpec[] {
   /* 历史只能查过去 10 天，天文只能查今天及未来 60 天，两者日期基准不同 */
-  const astroDate = yyyymmdd(new Date())
+  const astroDate = dateKeyForOffset(city.utcOffset).replace(/-/g, '')
   const list: QwRequestSpec[] = [
     geoCityLookup({ location: city.adm2 || city.name || '北京' }),
     geoTopCity({ range: 'cn' }),

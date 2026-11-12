@@ -19,6 +19,7 @@ Component({
 
   properties: {
     air: { type: Object, value: null },
+    cityToken: { type: String, value: '' },
     loading: { type: Boolean, value: false },
     error: { type: String, value: '' },
   },
@@ -30,6 +31,11 @@ Component({
   },
 
   observers: {
+    cityToken() {
+      if (this.data.expandedDate || this.data.expandedHour) {
+        this.setData({ expandedDate: '', expandedHour: '' })
+      }
+    },
     air(value: { hourly?: AirHourBar[]; daily?: Array<{ dateText?: string }> } | null) {
       const hours = value && Array.isArray(value.hourly) ? value.hourly : []
       const days = value && Array.isArray(value.daily) ? value.daily : []

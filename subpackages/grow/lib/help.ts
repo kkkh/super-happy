@@ -625,7 +625,7 @@ export const HELP_ENTRIES: Record<string, ToolHelp> = {
     steps: [
       '打开后自动模糊定位，或点城市卡搜索 / 热门 / 附近景点选城',
       '在 7 个 Tab 查看总览、逐小时、每日、空气、指数、天文与历史',
-      '点右上角 API 逐个实测 8 组 API 的 27 个端点',
+      '点右上角 API 逐个实测 8 组 API 的 20 个接口 / 27 个范围变体',
     ],
     tips: [
       '正式发布请使用 API KEY（不会过期）：在和风控制台创建后填入 config-local.ts 的 QWEATHER_API_KEY，代码会优先使用 API KEY',

@@ -65,7 +65,8 @@ export function iconPath(code: string | number | undefined, options: { fill?: bo
 }
 
 export function fallbackIconPath(fill = false): string {
-  return `${ICON_ROOT}/9999${fill ? '-fill' : ''}.svg`
+  /* 官方没有 9999-fill.svg，兜底图始终使用线框版 */
+  return `${ICON_ROOT}/9999.svg`
 }
 
 export function warningIconPath(code: string | number | undefined): string {
@@ -76,7 +77,7 @@ export function warningIconPath(code: string | number | undefined): string {
 
 export function moonIconPath(code: string | number | undefined): string {
   const raw = String(code || '').trim()
-  const safe = /^\d{3}$/.test(raw) && Number(raw) >= 800 && Number(raw) <= 807 ? raw : '800'
+  const safe = /^\d{3}$/.test(raw) && Number(raw) >= 800 && Number(raw) <= 807 ? raw : '9999'
   return `${ICON_ROOT}/${safe}.svg`
 }
 
@@ -105,11 +106,11 @@ export function iconFamily(code: string | number | undefined): QwIconFamily {
   if (value >= 400 && value <= 499) {
     return 'snow'
   }
-  if (value >= 500 && value <= 515) {
-    return 'fog'
-  }
   if (value === 507 || value === 508) {
     return 'dust'
+  }
+  if (value >= 500 && value <= 515) {
+    return 'fog'
   }
   if (value === 901) {
     return 'cold'
@@ -118,16 +119,6 @@ export function iconFamily(code: string | number | undefined): QwIconFamily {
     return 'unknown'
   }
   return 'unknown'
-}
-
-export function isRainCode(code: string | number | undefined): boolean {
-  const value = Number(code)
-  return value >= 300 && value <= 399
-}
-
-export function isSnowCode(code: string | number | undefined): boolean {
-  const value = Number(code)
-  return value >= 400 && value <= 499
 }
 
 export function windScaleText(scale: number | null): string {

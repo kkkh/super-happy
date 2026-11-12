@@ -109,7 +109,7 @@
   border: 1rpx solid rgba(255, 120, 120, 0.32);
   border-radius: var(--glass-radius-md, 24rpx);
   background: rgba(255, 80, 80, 0.08);
-  color: #ffb3b3;
+  color: var(--glass-danger-text);
   font-size: 21rpx;
   font-size: calc(21rpx * var(--fs-scale, 1));
   line-height: 1.5;

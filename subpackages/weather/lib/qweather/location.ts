@@ -39,6 +39,35 @@ function reasonOf(message: string): QwLocationFailure {
   return 'failed'
 }
 
+/** 原生 / 授权回调缺失时，避免页面永久停在定位中 */
+function withTimeout<T>(promise: Promise<T>, fallback: T, ms = 15000): Promise<T> {
+  return new Promise((resolve) => {
+    let settled = false
+    const timer = setTimeout(() => {
+      if (!settled) {
+        settled = true
+        resolve(fallback)
+      }
+    }, ms) as unknown as number
+    promise.then(
+      (value) => {
+        if (!settled) {
+          settled = true
+          clearTimeout(timer)
+          resolve(value)
+        }
+      },
+      () => {
+        if (!settled) {
+          settled = true
+          clearTimeout(timer)
+          resolve(fallback)
+        }
+      },
+    )
+  })
+}
+
 export async function readFuzzyPermission(): Promise<QwFuzzyPermission> {
   const api = wx as unknown as SettingApi
   if (typeof api.getSetting !== 'function') {
@@ -65,15 +94,29 @@ export async function getFuzzyLocation(): Promise<QwFuzzyResult> {
   if (typeof api.getFuzzyLocation !== 'function') {
     return { ok: false, reason: 'unavailable' }
   }
-  const authorized = await ensurePrivacyAuthorized()
+  const authorized = await withTimeout(ensurePrivacyAuthorized(), false)
   if (!authorized) {
     return { ok: false, reason: 'privacy' }
   }
-  const permission = await readFuzzyPermission()
+  const permission = await withTimeout(readFuzzyPermission(), 'unavailable')
   if (permission === 'denied') {
     return { ok: false, reason: 'denied' }
   }
   return new Promise((resolve) => {
+    let settled = false
+    let timer: number | null = null
+    const finish = (result: QwFuzzyResult): void => {
+      if (settled) {
+        return
+      }
+      settled = true
+      if (timer !== null) {
+        clearTimeout(timer)
+        timer = null
+      }
+      resolve(result)
+    }
+    timer = setTimeout(() => finish({ ok: false, reason: 'failed' }), 15000) as unknown as number
     try {
       api.getFuzzyLocation?.({
         type: 'gcj02',
@@ -81,15 +124,15 @@ export async function getFuzzyLocation(): Promise<QwFuzzyResult> {
           const lat = Number(result.latitude)
           const lon = Number(result.longitude)
           if (!Number.isFinite(lat) || !Number.isFinite(lon) || lat < -90 || lat > 90 || lon < -180 || lon > 180) {
-            resolve({ ok: false, reason: 'failed' })
+            finish({ ok: false, reason: 'failed' })
             return
           }
-          resolve({ ok: true, lat, lon })
+          finish({ ok: true, lat, lon })
         },
-        fail: (error) => resolve({ ok: false, reason: reasonOf(error?.errMsg || '') }),
+        fail: (error) => finish({ ok: false, reason: reasonOf(error?.errMsg || '') }),
       })
     } catch {
-      resolve({ ok: false, reason: 'failed' })
+      finish({ ok: false, reason: 'failed' })
     }
   })
 }
@@ -100,12 +143,30 @@ export function openFuzzySetting(): Promise<boolean> {
       resolve(false)
       return
     }
-    wx.openSetting({
-      success: (result) => {
-        const auth = (result.authSetting || {}) as Record<string, unknown>
-        resolve(auth['scope.userFuzzyLocation'] === true)
-      },
-      fail: () => resolve(false),
-    })
+    let settled = false
+    let timer: number | null = null
+    const finish = (value: boolean): void => {
+      if (settled) {
+        return
+      }
+      settled = true
+      if (timer !== null) {
+        clearTimeout(timer)
+        timer = null
+      }
+      resolve(value)
+    }
+    timer = setTimeout(() => finish(false), 15000) as unknown as number
+    try {
+      wx.openSetting({
+        success: (result) => {
+          const auth = (result.authSetting || {}) as Record<string, unknown>
+          finish(auth['scope.userFuzzyLocation'] === true)
+        },
+        fail: () => finish(false),
+      })
+    } catch {
+      finish(false)
+    }
   })
 }

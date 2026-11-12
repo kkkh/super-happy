@@ -2,7 +2,10 @@
    qw-astronomy · 天文（日出日落 / 月相 / 太阳高度角）
    - 日期可切换，太阳高度角可指定时间
    - 日出日落进度条按当前时间计算；月相使用官方 800–807 图标
+   - 「今天」必须按城市 utcOffset 判断，不能使用设备时区
    ========================================================================== */
+
+import { todayKeyFor } from '../../lib/qweather/date'
 
 interface SunView {
   sunriseText: string
@@ -17,11 +20,6 @@ interface SolarView {
   azimuthText: string
   solarHourText: string
   hourAngleText: string
-}
-
-interface AstroDate {
-  date: string
-  label: string
 }
 
 function minutesOf(text: string): number | null {
@@ -63,8 +61,7 @@ Component({
     'sun, utcOffset, activeDate'() {
       const value = this.data.sun as SunView | null
       const now = new Date()
-      const pad = (input: number): string => String(input).padStart(2, '0')
-      const today = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`
+      const today = todayKeyFor(this.data.utcOffset)
       const active = String(this.data.activeDate || '')
       const isToday = !active || active === today
       const rise = value ? minutesOf(value.sunriseText) : null

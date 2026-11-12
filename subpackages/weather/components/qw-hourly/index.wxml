@@ -46,21 +46,21 @@
       <view class="qw-hourly__detail-head">
         <view>
           <text class="qw-hourly__detail-time">{{viewHours[selectedIndex].timeText}} · {{viewHours[selectedIndex].condition}}</text>
-          <text class="qw-hourly__detail-sub">{{viewHours[selectedIndex].tempText}} · 体感 {{viewHours[selectedIndex].feelsLikeText}} · 降水概率 {{viewHours[selectedIndex].popText}}</text>
+          <text class="qw-hourly__detail-sub">{{viewHours[selectedIndex].tempText}}<text wx:if="{{viewHours[selectedIndex].feelsLikeText !== '—'}}"> · 体感 {{viewHours[selectedIndex].feelsLikeText}}</text> · 降水概率 {{viewHours[selectedIndex].popText}}</text>
         </view>
         <text class="qw-badge">{{viewHours[selectedIndex].humidityText}}</text>
       </view>
       <view class="qw-grid-2">
         <view class="qw-grid__item qw-hourly__metric"><text>风</text><text>{{viewHours[selectedIndex].windText}}</text></view>
-        <view class="qw-grid__item qw-hourly__metric"><text>阵风</text><text>{{viewHours[selectedIndex].gustText}}</text></view>
+        <view wx:if="{{viewHours[selectedIndex].gustText !== '—'}}" class="qw-grid__item qw-hourly__metric"><text>阵风</text><text>{{viewHours[selectedIndex].gustText}}</text></view>
         <view class="qw-grid__item qw-hourly__metric"><text>降水</text><text>{{viewHours[selectedIndex].precipText}}</text></view>
-        <view class="qw-grid__item qw-hourly__metric"><text>降水类型</text><text>{{viewHours[selectedIndex].precipTypeText}}</text></view>
-        <view class="qw-grid__item qw-hourly__metric"><text>降水强度</text><text>{{viewHours[selectedIndex].precipIntensityText}}</text></view>
+        <view wx:if="{{viewHours[selectedIndex].precipTypeText !== '—'}}" class="qw-grid__item qw-hourly__metric"><text>降水类型</text><text>{{viewHours[selectedIndex].precipTypeText}}</text></view>
+        <view wx:if="{{viewHours[selectedIndex].precipIntensityText !== '—'}}" class="qw-grid__item qw-hourly__metric"><text>降水强度</text><text>{{viewHours[selectedIndex].precipIntensityText}}</text></view>
         <view class="qw-grid__item qw-hourly__metric"><text>气压</text><text>{{viewHours[selectedIndex].pressureText}}</text></view>
-        <view class="qw-grid__item qw-hourly__metric"><text>能见度</text><text>{{viewHours[selectedIndex].visibilityText}}</text></view>
+        <view wx:if="{{viewHours[selectedIndex].visibilityText !== '—'}}" class="qw-grid__item qw-hourly__metric"><text>能见度</text><text>{{viewHours[selectedIndex].visibilityText}}</text></view>
         <view class="qw-grid__item qw-hourly__metric"><text>露点</text><text>{{viewHours[selectedIndex].dewPointText}}</text></view>
         <view class="qw-grid__item qw-hourly__metric"><text>云量</text><text>{{viewHours[selectedIndex].cloudText}}</text></view>
-        <view class="qw-grid__item qw-hourly__metric"><text>紫外线</text><text>{{viewHours[selectedIndex].uvText}}</text></view>
+        <view wx:if="{{viewHours[selectedIndex].uvText !== '—'}}" class="qw-grid__item qw-hourly__metric"><text>紫外线</text><text>{{viewHours[selectedIndex].uvText}}</text></view>
       </view>
     </view>
   </block>

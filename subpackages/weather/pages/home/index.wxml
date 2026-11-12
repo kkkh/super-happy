@@ -1,4 +1,4 @@
-<qw-screen bind:summary="onSummary" />
+<qw-screen id="qw-screen" bind:summary="onSummary" bind:sheet="onSheet" bind:flow="onFlow" />
 
 <workflow-receiver tool-id="qweather" />
 <workflow-panel
@@ -6,4 +6,6 @@
   source-tool-id="qweather"
   bind:close="onWorkflowPanelClose"
 />
-<update-guard />
+<glass-toast />
+<privacy-guard />
+<update-guard blocked="{{blocked}}" />

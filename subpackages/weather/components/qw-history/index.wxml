@@ -16,6 +16,7 @@
         <text>{{date}}</text>
       </view>
     </picker>
+    <text wx:if="{{loading}}" class="qw-badge qw-history__loading">更新中…</text>
   </view>
 
   <view wx:if="{{quick.length}}" class="qw-chip-row qw-history__quick">

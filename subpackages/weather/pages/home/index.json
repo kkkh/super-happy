@@ -3,6 +3,8 @@
   "disableScroll": true,
   "usingComponents": {
     "qw-screen": "../../components/qw-screen/index",
+    "glass-toast": "../../../../components/glass-toast/index",
+    "privacy-guard": "../../../../components/privacy-guard/index",
     "workflow-receiver": "../../../../components/workflow-receiver/index",
     "workflow-panel": "../../../../components/workflow-panel/index"
   }

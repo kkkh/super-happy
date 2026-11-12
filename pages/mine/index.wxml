@@ -188,7 +188,7 @@
         >
           <view class="mine-row__copy">
             <text class="mine-row__title">用户隐私保护指引</text>
-            <text class="mine-row__sub">不登录 · 仅气象站请求高德 · 不上传内容</text>
+            <text class="mine-row__sub">不登录 · 仅 4 类公开数据请求 · 不上传内容</text>
           </view>
           <g-icon name="arrow" size="{{24}}" tone="ink3" />
         </view>
@@ -266,7 +266,7 @@
         >
           <view class="mine-row__copy">
             <text class="mine-row__title">开源许可</text>
-            <text class="mine-row__sub">图标、字体、第三方库与高德数据说明</text>
+            <text class="mine-row__sub">图标、字体、第三方库与第三方数据说明</text>
           </view>
           <g-icon name="arrow" size="{{24}}" tone="ink3" />
         </view>

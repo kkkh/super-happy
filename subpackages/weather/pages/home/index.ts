@@ -10,20 +10,33 @@ import {
 
 Page({
   onShareAppMessage() {
-    return sharePayloadForCurrentPage()
+    const payload = sharePayloadForCurrentPage()
+    const summary = String(this.data.weatherSummary || '')
+    return summary ? { ...payload, title: summary.length > 40 ? `${summary.slice(0, 40)}…` : summary } : payload
   },
 
   onShareTimeline() {
-    return timelinePayloadForCurrentPage()
+    const payload = timelinePayloadForCurrentPage()
+    const summary = String(this.data.weatherSummary || '')
+    return summary ? { ...payload, title: summary.length > 40 ? `${summary.slice(0, 40)}…` : summary } : payload
   },
 
   data: {
     workflowPanelVisible: false,
     weatherSummary: '',
+    blocked: false,
   },
 
   onSummary(event: WechatMiniprogram.CustomEvent<{ text?: string }>) {
     this.setData({ weatherSummary: String((event.detail && event.detail.text) || '') })
+  },
+
+  onSheet(event: WechatMiniprogram.CustomEvent<{ blocked?: boolean }>) {
+    this.setData({ blocked: Boolean(event.detail && event.detail.blocked) })
+  },
+
+  onFlow() {
+    this.setData({ workflowPanelVisible: true })
   },
 
   onWorkflowPanelClose() {

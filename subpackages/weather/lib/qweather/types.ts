@@ -4,15 +4,6 @@
    - 所有接口字段按「可能缺失 / 可能新增」处理，解析层负责兜底
    ========================================================================== */
 
-export type QWeatherTabKey =
-  | 'overview'
-  | 'hourly'
-  | 'daily'
-  | 'air'
-  | 'indices'
-  | 'astronomy'
-  | 'history'
-
 export type QwHourlyRange = 24 | 72 | 168 | 240
 export type QwDailyRange = 3 | 7 | 10 | 15 | 30
 
@@ -357,15 +348,4 @@ export interface QwEndpointView {
   latency: number
   count: number
   error: string
-}
-
-export interface QwOverviewView {
-  current: QwCurrentView
-  today: QwDailyView | null
-  minutely: QwMinutelyView | null
-  alerts: QwAlertView[]
-  indices: QwIndicesView | null
-  sun: QwSunView | null
-  moon: QwMoonView | null
-  air: QwAirView | null
 }

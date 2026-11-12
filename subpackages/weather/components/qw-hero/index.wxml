@@ -6,11 +6,14 @@
       hover-stay-time="80"
       bindtap="onCity"
       aria-role="button"
-      aria-label="切换城市"
+      aria-label="切换城市，当前 {{city ? city.name : '未选择'}}"
     >
       <g-icon name="pin" size="{{26}}" tone="ink2" />
       <view class="qw-hero__city-copy">
-        <text class="qw-hero__city-name">{{city ? city.name : '选择城市'}}</text>
+        <view class="qw-hero__city-line">
+          <text class="qw-hero__city-name">{{city ? city.name : '选择城市'}}</text>
+          <text wx:if="{{sourceText}}" class="qw-hero__city-tag">{{sourceText}}</text>
+        </view>
         <text class="qw-hero__city-sub">{{city ? (city.adm1 || city.country || '和风天气') : '搜索 / 定位 / 热门城市'}}</text>
       </view>
       <g-icon name="chevron" size="{{22}}" tone="ink4" />
@@ -25,8 +28,18 @@
         aria-role="button"
         aria-label="刷新天气"
       >
-        <g-icon name="refresh" size="{{22}}" tone="ink2" />
         <text>刷新</text>
+      </view>
+      <view
+        class="qw-hero__pill"
+        hover-class="qw-hero__pill--press"
+        hover-stay-time="80"
+        bindtap="onFlow"
+        aria-role="button"
+        aria-label="流转当前天气摘要"
+      >
+        <g-icon name="share" size="{{20}}" tone="ink2" />
+        <text>流转</text>
       </view>
       <view
         wx:if="{{air && air.primary}}"
@@ -35,7 +48,7 @@
         hover-stay-time="80"
         bindtap="onAir"
         aria-role="button"
-        aria-label="查看空气质量"
+        aria-label="查看空气质量，AQI {{air.primary.aqiDisplay}}，{{air.primary.category}}"
       >
         <text>AQI {{air.primary.aqiDisplay}}</text>
       </view>
@@ -80,7 +93,7 @@
           <text>最高 {{today.tempMaxText}}</text>
         </view>
         <view class="qw-hero__update">
-          <text>{{current.validTimeText}} 更新</text>
+          <text wx:if="{{current.validTimeText && current.validTimeText !== '—'}}">{{current.validTimeText}} 更新</text>
           <text wx:if="{{fromCache}}" class="qw-hero__cache">本地缓存</text>
         </view>
       </view>
@@ -136,7 +149,7 @@
       style="border-color: {{air.primary.color}};"
       bindtap="onAir"
       aria-role="button"
-      aria-label="查看空气质量详情"
+      aria-label="查看空气质量详情，AQI {{air.primary.aqiDisplay}}，{{air.primary.category}}，首要污染物 {{air.primary.primaryPollutant}}"
     >
       <view class="qw-hero__air-main">
         <text class="qw-hero__air-aqi" style="--aqi-color: {{air.primary.color}};">{{air.primary.aqiDisplay}}</text>

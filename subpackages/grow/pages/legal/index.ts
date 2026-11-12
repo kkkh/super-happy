@@ -15,7 +15,7 @@ import {
 } from '../../../../core/toolbox/share'
 
 const EMAIL = '56967916@qq.com'
-const EFFECTIVE_DATE = '2026 年 11 月 9 日'
+const EFFECTIVE_DATE = '2026 年 11 月 12 日'
 
 interface LegalSection {
   key: string

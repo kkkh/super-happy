@@ -52,6 +52,12 @@
       </view>
 
       <view wx:if="{{expandedDate === item.date}}" class="qw-daily__detail">
+        <view wx:if="{{item.daytime.precipText === '—' && item.nighttime.precipText === '—' && item.precipText !== '—'}}" class="qw-daily__part-row qw-daily__total-precip">
+          <text>全天降水</text><text>{{item.precipText}}</text>
+        </view>
+        <view wx:if="{{item.popText !== '—'}}" class="qw-daily__part-row qw-daily__total-precip">
+          <text>全天降水概率</text><text>{{item.popText}}</text>
+        </view>
         <view class="qw-grid-2">
           <view class="qw-grid__item qw-daily__metric"><text>气压</text><text>{{item.pressureText}}</text></view>
           <view class="qw-grid__item qw-daily__metric"><text>能见度</text><text>{{item.visibilityText}}</text></view>

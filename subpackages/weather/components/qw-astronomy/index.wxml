@@ -5,6 +5,7 @@
       <text class="qw-title">天文</text>
     </view>
     <view class="qw-astro__controls">
+      <text wx:if="{{loading}}" class="qw-badge qw-astro__loading">更新中…</text>
       <view class="qw-astro__alt">
         <text class="qw-astro__alt-label">海拔</text>
         <input

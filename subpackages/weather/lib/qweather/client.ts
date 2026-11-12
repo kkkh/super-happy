@@ -19,6 +19,7 @@ export type QwErrorKind =
   | 'auth'
   | 'forbidden'
   | 'rate'
+  | 'quota'
   | 'client'
   | 'server'
   | 'parse'
@@ -45,12 +46,12 @@ export interface QwRequestHandle<T> {
   abort(): void
 }
 
+/** 429 限流重试：最多 2 次，约 0.7s / 1.4s 指数退避 */
+const RATE_RETRY_LIMIT = 2
+const RATE_BASE_DELAY = 700
+
 function configured(): boolean {
   return Boolean(QWEATHER_HOST && (QWEATHER_API_KEY || QWEATHER_TOKEN))
-}
-
-export function isQWeatherConfigured(): boolean {
-  return configured()
 }
 
 /** 当前生效的认证方式，用于 API 自检面板展示（不暴露凭据本身） */
@@ -80,6 +81,9 @@ function errorMessage(kind: QwErrorKind, detail = ''): string {
   }
   if (kind === 'rate') {
     return '请求过于频繁，请稍后重试'
+  }
+  if (kind === 'quota') {
+    return '和风天气调用额度已用尽，请检查和风控制台套餐配额'
   }
   if (kind === 'network') {
     return '网络不可用，请检查网络后重试'
@@ -112,6 +116,9 @@ function mapHttp(status: number, body: unknown): QWeatherError {
   if (status === 403) {
     return new QWeatherError('forbidden', errorMessage('forbidden'), { status, code, detail })
   }
+  if (status === 402) {
+    return new QWeatherError('quota', errorMessage('quota'), { status, code, detail })
+  }
   if (status === 429) {
     return new QWeatherError('rate', errorMessage('rate'), { status, code, detail })
   }
@@ -134,7 +141,13 @@ function mapBody(body: unknown): QWeatherError | null {
     const status = typeof error.status === 'number' ? error.status : 400
     return mapHttp(status, body)
   }
-  const code = typeof record.code === 'string' ? record.code : ''
+  const rawCode = record.code
+  const code =
+    typeof rawCode === 'string'
+      ? rawCode
+      : typeof rawCode === 'number' && Number.isFinite(rawCode)
+        ? String(rawCode)
+        : ''
   if (!code || code === '200' || code === '204') {
     /* 204 表示请求成功但该地区暂无数据，按空结果交给解析层降级展示 */
     return null
@@ -146,11 +159,17 @@ function mapBody(body: unknown): QWeatherError | null {
   if (code === '403') {
     return new QWeatherError('forbidden', errorMessage('forbidden'), { status, code })
   }
+  if (code === '402') {
+    return new QWeatherError('quota', errorMessage('quota'), { status, code })
+  }
   if (code === '429') {
     return new QWeatherError('rate', errorMessage('rate'), { status, code })
   }
   if (code === '404') {
     return new QWeatherError('client', '没有查询到地点或数据', { status, code })
+  }
+  if (code === '500' || code === '503') {
+    return new QWeatherError('server', errorMessage('server'), { status, code })
   }
   return new QWeatherError('client', `和风天气错误码 ${code}`, { status, code })
 }
@@ -164,71 +183,105 @@ export function requestQWeather<T>(spec: QwRequestSpec): QwRequestHandle<T> {
   }
 
   let task: WechatMiniprogram.RequestTask | null = null
+  let timer: number | null = null
   let aborted = false
+  let attempt = 0
+  let rejectRef: ((reason?: unknown) => void) | null = null
+
   const promise = new Promise<T>((resolve, reject) => {
-    try {
-      task = wx.request({
-        url: `https://${QWEATHER_HOST}${spec.path}`,
-        method: 'GET',
-        timeout: 12000,
-        dataType: 'json',
-        header: {
-          ...authHeader(),
-          Accept: 'application/json',
-        },
-        success: (response) => {
-          if (aborted) {
-            reject(new QWeatherError('cancelled', errorMessage('cancelled')))
-            return
-          }
-          const status = response.statusCode || 0
-          if (status < 200 || status >= 300) {
-            reject(mapHttp(status, response.data))
-            return
-          }
-          const bodyError = mapBody(response.data)
-          if (bodyError) {
-            reject(bodyError)
-            return
-          }
-          resolve(response.data as T)
-        },
-        fail: (error) => {
-          if (aborted || String(error.errMsg || '').includes('abort')) {
-            reject(new QWeatherError('cancelled', errorMessage('cancelled')))
-            return
-          }
-          reject(new QWeatherError('network', errorMessage('network'), { detail: String(error.errMsg || '') }))
-        },
-      })
-    } catch (error) {
-      reject(
-        new QWeatherError('network', errorMessage('network'), {
-          detail: error instanceof Error ? error.message : 'request exception',
-        }),
-      )
+    rejectRef = reject
+    const send = (): void => {
+      try {
+        task = wx.request({
+          url: `https://${QWEATHER_HOST}${spec.path}`,
+          method: 'GET',
+          timeout: 12000,
+          dataType: 'json',
+          header: {
+            ...authHeader(),
+            Accept: 'application/json',
+          },
+          success: (response) => {
+            if (aborted) {
+              reject(new QWeatherError('cancelled', errorMessage('cancelled')))
+              return
+            }
+            const status = response.statusCode || 0
+            const bodyError = status >= 200 && status < 300 ? mapBody(response.data) : null
+            const rateLimited = status === 429 || Boolean(bodyError && bodyError.kind === 'rate')
+            /* 429 按指数退避重试；退避期间 abort 会立即收敛 Promise */
+            if (rateLimited && attempt < RATE_RETRY_LIMIT) {
+              attempt += 1
+              const wait = RATE_BASE_DELAY * 2 ** (attempt - 1) + Math.floor(Math.random() * 250)
+              timer = setTimeout(() => {
+                timer = null
+                if (!aborted) {
+                  send()
+                }
+              }, wait) as unknown as number
+              return
+            }
+            if (status < 200 || status >= 300) {
+              reject(mapHttp(status, response.data))
+              return
+            }
+            if (bodyError) {
+              reject(bodyError)
+              return
+            }
+            resolve(response.data as T)
+          },
+          fail: (error) => {
+            if (aborted || String(error.errMsg || '').includes('abort')) {
+              reject(new QWeatherError('cancelled', errorMessage('cancelled')))
+              return
+            }
+            reject(new QWeatherError('network', errorMessage('network'), { detail: String(error.errMsg || '') }))
+          },
+        })
+      } catch (error) {
+        reject(
+          new QWeatherError('network', errorMessage('network'), {
+            detail: error instanceof Error ? error.message : 'request exception',
+          }),
+        )
+      }
     }
+    send()
   })
 
   return {
     promise,
     abort: () => {
       aborted = true
+      if (timer !== null) {
+        clearTimeout(timer)
+        timer = null
+      }
       try {
         task?.abort()
       } catch {
         /* 已结束 */
       }
+      rejectRef?.(new QWeatherError('cancelled', errorMessage('cancelled')))
     },
   }
 }
 
+/** 底层错误 detail 只用于诊断，输出前去掉 URL 与可能的凭据片段 */
+function safeDetail(value: string): string {
+  return String(value || '')
+    .replace(/https?:\/\/\S+/gi, '[url]')
+    .replace(/((?:token|key|authorization|secret)\s*[=:]\s*)\S+/gi, '$1[redacted]')
+    .trim()
+}
+
 export function describeQWeatherError(error: unknown): string {
   if (error instanceof QWeatherError) {
-    const detail = String(error.detail || '').trim()
+    const detail = safeDetail(String(error.detail || ''))
     /* 域名白名单是最高频的「网络不可用」原因，直接给出可执行结论 */
     if (error.kind === 'network' && /url not in domain list|domain list/i.test(detail)) {
-      return `请求域名未加入小程序后台「request 合法域名」：${QWEATHER_HOST}`
+      return '请求域名未加入小程序后台「request 合法域名」，请将和风天气 API Host 加入白名单'
     }
     if (error.kind === 'network' && detail) {
       return `${error.message}（${detail}）`

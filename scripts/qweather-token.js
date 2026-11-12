@@ -9,12 +9,13 @@
    ========================================================================== */
 
 const fs = require('node:fs')
+const os = require('node:os')
 const path = require('node:path')
 const crypto = require('node:crypto')
 
 const ROOT = path.resolve(__dirname, '..')
 const CONFIG_PATH = path.join(ROOT, 'subpackages/weather/config-local.ts')
-const DEFAULT_KEY_PATH = '/Users/qinchao/ed25519-private.pem'
+const DEFAULT_KEY_PATH = path.join(os.homedir(), 'ed25519-private.pem')
 
 function readExisting() {
   try {
@@ -63,6 +64,14 @@ function main() {
       process.exit(1)
     }
     const pem = fs.readFileSync(KEY_PATH)
+    try {
+      const stat = fs.statSync(KEY_PATH)
+      if ((stat.mode & 0o077) !== 0) {
+        console.warn('⚠ 私钥权限较宽，建议执行 chmod 600 后再生成 Token')
+      }
+    } catch {
+      /* 权限检查失败不影响生成 */
+    }
     let privateKey
     try {
       privateKey = crypto.createPrivateKey(pem)
@@ -87,9 +96,15 @@ export const QWEATHER_API_KEY = '${API_KEY}'
 `
   fs.mkdirSync(path.dirname(CONFIG_PATH), { recursive: true })
   fs.writeFileSync(CONFIG_PATH, content, { mode: 0o600 })
+  /* 已存在文件时 writeFileSync 不会修改权限，这里显式收紧到 0600 */
+  try {
+    fs.chmodSync(CONFIG_PATH, 0o600)
+  } catch {
+    /* 部分文件系统不支持 chmod，忽略 */
+  }
   const expiry = exp ? new Date(exp * 1000).toLocaleString('zh-CN', { hour12: false }) : '由环境变量提供'
   console.log('✔ 和风天气凭据已写入 subpackages/weather/config-local.ts')
-  console.log(`  Host：${HOST}`)
+  console.log('  Host：已写入（不打印）')
   console.log(`  凭据：${API_KEY ? 'API KEY' : 'JWT'}`)
   console.log(`  过期：${expiry}`)
   if (!API_KEY) {

@@ -41,7 +41,7 @@ export const ROUTES = {
 /** 当前版本号：设置中心、我的页与更新日志共用同一真相源 */
 export const APP_VERSION = '1.1.0'
 /** 隐私保护指引版本：仅在数据处理方式变化时递增，与 app:privacy.version 比对 */
-export const PRIVACY_VERSION = 1
+export const PRIVACY_VERSION = 2
 
 /** 模态弹窗动作色：破坏性操作必须红/绿分明，避免误触 */
 export const ACTION_COLORS = {
@@ -88,6 +88,7 @@ export const ROUTE_TITLES: Record<string, string> = {
   [ROUTES.cockpit]: '数据驾驶舱',
   [ROUTES.help]: '使用指南',
   [ROUTES.weather]: '全息气象',
+  [ROUTES.qweather]: '和风天气',
   [ROUTES.webSearch]: '元宝搜索',
 }
 

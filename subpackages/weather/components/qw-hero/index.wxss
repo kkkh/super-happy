@@ -43,12 +43,36 @@
   flex-direction: column;
 }
 
+.qw-hero__city-line {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10rpx;
+  min-width: 0;
+}
+
 .qw-hero__city-name {
   color: var(--glass-text);
   font-size: 38rpx;
   font-size: calc(38rpx * var(--fs-scale, 1));
   font-weight: 700;
   line-height: 1.2;
+  max-width: 320rpx;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.qw-hero__city-tag {
+  flex-shrink: 0;
+  padding: 2rpx 10rpx;
+  border-radius: 999rpx;
+  border: 1rpx solid var(--glass-border);
+  background: var(--glass-bg-soft);
+  color: var(--glass-text-3);
+  font-size: 17rpx;
+  font-size: calc(17rpx * var(--fs-scale, 1));
+  line-height: 1.6;
 }
 
 .qw-hero__city-sub {
@@ -96,7 +120,7 @@
 
 .qw-hero__pill--alert {
   border-color: rgba(255, 176, 92, 0.5);
-  color: #ffc477;
+  color: var(--glass-accent-warm-text);
 }
 
 .qw-hero__main {
@@ -118,7 +142,10 @@
 
 .qw-hero__icon-glow {
   position: absolute;
-  inset: 18rpx;
+  top: 18rpx;
+  left: 18rpx;
+  width: 160rpx;
+  height: 160rpx;
   border-radius: 50%;
   background: radial-gradient(circle, rgba(159, 124, 255, 0.38), transparent 68%);
 }

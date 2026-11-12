@@ -52,7 +52,7 @@
 }
 
 .qw-history__temp-max {
-  color: #ffb86b;
+  color: var(--glass-accent-warm-text);
   font-size: 40rpx;
   font-size: calc(40rpx * var(--fs-scale, 1));
   font-weight: 700;

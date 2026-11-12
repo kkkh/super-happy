@@ -18,6 +18,7 @@ Component({
   properties: {
     hours: { type: Array, value: [] },
     range: { type: Number, value: 24 },
+    cityToken: { type: String, value: '' },
     loading: { type: Boolean, value: false },
     error: { type: String, value: '' },
   },
@@ -29,6 +30,11 @@ Component({
   },
 
   observers: {
+    cityToken() {
+      if (this.data.selectedIndex !== 0) {
+        this.setData({ selectedIndex: 0 })
+      }
+    },
     hours(value: HourView[]) {
       const list = Array.isArray(value) ? value : []
       const temps = list.map((item) => Number(item.temp)).filter((item) => Number.isFinite(item))
@@ -38,11 +44,17 @@ Component({
       const selectedIndex = Math.min(this.data.selectedIndex, Math.max(0, list.length - 1))
       this.setData({
         selectedIndex,
-        viewHours: list.map((item, index) => ({
-          ...item,
-          barHeight: Math.max(14, Math.min(100, ((Number(item.temp) - min) / span) * 86 + 14)),
-          selected: index === selectedIndex,
-        })),
+        viewHours: list.map((item, index) => {
+          const temp = Number(item.temp)
+          const barHeight = Number.isFinite(temp)
+            ? Math.max(14, Math.min(100, ((temp - min) / span) * 86 + 14))
+            : 0
+          return {
+            ...item,
+            barHeight,
+            selected: index === selectedIndex,
+          }
+        }),
       })
     },
   },

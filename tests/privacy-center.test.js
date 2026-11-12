@@ -98,7 +98,7 @@ test('权限快照：定位 / 相册 / 隐私指引状态与系统一致', async
   installWxMock({
     auth: { 'scope.userFuzzyLocation': true, 'scope.writePhotosAlbum': false },
     privacy: { needAuthorization: true, privacyContractName: '超欢隐私保护指引' },
-    seed: { 'app:privacy.version': 1 },
+    seed: { 'app:privacy.version': 2 },
   })
   const privacy = await loadPrivacyCenter()
   const snapshot = await privacy.permissionSnapshot()
@@ -124,7 +124,7 @@ test('隐私指引已同意时状态为 granted', async () => {
   installWxMock({
     auth: {},
     privacy: { needAuthorization: false, privacyContractName: '指引' },
-    seed: { 'app:privacy.version': 1 },
+    seed: { 'app:privacy.version': 2 },
   })
   const privacy = await loadPrivacyCenter()
   const snapshot = await privacy.permissionSnapshot()
@@ -136,9 +136,9 @@ test('隐私指引版本：确认后写回并消除变更提示', async () => {
   const privacy = await loadPrivacyCenter()
   assert.equal(privacy.readPrivacyVersion(), 0)
   assert.equal(privacy.privacyVersionChanged(), true)
-  assert.equal(privacy.ackPrivacyVersion(1), true)
-  assert.equal(values['app:privacy.version'], 1)
-  assert.equal(privacy.readPrivacyVersion(), 1)
+  assert.equal(privacy.ackPrivacyVersion(2), true)
+  assert.equal(values['app:privacy.version'], 2)
+  assert.equal(privacy.readPrivacyVersion(), 2)
   assert.equal(privacy.privacyVersionChanged(), false)
   assert.equal(privacy.ackPrivacyVersion(0), false)
   assert.equal(privacy.privacyVersionChanged(), false)
@@ -166,10 +166,11 @@ test('重置全部：删除约定范围，保留 gallery 与存储版本', async
       'tbx:draft.unit': { v: 1, mode: '', input: { value: '1' }, at: 1 },
       'weather:cities:v1': [],
       'qweather:cities:v1': [],
-      'qweather:cache:v1': {},
+      'qweather:cache:v2': {},
       'focus:ledger:v1': [],
       'diag:errors.v1': [],
       'cyber:auto:v1': [],
+      'toolbox:meeting-timer.hud.v1': { left: 0, top: 0 },
       'app:prefs.v1': { version: 1 },
       'app:prefs.v0': { version: 0 },
       'app:privacy.version': 1,
@@ -183,17 +184,18 @@ test('重置全部：删除约定范围，保留 gallery 与存储版本', async
   })
   const privacy = await loadPrivacyCenter()
   const result = privacy.resetAllLocalData()
-  assert.equal(result.removedKeys, 12)
+  assert.equal(result.removedKeys, 13)
   assert.equal(result.backups, 1)
   for (const key of [
     'tbx:recent',
     'tbx:draft.unit',
     'weather:cities:v1',
     'qweather:cities:v1',
-    'qweather:cache:v1',
+    'qweather:cache:v2',
     'focus:ledger:v1',
     'diag:errors.v1',
     'cyber:auto:v1',
+    'toolbox:meeting-timer.hud.v1',
     'app:prefs.v1',
     'app:prefs.v0',
     'app:privacy.version',
@@ -233,6 +235,6 @@ test('设置页与 legal 已接入隐私中心契约', () => {
   assert.match(settingsWxml, /onPrivacyConfirm/)
   assert.match(legalWxml, /app:privacy\.version/)
   assert.match(legalWxml, /privacyVersion/)
-  assert.match(constants, /PRIVACY_VERSION\s*=\s*1/)
+  assert.match(constants, /PRIVACY_VERSION\s*=\s*2/)
   assert.match(constants, /privacyVersion:\s*'app:privacy\.version'/)
 })
