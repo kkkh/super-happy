@@ -207,8 +207,8 @@ export class QWeatherService {
         ...day,
         iconDay: extra.iconDay || day.iconDay,
         iconNight: extra.iconNight || day.iconNight,
-        pressureText: extra.pressureText !== '—' ? extra.pressureText : day.pressureText,
-        visibilityText: extra.visibilityText !== '—' ? extra.visibilityText : day.visibilityText,
+        pressureText: extra.pressureText !== '— hPa' ? extra.pressureText : day.pressureText,
+        visibilityText: extra.visibilityText !== '— km' ? extra.visibilityText : day.visibilityText,
         moonPhase: extra.moonPhase !== '—' ? extra.moonPhase : day.moonPhase,
         moonIcon: extra.moonIcon || day.moonIcon,
       }

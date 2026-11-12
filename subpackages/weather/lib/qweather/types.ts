@@ -77,6 +77,7 @@ export interface QwWindView {
   speedText: string
   scale: number | null
   text: string
+  heroText: string
 }
 
 export interface QwCurrentView {
@@ -259,7 +260,6 @@ export interface QwAirDayView {
 }
 
 export interface QwAirView {
-  updatedText: string
   indexes: QwAirIndexView[]
   primary: QwAirIndexView | null
   pollutants: QwPollutantView[]

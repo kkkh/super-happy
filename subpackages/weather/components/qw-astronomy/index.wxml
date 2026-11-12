@@ -46,13 +46,13 @@
       </view>
       <view class="qw-astro__track" aria-hidden="true">
         <view class="qw-astro__track-glow"></view>
-        <view wx:if="{{isDay}}" class="qw-astro__marker" style="left: {{sunProgress}}%;">
+        <view wx:if="{{isDay && isToday}}" class="qw-astro__marker" style="left: {{sunProgress}}%;">
           <view class="qw-astro__marker-core"></view>
         </view>
       </view>
       <view class="qw-astro__track-labels">
         <text>{{sun.sunriseText}}</text>
-        <text wx:if="{{!isDay}}" class="qw-astro__night">当前夜间</text>
+        <text wx:if="{{!isDay && isToday}}" class="qw-astro__night">当前夜间</text>
         <text>{{sun.sunsetText}}</text>
       </view>
     </view>
