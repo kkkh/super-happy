@@ -163,18 +163,27 @@ test('字号档：非法值不改 Store，持久化失败仍会话生效', async
   }
 })
 
-test('对比度门禁：正文达标，按钮设计债仅 warning', () => {
+test('对比度门禁：正文与按钮填充均达标', () => {
   const { analyzeContrast } = require('../scripts/check-contrast.js')
   const result = analyzeContrast(read('app.wxss'))
   assert.equal(result.ok, true, result.failures.join('\n'))
   assert.ok(result.checks.length > 0)
-  assert.ok(result.warnings.some((item) => item.includes('按钮')))
+  assert.equal(result.warnings.length, 0, result.warnings.join('\n'))
   assert.ok(
     result.checks.some(
       (item) =>
         item.theme === 'light' &&
         item.token === '--glass-text-3' &&
         item.background === 'canvas' &&
+        item.ratio >= 4.5,
+    ),
+  )
+  assert.ok(
+    result.checks.some(
+      (item) =>
+        item.theme === 'dark' &&
+        item.token === '--glass-on-accent' &&
+        item.background === '--glass-btn-accent-2' &&
         item.ratio >= 4.5,
     ),
   )

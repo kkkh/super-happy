@@ -76,8 +76,8 @@
 .glass-button_variant_primary {
   color: var(--glass-on-accent);
   border-color: var(--glass-border-strong);
-  background-color: var(--glass-accent);
-  background-image: linear-gradient(135deg, var(--glass-accent) 0%, var(--glass-accent-2) 100%);
+  background-color: var(--glass-btn-accent);
+  background-image: linear-gradient(135deg, var(--glass-btn-accent) 0%, var(--glass-btn-accent-2) 100%);
   box-shadow:
     0 18rpx 44rpx var(--glass-accent-soft),
     inset 0 1rpx 0 var(--glass-highlight);
@@ -86,8 +86,8 @@
 .glass-button_variant_aurora {
   color: var(--glass-on-accent);
   border-color: var(--glass-border-strong);
-  background-color: var(--glass-accent-2);
-  background-image: linear-gradient(135deg, var(--glass-accent-2) 0%, var(--glass-accent) 100%);
+  background-color: var(--glass-btn-accent-2);
+  background-image: linear-gradient(135deg, var(--glass-btn-accent-2) 0%, var(--glass-btn-accent) 100%);
   box-shadow:
     0 18rpx 44rpx var(--glass-accent-2-soft),
     inset 0 1rpx 0 var(--glass-highlight);
@@ -96,8 +96,8 @@
 .glass-button_variant_warm {
   color: var(--glass-on-warm);
   border-color: var(--glass-border-strong);
-  background-color: var(--glass-accent-warm);
-  background-image: linear-gradient(135deg, var(--glass-accent-warm) 0%, var(--glass-accent) 100%);
+  background-color: var(--glass-btn-warm);
+  background-image: linear-gradient(135deg, var(--glass-btn-warm) 0%, var(--glass-btn-warm-2) 100%);
   box-shadow:
     0 18rpx 44rpx var(--glass-accent-warm-soft),
     inset 0 1rpx 0 var(--glass-highlight);
@@ -154,8 +154,8 @@
 .glass-button_variant_danger {
   color: var(--glass-on-accent);
   border-color: var(--glass-border-strong);
-  background-color: var(--glass-danger);
-  background-image: linear-gradient(135deg, var(--glass-danger) 0%, var(--glass-accent-warm) 100%);
+  background-color: var(--glass-btn-danger);
+  background-image: linear-gradient(135deg, var(--glass-btn-danger) 0%, var(--glass-btn-danger-2) 100%);
   box-shadow:
     0 18rpx 44rpx var(--glass-accent-warm-soft),
     inset 0 1rpx 0 var(--glass-highlight);

@@ -317,7 +317,7 @@
   width: 30rpx;
   height: 30rpx;
   border-radius: 50%;
-  background-color: var(--glass-accent);
+  background-color: var(--glass-btn-accent);
   color: var(--glass-on-accent);
   font-size: 18rpx;
   font-weight: 700;
