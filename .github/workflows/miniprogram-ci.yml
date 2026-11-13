@@ -137,6 +137,18 @@ jobs:
         timeout-minutes: 5
         run: npm test
 
+      - name: 注入联网服务配置
+        env:
+          AMAP_WEB_SERVICE_KEY: ${{ secrets.AMAP_WEB_SERVICE_KEY }}
+          QWEATHER_HOST: ${{ secrets.QWEATHER_HOST }}
+          QWEATHER_API_KEY: ${{ secrets.QWEATHER_API_KEY }}
+          QWEATHER_TOKEN: ${{ secrets.QWEATHER_TOKEN }}
+          YUANBAO_API_KEY: ${{ secrets.YUANBAO_API_KEY }}
+          YUANBAO_SECRET_ID: ${{ secrets.YUANBAO_SECRET_ID }}
+          YUANBAO_SECRET_KEY: ${{ secrets.YUANBAO_SECRET_KEY }}
+          YUANBAO_ENDPOINT: ${{ secrets.YUANBAO_ENDPOINT }}
+        run: node scripts/inject-ci-config.js
+
       - name: 校验标签与 APP_VERSION
         if: github.ref_type == 'tag'
         shell: bash
@@ -180,6 +192,14 @@ jobs:
           fi
 
           npm run ci:upload -- "${ARGS[@]}"
+
+      - name: 清理注入的配置
+        if: always()
+        shell: bash
+        run: |
+          rm -f subpackages/tools-core/weather/config.local.ts \
+                subpackages/weather/config-local.ts \
+                core/services/yuanbao/config-local.ts
 
       - name: 清理上传密钥
         if: always()
