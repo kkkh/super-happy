@@ -17,7 +17,7 @@ import {
   type TimezoneResult,
   type TimezoneZone,
   type WorldClockRow,
-} from '../../../../core/toolbox/engines/timezone'
+} from '../../lib/timezone-engine'
 import {
   sharePayloadForCurrentPage,
   timelinePayloadForCurrentPage,

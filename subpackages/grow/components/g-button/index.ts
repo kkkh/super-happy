@@ -7,7 +7,7 @@
  * 用法示例：
  *   <g-button variant="primary" block loading="{{saving}}" bind:tap="onSave">保存到相册</g-button>
  */
-import { tapTick } from '../../core/utils/haptics'
+import { tapTick } from '../../../../core/utils/haptics'
 
 Component({
   properties: {

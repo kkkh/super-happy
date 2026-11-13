@@ -4,10 +4,10 @@
    - 所有函数纯计算，便于驾驶舱在主题切换 / 隐私切换时快速重算
    - 隐私遮罩只隐藏敏感字段，单位 / 分类 / 普通换算文案保持可读
    ========================================================================== */
-import type { HistoryRecord } from '../stores/history'
-import type { ToolCategory } from './types'
-import { resolvePosterCategory } from './poster'
-import { maskLegacySummary } from './privacy'
+import type { HistoryRecord } from '../../../core/stores/history'
+import type { ToolCategory } from '../../../core/toolbox/types'
+import { resolvePosterCategory } from '../../../core/toolbox/poster'
+import { maskLegacySummary } from '../../../core/toolbox/privacy'
 
 export interface CategoryStat {
   code: ToolCategory

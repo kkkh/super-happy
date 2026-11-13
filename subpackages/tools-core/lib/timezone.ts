@@ -1,6 +1,6 @@
 /* ==========================================================================
    tools-core 薄 re-export · 时区换算
-   - 唯一实现在 core/toolbox/engines/timezone.ts
+   - 唯一实现在本分包 lib/timezone-engine.ts
    ========================================================================== */
 export {
   DST_OFFSET_MINUTES,
@@ -16,11 +16,11 @@ export {
   timezoneSummaryText,
   worldClock,
   worldClockSummaryText,
-} from '../../../core/toolbox/engines/timezone'
+} from './timezone-engine'
 export type {
   TimezoneInput,
   TimezoneResult,
   TimezoneZone,
   WorldClockInput,
   WorldClockRow,
-} from '../../../core/toolbox/engines/timezone'
+} from './timezone-engine'

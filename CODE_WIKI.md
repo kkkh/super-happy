@@ -48,8 +48,8 @@
 | 分包 | 9 | `tools-core`（31 页）、`tools-daily`（17 页）、`tools-media`（14 页）、`tools-dict`（3 页）、`grow`（9 页）、`works`（3 页）、`campus`（1 页）、`life`（1 页）、`weather`（1 页） |
 | 工具 | 65 | 6 个分类，唯一注册表 `core/toolbox/registry.ts` |
 | 工具分类 | 6 | `calc` 13 / `date` 10 / `text` 15 / `media` 14 / `life` 8 / `work` 5 |
-| 主包组件 | 29 | `components/` 下 29 个组件目录 + `sound-hook.ts` |
-| 分包组件 | 27 | grow 8 个、works 2 个、campus 2 个、tools-core 2 个（`weather-glyph`、`web-search-results`）、weather 13 个（`qw-*`） |
+| 主包组件 | 27 | `components/` 下 27 个组件目录 + `sound-hook.ts` |
+| 分包组件 | 29 | grow 9 个、works 2 个、campus 2 个、tools-core 3 个（`weather-glyph`、`web-search-results`、`spatial-hologram`）、weather 13 个（`qw-*`） |
 | 核心 TS 模块 | 77 | `core/` 下全部 `.ts`（含 2 个元宝配置示例 / 本地文件） |
 | 分包 TS 模块 | 212 | `subpackages/` 下业务 `.ts`（含页面 / 组件 / lib / weather，不含 `node_modules` 与 `.d.ts`） |
 | 运行时 npm 依赖 | 2 | `mobx-miniprogram`、`mobx-miniprogram-bindings` |
@@ -499,7 +499,7 @@ sequenceDiagram
 │   ├── index/                 # 工具箱首页
 │   ├── favorites/             # 工具收藏
 │   └── mine/                  # 我的
-├── components/                # 29 个主包组件 + sound-hook.ts
+├── components/                # 27 个主包组件 + sound-hook.ts
 ├── core/
 │   ├── constants/             # 路由、常量、Canvas 调色板
 │   ├── data/                  # 简历 / 作品静态数据
@@ -778,7 +778,7 @@ export const privacyStore = observable({
 - 不持久化任何状态，授权由微信基础库记忆。
 - 同意按钮必须是原生 `<button open-type="agreePrivacyAuthorization">`。
 
-### 5.5.1 隐私中心（`core/services/privacy-center.ts`）
+### 5.5.1 隐私中心（`subpackages/grow/lib/privacy-center.ts`）
 
 ```ts
 permissionSnapshot(): Promise<PrivacySnapshot>
@@ -993,8 +993,8 @@ send<T>(request: TransportRequest<T>): Promise<Result<T>>
 | `core/services/feedback.ts` | `copyText(text, message?): Promise<boolean>`、`toast(message)` | 全项目剪贴板写入唯一入口：内部前置 `ensurePrivacyAuthorized()`，拒绝时不写并提示；三份分包 `lib/ui.ts` 只做 re-export |
 | `core/services/meetingTimer.ts` | `startMeetingTimer`、`startMeetingTimerAt`、`pauseMeetingTimer`、`resumeMeetingTimer`、`resetMeetingTimer`、`syncMeetingTimer`、`suspendMeetingTimer`、`subscribeMeetingTimer`、`meetingTimerStore` | 会议倒计时全局单例：跨页面按 deadline 计时、暂停冻结剩余、结束前 5 秒与结束时震动 + 声音；页面与 HUD 共用 |
 | `core/services/backup.ts` | `exportBackup`、`validateBackup`、`parseBackupText`、`pickBackupFile`、`applyBackup`、`applyBackupToStorage`、`deleteBackupFiles`、`readBackupAt`、`hasBackupFile` | 本机 JSON 备份：写 `USER_DATA_PATH/backups`、固定文件名、只保留 1 份、≤256KB；导入先全量校验再原子写入，失败逆序回滚；覆盖收藏 / 最近 / 搜索 / 天气城市 / 专注记录（含校验密钥）/ `app:prefs.v1` |
-| `core/services/diagnostics.ts` | `redactDiagnosticText`、`shouldDropDiagnosticMessage`、`sanitizeDiagnosticEntries`、`buildDiagnosticPreview`、`collectDiagnosticEnvironment`、`prepareDiagnosticFile` | 本地诊断包：版本 / 基础库 / 机型 / 路由 / 黑匣 20 条；路径、Key、Bearer、邮箱、手机号、证件号脱敏；残留用户输入整条丢弃；≤50KB；复用 `prepareExport` 写 `.txt` |
-| `core/services/privacy-center.ts` | `permissionSnapshot`、`openPrivacySetting`、`openPrivacyContract`、`readPrivacyVersion`、`ackPrivacyVersion`、`privacyVersionChanged`、`resetAllLocalData` | 隐私中心：定位 / 相册 / 隐私指引状态；`PRIVACY_VERSION` ↔ `app:privacy.version`；重置全部删除 tbx / weather / focus / diag / cyber / 备份 / 偏好，保留 `gallery.*` 与 `app:storage.version` |
+| `subpackages/grow/lib/diagnostics.ts` | `redactDiagnosticText`、`shouldDropDiagnosticMessage`、`sanitizeDiagnosticEntries`、`buildDiagnosticPreview`、`collectDiagnosticEnvironment`、`prepareDiagnosticFile` | 本地诊断包：版本 / 基础库 / 机型 / 路由 / 黑匣 20 条；路径、Key、Bearer、邮箱、手机号、证件号脱敏；残留用户输入整条丢弃；≤50KB；复用 `prepareExport` 写 `.txt` |
+| `subpackages/grow/lib/privacy-center.ts` | `permissionSnapshot`、`openPrivacySetting`、`openPrivacyContract`、`readPrivacyVersion`、`ackPrivacyVersion`、`privacyVersionChanged`、`resetAllLocalData` | 隐私中心：定位 / 相册 / 隐私指引状态；`PRIVACY_VERSION` ↔ `app:privacy.version`；重置全部删除 tbx / weather / focus / diag / cyber / 备份 / 偏好，保留 `gallery.*` 与 `app:storage.version` |
 | `core/services/font-scale.ts` | `FONT_SCALE_OPTIONS`、`scaleFor`、`currentFontScale`、`fontScaleClass`、`syncFontScaleClass`、`applyFontScale` | 字号档：standard / large / xlarge 映射 `fs-standard / fs-large / fs-xlarge`；页面 `onShow`、组件 `pageLifetimes.show` 一行同步；只改字号与行高，不缩放间距 / 图标 / Canvas |
 | `core/services/yuanbao/index.ts` | `searchYuanbao`、`parseYuanbaoResponse`、`summarizeYuanbaoResults`、`isYuanbaoConfigured`、`YuanbaoError` | 元宝搜索：服务 API KEY（Bearer）或 TC3 SecretId/SecretKey；`sign.ts` 提供纯 TS SHA-256 / HMAC / TC3 签名；Pages JSON 字符串解析、HTML 清洗、官方错误码映射、RequestTask 取消；查询词不写草稿与计算轨迹 |
 | `core/toolbox/engines/money.ts` | `parseCents`、`roundHalfUp`、`formatCents`、`parseBasisPoints` | 金额 / 利率唯一实现，tools-core 与 tools-daily 共享 |
@@ -1220,7 +1220,7 @@ interface IPosterData {
 
 `mainResult` 为空视为无效，调用方回退旧字段。
 
-### 6.7 轨迹分析（`core/toolbox/history-insights.ts`）
+### 6.7 轨迹分析（`subpackages/grow/lib/history-insights.ts`）
 
 纯函数，驾驶舱与周报共用：
 
@@ -2657,13 +2657,12 @@ sequenceDiagram
 
 ## 9. 组件库
 
-### 9.1 主包组件（29 个）
+### 9.1 主包组件（27 个）
 
 | 组件 | 作用 | 关键属性 / 事件 |
 |---|---|---|
 | `animated-number` | 数字滚动 | `value`、`duration`、`decimals`、`separator` |
 | `command-palette` | 全局指令面板 | `useBuiltins`、`commands`、`placeholder`、`maxResults`（默认 12） |
-| `g-button` | 旧版按钮（少量页面使用） | `variant`、`block`、`disabled`、`loading`、`tap` |
 | `g-card` | 旧版卡片 | `padding`、`solid`、`sheen`、`hover`、`tap` |
 | `g-gallery` | 旧版图集（当前页面主要用分包副本） | `groups`、`tone`、`dark` |
 | `g-icon` | 图标字体 | `name`、`size`、`tone`、`color`、`flip` |
@@ -2685,7 +2684,6 @@ sequenceDiagram
 | `poster-generator` | 纯本地海报绘制内核 | 方法 `generate(payload)` |
 | `poster-preview` | 海报全屏预览 | `show`、`imagePath`、`loading`、`error`、`saver`、`close` / `closed` |
 | `privacy-guard` | 隐私授权弹窗 | 订阅 `privacyStore` |
-| `spatial-hologram` | 空间视差容器 | `enabled`、`autoStart`、`maxTilt`、`sensitivity`、`damping`、`resetOnHide`、`aurora` |
 | `update-guard` | 全局更新守门 | `blocked`；全局互斥 |
 | `meeting-timer-hud` | 全局会议倒计时胶囊 | 跨页面显示剩余 / 暂停 / 结束；点击回到计时页 |
 | `workflow-panel` | 流转工作台 | `show`、`sourceToolId`、`close` |
@@ -2873,10 +2871,11 @@ glass-tool-shell.onGeneratePoster()
 - 全局静音、音量、iOS 静音开关策略、销毁清理。
 - `useSound()` 是唯一业务入口，受 `preferenceStore.sound` 闸门控制。
 
-### 9.10 分包组件（27 个）
+### 9.10 分包组件（29 个）
 
 | 分包 | 组件 | 关键属性 / 事件 | 作用 |
 |---|---|---|---|
+| grow | `g-button` | `variant`、`block`、`disabled`、`loading`、`tap` | 简历页旧版按钮 |
 | grow | `g-aurora` | `density` | 简历页极光背景 |
 | grow | `g-meter` | `level`、`tone`、`replay` | 技能掌握度量表 |
 | grow | `g-modal` | `show`、`title`、`close` | 简历域弹窗 |
@@ -2890,6 +2889,7 @@ glass-tool-shell.onGeneratePoster()
 | campus | `g-gallery` | `groups`、`tone`、`dark` | 园枢图集 / 大图查看 |
 | campus | `g-placeholder` | `title`、`tone`、`glyph` | 图片占位 |
 | tools-core | `weather-glyph` | `family`、`size`、`tone`、`night` | 气象图标族（白昼 / 夜航两套 SVG，按 `WeatherFamily` 映射；夜间晴天/多云切月亮版） |
+| tools-core | `spatial-hologram` | `enabled`、`autoStart`、`maxTilt`、`sensitivity`、`damping`、`resetOnHide`、`aurora` | 空间视差容器（实验室页） |
 | tools-core | `web-search-results` | `results`、`query`、`summary`、`version-label`、`version-hint`、`message`、`request-id` | 元宝搜索结果区：结果卡、权威度 / 相关性徽标、复制、空态、详情抽屉（配图 / 子链 / 图标地址） |
 | weather | `qw-screen` | — | 和风天气主屏：7 Tab、城市 / API 抽屉、下拉刷新、全部数据编排 |
 | weather | `qw-hero` | `city`、`current`、`today`、`air`、`alerts`、`loading`、`fromCache`、`error` | 总览实况英雄区 |
@@ -3215,7 +3215,7 @@ buildContrastVars(result): string
 | `app:prefs.v1` | app | 全局偏好 v1 | `preferenceStore` |
 | `app:prefs.v0` | app | 旧偏好（只读） | 迁移 |
 | `app:backup.at` | app | 最近一次备份导出时间 | `core/services/backup.ts` |
-| `app:privacy.version` | app | 已确认的隐私保护指引版本 | `core/services/privacy-center.ts` |
+| `app:privacy.version` | app | 已确认的隐私保护指引版本 | `subpackages/grow/lib/privacy-center.ts` |
 | `tbx:draft.<id>` | tbx | 单工具草稿（输入 + 模式，≤4KB） | `core/toolbox/draft.ts` |
 | `tbx:recent` | tbx | 最近使用 | `toolboxStore` |
 | `tbx:recent.at` | tbx | 最近使用时间戳 | `toolboxStore` |
@@ -5102,7 +5102,7 @@ MP_CI_PRIVATE_KEY_PATH="$MP_CI_KEY_FILE" npm run ci:upload
 | `components/glass-tool-shell/index.ts` | 工具页骨架 |
 | `subpackages/grow/pages/settings/index.ts` | 全局设置：偏好、存储、备份与恢复、驾驶舱、专注入口、Cyber Space OS |
 | `core/services/backup.ts` | 本机 JSON 备份：导出 / 校验 / 原子导入 / 删除 |
-| `core/services/diagnostics.ts` | 本地诊断包：脱敏 / 预览 / 生成 `.txt` |
+| `subpackages/grow/lib/diagnostics.ts` | 本地诊断包：脱敏 / 预览 / 生成 `.txt` |
 | `components/glass-toast/toast.ts` | 全局 Toast |
 | `components/command-palette/palette.ts` | 指令面板 |
 | `components/update-guard/index.ts` | 更新守卫 |
@@ -5113,7 +5113,7 @@ MP_CI_PRIVATE_KEY_PATH="$MP_CI_KEY_FILE" npm run ci:upload
 | `core/toolbox/engines/tax.ts` | 个税唯一实现：月度 / 年度 7 级税率、速算扣除、`calcTax`；tax 页与 salary-inverse 共用 |
 | `subpackages/tools-core/lib/money.ts` | 金额 / 利率兼容出口 |
 | `core/toolbox/engines/date.ts` | 日期唯一实现（tools-core / 后续跨分包共享） |
-| `core/toolbox/engines/timezone.ts` | 时区唯一实现：固定偏移换算、跨日 / 跨年、手动夏令时；`worldClock` 多城市同屏，`WORLD_CLOCK_CITY_IDS` 内置 8 城 |
+| `subpackages/tools-core/lib/timezone-engine.ts` | 时区唯一实现：固定偏移换算、跨日 / 跨年、手动夏令时；`worldClock` 多城市同屏，`WORLD_CLOCK_CITY_IDS` 内置 8 城 |
 | `core/toolbox/engines/color.ts` | 颜色唯一实现：HEX / RGB / HSL 互转、WCAG 对比度、AA/AAA、Machado 色觉模拟 |
 | `core/toolbox/engines/csv.ts` | CSV 唯一实现：转义 / 公式注入防护 / `jsonToCsv` / `csvToJson` / 可选 BOM；quote 与 json-csv 共用 |
 | `subpackages/tools-daily/lib/size.ts` | 尺码唯一实现：鞋码 / 服装 / 戒指 / 半码与范围校验 |
@@ -5188,7 +5188,7 @@ MP_CI_PRIVATE_KEY_PATH="$MP_CI_KEY_FILE" npm run ci:upload
 | `subpackages/grow/utils/canvasGalaxy.ts` | `GalaxyEngine`：节点 / 粒子 / 文字矩形 / `buildGalaxyNodes` 数据构建 |
 | `subpackages/grow/lib/cockpit-chart.ts` | 驾驶舱图表 |
 | `subpackages/tools-core/utils/diffToRichText.ts` | Diff 分段 → `rich-text` 节点与高亮 |
-| `subpackages/tools-core/lib/timezone.ts` | 时区薄 re-export（唯一实现 `core/toolbox/engines/timezone.ts`） |
+| `subpackages/tools-core/lib/timezone.ts` | 时区薄 re-export（唯一实现 `subpackages/tools-core/lib/timezone-engine.ts`） |
 | `workers/compute.js` | Worker 入口 |
 | `scripts/ci-upload.js` | miniprogram-ci 自动上传脚本 |
 | `.github/workflows/miniprogram-ci.yml` | GitHub Actions 自动上传流水线 |

@@ -10,7 +10,7 @@ const { pathToFileURL } = require('node:url')
 const { registerHooks } = require('node:module')
 
 const ROOT = path.resolve(__dirname, '../..')
-const COMPONENT_PATH = path.join(ROOT, 'components/spatial-hologram/index.ts')
+const COMPONENT_PATH = path.join(ROOT, 'subpackages/tools-core/components/spatial-hologram/index.ts')
 
 /* 组件内部新增了无扩展名 TS 依赖；Node 侧统一补 .ts 再解析 */
 registerHooks({

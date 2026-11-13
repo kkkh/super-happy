@@ -22,7 +22,7 @@ import {
   type CategoryStat,
   type HistoryInsight,
   type TimelineItem,
-} from '../../../../core/toolbox/history-insights'
+} from '../../lib/history-insights'
 import { ROUTES, APP_VERSION } from '../../../../core/constants/index'
 import { countHistoryInSnapshots, purgeHistoryFromSnapshots, purgeHistoryRecordFromSnapshots } from '../../../../core/toolbox/history-snapshots'
 import { tapSuccess, tapTick, tapWarn, useHaptics } from '../../../../core/utils/haptics'

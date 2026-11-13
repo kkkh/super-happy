@@ -23,7 +23,7 @@ const {
 
 const WXS_PATH = path.resolve(
   __dirname,
-  '../components/spatial-hologram/hologram.wxs',
+  '../subpackages/tools-core/components/spatial-hologram/hologram.wxs',
 )
 
 function createHostPage(definition) {

@@ -22,7 +22,7 @@ registerHooks({
 })
 
 async function loadDiagnostics() {
-  return import(pathToFileURL(path.join(ROOT, 'core/services/diagnostics.ts')).href)
+  return import(pathToFileURL(path.join(ROOT, 'subpackages/grow/lib/diagnostics.ts')).href)
 }
 
 test('诊断脱敏：路径、Key、Bearer、邮箱、手机号与证件号', async () => {
@@ -142,7 +142,7 @@ test('诊断文件名与时间格式', async () => {
 })
 
 test('诊断服务：不联网，使用新版设备信息接口并复用导出服务', () => {
-  const source = fs.readFileSync(path.join(ROOT, 'core/services/diagnostics.ts'), 'utf8')
+  const source = fs.readFileSync(path.join(ROOT, 'subpackages/grow/lib/diagnostics.ts'), 'utf8')
 
   assert.equal(/wx\.request|uploadFile|downloadFile/.test(source), false)
   assert.match(source, /getAppBaseInfo/)
