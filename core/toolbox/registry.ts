@@ -321,6 +321,7 @@ export const TOOLS: ToolMeta[] = [
     keywords: ['汇率', '中间价', '外币', '换算', '美元', '欧元', '日元', '港币', '英镑', '澳元', '加元', 'currency', 'exchange'],
     aliases: ['huilv', 'hl', 'fx', 'exchange', 'rate', 'shoudonghuilv', '汇率', '外币', '中间价'],
     sensitive: 'finance',
+    online: true,
     weight: 65,
   },
   {
@@ -805,6 +806,7 @@ export const TOOLS: ToolMeta[] = [
     ],
     aliases: ['tianqi', 'tq', 'weather', 'forecast', 'qixiang', 'wendu'],
     sensitive: '',
+    online: true,
     weight: 98,
   },
   {
@@ -837,6 +839,7 @@ export const TOOLS: ToolMeta[] = [
     aliases: ['hefengtianqi', 'hftq', 'qweather', 'weather', 'aqi', 'kongqi', 'zhishu', 'tianwen', 'shiguangji', 'lishi', 'yubao', 'jiangshui'],
     sensitive: '',
     draftExcluded: true,
+    online: true,
     weight: 99,
   },
   {
@@ -864,6 +867,7 @@ export const TOOLS: ToolMeta[] = [
     sensitive: '',
     privacyNote: '查询词会发送至腾讯云元宝搜索，仅用于本次检索；查询词不写入草稿与计算轨迹',
     draftExcluded: true,
+    online: true,
     weight: 97,
   },
 ]
@@ -874,6 +878,11 @@ const TOOL_MAP: Record<string, ToolMeta> = TOOLS.reduce<Record<string, ToolMeta>
 }, {})
 
 export const TOOL_IDS = new Set(TOOLS.map((tool) => tool.id))
+
+/** 按 id 读取工具元数据；未注册返回 undefined */
+export function getTool(id: string): ToolMeta | undefined {
+  return TOOL_MAP[id]
+}
 
 export function toolsForCategories(categories: ToolCategory[]): ToolMeta[] {
   return TOOLS.filter((tool) => categories.includes(tool.category)).sort(

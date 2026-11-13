@@ -11,6 +11,7 @@
  */
 import { createStoreBindings } from 'mobx-miniprogram-bindings'
 import { showGlassToast } from '../glass-toast/toast'
+import { networkStore } from '../../core/stores/network'
 import {
   BUILTIN_COMMANDS,
   buildPaletteUrl,
@@ -361,6 +362,14 @@ Component({
     selectAt(index: number): void {
       const command = this.data.searchResults[index]
       if (!command) {
+        return
+      }
+
+      if (command.online && networkStore.offline) {
+        showGlassToast({
+          message: '当前离线，联网后可打开',
+          type: 'warning',
+        })
         return
       }
 

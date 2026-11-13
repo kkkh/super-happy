@@ -115,12 +115,13 @@
         <view
           wx:for="{{recents}}"
           wx:key="id"
-          class="recent-pill"
-          hover-class="recent-pill--press"
+          class="recent-pill {{offline && item.online ? 'recent-pill_offline' : ''}}"
+          hover-class="{{offline && item.online ? 'none' : 'recent-pill--press'}}"
           hover-start-time="0"
           hover-stay-time="120"
           data-id="{{item.id}}"
           aria-role="button"
+          aria-disabled="{{offline && item.online}}"
           aria-label="打开{{item.name}}"
           bindtap="onOpenTool"
         >
@@ -259,11 +260,12 @@
         <view
           wx:for="{{recommendedTools}}"
           wx:key="id"
-          class="home-empty__chip"
+          class="home-empty__chip {{offline && item.online ? 'home-empty__chip_offline' : ''}}"
           data-route="{{item.route}}"
           data-id="{{item.id}}"
           bindtap="onOpenTool"
           aria-role="button"
+          aria-disabled="{{offline && item.online}}"
           aria-label="打开{{item.name}}"
         >{{item.name}}</view>
       </view>
@@ -280,14 +282,15 @@
       <view
         wx:for="{{results}}"
         wx:key="id"
-        class="tool-item"
-        hover-class="tool-item_pressed"
+        class="tool-item {{offline && item.online ? 'tool-item_offline' : ''}}"
+        hover-class="{{offline && item.online ? 'none' : 'tool-item_pressed'}}"
         hover-start-time="0"
         hover-stay-time="120"
         data-route="{{item.route}}"
         data-id="{{item.id}}"
         bindtap="onOpenTool"
         aria-role="button"
+        aria-disabled="{{offline && item.online}}"
         aria-label="打开{{item.name}}"
       >
         <view class="tool-icon" aria-hidden="true">
@@ -297,6 +300,7 @@
         <view class="tool-copy">
           <text class="tool-name">{{item.name}}</text>
           <text class="tool-desc">{{item.desc}}</text>
+          <text wx:if="{{offline && item.online}}" class="tool-offline-tag">离线</text>
         </view>
 
         <view
@@ -388,14 +392,15 @@
           wx:for="{{section.tools}}"
           wx:key="id"
           wx:for-item="tool"
-          class="tool-item"
-          hover-class="tool-item_pressed"
+          class="tool-item {{offline && tool.online ? 'tool-item_offline' : ''}}"
+          hover-class="{{offline && tool.online ? 'none' : 'tool-item_pressed'}}"
           hover-start-time="0"
           hover-stay-time="120"
           data-route="{{tool.route}}"
           data-id="{{tool.id}}"
           bindtap="onOpenTool"
           aria-role="button"
+          aria-disabled="{{offline && tool.online}}"
           aria-label="打开{{tool.name}}"
         >
           <view class="tool-icon" aria-hidden="true">
@@ -405,6 +410,7 @@
           <view class="tool-copy">
             <text class="tool-name">{{tool.name}}</text>
             <text class="tool-desc">{{tool.desc}}</text>
+            <text wx:if="{{offline && tool.online}}" class="tool-offline-tag">离线</text>
           </view>
 
           <view
@@ -465,4 +471,5 @@
   <glass-toast z-index="{{1001}}" />
 
   <meeting-timer-hud />
+  <offline-banner variant="tab" />
 </view>

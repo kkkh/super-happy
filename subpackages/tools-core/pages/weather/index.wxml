@@ -446,4 +446,5 @@
   <glass-toast />
   <privacy-guard />
   <update-guard blocked="{{citySheetOpen || searchOpen || diagnosticsOpen || locationPromptShow}}" />
+  <offline-banner />
 </view>

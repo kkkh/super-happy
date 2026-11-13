@@ -225,6 +225,7 @@
   <glass-toast />
   <privacy-guard />
   <meeting-timer-hud />
+  <offline-banner />
   <update-guard
     blocked="{{state === 'running' || workflowPanelVisible || posterVisible || isGenerating || updateBlocked}}"
   />

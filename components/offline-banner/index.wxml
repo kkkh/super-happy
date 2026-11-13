@@ -1,0 +1,12 @@
+<view
+  wx:if="{{visible}}"
+  class="ob ob--{{variant}} ob--{{mode}} {{expanded ? 'ob--expanded' : 'ob--compact'}}"
+  style="{{topStyle}}"
+  catchtap="onTap"
+  aria-role="button"
+  aria-live="polite"
+  aria-label="{{mode === 'recovered' ? '网络已恢复' : (expanded ? '当前网络不可用，联网工具暂不可用' : '当前离线，点击查看')}}"
+>
+  <view class="ob__dot" aria-hidden="true"></view>
+  <text class="ob__text">{{mode === 'recovered' ? '网络已恢复' : (expanded ? '当前离线 · 联网工具暂不可用' : '离线')}}</text>
+</view>

@@ -37,8 +37,9 @@ import { ambientTheme } from '../../core/theme/ambient-theme'
 import { selectTabBar } from '../../core/toolbox/tabbar'
 import { showGlassToast } from '../../components/glass-toast/toast'
 import { TBX_KEYS, readStorage, writeStorage } from '../../core/toolbox/storage'
-import { tapTick } from '../../core/utils/haptics'
+import { tapTick, tapWarn } from '../../core/utils/haptics'
 import { logger } from '../../core/utils/logger'
+import { networkStore } from '../../core/stores/network'
 import { fontScaleClass, syncFontScaleClass } from '../../core/services/font-scale'
 import {
   isYuanbaoConfigured,
@@ -168,6 +169,7 @@ Component({
       favoriteCount: () => glassStore.favoriteCount,
       sections: () => buildSections(glassStore.toolFavorites),
       recents: () => toolboxStore.recentTools().slice(0, 6),
+      offline: () => networkStore.offline,
     },
     actions: {},
   },
@@ -178,6 +180,7 @@ Component({
     fsClass: fontScaleClass(),
     favoriteCount: 0,
     toolTotal: TOOLS.length,
+    offline: networkStore.offline,
     usageCount: 0,
     usageDigits: buildUsageDigits(0),
     usageRolling: false,
@@ -664,6 +667,15 @@ Component({
     },
 
     onOpenWebSearch(): void {
+      if (networkStore.offline) {
+        tapWarn()
+        showGlassToast({
+          message: '当前离线，联网后可搜索',
+          type: 'warning',
+          placement: 'lower-center',
+        })
+        return
+      }
       const query = this.data.keyword.trim()
       if (!query) {
         return
@@ -718,6 +730,15 @@ Component({
       if (!tool || !TOOL_IDS.has(tool.id)) {
         showGlassToast({
           message: '该工具已下线',
+          type: 'warning',
+          placement: 'lower-center',
+        })
+        return
+      }
+      if (tool.online && networkStore.offline) {
+        tapWarn()
+        showGlassToast({
+          message: '当前离线，联网后可打开',
           type: 'warning',
           placement: 'lower-center',
         })

@@ -21,6 +21,8 @@ export interface PaletteCommand {
   mode: PaletteRouteMode
   params?: Record<string, string>
   category?: string
+  /** 需要联网的工具：离线时拦截跳转 */
+  online?: boolean
   weight: number
 }
 
@@ -73,6 +75,7 @@ const TOOL_COMMANDS: PaletteCommand[] = TOOLS.map((tool) => ({
   route: tool.route,
   mode: 'navigateTo',
   category: CATEGORY_LABELS[tool.category],
+  online: Boolean(tool.online),
   weight: tool.weight,
 }))
 

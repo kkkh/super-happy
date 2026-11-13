@@ -512,4 +512,5 @@
 
   <!-- 清空 / 删除确认打开期间，更新弹窗不得叠上来 -->
   <update-guard blocked="{{confirmShow || deleteShow}}" />
+  <offline-banner />
 </view>

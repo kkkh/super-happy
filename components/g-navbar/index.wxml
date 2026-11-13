@@ -37,4 +37,5 @@
     </view>
   </view>
   <meeting-timer-hud />
+  <offline-banner />
 </view>

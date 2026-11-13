@@ -38,8 +38,7 @@ function registeredRoutes() {
   return routes
 }
 
-test('ToolMeta v2：字段完整、唯一、路由真实存在', async () => {
-  const { TOOLS } = await import(`${URL_ROOT}core/toolbox/registry.ts`)
+test('ToolMeta v2：字段完整、唯一、路由真实存在', async () => {  const { TOOLS } = await import(`${URL_ROOT}core/toolbox/registry.ts`)
   const registered = registeredRoutes()
   const ids = new Set()
   const routes = new Set()
@@ -84,4 +83,18 @@ test('ToolMeta v2：字段完整、唯一、路由真实存在', async () => {
     assert.match(pageTs, /onShareAppMessage\s*\(/, `${tool.id} 缺少 onShareAppMessage`)
     assert.match(pageTs, /onShareTimeline\s*\(/, `${tool.id} 缺少 onShareTimeline`)
   }
+})
+
+test('联网工具：显式声明 online，可被 getTool 查询', async () => {
+  const { TOOLS, getTool } = await import(`${URL_ROOT}core/toolbox/registry.ts`)
+  const onlineIds = TOOLS.filter((tool) => tool.online)
+    .map((tool) => tool.id)
+    .sort()
+
+  assert.deepEqual(onlineIds, ['fx-manual', 'qweather', 'weather', 'web-search'])
+  onlineIds.forEach((id) => {
+    assert.equal(getTool(id)?.online, true, `${id} 应标记 online`)
+  })
+  assert.equal(getTool('unit')?.online, undefined, '本地工具不得声明 online')
+  assert.equal(getTool('not-exist'), undefined, '未注册 id 必须返回 undefined')
 })
