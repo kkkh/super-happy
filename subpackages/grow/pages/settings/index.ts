@@ -33,7 +33,7 @@ import {
   resetAllLocalData,
   type PrivacyPermissionItem,
   type PrivacyPermissionKey,
-} from '../../../../core/services/privacy-center'
+} from '../../lib/privacy-center'
 import {
   applyBackup,
   deleteBackupFiles,

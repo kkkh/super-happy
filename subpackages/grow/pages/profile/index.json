@@ -7,7 +7,7 @@
     "g-card": "../../../../components/g-card/index",
     "g-tag": "../../../../components/g-tag/index",
     "g-section": "../../../../components/g-section/index",
-    "g-button": "../../../../components/g-button/index",
+    "g-button": "../../components/g-button/index",
     "g-skeleton": "../../../../components/g-skeleton/index",
     "g-modal": "../../components/g-modal/index",
     "g-toast": "../../../../components/g-toast/index",

@@ -13,7 +13,7 @@
  *     <view slot="front">前景装饰</view>
  *   </spatial-hologram>
  */
-import { useMotion } from '../../core/services/motion'
+import { useMotion } from '../../../../core/services/motion'
 
 export interface HologramTiltConfig {
   targetX: number

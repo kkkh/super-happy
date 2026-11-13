@@ -5,9 +5,9 @@
    - 诊断文件只写 USER_DATA_PATH/exports，不联网、不上传
    ========================================================================== */
 
-import { APP_VERSION, DIAGNOSTICS } from '../constants/index'
-import { readStorage } from '../toolbox/storage'
-import { prepareExport, utf8ByteLength, type ExportFailReason } from './export'
+import { APP_VERSION, DIAGNOSTICS } from '../../../core/constants/index'
+import { readStorage } from '../../../core/toolbox/storage'
+import { prepareExport, utf8ByteLength, type ExportFailReason } from '../../../core/services/export'
 
 export const DIAGNOSTIC_MAX_BYTES = 50 * 1024
 export const DIAGNOSTIC_MAX_ENTRIES = DIAGNOSTICS.maxEntries

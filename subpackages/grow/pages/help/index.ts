@@ -14,7 +14,7 @@ import { canShareFile, cleanupExport, sharePrepared } from '../../../../core/ser
 import {
   buildDiagnosticPreviewFromDevice,
   prepareDiagnosticFile,
-} from '../../../../core/services/diagnostics'
+} from '../../lib/diagnostics'
 import {
   sharePayloadForCurrentPage,
   timelinePayloadForCurrentPage,

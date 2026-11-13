@@ -27,7 +27,7 @@ function moduleUrl(relative) {
 }
 
 async function loadPrivacyCenter() {
-  return import(moduleUrl('core/services/privacy-center.ts'))
+  return import(moduleUrl('subpackages/grow/lib/privacy-center.ts'))
 }
 
 function installWxMock(options = {}) {

@@ -5,10 +5,10 @@
    - 版本：PRIVACY_VERSION ↔ app:privacy.version
    - 重置全部：只删工具 / 天气 / 专注 / 诊断 / 快照与本机文件，保留 gallery 与存储版本
    ========================================================================== */
-import { PRIVACY_VERSION, STORAGE_KEYS } from '../constants/index'
-import { readStorage, removeStorage, writeStorage } from '../toolbox/storage'
-import { deleteBackupFiles } from './backup'
-import { cleanupAllExports } from './export'
+import { PRIVACY_VERSION, STORAGE_KEYS } from '../../../core/constants/index'
+import { readStorage, removeStorage, writeStorage } from '../../../core/toolbox/storage'
+import { deleteBackupFiles } from '../../../core/services/backup'
+import { cleanupAllExports } from '../../../core/services/export'
 
 export type PrivacyPermissionKey = 'location' | 'album' | 'privacy'
 export type PrivacyPermissionStatus = 'granted' | 'denied' | 'unset' | 'unavailable'

@@ -236,7 +236,7 @@ test('埋点集成：tracker 同时产出真实摘要与预计算掩码', async 
 })
 
 test('时间线渲染：优先使用预计算掩码，旧存档按工具类型回退', async () => {
-  const { buildTimeline } = await import(moduleUrl('core/toolbox/history-insights.ts'))
+  const { buildTimeline } = await import(moduleUrl('subpackages/grow/lib/history-insights.ts'))
   const now = Date.now()
   const base = {
     category: 'calc',

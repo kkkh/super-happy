@@ -122,7 +122,7 @@ test('清空：删除本机键并取消在途写入', async () => {
 
 test('分类占比取整：最大余数法保证总和 100%', async () => {
   const { buildCategoryStats, formatCategoryPercentages } = await import(
-    moduleUrl('core/toolbox/history-insights.ts')
+    moduleUrl('subpackages/grow/lib/history-insights.ts')
   )
   const categories = buildCategoryStats(makeRecords(6))
   const labels = formatCategoryPercentages(categories)
@@ -198,7 +198,7 @@ test('轨迹记录开关：暂停后 recordToolResult 不再写入，恢复后�
 
 test('洞察：分类占比、7 日分桶、连续天数与人格标签', async () => {
   const { buildCategoryStats, buildDailyStats, buildHistoryInsight } = await import(
-    moduleUrl('core/toolbox/history-insights.ts')
+    moduleUrl('subpackages/grow/lib/history-insights.ts')
   )
   const records = makeRecords(9)
 
@@ -237,7 +237,7 @@ test('洞察：分类占比、7 日分桶、连续天数与人格标签', async 
 
 test('隐私盾：默认脱敏把数字与邮箱替换为 *，关闭后返回原摘要', async () => {
   const { buildTimeline, maskSummary } = await import(
-    moduleUrl('core/toolbox/history-insights.ts')
+    moduleUrl('subpackages/grow/lib/history-insights.ts')
   )
   const records = makeRecords(2)
 
@@ -278,7 +278,7 @@ test('智能脱敏：单位 / 分类保持可读，金额 / 密码 / 健康才�
 })
 
 test('时间线优先使用埋点阶段预计算的脱敏摘要', async () => {
-  const { buildTimeline } = await import(moduleUrl('core/toolbox/history-insights.ts'))
+  const { buildTimeline } = await import(moduleUrl('subpackages/grow/lib/history-insights.ts'))
   const now = Date.now()
   const records = [
     {
