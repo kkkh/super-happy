@@ -298,6 +298,12 @@
 }
 
 /* ---- Hero ---- */
+/* 全息主卡：与 hero 同圆角，避免色散边缘与卡片错位 */
+.weather-holo {
+  --glass-radius-lg: 46rpx;
+  display: block;
+}
+
 .weather-hero {
   position: relative;
   overflow: hidden;

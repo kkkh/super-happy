@@ -37,8 +37,7 @@
         "pages/template/index",
         "pages/regex/index",
         "pages/weather/index",
-        "pages/web-search/index",
-        "pages/lab/index"
+        "pages/web-search/index"
       ]
     },
     {

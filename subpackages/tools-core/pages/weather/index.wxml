@@ -71,6 +71,17 @@
         <text>{{ready ? '正在获取天气…' : '正在初始化…'}}</text>
       </view>
 
+      <!-- 全息主卡：随设备姿态产生画面阻尼，省电 / 低内存自动关闭 -->
+      <spatial-hologram
+        custom-class="weather-holo"
+        enabled="{{!lowMemory && hasResult}}"
+        auto-start="{{!lowMemory}}"
+        max-tilt="{{7}}"
+        sensitivity="{{0.35}}"
+        damping="{{0.12}}"
+        aurora="{{false}}"
+        aria-label="全息气象主卡，随设备姿态产生视差"
+      >
       <view class="weather-hero {{hasResult ? '' : 'weather-hero--empty'}}">
         <view class="weather-hero__head">
           <view class="weather-hero__place">
@@ -124,6 +135,7 @@
           </view>
         </view>
       </view>
+      </spatial-hologram>
 
       <scroll-view scroll-x enhanced show-scrollbar="{{false}}" class="weather-cities-strip" bindtouchstart="onStripTouchStart" bindtouchend="onStripTouchEnd">
         <view class="weather-cities-strip__inner">
