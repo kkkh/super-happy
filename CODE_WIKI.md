@@ -983,6 +983,7 @@ send<T>(request: TransportRequest<T>): Promise<Result<T>>
 | `core/utils/logger.ts` | `logger.info/warn/error` | 统一 `[gallery][domain]` 前缀；`info` 仅开发者工具输出 |
 | `core/utils/blackbox.ts` | `recordDiagnostic(kind, error, level)` | 本地错误黑匣子，环形 20 条 |
 | `core/utils/perf.ts` | `startPerfSampling`、`readPerfSamples`、`mergePerfEntries` | 冷启动采样：`appLaunch` / `firstRender` / FP / FCP / LCP / `downloadPackage`；抽样 20%，环形 40 条，3s 防抖异步落盘 `perf:samples.v1` |
+| `core/services/realtime-log.ts` | `logRealtime`、`shouldEmitRealtime` | 线上实时日志：黑匣子错误 / 告警转发到微信后台「实时日志」；同文案 30s 去重、单会话 100 条上限、单条 500 字符；API 缺失静默降级 |
 | `core/utils/device-tier.ts` | `bootstrapDeviceTier`、`startDeviceTierDetection`、`effectiveMotion`、`isMotionCapped`、`dismissMotionHint` | 设备档位（高/中/低）与动效上限：机型档位 > 性能分 > 内存；未知回退高档；上限表 high=full / mid=lite / low=saver；限档提示可关闭（`device:tier.hintDismissed.v1`） |
 | `core/utils/haptics.ts` | `vibrate`、`tapTick`、`tapSuccess`、`tapWarn`、`useHaptics` | 震动 + 语义音效统一出口，受偏好档位控制 |
 | `core/utils/album.ts` | `saveImageToAlbum`、`albumFailureMessage` | 相册保存、授权补救、失败归一化 |

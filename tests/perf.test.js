@@ -50,3 +50,12 @@ test('perf：storage 不可用时读取返回空数组', async () => {
   const { readPerfSamples } = await loadPerf()
   assert.deepEqual(readPerfSamples(), [])
 })
+
+test('perf：摘要文案优先展示启动与首屏', async () => {
+  const { summarizePerfSamples } = await loadPerf()
+  assert.equal(summarizePerfSamples([]), '暂无采样')
+  const text = summarizePerfSamples([
+    { at: 1, appLaunch: 1200.4, firstRender: 380.6, downloadPackage: 900 },
+  ])
+  assert.equal(text, '启动 1200ms · 首屏 381ms · 下载 900ms · 共 1 次')
+})

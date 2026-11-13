@@ -5,6 +5,7 @@
    ========================================================================== */
 import { DIAGNOSTICS } from '../constants/index'
 import { logger } from './logger'
+import { logRealtime } from '../services/realtime-log'
 
 export type DiagnosticKind = 'app-error' | 'unhandled-rejection' | 'page-not-found' | 'memory-warning'
 
@@ -56,4 +57,6 @@ export function recordDiagnostic(
   } catch {
     // 存储不可用时仅保留控制台记录
   }
+  /* 线上实时日志：去重 + 会话配额由 realtime-log 统一收口 */
+  logRealtime(level, 'blackbox', `${kind}: ${message}`, { route: entry.route })
 }

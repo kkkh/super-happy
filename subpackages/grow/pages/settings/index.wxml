@@ -1231,6 +1231,19 @@
             </view>
           </view>
 
+          <view class="settings-divider"></view>
+
+          <view class="settings-row">
+            <view class="settings-row__icon">
+              <g-icon name="spark" size="{{30}}" tone="iris" />
+            </view>
+            <view class="settings-row__copy">
+              <text class="settings-row__title">性能采样</text>
+              <text class="settings-row__sub">仅本机保存 · 抽样 20% 记录冷启动与首屏</text>
+            </view>
+            <text class="settings-row__value">{{perfSummary}}</text>
+          </view>
+
           <view class="settings-changelog {{changelogOpen ? 'settings-changelog--open' : ''}}">
             <view
               wx:for="{{changelog}}"
