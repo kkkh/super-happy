@@ -219,7 +219,7 @@ test('音频门禁：BGM 只在 focusing/隐藏、sound / saver 全静音', () =
   assert.match(ts, /shouldRunBgm/)
   assert.match(ts, /runtime\.session\?\.fsm === 'focusing'/)
   assert.match(ts, /preferenceStore\.sound/)
-  assert.match(ts, /preferenceStore\.motion !== 'saver'/)
+  assert.match(ts, /useMotion\(\)\.level !== 'saver'/)
   assert.match(ts, /runtime\.audio\.setTracks\(\[\]\)/)
   assert.match(ts, /runtime\.bgm\.stop\(\)/)
   assert.match(ts, /runtime\.audio\.suspend\(\)/)

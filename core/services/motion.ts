@@ -5,10 +5,12 @@
    - saver：关闭陀螺仪阻尼、动态光效与大部分过渡，优先省电
    - 只读取 preferenceStore，不做任何 setData；页面 / 组件按需消费
    ========================================================================== */
-import { preferenceStore, type MotionLevel } from '../stores/preference'
+import { preferenceStore } from '../stores/preference'
+import { uiStore } from '../stores/ui'
+import { effectiveMotion, type EffectiveMotion } from '../utils/device-tier'
 
 export interface MotionProfile {
-  level: MotionLevel
+  level: EffectiveMotion
   label: string
   /** 是否允许陀螺仪 / 视差阻尼 */
   hologramEnabled: boolean
@@ -22,7 +24,7 @@ export interface MotionProfile {
   springEasing: string
 }
 
-const PROFILES: Record<MotionLevel, MotionProfile> = {
+const PROFILES: Record<EffectiveMotion, MotionProfile> = {
   full: {
     level: 'full',
     label: '全效',
@@ -52,9 +54,10 @@ const PROFILES: Record<MotionLevel, MotionProfile> = {
   },
 }
 
-/** 全局接管入口：组件 / 页面每次调用都能拿到最新偏好 */
+/** 全局接管入口：组件 / 页面每次调用都能拿到最新偏好与设备上限 */
 export function useMotion(): MotionProfile {
-  const profile = PROFILES[preferenceStore.motion] ?? PROFILES.full
+  const level = effectiveMotion(preferenceStore.motion, uiStore.deviceTier)
+  const profile = PROFILES[level] ?? PROFILES.full
   return {
     ...profile,
     /* 动态光效总开关优先级高于档位：关灯后任何档位都不跑极光 */

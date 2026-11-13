@@ -1316,6 +1316,23 @@ page,
   --glass-duration-base: 1ms;
   --glass-duration-slow: 1ms;
   --sg-ambient-transition: 1ms linear;
+  /* 低端机 / 省电：彻底去掉毛玻璃模糊，改用实色玻璃底，消除合成开销 */
+  --glass-blur: 0px;
+  --glass-noise-opacity: 0;
+}
+
+.motion-saver.theme-dark {
+  --glass-bg: rgba(13, 17, 26, 0.94);
+  --glass-bg-soft: rgba(13, 17, 26, 0.88);
+  --glass-bg-strong: rgba(20, 25, 38, 0.97);
+  --glass-highlight: rgba(255, 255, 255, 0.12);
+}
+
+.motion-saver.theme-light {
+  --glass-bg: rgba(248, 249, 252, 0.94);
+  --glass-bg-soft: rgba(248, 249, 252, 0.88);
+  --glass-bg-strong: rgba(255, 255, 255, 0.98);
+  --glass-highlight: rgba(255, 255, 255, 0.6);
 }
 
 .theme-breathing.motion-saver {

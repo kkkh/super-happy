@@ -8,6 +8,7 @@
    ========================================================================== */
 import { createStoreBindings } from 'mobx-miniprogram-bindings'
 import { uiStore } from '../../../../core/stores/ui'
+import { useMotion } from '../../../../core/services/motion'
 import {
   DEFAULT_PREFERENCE,
   MOTION_LABELS,
@@ -17,6 +18,12 @@ import {
   type HapticLevel,
 } from '../../../../core/stores/preference'
 import { toolboxStore } from '../../../../core/toolbox/store'
+import {
+  dismissMotionHint,
+  isMotionCapped,
+  motionCeiling,
+  readMotionHintDismissed,
+} from '../../../../core/utils/device-tier'
 import { tapSuccess, tapTick, tapWarn } from '../../../../core/utils/haptics'
 import { showGlassToast } from '../../../../components/glass-toast/toast'
 import {
@@ -502,6 +509,18 @@ function resolveMotionLabel(index: number): string {
   return level ? MOTION_LABELS[level] : preferenceStore.motionLabel
 }
 
+/** 设备被限档时的提示：可关闭，关闭后不再出现；高档设备永远为空 */
+function resolveMotionHint(): string {
+  if (readMotionHintDismissed()) {
+    return ''
+  }
+  if (!isMotionCapped(preferenceStore.motion, uiStore.deviceTier)) {
+    return ''
+  }
+  const label = MOTION_LABELS[motionCeiling(uiStore.deviceTier)]
+  return `当前设备性能有限，动效已自动限制为「${label}」`
+}
+
 /** 由当前选中值生成带高亮状态的选项数组 */
 function buildPickerOptions(options: PickerOption[], selected: string): PickerOptionView[] {
   return options.map((option) => ({
@@ -531,6 +550,7 @@ Page({
     motionIndex: preferenceStore.motionIndex,
     motionLabel: preferenceStore.motionLabel,
     motionPreview: preferenceStore.motionLabel,
+    motionHint: resolveMotionHint(),
     autoCleanLabel: preferenceStore.autoCleanLabel,
     statusText: preferenceStore.statusText,
     flagAi: preferenceStore.flags.enable_ai_assist,
@@ -546,7 +566,7 @@ Page({
     navRight: 16,
     contentTop: 96,
     heroStyle: '',
-    motionMarks: [{ label: '全效' }, { label: '精简' }, { label: '省电' }],
+    motionMarks: [{ label: '自动' }, { label: '全效' }, { label: '精简' }, { label: '省电' }],
     changelogOpen: false,
     changelog: CHANGELOG,
     pickerShow: false,
@@ -704,6 +724,8 @@ Page({
       fields: {
         themeClass: () => uiStore.themeClass,
         themeSwitching: () => uiStore.themeSwitching,
+        /* 设备档位异步到达后自动刷新限档提示 */
+        motionHint: () => resolveMotionHint(),
       },
       actions: [],
     })
@@ -1127,7 +1149,7 @@ Page({
           let dpr = 2
           try {
             const info = wx.getWindowInfo()
-            const cap = uiStore.lowMemory || preferenceStore.motion === 'saver' ? 2 : 3
+            const cap = uiStore.lowMemory || useMotion().level === 'saver' ? 2 : 3
             dpr = Math.max(1, Math.min(cap, info.pixelRatio || 2))
           } catch {
             dpr = 2
@@ -1143,7 +1165,7 @@ Page({
           const engine = new GalaxyEngine({
             width,
             height,
-            degraded: uiStore.lowMemory || preferenceStore.motion === 'saver',
+            degraded: uiStore.lowMemory || useMotion().level === 'saver',
             theme: uiStore.resolvedTheme,
           })
           this.fillGalaxyNodes(engine)
@@ -1193,7 +1215,7 @@ Page({
         const engine = new GalaxyEngine({
           width: safeWidth,
           height: safeHeight,
-          degraded: uiStore.lowMemory || preferenceStore.motion === 'saver',
+          degraded: uiStore.lowMemory || useMotion().level === 'saver',
           theme: uiStore.resolvedTheme,
         })
         this.fillGalaxyNodes(engine)
@@ -1427,7 +1449,7 @@ Page({
     if (!runtime.galaxy) {
       return
     }
-    const degraded = uiStore.lowMemory || preferenceStore.motion === 'saver'
+    const degraded = uiStore.lowMemory || useMotion().level === 'saver'
     runtime.galaxy.setDegraded(degraded)
     if (this.data.galaxyDegraded !== degraded) {
       this.setData({ galaxyDegraded: degraded })
@@ -2675,7 +2697,7 @@ Page({
     this.showToast(
       persisted
         ? value
-          ? preferenceStore.motion === 'saver'
+          ? useMotion().level === 'saver'
             ? '已记录偏好 · 省电模式下光效仍保持关闭'
             : '动态光效已开启'
           : '动态光效已关闭，模糊采样同步降低'
@@ -2701,7 +2723,7 @@ Page({
     }
     const label = resolveMotionLabel(index)
     const persisted = preferenceStore.setMotionIndex(index)
-    this.setData({ motionPreview: label })
+    this.setData({ motionPreview: label, motionHint: resolveMotionHint() })
     tapTick()
     ambientTheme.refresh()
     this.syncGalaxyDegrade()
@@ -2710,6 +2732,13 @@ Page({
       persisted ? 'success' : 'warning',
     )
     this.captureFrame('动画强度切换')
+  },
+
+  /** 关闭设备限档提示：持久化后不再出现 */
+  onDismissMotionHint(): void {
+    dismissMotionHint()
+    this.setData({ motionHint: '' })
+    tapTick()
   },
 
   /* ---- 字号 ---- */
@@ -3311,6 +3340,7 @@ Page({
       motionIndex: preferenceStore.motionIndex,
       motionLabel: preferenceStore.motionLabel,
       motionPreview: preferenceStore.motionLabel,
+      motionHint: resolveMotionHint(),
       autoCleanLabel: preferenceStore.autoCleanLabel,
       statusText: preferenceStore.statusText,
       flagAi: preferenceStore.flags.enable_ai_assist,

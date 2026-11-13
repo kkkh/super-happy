@@ -117,6 +117,9 @@ App({
       return tool ? tool.category : 'home'
     })
 
+    // 0.3) 设备性能档位：同步档位先于首帧生效，异步机型档位随后精修
+    uiStore.initDeviceTier()
+
     // 1) 主题引擎：恢复偏好 + 订阅系统外观（首帧前完成，杜绝闪烁）
     uiStore.initTheme()
 
