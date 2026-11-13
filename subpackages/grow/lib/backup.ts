@@ -5,8 +5,8 @@
    - 纯函数 buildBackup / validateBackup / applyBackupToStorage 可离线测试
    ========================================================================== */
 
-import { STORAGE_KEYS } from '../constants/index'
-import { TOOL_IDS } from '../toolbox/registry'
+import { STORAGE_KEYS } from '../../../core/constants/index'
+import { TOOL_IDS } from '../../../core/toolbox/registry'
 import {
   MAX_FAVORITES,
   MAX_RECENTS,
@@ -17,11 +17,11 @@ import {
   readTimestampMap,
   removeStorage,
   writeStorage,
-} from '../toolbox/storage'
-import { toolboxStore } from '../toolbox/store'
-import { preferenceStore, type PreferenceSnapshot } from '../stores/preference'
-import { logger } from '../utils/logger'
-import { utf8ByteLength } from './export'
+} from '../../../core/toolbox/storage'
+import { toolboxStore } from '../../../core/toolbox/store'
+import { preferenceStore, type PreferenceSnapshot } from '../../../core/stores/preference'
+import { logger } from '../../../core/utils/logger'
+import { utf8ByteLength } from '../../../core/services/export'
 
 export const BACKUP_APP = 'chao-huan-toolbox'
 export const BACKUP_VERSION = 1

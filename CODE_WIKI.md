@@ -992,7 +992,7 @@ send<T>(request: TransportRequest<T>): Promise<Result<T>>
 | `core/services/export.ts` | `prepareExport`、`sharePrepared`、`cleanupExport`、`cleanupAllExports`、`cleanupStaleExports`、`canShareFile`、`utf8ByteLength`、`sanitizeExportName`、`escapeCsvCell` | 本机 `USER_DATA_PATH/exports` 预写 txt / md / csv / json（CSV 加 UTF-8 BOM），单文件上限 `MAX_EXPORT_BYTES = 2MB`；分享必须由用户 tap 同步触发；启动清理超过 24h 或总量超过 10MB 的旧导出 |
 | `core/services/feedback.ts` | `copyText(text, message?): Promise<boolean>`、`toast(message)` | 全项目剪贴板写入唯一入口：内部前置 `ensurePrivacyAuthorized()`，拒绝时不写并提示；三份分包 `lib/ui.ts` 只做 re-export |
 | `core/services/meetingTimer.ts` | `startMeetingTimer`、`startMeetingTimerAt`、`pauseMeetingTimer`、`resumeMeetingTimer`、`resetMeetingTimer`、`syncMeetingTimer`、`suspendMeetingTimer`、`subscribeMeetingTimer`、`meetingTimerStore` | 会议倒计时全局单例：跨页面按 deadline 计时、暂停冻结剩余、结束前 5 秒与结束时震动 + 声音；页面与 HUD 共用 |
-| `core/services/backup.ts` | `exportBackup`、`validateBackup`、`parseBackupText`、`pickBackupFile`、`applyBackup`、`applyBackupToStorage`、`deleteBackupFiles`、`readBackupAt`、`hasBackupFile` | 本机 JSON 备份：写 `USER_DATA_PATH/backups`、固定文件名、只保留 1 份、≤256KB；导入先全量校验再原子写入，失败逆序回滚；覆盖收藏 / 最近 / 搜索 / 天气城市 / 专注记录（含校验密钥）/ `app:prefs.v1` |
+| `subpackages/grow/lib/backup.ts` | `exportBackup`、`validateBackup`、`parseBackupText`、`pickBackupFile`、`applyBackup`、`applyBackupToStorage`、`deleteBackupFiles`、`readBackupAt`、`hasBackupFile` | 本机 JSON 备份：写 `USER_DATA_PATH/backups`、固定文件名、只保留 1 份、≤256KB；导入先全量校验再原子写入，失败逆序回滚；覆盖收藏 / 最近 / 搜索 / 天气城市 / 专注记录（含校验密钥）/ `app:prefs.v1` |
 | `subpackages/grow/lib/diagnostics.ts` | `redactDiagnosticText`、`shouldDropDiagnosticMessage`、`sanitizeDiagnosticEntries`、`buildDiagnosticPreview`、`collectDiagnosticEnvironment`、`prepareDiagnosticFile` | 本地诊断包：版本 / 基础库 / 机型 / 路由 / 黑匣 20 条；路径、Key、Bearer、邮箱、手机号、证件号脱敏；残留用户输入整条丢弃；≤50KB；复用 `prepareExport` 写 `.txt` |
 | `subpackages/grow/lib/privacy-center.ts` | `permissionSnapshot`、`openPrivacySetting`、`openPrivacyContract`、`readPrivacyVersion`、`ackPrivacyVersion`、`privacyVersionChanged`、`resetAllLocalData` | 隐私中心：定位 / 相册 / 隐私指引状态；`PRIVACY_VERSION` ↔ `app:privacy.version`；重置全部删除 tbx / weather / focus / diag / cyber / 备份 / 偏好，保留 `gallery.*` 与 `app:storage.version` |
 | `core/services/font-scale.ts` | `FONT_SCALE_OPTIONS`、`scaleFor`、`currentFontScale`、`fontScaleClass`、`syncFontScaleClass`、`applyFontScale` | 字号档：standard / large / xlarge 映射 `fs-standard / fs-large / fs-xlarge`；页面 `onShow`、组件 `pageLifetimes.show` 一行同步；只改字号与行高，不缩放间距 / 图标 / Canvas |
@@ -1003,7 +1003,7 @@ send<T>(request: TransportRequest<T>): Promise<Result<T>>
 | `core/toolbox/engines/csv.ts` | `escapeCsv`、`buildCsv`、`jsonToCsv`、`csvToJson`、`CSV_MAX_BYTES` | CSV 唯一实现：转义 / 公式注入防护 / 表头并集 / CRLF / 可选 BOM / CSV 解析；quote 与 json-csv 共用 |
 | `core/toolbox/engines/text.ts` | `toCase`、`toNaming`、`encodeHtml`、`decodeHtml`、`escapeUnicode`、`cleanText`、`convertText` | 文本转换唯一实现：页面与 silent 执行器共用；`cleanText` 默认保留段落，支持全角转半角 / 去空格 / 中文标点 / 去空行 / 去不可见 / 并成一行；`tools-core/lib/textCase.ts` 只做薄 re-export |
 | `core/toolbox/engines/random.ts` | `splitOptions`、`shuffle`、`pickOptions`、`pickUnique`、`randomInt`、`rollDice`、`flipCoins` | 随机唯一实现：页面与 silent 执行器共用；抽签 / 随机数 / 骰子 / 硬币共用 RNG；`tools-daily/lib/random.ts` 只做薄 re-export |
-| `core/toolbox/engines/body.ts` | `bmiOf`、`bmiCategory`、`idealWeightRange`、`bmiMarkerPercent` | BMI 唯一实现：中国成人区间、理想体重范围、量表刻度；BMI 页与 silent 共用 |
+| `subpackages/tools-core/lib/body-engine.ts` | `bmiOf`、`bmiCategory`、`idealWeightRange`、`bmiMarkerPercent` | BMI 唯一实现：中国成人区间、理想体重范围、量表刻度；BMI 页与 silent 共用 |
 | `core/toolbox/engines/loan.ts` | `planLoan`、`LoanPlan`、`LoanScheduleRow`、`LOAN_MAX_RATE_BP`、`LOAN_MAX_PERIODS` | 等额本息 / 等额本金摊还表唯一实现；房贷与车贷共用 |
 | `core/toolbox/engines/resolution.ts` | `simplifyRatio`、`analyzeResolution`、`fitWidth`、`planResolution`、`printPixelSize`、`PAPER_PRESETS`、`DPI_OPTIONS` | 分辨率 / 比例 / 像素 / 高清判定 / 纸张 DPI 唯一实现；`tools-daily/lib/resolution.ts` 只做薄 re-export |
 | `core/toolbox/engines/rmb.ts` | `centsToChinese(cents)` | 人民币大写唯一实现；`tools-core/lib/rmb.ts` 只做薄 re-export |
@@ -3214,7 +3214,7 @@ buildContrastVars(result): string
 | `gallery.glass.meta` | gallery | Spatial Glass 元数据 | `store/index.ts` |
 | `app:prefs.v1` | app | 全局偏好 v1 | `preferenceStore` |
 | `app:prefs.v0` | app | 旧偏好（只读） | 迁移 |
-| `app:backup.at` | app | 最近一次备份导出时间 | `core/services/backup.ts` |
+| `app:backup.at` | app | 最近一次备份导出时间 | `subpackages/grow/lib/backup.ts` |
 | `app:privacy.version` | app | 已确认的隐私保护指引版本 | `subpackages/grow/lib/privacy-center.ts` |
 | `tbx:draft.<id>` | tbx | 单工具草稿（输入 + 模式，≤4KB） | `core/toolbox/draft.ts` |
 | `tbx:recent` | tbx | 最近使用 | `toolboxStore` |
@@ -5101,7 +5101,7 @@ MP_CI_PRIVATE_KEY_PATH="$MP_CI_KEY_FILE" npm run ci:upload
 | `core/theme/contrast-guardian.ts` | 对比度守护 |
 | `components/glass-tool-shell/index.ts` | 工具页骨架 |
 | `subpackages/grow/pages/settings/index.ts` | 全局设置：偏好、存储、备份与恢复、驾驶舱、专注入口、Cyber Space OS |
-| `core/services/backup.ts` | 本机 JSON 备份：导出 / 校验 / 原子导入 / 删除 |
+| `subpackages/grow/lib/backup.ts` | 本机 JSON 备份：导出 / 校验 / 原子导入 / 删除 |
 | `subpackages/grow/lib/diagnostics.ts` | 本地诊断包：脱敏 / 预览 / 生成 `.txt` |
 | `components/glass-toast/toast.ts` | 全局 Toast |
 | `components/command-palette/palette.ts` | 指令面板 |
