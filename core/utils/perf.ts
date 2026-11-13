@@ -95,6 +95,28 @@ export function readPerfSamples(): PerfSample[] {
   }
 }
 
+/** 最近一次采样的可读摘要：设置页「性能采样」行使用 */
+export function summarizePerfSamples(list: PerfSample[]): string {
+  if (!list.length) {
+    return '暂无采样'
+  }
+  const last = list[list.length - 1]
+  const parts: string[] = []
+  if (typeof last.appLaunch === 'number') {
+    parts.push(`启动 ${Math.round(last.appLaunch)}ms`)
+  }
+  if (typeof last.firstRender === 'number') {
+    parts.push(`首屏 ${Math.round(last.firstRender)}ms`)
+  }
+  if (typeof last.downloadPackage === 'number') {
+    parts.push(`下载 ${Math.round(last.downloadPackage)}ms`)
+  }
+  if (!parts.length) {
+    return '暂无采样'
+  }
+  return `${parts.join(' · ')} · 共 ${list.length} 次`
+}
+
 function flush(sample: PerfSample): void {
   try {
     if (typeof wx === 'undefined') {

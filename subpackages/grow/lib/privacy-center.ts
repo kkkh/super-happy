@@ -9,6 +9,12 @@ import { PRIVACY_VERSION, STORAGE_KEYS } from '../../../core/constants/index'
 import { readStorage, removeStorage, writeStorage } from '../../../core/toolbox/storage'
 import { deleteBackupFiles } from './backup'
 import { cleanupAllExports } from '../../../core/services/export'
+import { PERF_STORAGE_KEY } from '../../../core/utils/perf'
+import {
+  TIER_CACHE_KEY,
+  TIER_FORCE_KEY,
+  TIER_HINT_DISMISS_KEY,
+} from '../../../core/utils/device-tier'
 
 export type PrivacyPermissionKey = 'location' | 'album' | 'privacy'
 export type PrivacyPermissionStatus = 'granted' | 'denied' | 'unset' | 'unavailable'
@@ -41,6 +47,10 @@ const RESET_KEYS: string[] = [
   STORAGE_KEYS.preferenceLegacy,
   STORAGE_KEYS.backupAt,
   STORAGE_KEYS.privacyVersion,
+  PERF_STORAGE_KEY,
+  TIER_CACHE_KEY,
+  TIER_FORCE_KEY,
+  TIER_HINT_DISMISS_KEY,
 ]
 
 function statusTextOf(status: PrivacyPermissionStatus): string {
