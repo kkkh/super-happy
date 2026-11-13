@@ -4,6 +4,7 @@
   "backgroundTextStyle": "dark",
   "usingComponents": {
     "weather-glyph": "../../components/weather-glyph/index",
+    "spatial-hologram": "../../components/spatial-hologram/index",
     "g-icon": "../../../../components/g-icon/index",
     "glass-bottom-sheet": "../../../../components/glass-bottom-sheet/index",
     "glass-button": "../../../../components/glass-button/index",
