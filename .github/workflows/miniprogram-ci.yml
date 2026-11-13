@@ -171,9 +171,10 @@ jobs:
           node -e "const fs=require('fs');const raw=process.env.MP_CI_PRIVATE_KEY_BASE64||'';if(!raw){console.error('缺少 GitHub Secret MP_CI_PRIVATE_KEY_BASE64');process.exit(1)};fs.writeFileSync(process.env.KEY_PATH,Buffer.from(raw,'base64'),{mode:0o600})"
 
       - name: 上传小程序开发版本
-        timeout-minutes: 10
+        timeout-minutes: 20
         env:
           MP_CI_PRIVATE_KEY_PATH: ${{ runner.temp }}/mp-ci/private.key
+          MP_CI_THREADS: '4'
           INPUT_DESC: ${{ inputs.desc }}
           INPUT_VERSION: ${{ inputs.version }}
         shell: bash
