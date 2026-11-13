@@ -59,3 +59,20 @@ test('perf：摘要文案优先展示启动与首屏', async () => {
   ])
   assert.equal(text, '启动 1200ms · 首屏 381ms · 下载 900ms · 共 1 次')
 })
+
+test('perf：从本机存储读取采样并生成摘要', async () => {
+  const store = new Map([
+    ['perf:samples.v1', [{ at: 1, appLaunch: 1500, firstRender: 420 }]],
+  ])
+  globalThis.wx = {
+    getStorageSync: (key) => (store.has(key) ? store.get(key) : ''),
+  }
+  try {
+    const { readPerfSamples, summarizePerfSamples } = await loadPerf()
+    const list = readPerfSamples()
+    assert.equal(list.length, 1)
+    assert.equal(summarizePerfSamples(list), '启动 1500ms · 首屏 420ms · 共 1 次')
+  } finally {
+    delete globalThis.wx
+  }
+})

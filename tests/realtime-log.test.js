@@ -7,8 +7,22 @@ const test = require('node:test')
 const assert = require('node:assert/strict')
 const path = require('node:path')
 const { pathToFileURL } = require('node:url')
+const { registerHooks } = require('node:module')
 
 const ROOT = path.resolve(__dirname, '..')
+
+registerHooks({
+  resolve(specifier, context, nextResolve) {
+    if (specifier.startsWith('.') && !path.extname(specifier)) {
+      try {
+        return nextResolve(`${specifier}.ts`, context)
+      } catch {
+        /* 不是 TS 模块时回退原始路径 */
+      }
+    }
+    return nextResolve(specifier, context)
+  },
+})
 const moduleUrl = (relative) => pathToFileURL(path.join(ROOT, relative)).href
 
 async function load() {
@@ -69,6 +83,35 @@ test('realtime-log：会话配额封顶 100 条', async () => {
     assert.equal(count, 100)
   } finally {
     delete globalThis.wx
+    mod.resetRealtimeLogForTest()
+  }
+})
+
+test('realtime-log：黑匣子错误自动转发并带路由', async () => {
+  const calls = []
+  const store = new Map()
+  globalThis.getCurrentPages = () => [{ route: 'pages/index/index' }]
+  globalThis.wx = {
+    getStorageSync: (key) => (store.has(key) ? store.get(key) : ''),
+    setStorageSync: (key, value) => store.set(key, value),
+    getRealtimeLogManager: () => ({
+      info: () => {},
+      warn: (...args) => calls.push(['warn', ...args]),
+      error: (...args) => calls.push(['error', ...args]),
+    }),
+  }
+  const mod = await load()
+  mod.resetRealtimeLogForTest()
+  try {
+    const blackbox = await import(moduleUrl('core/utils/blackbox.ts'))
+    blackbox.recordDiagnostic('app-error', new Error('boom'))
+    assert.equal(calls.length, 1)
+    assert.equal(calls[0][0], 'error')
+    assert.ok(String(calls[0][1]).includes('app-error'))
+    assert.ok(String(calls[0][1]).includes('boom'))
+  } finally {
+    delete globalThis.wx
+    delete globalThis.getCurrentPages
     mod.resetRealtimeLogForTest()
   }
 })
