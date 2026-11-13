@@ -4,6 +4,7 @@
     "glass-card": "../../components/glass-card/index",
     "glass-button": "../../components/glass-button/index",
     "glass-toast": "../../components/glass-toast/index",
-    "command-palette": "../../components/command-palette/index"
+    "command-palette": "../../components/command-palette/index",
+    "privacy-guard": "../../components/privacy-guard/index"
   }
 }
