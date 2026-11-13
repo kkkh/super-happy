@@ -524,3 +524,15 @@
   font-size: 18rpx;
   line-height: 1.4;
 }
+
+/* 可离线使用、仅刷新需要联网：不降透明度，只做轻提示 */
+.fav-net-tag {
+  align-self: flex-start;
+  margin-top: 4rpx;
+  padding: 2rpx 10rpx;
+  border: 1rpx solid var(--glass-border);
+  border-radius: 999rpx;
+  color: var(--glass-text-3);
+  font-size: 18rpx;
+  line-height: 1.4;
+}

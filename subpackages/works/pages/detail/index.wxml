@@ -117,7 +117,7 @@
         <!-- 图集 -->
         <view class="detail_block anim-rise delay-6">
           <g-section kicker="影像" title="视觉档案" />
-          <g-gallery groups="{{project.gallery}}" tone="{{project.accent}}" dark="{{themeClass === 'theme-dark'}}" />
+          <g-gallery groups="{{project.gallery}}" tone="{{project.accent}}" dark="{{isDark}}" />
         </view>
 
         <!-- 经验 -->

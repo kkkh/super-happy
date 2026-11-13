@@ -166,6 +166,7 @@ Component({
     fields: {
       themeClass: () => glassStore.themeClass,
       themeSwitching: () => glassStore.themeSwitching,
+      isDark: () => glassStore.resolvedTheme === 'dark',
       favoriteCount: () => glassStore.favoriteCount,
       sections: () => buildSections(glassStore.toolFavorites),
       recents: () => toolboxStore.recentTools().slice(0, 6),
@@ -177,6 +178,7 @@ Component({
   data: {
     themeClass: glassStore.themeClass,
     themeSwitching: false,
+    isDark: glassStore.resolvedTheme === 'dark',
     fsClass: fontScaleClass(),
     favoriteCount: 0,
     toolTotal: TOOLS.length,
@@ -568,7 +570,7 @@ Component({
     scheduleWebSearch(keyword: string, immediate = false): void {
       const runtime = this as unknown as HomeRuntime
       const query = keyword.trim()
-      if (!this.data.webReady || query.length < 2) {
+      if (!this.data.webReady || networkStore.offline || query.length < 2) {
         this.cancelWebSearch()
         if (this.data.webResults.length || this.data.webQuery) {
           this.setData({ webResults: [], webError: '', webQuery: '', webLoading: false })
@@ -588,6 +590,16 @@ Component({
     runWebSearch(query: string): void {
       const runtime = this as unknown as HomeRuntime
       if (runtime.cleaned || !query) {
+        return
+      }
+      if (networkStore.offline) {
+        this.cancelWebSearch()
+        this.setData({
+          webLoading: false,
+          webError: '',
+          webResults: [],
+          webQuery: '',
+        })
         return
       }
       runtime.webSeq += 1
@@ -735,7 +747,7 @@ Component({
         })
         return
       }
-      if (tool.online && networkStore.offline) {
+      if (tool.network === 'required' && networkStore.offline) {
         tapWarn()
         showGlassToast({
           message: '当前离线，联网后可打开',

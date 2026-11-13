@@ -36,6 +36,7 @@ Page({
     isFavorite: false,
     shotCount: 0,
     themeClass: '',
+    isDark: uiStore.resolvedTheme === 'dark',
     coverError: false,
   },
 
@@ -54,6 +55,7 @@ Page({
       store: uiStore,
       fields: {
         themeClass: () => uiStore.themeClass,
+        isDark: () => uiStore.resolvedTheme === 'dark',
       },
       actions: [],
     })

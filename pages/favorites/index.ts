@@ -277,7 +277,7 @@ Page({
       return
     }
     const tool = getTool(dataset.id)
-    if (tool && tool.online && networkStore.offline) {
+    if (tool && tool.network === 'required' && networkStore.offline) {
       tapWarn()
       showGlassToast('当前离线，联网后可打开')
       return
