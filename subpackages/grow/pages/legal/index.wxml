@@ -1,4 +1,4 @@
-<view class="legal-page {{themeClass}}">
+<view class="legal-page {{themeClass}} {{fsClass}}">
   <view class="legal-aurora" aria-hidden="true">
     <view class="sg-aurora-a legal-aurora__a"></view>
     <view class="sg-aurora-b legal-aurora__b"></view>

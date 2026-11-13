@@ -28,6 +28,7 @@
 
 .hub_title {
   font-size: 56rpx;
+  font-size: calc(56rpx * var(--fs-scale, 1));
   font-weight: 800;
   color: var(--g-ink);
   letter-spacing: 4rpx;
@@ -35,6 +36,7 @@
 
 .hub_sub {
   font-size: 20rpx;
+  font-size: calc(20rpx * var(--fs-scale, 1));
   color: var(--g-ink-4);
   letter-spacing: 3rpx;
   font-weight: 600;
@@ -50,6 +52,7 @@
 
 .hub_fav_text {
   font-size: 22rpx;
+  font-size: calc(22rpx * var(--fs-scale, 1));
   color: var(--g-amber);
   letter-spacing: 2rpx;
 }
@@ -76,6 +79,7 @@
 
 .hub_kicker {
   font-size: 20rpx;
+  font-size: calc(20rpx * var(--fs-scale, 1));
   font-weight: 700;
   letter-spacing: 3rpx;
 }
@@ -97,6 +101,7 @@
 
 .hub_count text {
   font-size: 24rpx;
+  font-size: calc(24rpx * var(--fs-scale, 1));
   font-weight: 700;
   color: var(--g-ink-2);
   font-variant-numeric: tabular-nums;
@@ -104,6 +109,7 @@
 
 .hub_cat_title {
   font-size: 44rpx;
+  font-size: calc(44rpx * var(--fs-scale, 1));
   font-weight: 800;
   color: var(--g-ink);
   letter-spacing: 3rpx;
@@ -111,6 +117,7 @@
 
 .hub_cat_desc {
   font-size: 24rpx;
+  font-size: calc(24rpx * var(--fs-scale, 1));
   color: var(--g-ink-3);
   line-height: 1.7;
 }
@@ -125,6 +132,7 @@
 
 .hub_cta_text {
   font-size: 22rpx;
+  font-size: calc(22rpx * var(--fs-scale, 1));
   letter-spacing: 3rpx;
   font-weight: 600;
 }

@@ -1,4 +1,4 @@
-<view class="page_root {{themeClass}}">
+<view class="page_root {{themeClass}} {{fsClass}}">
   <g-navbar title="您好" back transparent />
 
   <scroll-view enhanced show-scrollbar="{{false}}" bounces="{{false}}" scroll-y type="list" class="greet_scroll">

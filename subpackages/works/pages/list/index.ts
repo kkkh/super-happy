@@ -5,6 +5,7 @@
 import { createStoreBindings } from 'mobx-miniprogram-bindings'
 import { resumeStore } from '../../../../core/stores/resume'
 import { uiStore } from '../../../../core/stores/ui'
+import { fontScaleClass, syncFontScaleClass } from '../../../../core/services/font-scale'
 import { searchProjects } from '../../../../core/services/resume'
 import { routeDetail, TIMING } from '../../../../core/constants/index'
 import { tapTick } from '../../../../core/utils/haptics'
@@ -57,6 +58,7 @@ Page({
     keyword: '',
     category: 'actual' as ProjectCategory,
     themeClass: '',
+    fsClass: fontScaleClass(),
     notFound: false,
     loading: true,
   },
@@ -93,6 +95,7 @@ Page({
   },
 
   onShow() {
+    this.setData({ fsClass: syncFontScaleClass() })
     const state = this as unknown as ListState
     state.navigating = false
   },

@@ -79,6 +79,14 @@ jobs:
         timeout-minutes: 3
         run: npm run check:version
 
+      - name: 方案自检
+        timeout-minutes: 3
+        run: npm run plan
+
+      - name: 对比度检查
+        timeout-minutes: 3
+        run: npm run check:contrast
+
       - name: 生产依赖安全审计
         timeout-minutes: 3
         run: npm run audit:prod

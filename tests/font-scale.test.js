@@ -297,6 +297,28 @@ test('字号降级契约：每个 calc 字号前必须有字面量原值', () =>
   assert.deepEqual(failures, [], `缺少字面量降级：\n${failures.join('\n')}`)
 })
 
+test('字号：grow / works / campus 内容页根节点挂载 fsClass', () => {
+  const pages = [
+    'subpackages/grow/pages/home/index',
+    'subpackages/grow/pages/greeting/index',
+    'subpackages/grow/pages/profile/index',
+    'subpackages/grow/pages/about/index',
+    'subpackages/grow/pages/skills/index',
+    'subpackages/grow/pages/cockpit/index',
+    'subpackages/grow/pages/legal/index',
+    'subpackages/works/pages/hub/index',
+    'subpackages/works/pages/list/index',
+    'subpackages/works/pages/detail/index',
+    'subpackages/campus/pages/detail/index',
+  ]
+
+  for (const page of pages) {
+    assert.ok(read(`${page}.wxml`).includes('{{fsClass}}'), `${page}.wxml 缺少 fsClass`)
+    assert.match(read(`${page}.ts`), /fontScaleClass/, `${page}.ts 缺少 fontScaleClass`)
+    assert.match(read(`${page}.ts`), /syncFontScaleClass/, `${page}.ts 缺少 syncFontScaleClass`)
+  }
+})
+
 test('帮助页契约：单一卡片模板，搜索结果复用 groups', () => {
   const wxml = read('subpackages/grow/pages/help/index.wxml')
   assert.equal((wxml.match(/class="help-card"/g) || []).length, 1)

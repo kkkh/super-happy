@@ -7,6 +7,7 @@
 import { createStoreBindings } from 'mobx-miniprogram-bindings'
 import { resumeStore } from '../../../../core/stores/resume'
 import { uiStore } from '../../../../core/stores/ui'
+import { fontScaleClass, syncFontScaleClass } from '../../../../core/services/font-scale'
 import { fetchProjectById, galleryCount } from '../../../../core/services/resume'
 import { tapSuccess, tapTick, tapWarn } from '../../../../core/utils/haptics'
 import type { Project } from '../../../../core/types/index'
@@ -39,6 +40,7 @@ Page({
     shotCount: 0,
     themeClass: '',
     isDark: uiStore.resolvedTheme === 'dark',
+    fsClass: fontScaleClass(),
     coverError: false,
   },
 
@@ -88,6 +90,10 @@ Page({
         this.setData({ notFound: true })
         uiStore.showToast('作品详情加载失败，请稍后重试')
       })
+  },
+
+  onShow() {
+    this.setData({ fsClass: syncFontScaleClass() })
   },
 
   onUnload() {

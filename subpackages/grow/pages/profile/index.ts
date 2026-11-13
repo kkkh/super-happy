@@ -4,6 +4,7 @@
    ========================================================================== */
 import { createStoreBindings } from 'mobx-miniprogram-bindings'
 import { uiStore } from '../../../../core/stores/ui'
+import { fontScaleClass, syncFontScaleClass } from '../../../../core/services/font-scale'
 import { resumeStore } from '../../../../core/stores/resume'
 import { fetchContactLinks } from '../../../../core/services/resume'
 import { paletteFor, TIMING } from '../../../../core/constants/index'
@@ -55,6 +56,7 @@ interface ProfileData {
   profile: Profile | null
   links: ContactLink[]
   themeClass: string
+  fsClass: string
   cardShow: boolean
   cardRendering: boolean
   cardSaving: boolean
@@ -94,6 +96,7 @@ Page<ProfileData, ProfileState>({
     profile: null,
     links: [] as ContactLink[],
     themeClass: '',
+    fsClass: fontScaleClass(),
     cardShow: false,
     cardRendering: false,
     cardSaving: false,
@@ -153,6 +156,10 @@ Page<ProfileData, ProfileState>({
         }
         uiStore.showToast('联系信息加载失败，请稍后重试')
       })
+  },
+
+  onShow() {
+    this.setData({ fsClass: syncFontScaleClass() })
   },
 
   onUnload() {

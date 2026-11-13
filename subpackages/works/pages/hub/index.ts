@@ -5,6 +5,7 @@
 import { createStoreBindings } from 'mobx-miniprogram-bindings'
 import { resumeStore } from '../../../../core/stores/resume'
 import { uiStore } from '../../../../core/stores/ui'
+import { fontScaleClass, syncFontScaleClass } from '../../../../core/services/font-scale'
 import { fetchCategories } from '../../../../core/services/resume'
 import { routeTo } from '../../../../core/constants/index'
 import { tapTick } from '../../../../core/utils/haptics'
@@ -38,6 +39,7 @@ Page({
     counts: { actual: 0, personal: 0 } as Record<string, number>,
     favoriteCount: 0,
     themeClass: '',
+    fsClass: fontScaleClass(),
     loading: true,
   },
 
@@ -86,6 +88,7 @@ Page({
   },
 
   onShow() {
+    this.setData({ fsClass: syncFontScaleClass() })
     const state = this as unknown as HubState
     state.navigating = false
   },

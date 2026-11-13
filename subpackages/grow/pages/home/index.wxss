@@ -37,6 +37,7 @@
 
 .home_micro {
   font-size: 20rpx;
+  font-size: calc(20rpx * var(--fs-scale, 1));
   letter-spacing: 3rpx;
   font-weight: 600;
 }
@@ -68,6 +69,7 @@
 
 .home_name {
   font-size: 104rpx;
+  font-size: calc(104rpx * var(--fs-scale, 1));
   font-weight: 800;
   color: var(--g-ink);
   letter-spacing: 8rpx;
@@ -92,6 +94,7 @@
 
 .home_loc_text {
   font-size: 24rpx;
+  font-size: calc(24rpx * var(--fs-scale, 1));
   color: var(--g-ink-3);
   letter-spacing: 2rpx;
 }
@@ -100,6 +103,7 @@
   display: block;
   margin-top: 40rpx;
   font-size: 40rpx;
+  font-size: calc(40rpx * var(--fs-scale, 1));
   font-weight: 600;
   color: var(--g-ink-2);
   letter-spacing: 4rpx;
@@ -163,6 +167,7 @@
 
 .home_entry_no {
   font-size: 22rpx;
+  font-size: calc(22rpx * var(--fs-scale, 1));
   font-weight: 700;
   color: var(--g-ink-5);
   letter-spacing: 2rpx;
@@ -203,6 +208,7 @@
 
 .home_entry_title {
   font-size: 32rpx;
+  font-size: calc(32rpx * var(--fs-scale, 1));
   font-weight: 700;
   color: var(--g-ink);
   letter-spacing: 2rpx;
@@ -210,6 +216,7 @@
 
 .home_entry_sub {
   font-size: 22rpx;
+  font-size: calc(22rpx * var(--fs-scale, 1));
   color: var(--g-ink-3);
   letter-spacing: 1rpx;
 }

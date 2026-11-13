@@ -67,6 +67,8 @@ export const TIMING = {
 export const LIMITS = {
   TEXT_INPUT: 20000,
   MEDIA_SOURCE_BYTES: 50 * 1024 * 1024,
+  /** 单张图片最大像素数：与压缩 / 照片编辑的 12MP 上限保持一致 */
+  MEDIA_SOURCE_PIXELS: 12_000_000,
 } as const
 
 /** 页面标题表：返回历史菜单与导航题字复用（键为无参路由） */
