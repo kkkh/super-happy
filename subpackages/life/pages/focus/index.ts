@@ -9,6 +9,7 @@ import { createStoreBindings } from 'mobx-miniprogram-bindings'
 import { reaction } from 'mobx-miniprogram'
 import { uiStore } from '../../../../core/stores/ui'
 import { preferenceStore } from '../../../../core/stores/preference'
+import { useMotion } from '../../../../core/services/motion'
 import { historyStore } from '../../../../core/stores/history'
 import { ROUTES } from '../../../../core/constants/index'
 import { logger } from '../../../../core/utils/logger'
@@ -505,7 +506,7 @@ Page({
         lowMemory: uiStore.lowMemory,
         devtools,
         flipAvailable: runtime.motionAvailable,
-        motionSaver: preferenceStore.motion === 'saver',
+        motionSaver: useMotion().level === 'saver',
         ringCanvasMounted: !devtools && !uiStore.lowMemory,
         tagDraft: DEFAULT_TAG,
         tagDisplay: DEFAULT_TAG,
@@ -546,7 +547,7 @@ Page({
             !this.data.setupOpen &&
             !runtime.blackScreen &&
             !this.data.glitchActive &&
-            preferenceStore.motion !== 'saver' &&
+            useMotion().level !== 'saver' &&
             !uiStore.lowMemory
           ) {
             this.safeDrawRing()
@@ -1100,7 +1101,7 @@ Page({
     let clock = formatClock(25 * 60 * 1000)
     let progress = 1
     let ringTone: 'cool' | 'warm' | 'danger' = 'cool'
-    let breathOn = preferenceStore.motion !== 'saver' && !uiStore.lowMemory
+    let breathOn = useMotion().level !== 'saver' && !uiStore.lowMemory
     let ringDim = false
     let chipLabel = 'READY'
     let chipTone: 'cool' | 'warm' | 'danger' = 'cool'
@@ -1243,7 +1244,7 @@ Page({
       secondaryHidden,
       guardBlocked,
       lowMemory: uiStore.lowMemory,
-      motionSaver: preferenceStore.motion === 'saver',
+      motionSaver: useMotion().level === 'saver',
     })
 
     const animate =
@@ -1252,7 +1253,7 @@ Page({
       !setupOpen &&
       !runtime.blackScreen &&
       !this.data.glitchActive &&
-      preferenceStore.motion !== 'saver' &&
+      useMotion().level !== 'saver' &&
       !uiStore.lowMemory
     if (animate && (session?.fsm === 'focusing' || session?.fsm === 'breaking')) {
       this.startRingLoop()
@@ -1260,7 +1261,7 @@ Page({
       this.stopRingLoop(false)
       /* saver / lowMemory 只保留 CSS 静态环；被全屏层遮住时不做无用重绘 */
       if (
-        preferenceStore.motion !== 'saver' &&
+        useMotion().level !== 'saver' &&
         !uiStore.lowMemory &&
         !reportOpen &&
         !setupOpen &&
@@ -2376,13 +2377,13 @@ Page({
       focusRemainingMs(runtime.session as FocusSession, Date.now()) > 0 &&
       Boolean(runtime.session?.audio.bgm) &&
       preferenceStore.sound &&
-      preferenceStore.motion !== 'saver'
+      useMotion().level !== 'saver'
     )
   },
 
   applyAudioForFocus(): void {
     const runtime = this as unknown as FocusPageRuntime
-    if (!preferenceStore.sound || preferenceStore.motion === 'saver') {
+    if (!preferenceStore.sound || useMotion().level === 'saver') {
       runtime.audio.setTracks([])
       runtime.bgm.stop()
       return
@@ -2737,7 +2738,7 @@ Page({
       return
     }
     /* saver / lowMemory 只保留 CSS 静态环，避免露出未重绘的 Canvas 旧帧 */
-    if (preferenceStore.motion === 'saver' || uiStore.lowMemory) {
+    if (useMotion().level === 'saver' || uiStore.lowMemory) {
       this.setData({ ringCanvasActive: false })
       return
     }
@@ -2754,7 +2755,7 @@ Page({
     saveFocusSession(runtime.session, runtime.key)
     const staticMode =
       !preferenceStore.lightEffects ||
-      preferenceStore.motion === 'saver' ||
+      useMotion().level === 'saver' ||
       uiStore.lowMemory
     this.stopRingLoop(true)
     this.setData({
@@ -2778,7 +2779,7 @@ Page({
         runtime.session.fsm === 'focusing' &&
         !runtime.blackScreen
       ) {
-        if (preferenceStore.motion === 'saver' || uiStore.lowMemory) {
+        if (useMotion().level === 'saver' || uiStore.lowMemory) {
           this.setData({ ringCanvasActive: false })
         } else {
           this.setData({ ringCanvasActive: true })
@@ -3140,7 +3141,7 @@ Page({
     if (
       !runtime.visible ||
       !this.data.canvasReady ||
-      preferenceStore.motion === 'saver' ||
+      useMotion().level === 'saver' ||
       uiStore.lowMemory ||
       runtime.blackScreen ||
       this.data.glitchActive ||
@@ -3165,7 +3166,7 @@ Page({
         this.data.glitchActive ||
         runtime.reportOpen ||
         Boolean(this.data.setupOpen) ||
-        preferenceStore.motion === 'saver' ||
+        useMotion().level === 'saver' ||
         uiStore.lowMemory
       ) {
         this.stopRingLoop(false)
@@ -3290,7 +3291,7 @@ Page({
 
   /** saver 模式不震动；其余走全局 haptics / sound 接管 */
   feedback(kind: 'tick' | 'success' | 'warn'): void {
-    if (preferenceStore.motion === 'saver') {
+    if (useMotion().level === 'saver') {
       return
     }
     if (kind === 'success') {

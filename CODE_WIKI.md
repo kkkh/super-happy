@@ -616,7 +616,8 @@ export const uiStore = observable({
 - `initTheme()` 幂等；读取 `gallery.theme.mode`，无值保持 `auto`。
 - 系统外观读取失败回退 `dark`（品牌默认基调）。
 - `markThemeSwitching()` 只在昼↔夜真实翻转时置 `true`，420ms 后收口。
-- `themeClass` = `theme-dark|theme-light` + `motion-full|lite|saver` + 可选 `light-off`。
+- `themeClass` = `theme-dark|theme-light` + `motion-full|lite|saver` + 可选 `light-off`；`motion-*` 取「用户档位」与「设备档位上限（高=full / 中=lite / 低=saver）」的较低者。
+- 设备档位由 `core/utils/device-tier.ts` 判定：`getDeviceBenchmarkInfo.modelLevel` > `benchmarkLevel` > `memorySize`；开发者工具与未知设备一律高档；结果缓存 `device:tier.v1`。
 - `syncNativeChrome()` 负责 `setNavigationBarColor` 与 `setBackgroundColor`；需要原生状态栏同步的页面在 `onShow` 调用，工具页由 `glass-tool-shell` 的 `pageLifetimes.show` 统一调用。
 - 低内存模式由 `App.onMemoryWarning` 触发，页面 / 组件据此关闭 Canvas 动画。
 
@@ -626,7 +627,7 @@ export const uiStore = observable({
 
 ```ts
 type HapticLevel = 'off' | 'light' | 'heavy'
-type MotionLevel = 'full' | 'lite' | 'saver'
+type MotionLevel = 'auto' | 'full' | 'lite' | 'saver'
 type AutoCleanDays = 0 | 7 | 30
 type FontScale = 'standard' | 'large' | 'xlarge'
 
@@ -652,7 +653,7 @@ interface PreferenceSnapshot {
   haptics: 'light',
   sound: true,
   lightEffects: true,
-  motion: 'full',
+  motion: 'auto',
   autoCleanDays: 30,
   isPrivacyMasked: true,
   isHistoryTrackingEnabled: true,
@@ -681,7 +682,7 @@ interface PreferenceSnapshot {
 归一化兼容：
 
 - 布尔 / 数字 / 旧字符串三套 `haptics` 写法。
-- `motion` 兼容 `reduceMotion`、`animation`、`motionLevel`。
+- `motion` 兼容 `reduceMotion`、`animation`、`motionLevel`；`auto` 表示按设备档位自动匹配。
 - `autoCleanDays` 兼容 `autoClearDays`、`cleanDays`、`retentionDays`。
 - `fontScale` 兼容 `normal / default / 标准`、`big / 大`、`huge / 特大` 与 `1 / 1.15 / 1.3` 数值。
 - 未知 Feature Flag 不会注入运行时。
@@ -982,6 +983,7 @@ send<T>(request: TransportRequest<T>): Promise<Result<T>>
 | `core/utils/logger.ts` | `logger.info/warn/error` | 统一 `[gallery][domain]` 前缀；`info` 仅开发者工具输出 |
 | `core/utils/blackbox.ts` | `recordDiagnostic(kind, error, level)` | 本地错误黑匣子，环形 20 条 |
 | `core/utils/perf.ts` | `startPerfSampling`、`readPerfSamples`、`mergePerfEntries` | 冷启动采样：`appLaunch` / `firstRender` / FP / FCP / LCP / `downloadPackage`；抽样 20%，环形 40 条，3s 防抖异步落盘 `perf:samples.v1` |
+| `core/utils/device-tier.ts` | `bootstrapDeviceTier`、`startDeviceTierDetection`、`effectiveMotion`、`isMotionCapped`、`dismissMotionHint` | 设备档位（高/中/低）与动效上限：机型档位 > 性能分 > 内存；未知回退高档；上限表 high=full / mid=lite / low=saver；限档提示可关闭（`device:tier.hintDismissed.v1`） |
 | `core/utils/haptics.ts` | `vibrate`、`tapTick`、`tapSuccess`、`tapWarn`、`useHaptics` | 震动 + 语义音效统一出口，受偏好档位控制 |
 | `core/utils/album.ts` | `saveImageToAlbum`、`albumFailureMessage` | 相册保存、授权补救、失败归一化 |
 | `core/utils/privacy.ts` | `ensurePrivacyAuthorized()` | 敏感 API 前置隐私授权 |
@@ -2992,7 +2994,7 @@ glass-tool-shell.onGeneratePoster()
 | 控制中枢 `CTRL / 01` | 当前运行模式、最近使用数量、本机缓存、`preferenceStore.statusText` |
 | 极客实验室 `EXPERIMENTAL` | 快速上手、数据星系、Auto-Pilot、Time Travel、Sliced Transport、AES Vault、Event Stream |
 | 感官体验 `SENSORY / 01` | 系统音效、物理震动（关闭 / 轻震 / 重震） |
-| 视觉与性能 `VISION / 02` | 动态光效、动画强度（全效 / 精简 / 省电） |
+| 视觉与性能 `VISION / 02` | 动态光效、动画强度（自动 / 全效 / 精简 / 省电） |
 | 存储与数据 `STORAGE / 03` | 数据驾驶舱入口、全息专注入口 / 清空专注数据、本机缓存、备份与恢复（导出 / 导入 / 删除 JSON 备份）、自动清理最近使用（7 / 30 / 永不）、仅清空最近使用 |
 | 隐私中心 `PRIVACY / 04` | 定位 / 相册 / 隐私指引状态、跳转系统设置与微信指引、版本变更提示、导出本机数据、清除工具数据、重置全部 |
 | 实验室 `LAB / 05` | 保留分区 |

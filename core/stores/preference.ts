@@ -11,7 +11,7 @@ import type { FavoriteSort } from '../toolbox/types'
 import { logger } from '../utils/logger'
 
 export type HapticLevel = 'off' | 'light' | 'heavy'
-export type MotionLevel = 'full' | 'lite' | 'saver'
+export type MotionLevel = 'auto' | 'full' | 'lite' | 'saver'
 /** 0 表示永不清理；7 / 30 为天数阈值 */
 export type AutoCleanDays = 0 | 7 | 30
 /** 全局字号档：只缩放字号与行高，不缩放布局、图标与 Canvas */
@@ -41,7 +41,7 @@ export interface PreferenceSnapshot {
 }
 
 export const HAPTIC_LEVELS: HapticLevel[] = ['off', 'light', 'heavy']
-export const MOTION_LEVELS: MotionLevel[] = ['full', 'lite', 'saver']
+export const MOTION_LEVELS: MotionLevel[] = ['auto', 'full', 'lite', 'saver']
 export const AUTO_CLEAN_LEVELS: AutoCleanDays[] = [7, 30, 0]
 export const FONT_SCALES: FontScale[] = ['standard', 'large', 'xlarge']
 
@@ -52,6 +52,7 @@ export const HAPTIC_LABELS: Record<HapticLevel, string> = {
 }
 
 export const MOTION_LABELS: Record<MotionLevel, string> = {
+  auto: '自动',
   full: '全效',
   lite: '精简',
   saver: '省电',
@@ -82,7 +83,7 @@ export const DEFAULT_PREFERENCE: PreferenceSnapshot = {
   haptics: 'light',
   sound: true,
   lightEffects: true,
-  motion: 'full',
+  motion: 'auto',
   autoCleanDays: 30,
   isPrivacyMasked: true,
   isHistoryTrackingEnabled: true,

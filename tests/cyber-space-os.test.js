@@ -365,7 +365,7 @@ test('TimeTravel：穿越可回滚偏好 / 收藏 / 历史', async () => {
   const engine = new engineModule.TimeTravelEngine(10)
 
   preference.preferenceStore.init()
-  preference.preferenceStore.setMotionIndex(2)
+  preference.preferenceStore.setMotion('saver')
   preference.preferenceStore.setAutoCleanDays(7)
   toolbox.toolboxStore.favorites = ['unit', 'tax']
   toolbox.toolboxStore.recents = ['unit']
@@ -376,7 +376,7 @@ test('TimeTravel：穿越可回滚偏好 / 收藏 / 历史', async () => {
   ui.uiStore.setThemeMode('light')
   assert.ok(engine.capture('回滚点'))
 
-  preference.preferenceStore.setMotionIndex(0)
+  preference.preferenceStore.setMotion('auto')
   preference.preferenceStore.setAutoCleanDays(30)
   toolbox.toolboxStore.favorites = []
   toolbox.toolboxStore.recents = []

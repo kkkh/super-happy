@@ -769,7 +769,7 @@
             <view class="settings-slider__head">
               <view class="settings-slider__copy">
                 <text class="settings-slider__title">动画强度</text>
-                <text class="settings-slider__sub">低端机建议「省电」，旗舰机可保持「全效」</text>
+                <text class="settings-slider__sub">默认「自动」按设备性能匹配，也可手动指定</text>
               </view>
               <text class="settings-slider__value">{{motionPreview}}</text>
             </view>
@@ -777,7 +777,7 @@
             <glass-slider
               value="{{motionIndex}}"
               min="0"
-              max="2"
+              max="3"
               step="1"
               marks="{{motionMarks}}"
               aria-label="动画强度"
@@ -788,6 +788,17 @@
             <text class="settings-hint">
               省电模式会关闭陀螺仪视差、动态极光与大部分过渡，仅保留必要状态反馈。
             </text>
+
+            <view wx:if="{{motionHint}}" class="settings-motion-hint">
+              <text class="settings-motion-hint__text">{{motionHint}}</text>
+              <view
+                class="settings-motion-hint__close"
+                bindtap="onDismissMotionHint"
+                aria-label="关闭设备限档提示"
+              >
+                <text class="settings-motion-hint__close-glyph">×</text>
+              </view>
+            </view>
           </view>
 
           <view class="settings-divider"></view>

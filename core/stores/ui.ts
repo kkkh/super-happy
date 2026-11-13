@@ -8,6 +8,12 @@ import { observable } from 'mobx-miniprogram'
 import type { ResolvedTheme, ThemeMode } from '../types/index'
 import { STORAGE_KEYS, TIMING } from '../constants/index'
 import { preferenceStore } from './preference'
+import {
+  bootstrapDeviceTier,
+  effectiveMotion,
+  startDeviceTierDetection,
+  type DeviceTier,
+} from '../utils/device-tier'
 
 const THEME_MODES: ThemeMode[] = ['auto', 'light', 'dark']
 
@@ -79,6 +85,21 @@ export const uiStore = observable({
     this.lowMemory = true
   },
 
+  /* ---- 设备性能档位：决定动效上限，检测失败保持高档 ---- */
+  deviceTier: 'high' as DeviceTier,
+  deviceTierInited: false,
+  /** 启动调用一次：同步档位先行，异步机型档位到达后刷新 */
+  initDeviceTier(): void {
+    if (this.deviceTierInited) {
+      return
+    }
+    this.deviceTierInited = true
+    this.deviceTier = bootstrapDeviceTier()
+    startDeviceTierDetection((tier) => {
+      this.deviceTier = tier
+    })
+  },
+
   /** 生效主题：手动直取，auto 跟随系统 */
   get resolvedTheme(): ResolvedTheme {
     return this.themeMode === 'auto' ? this.systemTheme : this.themeMode
@@ -87,14 +108,10 @@ export const uiStore = observable({
   /** 页面根节点主题类（唯一挂载点）；同时挂载动效 / 光效全局降级类 */
   get themeClass(): string {
     const theme = this.resolvedTheme === 'dark' ? 'theme-dark' : 'theme-light'
-    const motion =
-      preferenceStore.motion === 'saver'
-        ? 'motion-saver'
-        : preferenceStore.motion === 'lite'
-          ? 'motion-lite'
-          : 'motion-full'
+    const motionLevel = effectiveMotion(preferenceStore.motion, this.deviceTier)
+    const motion = `motion-${motionLevel}`
     /* 省电模式强制关闭极光，与「动态光效」开关是 OR 关系 */
-    const lightOff = !preferenceStore.lightEffects || preferenceStore.motion === 'saver'
+    const lightOff = !preferenceStore.lightEffects || motionLevel === 'saver'
     return `${theme} ${motion}${lightOff ? ' light-off' : ''}`
   },
 
