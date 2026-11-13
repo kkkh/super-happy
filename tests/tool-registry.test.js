@@ -85,16 +85,26 @@ test('ToolMeta v2：字段完整、唯一、路由真实存在', async () => {  
   }
 })
 
-test('联网工具：显式声明 online，可被 getTool 查询', async () => {
+test('联网模式：required / refresh 显式声明，可被 getTool 查询', async () => {
   const { TOOLS, getTool } = await import(`${URL_ROOT}core/toolbox/registry.ts`)
-  const onlineIds = TOOLS.filter((tool) => tool.online)
-    .map((tool) => tool.id)
-    .sort()
+  const modes = TOOLS.filter((tool) => tool.network)
+    .map((tool) => [tool.id, tool.network])
+    .sort((left, right) => left[0].localeCompare(right[0]))
 
-  assert.deepEqual(onlineIds, ['fx-manual', 'qweather', 'weather', 'web-search'])
-  onlineIds.forEach((id) => {
-    assert.equal(getTool(id)?.online, true, `${id} 应标记 online`)
-  })
-  assert.equal(getTool('unit')?.online, undefined, '本地工具不得声明 online')
+  assert.deepEqual(modes, [
+    ['fx-manual', 'refresh'],
+    ['qweather', 'refresh'],
+    ['weather', 'refresh'],
+    ['web-search', 'required'],
+  ])
+  for (const tool of TOOLS) {
+    if (tool.network !== undefined) {
+      assert.ok(
+        tool.network === 'required' || tool.network === 'refresh',
+        `${tool.id} network 非法：${tool.network}`,
+      )
+    }
+  }
+  assert.equal(getTool('unit')?.network, undefined, '本地工具不得声明 network')
   assert.equal(getTool('not-exist'), undefined, '未注册 id 必须返回 undefined')
 })

@@ -12,6 +12,9 @@ export type FavoriteSort = 'recent' | 'name' | 'category'
 /** 隐私 / 金融 / 健康提示类型，由外壳统一渲染 */
 export type ToolSensitivity = '' | 'privacy' | 'personal' | 'finance' | 'health'
 
+/** 联网模式：required 必须联网；refresh 可离线使用（手动 / 缓存），联网仅用于刷新 */
+export type ToolNetworkMode = 'required' | 'refresh'
+
 export interface ToolMeta {
   id: string
   name: string
@@ -29,8 +32,8 @@ export interface ToolMeta {
   privacyNote?: string
   /** 可选：即使 sensitive 为空也不写草稿（如带时薪的工时工具） */
   draftExcluded?: boolean
-  /** 需要联网才能使用；离线时卡片置灰并拦截跳转 */
-  online?: boolean
+  /** 联网模式；未声明表示纯本地工具 */
+  network?: ToolNetworkMode
   /** 搜索排序权重 0–100，越大越靠前 */
   weight: number
 }

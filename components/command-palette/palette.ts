@@ -7,7 +7,7 @@
 import { observable } from 'mobx-miniprogram'
 import { ROUTES } from '../../core/constants/index'
 import { TOOLS } from '../../core/toolbox/registry'
-import type { ToolCategory } from '../../core/toolbox/types'
+import type { ToolCategory, ToolNetworkMode } from '../../core/toolbox/types'
 
 export type PaletteRouteMode = 'navigateTo' | 'switchTab'
 
@@ -21,8 +21,8 @@ export interface PaletteCommand {
   mode: PaletteRouteMode
   params?: Record<string, string>
   category?: string
-  /** 需要联网的工具：离线时拦截跳转 */
-  online?: boolean
+  /** 联网模式：required 离线拦截；refresh 允许打开 */
+  network?: ToolNetworkMode
   weight: number
 }
 
@@ -75,7 +75,7 @@ const TOOL_COMMANDS: PaletteCommand[] = TOOLS.map((tool) => ({
   route: tool.route,
   mode: 'navigateTo',
   category: CATEGORY_LABELS[tool.category],
-  online: Boolean(tool.online),
+  network: tool.network,
   weight: tool.weight,
 }))
 

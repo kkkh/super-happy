@@ -365,7 +365,7 @@ Component({
         return
       }
 
-      if (command.online && networkStore.offline) {
+      if (command.network === 'required' && networkStore.offline) {
         showGlassToast({
           message: '当前离线，联网后可打开',
           type: 'warning',

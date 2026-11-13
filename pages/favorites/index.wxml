@@ -58,15 +58,15 @@
           <view
             wx:for="{{tools}}"
             wx:key="id"
-            class="fav-item {{manageMode ? 'fav-item--manage' : ''}} {{selectedMap[item.id] ? 'fav-item--selected' : ''}} {{offline && item.online ? 'fav-item--offline' : ''}}"
-            hover-class="{{!manageMode && offline && item.online ? 'none' : 'fav-item--press'}}"
+            class="fav-item {{manageMode ? 'fav-item--manage' : ''}} {{selectedMap[item.id] ? 'fav-item--selected' : ''}} {{offline && item.network === 'required' ? 'fav-item--offline' : ''}}"
+            hover-class="{{!manageMode && offline && item.network === 'required' ? 'none' : 'fav-item--press'}}"
             hover-start-time="0"
             hover-stay-time="120"
             data-route="{{item.route}}"
             data-id="{{item.id}}"
             aria-role="{{manageMode ? 'checkbox' : 'button'}}"
             aria-checked="{{selectedMap[item.id] ? true : false}}"
-            aria-disabled="{{!manageMode && offline && item.online}}"
+            aria-disabled="{{!manageMode && offline && item.network === 'required'}}"
             aria-label="{{manageMode ? '选择' + item.name : item.name + '，' + item.desc}}"
             bindtap="onRowTap"
           >
@@ -79,7 +79,8 @@
             <view class="fav-copy">
               <text class="fav-name">{{item.name}}</text>
               <text class="fav-meta">{{item.desc}}</text>
-              <text wx:if="{{offline && item.online}}" class="fav-offline-tag">离线</text>
+              <text wx:if="{{offline && item.network === 'required'}}" class="fav-offline-tag">离线不可用</text>
+              <text wx:elif="{{offline && item.network === 'refresh'}}" class="fav-net-tag">需联网更新</text>
             </view>
 
             <view

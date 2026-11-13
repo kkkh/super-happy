@@ -115,13 +115,13 @@
         <view
           wx:for="{{recents}}"
           wx:key="id"
-          class="recent-pill {{offline && item.online ? 'recent-pill_offline' : ''}}"
-          hover-class="{{offline && item.online ? 'none' : 'recent-pill--press'}}"
+          class="recent-pill {{offline && item.network === 'required' ? 'recent-pill_offline' : ''}}"
+          hover-class="{{offline && item.network === 'required' ? 'none' : 'recent-pill--press'}}"
           hover-start-time="0"
           hover-stay-time="120"
           data-id="{{item.id}}"
           aria-role="button"
-          aria-disabled="{{offline && item.online}}"
+          aria-disabled="{{offline && item.network === 'required'}}"
           aria-label="打开{{item.name}}"
           bindtap="onOpenTool"
         >
@@ -163,7 +163,7 @@
       class="home-search__icon"
       type="search"
       size="18"
-      color="{{themeClass === 'theme-dark' ? 'rgba(255, 255, 255, 0.55)' : 'rgba(0, 0, 0, 0.45)'}}"
+      color="{{isDark ? 'rgba(255, 255, 255, 0.55)' : 'rgba(0, 0, 0, 0.45)'}}"
     />
     <input
       class="home-search__input"
@@ -187,7 +187,7 @@
       <icon
         type="clear"
         size="16"
-        color="{{themeClass === 'theme-dark' ? 'rgba(255, 255, 255, 0.55)' : 'rgba(0, 0, 0, 0.35)'}}"
+        color="{{isDark ? 'rgba(255, 255, 255, 0.55)' : 'rgba(0, 0, 0, 0.35)'}}"
       />
     </view>
   </view>
@@ -260,17 +260,17 @@
         <view
           wx:for="{{recommendedTools}}"
           wx:key="id"
-          class="home-empty__chip {{offline && item.online ? 'home-empty__chip_offline' : ''}}"
+          class="home-empty__chip {{offline && item.network === 'required' ? 'home-empty__chip_offline' : ''}}"
           data-route="{{item.route}}"
           data-id="{{item.id}}"
           bindtap="onOpenTool"
           aria-role="button"
-          aria-disabled="{{offline && item.online}}"
+          aria-disabled="{{offline && item.network === 'required'}}"
           aria-label="打开{{item.name}}"
         >{{item.name}}</view>
       </view>
       <view
-        wx:if="{{webReady}}"
+        wx:if="{{webReady && !offline}}"
         class="home-empty__web"
         bindtap="onOpenWebSearch"
         aria-role="button"
@@ -282,15 +282,15 @@
       <view
         wx:for="{{results}}"
         wx:key="id"
-        class="tool-item {{offline && item.online ? 'tool-item_offline' : ''}}"
-        hover-class="{{offline && item.online ? 'none' : 'tool-item_pressed'}}"
+        class="tool-item {{offline && item.network === 'required' ? 'tool-item_offline' : ''}}"
+        hover-class="{{offline && item.network === 'required' ? 'none' : 'tool-item_pressed'}}"
         hover-start-time="0"
         hover-stay-time="120"
         data-route="{{item.route}}"
         data-id="{{item.id}}"
         bindtap="onOpenTool"
         aria-role="button"
-        aria-disabled="{{offline && item.online}}"
+        aria-disabled="{{offline && item.network === 'required'}}"
         aria-label="打开{{item.name}}"
       >
         <view class="tool-icon" aria-hidden="true">
@@ -300,7 +300,8 @@
         <view class="tool-copy">
           <text class="tool-name">{{item.name}}</text>
           <text class="tool-desc">{{item.desc}}</text>
-          <text wx:if="{{offline && item.online}}" class="tool-offline-tag">离线</text>
+          <text wx:if="{{offline && item.network === 'required'}}" class="tool-offline-tag">离线不可用</text>
+          <text wx:elif="{{offline && item.network === 'refresh'}}" class="tool-net-tag">需联网更新</text>
         </view>
 
         <view
@@ -316,7 +317,7 @@
     </view>
 
     <!-- 全网结果：本地工具之外，按需调用腾讯云元宝搜索 -->
-    <view wx:if="{{webReady && keyword}}" class="home-web">
+    <view wx:if="{{webReady && keyword && !offline}}" class="home-web">
       <view class="home-web__head">
         <view class="home-web__copy">
           <text class="home-web__title">全网结果</text>
@@ -392,15 +393,15 @@
           wx:for="{{section.tools}}"
           wx:key="id"
           wx:for-item="tool"
-          class="tool-item {{offline && tool.online ? 'tool-item_offline' : ''}}"
-          hover-class="{{offline && tool.online ? 'none' : 'tool-item_pressed'}}"
+          class="tool-item {{offline && tool.network === 'required' ? 'tool-item_offline' : ''}}"
+          hover-class="{{offline && tool.network === 'required' ? 'none' : 'tool-item_pressed'}}"
           hover-start-time="0"
           hover-stay-time="120"
           data-route="{{tool.route}}"
           data-id="{{tool.id}}"
           bindtap="onOpenTool"
           aria-role="button"
-          aria-disabled="{{offline && tool.online}}"
+          aria-disabled="{{offline && tool.network === 'required'}}"
           aria-label="打开{{tool.name}}"
         >
           <view class="tool-icon" aria-hidden="true">
@@ -410,7 +411,8 @@
           <view class="tool-copy">
             <text class="tool-name">{{tool.name}}</text>
             <text class="tool-desc">{{tool.desc}}</text>
-            <text wx:if="{{offline && tool.online}}" class="tool-offline-tag">离线</text>
+            <text wx:if="{{offline && tool.network === 'required'}}" class="tool-offline-tag">离线不可用</text>
+            <text wx:elif="{{offline && tool.network === 'refresh'}}" class="tool-net-tag">需联网更新</text>
           </view>
 
           <view
