@@ -11,6 +11,20 @@
 import type { IPosterData } from '../../core/toolbox/poster'
 import { isDevtools } from '../../core/utils/platform'
 
+/** 海报调试日志：仅开发者工具输出，真机静默，避免生产环境刷 console */
+function posterLog(level: 'log' | 'warn' | 'error', ...args: unknown[]): void {
+  if (!isDevtools()) {
+    return
+  }
+  if (level === 'warn') {
+    console.warn(...args)
+  } else if (level === 'error') {
+    console.error(...args)
+  } else {
+    console.log(...args)
+  }
+}
+
 export type { IPosterData, PosterParam } from '../../core/toolbox/poster'
 
 /** 绘制入参：真实业务数据 + 工具 / 主题元信息 */
@@ -267,23 +281,23 @@ function loadQrSource(
     try {
       image = canvas.createImage()
       image.onload = () => {
-        console.log('【海报调试】二维码图片加载完成:', src)
+        posterLog('log', '【海报调试】二维码图片加载完成:', src)
         finish(image)
       }
       image.onerror = () => {
-        console.warn('【海报调试】二维码图片加载失败:', src)
+        posterLog('warn', '【海报调试】二维码图片加载失败:', src)
         finish(null)
       }
       image.src = src
     } catch (error) {
-      console.warn('【海报调试】模拟器不支持 createImage，使用二维码占位', error)
+      posterLog('warn', '【海报调试】模拟器不支持 createImage，使用二维码占位', error)
       finish(null)
       return
     }
 
     setTimeout(() => {
       if (!settled) {
-        console.warn('【海报调试】二维码图片加载超时:', src)
+        posterLog('warn', '【海报调试】二维码图片加载超时:', src)
       }
       finish(null)
     }, QR_TIMEOUT)
@@ -298,7 +312,7 @@ async function loadQrImage(canvas: PosterCanvas): Promise<PosterImage | null> {
   if (official) {
     return official
   }
-  console.warn('【海报调试】官方小程序码不可用，回退旧海报二维码')
+  posterLog('warn', '【海报调试】官方小程序码不可用，回退旧海报二维码')
   return fallbackPromise
 }
 
@@ -351,7 +365,7 @@ function drawPoster(
   payload: PosterPayload,
   qrImage: PosterImage | null,
 ): void {
-  console.log('【海报调试】开始绘制海报:', payload.toolName)
+  posterLog('log', '【海报调试】开始绘制海报:', payload.toolName)
 
   const dark = payload.theme === 'dark'
   const ink = dark ? '#F5F7FC' : '#141A26'
@@ -527,7 +541,7 @@ function drawPoster(
   ctx.fillText(`— ${quote.source}`, 112, 604)
 
   /* 二维码：纯本地静态图，加载失败时只影响右下角占位 */
-  console.log('【海报调试】开始绘制二维码:', qrImage ? '真实图片' : '占位图形')
+  posterLog('log', '【海报调试】开始绘制二维码:', qrImage ? '真实图片' : '占位图形')
   const qrSize = 84
   const qrX = 348
   const qrY = 584
@@ -588,10 +602,10 @@ function createOffscreenPosterCanvas(dpr: number): PosterCanvas | null {
     }) as unknown as PosterCanvas
     canvas.width = width
     canvas.height = height
-    console.log('【海报调试】离屏 Canvas 创建成功:', width, '×', height)
+    posterLog('log', '【海报调试】离屏 Canvas 创建成功:', width, '×', height)
     return canvas
   } catch (error) {
-    console.warn('【海报调试】离屏 Canvas 创建失败:', error)
+    posterLog('warn', '【海报调试】离屏 Canvas 创建失败:', error)
     return null
   }
 }
@@ -665,7 +679,7 @@ Component({
           finished = true
           clearAttemptTimer()
           clearTimeout(overallTimer)
-          console.log('【海报调试】Canvas 节点获取成功，共尝试', attempts, '次')
+          posterLog('log', '【海报调试】Canvas 节点获取成功，共尝试', attempts, '次')
           resolve(node)
         }
 
@@ -676,7 +690,7 @@ Component({
           finished = true
           clearAttemptTimer()
           clearTimeout(overallTimer)
-          console.error('【海报调试】Canvas 节点获取失败:', message)
+          posterLog('error', '【海报调试】Canvas 节点获取失败:', message)
           reject(new Error(message))
         }
 
@@ -688,7 +702,7 @@ Component({
             fail(`海报 Canvas 初始化失败：${reason}`)
             return
           }
-          console.warn(`【海报调试】${reason}，100ms 后重试（已尝试 ${attempts} 次）`)
+          posterLog('warn', `【海报调试】${reason}，100ms 后重试（已尝试 ${attempts} 次）`)
           setTimeout(() => queryOnce(), RETRY_DELAY)
         }
 
@@ -697,7 +711,7 @@ Component({
             return
           }
           attempts += 1
-          console.log(`【海报调试】查询 Canvas 节点：第 ${attempts} 次`)
+          posterLog('log', `【海报调试】查询 Canvas 节点：第 ${attempts} 次`)
           attemptTimer = setTimeout(() => {
             attemptTimer = 0
             if (!finished) {
@@ -722,7 +736,8 @@ Component({
               const node = record ? record.node : undefined
               const width = record && typeof record.width === 'number' ? record.width : 0
               const height = record && typeof record.height === 'number' ? record.height : 0
-              console.log(
+              posterLog(
+                'log',
                 '【海报调试】Canvas尺寸:',
                 width,
                 height,
@@ -737,7 +752,7 @@ Component({
                 return
               }
               if (attempts >= MAX_ATTEMPTS && node && typeof node.getContext === 'function') {
-                console.warn('【海报调试】尺寸始终为 0，回退逻辑尺寸 480×720 继续绘制')
+                posterLog('warn', '【海报调试】尺寸始终为 0，回退逻辑尺寸 480×720 继续绘制')
                 finish(node)
                 return
               }
@@ -762,7 +777,7 @@ Component({
 
       try {
         const dpr = readPixelRatio()
-        console.log('【海报调试】Canvas尺寸:', POSTER_W, POSTER_H, 'DPR:', dpr)
+        posterLog('log', '【海报调试】Canvas尺寸:', POSTER_W, POSTER_H, 'DPR:', dpr)
 
         let canvas: PosterCanvas
         let usingOffscreen = false
@@ -772,18 +787,18 @@ Component({
           if (fallback) {
             canvas = fallback
             usingOffscreen = true
-            console.log('【海报调试】模拟器通道：离屏 Canvas')
+            posterLog('log', '【海报调试】模拟器通道：离屏 Canvas')
           } else {
             await this.mountCanvas()
             canvas = await this.queryCanvas()
-            console.log('【海报调试】离屏 Canvas 不可用，回退页面 Canvas')
+            posterLog('log', '【海报调试】离屏 Canvas 不可用，回退页面 Canvas')
           }
         } else {
           await this.mountCanvas()
           try {
             canvas = await this.queryCanvas()
           } catch (error) {
-            console.warn('【海报调试】页面 Canvas 不可用，尝试离屏 Canvas', error)
+            posterLog('warn', '【海报调试】页面 Canvas 不可用，尝试离屏 Canvas', error)
             const fallback = createOffscreenPosterCanvas(dpr)
             if (!fallback) {
               throw error
@@ -795,18 +810,18 @@ Component({
 
         canvas.width = POSTER_W * dpr
         canvas.height = POSTER_H * dpr
-        console.log('【海报调试】绘制通道:', usingOffscreen ? '离屏 Canvas' : '页面 Canvas')
+        posterLog('log', '【海报调试】绘制通道:', usingOffscreen ? '离屏 Canvas' : '页面 Canvas')
         const ctx = canvas.getContext('2d')
         if (!ctx) {
           throw new Error('Canvas 2D 上下文不可用')
         }
         ctx.scale(dpr, dpr)
-        console.log('【海报调试】Canvas 2D 上下文就绪，画布像素:', canvas.width, '×', canvas.height)
+        posterLog('log', '【海报调试】Canvas 2D 上下文就绪，画布像素:', canvas.width, '×', canvas.height)
 
         const qrImage = await loadQrImage(canvas)
-        console.log('【海报调试】二维码状态:', qrImage ? '已加载' : '使用占位，继续绘制')
+        posterLog('log', '【海报调试】二维码状态:', qrImage ? '已加载' : '使用占位，继续绘制')
         drawPoster(ctx, payload, qrImage)
-        console.log('【海报调试】绘制完成，开始导出')
+        posterLog('log', '【海报调试】绘制完成，开始导出')
 
         const filePath = await withTimeout(
           new Promise<string>((resolve, reject) => {
@@ -827,14 +842,14 @@ Component({
           12000,
           '海报导出超时',
         )
-        console.log('【海报调试】海报导出成功:', filePath)
+        posterLog('log', '【海报调试】海报导出成功:', filePath)
         return filePath
       } catch (error) {
-        console.error('【海报调试】海报生成失败:', error)
+        posterLog('error', '【海报调试】海报生成失败:', error)
         throw error
       } finally {
         this.setData({ generating: false, canvasMounted: false })
-        console.log('【海报调试】生成流程结束，画布已卸载')
+        posterLog('log', '【海报调试】生成流程结束，画布已卸载')
       }
     },
   },

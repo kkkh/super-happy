@@ -12,6 +12,7 @@
 import { createStoreBindings } from 'mobx-miniprogram-bindings'
 import { showGlassToast } from '../glass-toast/toast'
 import { networkStore } from '../../core/stores/network'
+import { logger } from '../../core/utils/logger'
 import {
   BUILTIN_COMMANDS,
   buildPaletteUrl,
@@ -154,12 +155,13 @@ Component({
       runtime.closeSource = 'programmatic'
 
       /* 数据源校验：内置命令数组必须存在，便于真机日志快速定位阻断 */
-      console.log(
-        '[command-palette] 数据源校验',
+      logger.info(
+        'palette',
+        '数据源校验',
         Array.isArray(BUILTIN_COMMANDS) ? `${BUILTIN_COMMANDS.length} 条` : 'undefined',
       )
       if (!Array.isArray(BUILTIN_COMMANDS) || BUILTIN_COMMANDS.length === 0) {
-        console.error('[command-palette] BUILTIN_COMMANDS 为空，搜索将无法命中')
+        logger.error('palette', 'BUILTIN_COMMANDS 为空，搜索将无法命中')
       }
 
       this.syncCommands()
@@ -199,7 +201,7 @@ Component({
       const commands = [...builtins, ...custom]
 
       if (commands.length === 0) {
-        console.error('[command-palette] 命令池为空：BUILTIN_COMMANDS 或 commands 未初始化')
+        logger.error('palette', '命令池为空：BUILTIN_COMMANDS 或 commands 未初始化')
       }
       return commands
     },
@@ -213,8 +215,9 @@ Component({
         this.data.maxResults,
       )
 
-      console.log(
-        `[command-palette] 数据源 ${commands.length} 条 · 关键词 "${this.data.query}" 命中 ${searchResults.length} 条`,
+      logger.info(
+        'palette',
+        `数据源 ${commands.length} 条 · 关键词 "${this.data.query}" 命中 ${searchResults.length} 条`,
       )
       this.setData({
         allCommands: commands,
@@ -237,8 +240,9 @@ Component({
       const commands = this.buildCommands()
       const searchResults = filterPaletteCommands(commands, '', this.data.maxResults)
 
-      console.log(
-        `[command-palette] 打开面板 · 数据源 ${commands.length} 条 · 首屏命中 ${searchResults.length} 条`,
+      logger.info(
+        'palette',
+        `打开面板 · 数据源 ${commands.length} 条 · 首屏命中 ${searchResults.length} 条`,
       )
 
       this.setData({
@@ -317,8 +321,9 @@ Component({
         this.data.maxResults,
       )
 
-      console.log(
-        `[command-palette] 输入 "${query}" · 数据源 ${commands.length} 条 · 搜索到 ${searchResults.length} 条`,
+      logger.info(
+        'palette',
+        `输入 "${query}" · 数据源 ${commands.length} 条 · 搜索到 ${searchResults.length} 条`,
       )
 
       this.setData({
@@ -341,7 +346,7 @@ Component({
           : this.buildCommands()
       const searchResults = filterPaletteCommands(commands, '', this.data.maxResults)
 
-      console.log(`[command-palette] 清空查询 · 恢复 ${searchResults.length} 条结果`)
+      logger.info('palette', `清空查询 · 恢复 ${searchResults.length} 条结果`)
       this.setData({
         query: '',
         searchResults,
