@@ -467,6 +467,9 @@
     bind:closed="closePalette"
   />
 
+  <!-- 剪贴板属于隐私接口：本页复制全网结果 / 备份码前需要授权弹窗 -->
+  <privacy-guard />
+
   <!-- 版本更新：全局守门组件；深链跳转与指令面板打开期间自动排队 -->
   <update-guard blocked="{{updateNavHold || showPalette}}" />
 

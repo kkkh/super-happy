@@ -4,6 +4,7 @@
   "usingComponents": {
     "g-navbar": "../../../../components/g-navbar/index",
     "glass-bottom-sheet": "../../../../components/glass-bottom-sheet/index",
-    "glass-toast": "../../../../components/glass-toast/index"
+    "glass-toast": "../../../../components/glass-toast/index",
+    "privacy-guard": "../../../../components/privacy-guard/index"
   }
 }

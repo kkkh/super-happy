@@ -159,6 +159,9 @@
 
   <glass-toast z-index="{{1200}}" />
 
+  <!-- 复制诊断包 / 反馈邮箱属于隐私接口：本页需要授权弹窗 -->
+  <privacy-guard />
+
   <!-- 全局更新弹窗：搜索输入期间不阻塞 -->
   <update-guard blocked="{{keyword.length > 0 || feedbackOpen || diagnosticBusy}}" />
 </view>
