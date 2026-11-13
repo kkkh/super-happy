@@ -189,6 +189,14 @@
       "disableABTest": true
     }
   },
+  "preloadRule": {
+    "pages/index/index": {
+      "network": "wifi",
+      "packages": [
+        "subpackages/tools-core"
+      ]
+    }
+  },
   "workers": "workers",
   "sitemapLocation": "sitemap.json"
 }

@@ -9,6 +9,7 @@ import { toolboxStore } from './core/toolbox/store'
 import { historyStore } from './core/stores/history'
 import { ROUTES } from './core/constants/index'
 import { recordDiagnostic } from './core/utils/blackbox'
+import { startPerfSampling } from './core/utils/perf'
 import { runStorageMigrations } from './core/utils/storage-migration'
 import { TOOLS } from './core/toolbox/registry'
 import { setAmbientToolCategoryResolver } from './core/theme/ambient-theme'
@@ -94,6 +95,9 @@ App({
   globalData: UPDATE_GLOBAL_DATA,
 
   onLaunch() {
+    // 0) 性能采样：抽样注册观察器，未命中零开销；API 缺失时静默降级
+    startPerfSampling()
+
     // 0) 全息专注亮度兜底：必须先于任何页面恢复，避免启动瞬间黑屏
     restoreStaleFocusBrightness()
 
