@@ -26,7 +26,7 @@ function moduleUrl(relative) {
 }
 
 async function loadBackup() {
-  return import(moduleUrl('core/services/backup.ts'))
+  return import(moduleUrl('subpackages/grow/lib/backup.ts'))
 }
 
 async function loadPreference() {
@@ -259,7 +259,7 @@ test('备份文件命名与时间展示使用本地时间', async () => {
 })
 
 test('备份服务：只写本机目录，不发起网络请求', () => {
-  const source = fs.readFileSync(path.join(ROOT, 'core/services/backup.ts'), 'utf8')
+  const source = fs.readFileSync(path.join(ROOT, 'subpackages/grow/lib/backup.ts'), 'utf8')
 
   assert.equal(/wx\.request|uploadFile|downloadFile/.test(source), false)
   assert.match(source, /USER_DATA_PATH/)

@@ -7,7 +7,7 @@
    ========================================================================== */
 import { PRIVACY_VERSION, STORAGE_KEYS } from '../../../core/constants/index'
 import { readStorage, removeStorage, writeStorage } from '../../../core/toolbox/storage'
-import { deleteBackupFiles } from '../../../core/services/backup'
+import { deleteBackupFiles } from './backup'
 import { cleanupAllExports } from '../../../core/services/export'
 
 export type PrivacyPermissionKey = 'location' | 'album' | 'privacy'

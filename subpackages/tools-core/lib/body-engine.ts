@@ -4,7 +4,7 @@
    - 只做数值与文案映射，不构成医疗建议
    - bmi 页与 bodyfat 页共用，避免两套区间口径
    ========================================================================== */
-import { clamp } from './money'
+import { clamp } from '../../../core/toolbox/engines/money'
 
 export type BmiCategoryKey = 'under' | 'normal' | 'over' | 'obese'
 

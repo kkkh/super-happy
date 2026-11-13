@@ -24,7 +24,7 @@ registerHooks({
 
 async function loadBodyfat() {
   const bodyfat = await import(`${URL_ROOT}subpackages/tools-daily/lib/bodyfat.ts`)
-  const body = await import(`${URL_ROOT}core/toolbox/engines/body.ts`)
+  const body = await import(`${URL_ROOT}subpackages/tools-core/lib/body-engine.ts`)
   return { bodyfat, body }
 }
 
@@ -140,7 +140,7 @@ test('体脂契约：页面 / 注册 / 帮助 / jump 无注入 / body 引擎 / �
       `缺少页面文件 ${ext}`,
     )
   }
-  assert.ok(fs.existsSync(path.join(ROOT, 'core/toolbox/engines/body.ts')), '缺少 body 共享引擎')
+  assert.ok(fs.existsSync(path.join(ROOT, 'subpackages/tools-core/lib/body-engine.ts')), '缺少 body 共享引擎')
 
   const wxml = read('subpackages/tools-daily/pages/bodyfat/index.wxml')
   assert.match(wxml, /tool-id="bodyfat"/)
@@ -156,7 +156,7 @@ test('体脂契约：页面 / 注册 / 帮助 / jump 无注入 / body 引擎 / �
   assert.equal(/wx\.request|uploadFile|downloadFile/.test(ts), false, '不得联网')
 
   const bmi = read('subpackages/tools-core/pages/bmi/index.ts')
-  assert.match(bmi, /core\/toolbox\/engines\/body/, 'BMI 页未复用共享引擎')
+  assert.match(bmi, /lib\/body-engine/, 'BMI 页未复用共享引擎')
 
   const registry = read('core/toolbox/registry.ts')
   assert.match(registry, /id: 'bodyfat'/)

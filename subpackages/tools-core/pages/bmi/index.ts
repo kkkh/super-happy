@@ -9,7 +9,7 @@ import {
   bmiMarkerPercent,
   bmiOf,
   idealWeightRange,
-} from '../../../../core/toolbox/engines/body'
+} from '../../lib/body-engine'
 import { copyText } from '../../lib/ui'
 import {
   sharePayloadForCurrentPage,

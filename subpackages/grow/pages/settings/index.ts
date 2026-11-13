@@ -44,7 +44,7 @@ import {
   readBackupAt,
   type BackupFailReason,
   type BackupFile,
-} from '../../../../core/services/backup'
+} from '../../lib/backup'
 import {
   FONT_SCALE_OPTIONS,
   applyFontScale,
