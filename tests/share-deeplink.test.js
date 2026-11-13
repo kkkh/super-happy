@@ -8,6 +8,7 @@
    ========================================================================== */
 const test = require('node:test')
 const assert = require('node:assert/strict')
+const fs = require('node:fs')
 const path = require('node:path')
 const { pathToFileURL } = require('node:url')
 const { registerHooks } = require('node:module')
@@ -195,6 +196,15 @@ test('当前页分享：工具页生成对应深链，非工具页回退首页',
     () => share.timelinePayloadForCurrentPage(),
   )
   assert.deepEqual(fallbackTimeline, { title: genericTitle(TOOLS.length), query: '' })
+})
+
+test('首页分享：固定回首页，不把最近使用工具写进路径', () => {
+  const source = fs.readFileSync(path.join(ROOT, 'pages/index/index.ts'), 'utf8')
+  /* 回归防护：首页曾把「最近使用的工具」塞进分享路径，
+     对方打开卡片会直接落到工具页，而不是首页 */
+  assert.match(source, /onShareAppMessage\(\)\s*\{\s*return sharePayloadForTool\(''\)/)
+  assert.match(source, /onShareTimeline\(\)\s*\{\s*return timelinePayloadForTool\(''\)/)
+  assert.doesNotMatch(source, /shareToolId/)
 })
 
 test('深链解析：合法 id、空白包裹与百分号编码全部通过', async () => {

@@ -194,7 +194,6 @@ Component({
     ],
     sections: buildSections([]) as HomeSectionView[],
     recents: [] as ToolMeta[],
-    shareToolId: '',
     /* 原有搜索逻辑未变，此处为新增的魔法棒代码 */
     showPalette: false,
     magicWandSvg: MAGIC_WAND_SVG,
@@ -386,8 +385,6 @@ Component({
       }
       this.setData({
         recents: list,
-        /* 分享默认带最近一个工具，保证始终有 ?tool= 参数 */
-        shareToolId: list.length ? list[0].id : this.data.shareToolId,
         /* 回到首页时才更新，让滚轮与回弹在用户眼前发生，而不是在后台播完 */
         ...(usageChanged
           ? {
@@ -469,7 +466,6 @@ Component({
           url: tool.route,
           success: () => {
             glassStore.recordHistory(tool.id)
-            this.setData({ shareToolId: tool.id })
           },
           fail: (error) => {
             runtime.navigating = false
@@ -766,7 +762,6 @@ Component({
         url: tool.route,
         success: () => {
           glassStore.recordHistory(tool.id)
-          this.setData({ shareToolId: tool.id })
         },
         fail: (error) => {
           runtime.navigating = false
@@ -857,14 +852,14 @@ Component({
       closeCommandPalette()
     },
 
-    /* 此处是处理分享标题与 ?tool=xxx 深链参数的边界 */
+    /* 首页分享固定回首页，不携带工具深链；工具深链由各工具页自行生成 */
     onShareAppMessage() {
-      return sharePayloadForTool(this.data.shareToolId)
+      return sharePayloadForTool('')
     },
 
-    /* 此处是处理朋友圈分享 query 参数与非法工具兜底的边界 */
+    /* 朋友圈同理：只分享首页，避免对方打开后落到某个工具页 */
     onShareTimeline() {
-      return timelinePayloadForTool(this.data.shareToolId)
+      return timelinePayloadForTool('')
     },
   },
 })
