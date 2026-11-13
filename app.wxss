@@ -313,6 +313,13 @@ page {
   /* ---- 强调色上的文字 ---- */
   --glass-on-accent: #ffffff;
   --glass-on-warm: #241505;
+  /* 按钮专用填充：与图表 / 光晕用的 accent 解耦，保证白字或墨字 ≥4.5:1 */
+  --glass-btn-accent: var(--glass-accent);
+  --glass-btn-accent-2: var(--glass-accent-2);
+  --glass-btn-danger: var(--glass-danger);
+  --glass-btn-danger-2: var(--glass-accent-warm);
+  --glass-btn-warm: var(--glass-accent-warm);
+  --glass-btn-warm-2: var(--glass-accent);
 
   /* ---- 噪点 ---- */
   --glass-noise-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.62'/%3E%3C/svg%3E");
@@ -350,6 +357,14 @@ page,
   --glass-accent-2-soft: rgba(110, 231, 200, 0.12);
   --glass-accent-warm-soft: rgba(255, 207, 138, 0.12);
   --glass-danger: #ff7a63;
+  /* 深色按钮：浅底深字，避免白字落在浅紫 / 薄荷 / 珊瑚上 */
+  --glass-on-accent: #0b1020;
+  --glass-btn-accent: #8f9bff;
+  --glass-btn-accent-2: #6ee7c8;
+  --glass-btn-danger: #ff7a63;
+  --glass-btn-danger-2: #ffcf8a;
+  --glass-btn-warm: #ffcf8a;
+  --glass-btn-warm-2: #8f9bff;
   /* 文字专用强调色：与背景 / 边框 / 大图标解耦，保证小字 ≥4.5:1 */
   --glass-accent-text: #8f9bff;
   --glass-accent-2-text: #6ee7c8;
@@ -392,6 +407,13 @@ page,
     --glass-accent-2-soft: rgba(110, 231, 200, 0.12);
     --glass-accent-warm-soft: rgba(255, 207, 138, 0.12);
     --glass-danger: #ff7a63;
+    --glass-on-accent: #0b1020;
+    --glass-btn-accent: #8f9bff;
+    --glass-btn-accent-2: #6ee7c8;
+    --glass-btn-danger: #ff7a63;
+    --glass-btn-danger-2: #ffcf8a;
+    --glass-btn-warm: #ffcf8a;
+    --glass-btn-warm-2: #8f9bff;
     --glass-accent-text: #8f9bff;
     --glass-accent-2-text: #6ee7c8;
     --glass-accent-warm-text: #ffcf8a;
@@ -434,6 +456,13 @@ page,
     --glass-accent-2-soft: rgba(15, 181, 154, 0.12);
     --glass-accent-warm-soft: rgba(217, 154, 50, 0.12);
     --glass-danger: #e85b43;
+    --glass-on-accent: #ffffff;
+    --glass-btn-accent: #4453e0;
+    --glass-btn-accent-2: #067a68;
+    --glass-btn-danger: #b83a26;
+    --glass-btn-danger-2: #8a5a0a;
+    --glass-btn-warm: #d99a32;
+    --glass-btn-warm-2: #ffcf8a;
     --glass-accent-text: #4453e0;
     --glass-accent-2-text: #067a68;
     --glass-accent-warm-text: #8a5a0a;
@@ -475,6 +504,13 @@ page,
   --glass-accent-2-soft: rgba(15, 181, 154, 0.12);
   --glass-accent-warm-soft: rgba(217, 154, 50, 0.12);
   --glass-danger: #e85b43;
+  --glass-on-accent: #ffffff;
+  --glass-btn-accent: #4453e0;
+  --glass-btn-accent-2: #067a68;
+  --glass-btn-danger: #b83a26;
+  --glass-btn-danger-2: #8a5a0a;
+  --glass-btn-warm: #d99a32;
+  --glass-btn-warm-2: #ffcf8a;
   --glass-accent-text: #4453e0;
   --glass-accent-2-text: #067a68;
   --glass-accent-warm-text: #8a5a0a;

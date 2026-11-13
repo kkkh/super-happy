@@ -260,8 +260,8 @@
 }
 
 .fav-check--on {
-  border-color: var(--glass-accent);
-  background-color: var(--glass-accent);
+  border-color: var(--glass-btn-accent);
+  background-color: var(--glass-btn-accent);
 }
 
 .fav-check__glyph {

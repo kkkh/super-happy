@@ -2,7 +2,7 @@
    check-contrast · 文字与按钮对比度门禁
    - 读取 app.wxss 的基础 page / 深色 / 浅色主题令牌
    - 正文与辅助文字 ≥4.5:1；accent / danger 作为强调色 ≥3:1
-   - 按钮填充白字为既有设计债：只输出 warning，不参与 exit
+   - 按钮填充文字 ≥4.5:1，参与 exit
    - 纯静态计算，不依赖第三方；供 npm run check:contrast 与单测复用
    ========================================================================== */
 const fs = require('node:fs')
@@ -21,11 +21,22 @@ const TEXT_TOKENS = [
   '--glass-accent-warm-text',
 ]
 const ACCENT_TOKENS = ['--glass-accent', '--glass-danger']
+const BUTTON_TEXT_TOKENS = ['--glass-on-accent', '--glass-on-warm']
+const BUTTON_FILL_TOKENS = [
+  '--glass-btn-accent',
+  '--glass-btn-accent-2',
+  '--glass-btn-danger',
+  '--glass-btn-danger-2',
+  '--glass-btn-warm',
+  '--glass-btn-warm-2',
+]
 const BUTTON_PAIRS = [
-  ['--glass-on-accent', '--glass-accent'],
-  ['--glass-on-accent', '--glass-accent-2'],
-  ['--glass-on-accent', '--glass-danger'],
-  ['--glass-on-warm', '--glass-accent-warm'],
+  ['--glass-on-accent', '--glass-btn-accent'],
+  ['--glass-on-accent', '--glass-btn-accent-2'],
+  ['--glass-on-accent', '--glass-btn-danger'],
+  ['--glass-on-accent', '--glass-btn-danger-2'],
+  ['--glass-on-warm', '--glass-btn-warm'],
+  ['--glass-on-warm', '--glass-btn-warm-2'],
 ]
 
 function extractBlock(css, startIndex) {
@@ -176,7 +187,12 @@ function analyzeContrast(cssSource) {
   }
 
   /* 媒体查询与手动主题必须同值，避免系统主题与手动切换出现两套对比度 */
-  for (const token of [...TEXT_TOKENS, ...ACCENT_TOKENS]) {
+  for (const token of [
+    ...TEXT_TOKENS,
+    ...ACCENT_TOKENS,
+    ...BUTTON_TEXT_TOKENS,
+    ...BUTTON_FILL_TOKENS,
+  ]) {
     if (readToken(dark, token) !== readToken(darkMedia, token)) {
       fail(`深色主题令牌不一致：${token}`)
     }
@@ -184,9 +200,6 @@ function analyzeContrast(cssSource) {
       fail(`浅色主题令牌不一致：${token}`)
     }
   }
-
-  const onAccent = readToken(base, '--glass-on-accent')
-  const onWarm = readToken(base, '--glass-on-warm')
 
   for (const [themeName, block] of [
     ['dark', dark],
@@ -228,22 +241,28 @@ function analyzeContrast(cssSource) {
     }
   }
 
-  /* 按钮填充色：既有设计债，只提示不阻断 */
+  /* 按钮填充色：主题专属前景与填充，必须 ≥4.5:1 并参与门禁 */
   for (const [textToken, fillToken] of BUTTON_PAIRS) {
     for (const [themeName, block] of [
       ['dark', dark],
       ['light', light],
     ]) {
-      const textColor = parseColor(readToken(base, textToken))
-      const fillColor = parseColor(readToken(block, fillToken))
+      const textColor = parseColor(readToken(block, textToken) || readToken(base, textToken))
+      const fillColor = parseColor(readToken(block, fillToken) || readToken(base, fillToken))
       if (!textColor || !fillColor) {
+        fail(`${themeName} 按钮缺少 ${textToken} / ${fillToken}`)
         continue
       }
       const ratio = contrastRatio(composite(textColor, fillColor), fillColor)
+      checks.push({
+        theme: themeName,
+        token: textToken,
+        background: fillToken,
+        ratio,
+        threshold: 4.5,
+      })
       if (!(ratio >= 4.5)) {
-        warnings.push(
-          `${themeName} 按钮 ${textToken} on ${fillToken} = ${ratio.toFixed(2)}:1（设计债，未纳入门禁）`,
-        )
+        fail(`${themeName} 按钮 ${textToken} on ${fillToken} = ${ratio.toFixed(2)}:1 < 4.5`)
       }
     }
   }
@@ -265,7 +284,7 @@ function main() {
     }
     process.exit(1)
   }
-  console.log('✔ 文字对比度达标')
+  console.log('✔ 文字与按钮对比度达标')
   if (result.warnings.length > 0) {
     console.warn('⚠ 按钮填充对比度设计债：')
     for (const warning of result.warnings) {
