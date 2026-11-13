@@ -459,6 +459,16 @@
   color: var(--glass-danger-text);
 }
 
+/* 性能摘要：等宽字体单独一行，长文本自然换行，不挤占标题栏 */
+.settings-row__sub--perf {
+  margin-top: 4rpx;
+  font-family: var(--glass-font-mono);
+  font-size: 21rpx;
+  font-size: calc(21rpx * var(--fs-scale, 1));
+  line-height: 1.45;
+  word-break: break-word;
+}
+
 .settings-row__value {
   flex-shrink: 0;
   color: var(--glass-text-2);

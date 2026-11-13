@@ -117,6 +117,29 @@ export function summarizePerfSamples(list: PerfSample[]): string {
   return `${parts.join(' · ')} · 共 ${list.length} 次`
 }
 
+/** 设置页「性能采样」的分行摘要：指标较多时主动拆行，避免「共 N 次」被挤到单独一行 */
+export function summarizePerfLines(list: PerfSample[]): string[] {
+  if (!list.length) {
+    return ['暂无采样']
+  }
+  const last = list[list.length - 1]
+  const head: string[] = []
+  if (typeof last.appLaunch === 'number') {
+    head.push(`启动 ${Math.round(last.appLaunch)}ms`)
+  }
+  if (typeof last.firstRender === 'number') {
+    head.push(`首屏 ${Math.round(last.firstRender)}ms`)
+  }
+  if (!head.length) {
+    return ['暂无采样']
+  }
+  const count = `共 ${list.length} 次`
+  if (typeof last.downloadPackage === 'number') {
+    return [head.join(' · '), `下载 ${Math.round(last.downloadPackage)}ms · ${count}`]
+  }
+  return [`${head.join(' · ')} · ${count}`]
+}
+
 function flush(sample: PerfSample): void {
   try {
     if (typeof wx === 'undefined') {

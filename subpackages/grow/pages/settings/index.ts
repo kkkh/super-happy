@@ -24,7 +24,7 @@ import {
   motionCeiling,
   readMotionHintDismissed,
 } from '../../../../core/utils/device-tier'
-import { readPerfSamples, summarizePerfSamples } from '../../../../core/utils/perf'
+import { readPerfSamples, summarizePerfLines } from '../../../../core/utils/perf'
 import { tapSuccess, tapTick, tapWarn } from '../../../../core/utils/haptics'
 import { showGlassToast } from '../../../../components/glass-toast/toast'
 import {
@@ -559,7 +559,7 @@ Page({
     motionLabel: preferenceStore.motionLabel,
     motionPreview: preferenceStore.motionLabel,
     motionHint: resolveMotionHint(),
-    perfSummary: summarizePerfSamples(readPerfSamples()),
+    perfSummaryLines: summarizePerfLines(readPerfSamples()),
     autoCleanLabel: preferenceStore.autoCleanLabel,
     statusText: preferenceStore.statusText,
     flagAi: preferenceStore.flags.enable_ai_assist,
@@ -773,7 +773,7 @@ Page({
       fsClass: syncFontScaleClass(),
       fontScaleLabel: preferenceStore.fontScaleLabel,
       motionHint: resolveMotionHint(),
-      perfSummary: summarizePerfSamples(readPerfSamples()),
+      perfSummaryLines: summarizePerfLines(readPerfSamples()),
     })
     uiStore.syncNativeChrome()
     this.refreshCache()
@@ -3352,7 +3352,7 @@ Page({
       motionLabel: preferenceStore.motionLabel,
       motionPreview: preferenceStore.motionLabel,
       motionHint: resolveMotionHint(),
-      perfSummary: summarizePerfSamples(readPerfSamples()),
+      perfSummaryLines: summarizePerfLines(readPerfSamples()),
       autoCleanLabel: preferenceStore.autoCleanLabel,
       statusText: preferenceStore.statusText,
       flagAi: preferenceStore.flags.enable_ai_assist,

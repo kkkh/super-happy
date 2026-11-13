@@ -60,6 +60,19 @@ test('perf：摘要文案优先展示启动与首屏', async () => {
   assert.equal(text, '启动 1200ms · 首屏 381ms · 下载 900ms · 共 1 次')
 })
 
+test('perf：分行摘要不把「共 N 次」单独留在一行', async () => {
+  const { summarizePerfLines } = await loadPerf()
+  assert.deepEqual(summarizePerfLines([]), ['暂无采样'])
+  assert.deepEqual(
+    summarizePerfLines([{ at: 1, appLaunch: 1200, firstRender: 380, downloadPackage: 900 }]),
+    ['启动 1200ms · 首屏 380ms', '下载 900ms · 共 1 次'],
+  )
+  assert.deepEqual(
+    summarizePerfLines([{ at: 1, appLaunch: 1500, firstRender: 420 }]),
+    ['启动 1500ms · 首屏 420ms · 共 1 次'],
+  )
+})
+
 test('perf：从本机存储读取采样并生成摘要', async () => {
   const store = new Map([
     ['perf:samples.v1', [{ at: 1, appLaunch: 1500, firstRender: 420 }]],

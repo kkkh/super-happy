@@ -1240,8 +1240,13 @@
             <view class="settings-row__copy">
               <text class="settings-row__title">性能采样</text>
               <text class="settings-row__sub">仅本机保存 · 抽样 20% 记录冷启动与首屏</text>
+              <view
+                wx:for="{{perfSummaryLines}}"
+                wx:for-item="perfLine"
+                wx:key="*this"
+                class="settings-row__sub settings-row__sub--perf"
+              >{{perfLine}}</view>
             </view>
-            <text class="settings-row__value">{{perfSummary}}</text>
           </view>
 
           <view class="settings-changelog {{changelogOpen ? 'settings-changelog--open' : ''}}">
