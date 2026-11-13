@@ -9,6 +9,7 @@
     "glass-modal": "../../../../components/glass-modal/index",
     "glass-toast": "../../../../components/glass-toast/index",
     "poster-generator": "../../../../components/poster-generator/index",
-    "poster-preview": "../../../../components/poster-preview/index"
+    "poster-preview": "../../../../components/poster-preview/index",
+    "privacy-guard": "../../../../components/privacy-guard/index"
   }
 }

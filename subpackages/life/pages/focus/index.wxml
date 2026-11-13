@@ -409,5 +409,7 @@
     aria-hidden="true"
   ></canvas>
 
+  <!-- 方向传感器属于隐私接口：本页挂载全局授权弹窗，避免翻转黑屏首次调用被静默拦截 -->
+  <privacy-guard />
   <update-guard blocked="{{guardBlocked}}" />
 </view>

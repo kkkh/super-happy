@@ -1539,10 +1539,16 @@ Page({
   },
 
   onFlipToggle(event: WechatMiniprogram.SwitchChange): void {
-    this.setData({ flipDetection: Boolean(event.detail.value) }, () => {
+    const enabled = Boolean(event.detail.value)
+    this.setData({ flipDetection: enabled }, () => {
       this.savePrefsFromView()
+      /* 专注进行中打开开关：立即开始监听，不必等下一次开始专注 */
+      const runtime = this as unknown as FocusPageRuntime
+      if (enabled && runtime.visible && runtime.session?.fsm === 'focusing') {
+        this.startMotionListening()
+      }
     })
-    if (!event.detail.value) {
+    if (!enabled) {
       this.stopMotionListening()
     }
   },
