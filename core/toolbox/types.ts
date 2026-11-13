@@ -29,6 +29,8 @@ export interface ToolMeta {
   privacyNote?: string
   /** 可选：即使 sensitive 为空也不写草稿（如带时薪的工时工具） */
   draftExcluded?: boolean
+  /** 需要联网才能使用；离线时卡片置灰并拦截跳转 */
+  online?: boolean
   /** 搜索排序权重 0–100，越大越靠前 */
   weight: number
 }

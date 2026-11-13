@@ -1,0 +1,97 @@
+/* ==========================================================================
+   offline-banner · 顶部玻璃状态胶囊
+   - tab：避开右上角系统胶囊，落在页面 56rpx 顶部空白带内
+   - page：落在自定义导航下方，由 offset 控制
+   ========================================================================== */
+
+.ob {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 900;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  box-sizing: border-box;
+  gap: 10rpx;
+  max-width: calc(100% - 64rpx);
+  padding: 10rpx 22rpx;
+  border: 1rpx solid var(--glass-border-strong);
+  border-radius: 999rpx;
+  background: linear-gradient(135deg, var(--glass-accent-warm-soft), var(--glass-bg-strong) 64%);
+  box-shadow:
+    0 10rpx 30rpx rgba(0, 0, 0, 0.16),
+    0 8rpx 28rpx var(--glass-accent-warm-soft),
+    inset 0 1rpx 0 var(--glass-highlight);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+  animation: ob-in 240ms cubic-bezier(0.2, 0.9, 0.25, 1);
+}
+
+.ob--tab {
+  top: calc(env(safe-area-inset-top) + 6rpx);
+  right: auto;
+  left: 32rpx;
+  transform: none;
+  max-width: calc(100% - 240rpx);
+  padding: 8rpx 18rpx;
+  animation-name: ob-in-tab;
+}
+
+.ob--recovered {
+  background: linear-gradient(135deg, var(--glass-accent-2-soft), var(--glass-bg-strong) 64%);
+}
+
+.ob__dot {
+  flex: none;
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  background-color: var(--glass-accent-warm);
+  box-shadow: 0 0 12rpx var(--glass-accent-warm);
+}
+
+.ob--recovered .ob__dot {
+  background-color: var(--glass-accent-2);
+  box-shadow: 0 0 12rpx var(--glass-accent-2);
+}
+
+.ob__text {
+  overflow: hidden;
+  color: var(--glass-text);
+  font-family: var(--glass-font-sans);
+  font-size: 22rpx;
+  line-height: 1.35;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.ob--compact .ob__text {
+  color: var(--glass-accent-warm-text);
+}
+
+.ob--recovered .ob__text {
+  color: var(--glass-accent-2-text);
+}
+
+@keyframes ob-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -6rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+@keyframes ob-in-tab {
+  from {
+    opacity: 0;
+    transform: translateY(-6rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

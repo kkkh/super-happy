@@ -8,6 +8,8 @@ import { createStoreBindings } from 'mobx-miniprogram-bindings'
 import { uiStore } from '../../core/stores/ui'
 import { preferenceStore } from '../../core/stores/preference'
 import { toolboxStore } from '../../core/toolbox/store'
+import { getTool } from '../../core/toolbox/registry'
+import { networkStore } from '../../core/stores/network'
 import {
   FAVORITE_SORTS,
   FAVORITE_SORT_LABELS,
@@ -28,6 +30,7 @@ import { fontScaleClass, syncFontScaleClass } from '../../core/services/font-sca
 
 interface FavoriteState {
   themeBindings?: { destroyStoreBindings: () => void }
+  networkBindings?: { destroyStoreBindings: () => void }
   /** 导航锁：防止疯狂连点工具行产生重复页面栈 */
   navigating: boolean
 }
@@ -54,6 +57,7 @@ Page({
     themeClass: uiStore.themeClass,
     themeSwitching: false,
     fsClass: fontScaleClass(),
+    offline: networkStore.offline,
     tools: sortFavoriteTools(toolboxStore.favoriteTools(), preferenceStore.favoriteSort),
     sort: preferenceStore.favoriteSort as FavoriteSort,
     sortOptions: SORT_OPTIONS,
@@ -74,6 +78,13 @@ Page({
       fields: {
         themeClass: () => uiStore.themeClass,
         themeSwitching: () => uiStore.themeSwitching,
+      },
+      actions: [],
+    })
+    state.networkBindings = createStoreBindings(this, {
+      store: networkStore,
+      fields: {
+        offline: () => networkStore.offline,
       },
       actions: [],
     })
@@ -100,6 +111,9 @@ Page({
     const state = this as unknown as FavoriteState
     if (state.themeBindings) {
       state.themeBindings.destroyStoreBindings()
+    }
+    if (state.networkBindings) {
+      state.networkBindings.destroyStoreBindings()
     }
   },
 
@@ -260,6 +274,12 @@ Page({
   onOpenTool(event: WechatMiniprogram.TouchEvent) {
     const dataset = event.currentTarget.dataset as { route?: string; id?: string }
     if (!dataset.route || !dataset.id) {
+      return
+    }
+    const tool = getTool(dataset.id)
+    if (tool && tool.online && networkStore.offline) {
+      tapWarn()
+      showGlassToast('当前离线，联网后可打开')
       return
     }
     const state = this as unknown as FavoriteState

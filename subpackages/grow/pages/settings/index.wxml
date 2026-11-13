@@ -1529,4 +1529,5 @@
   <update-guard
     blocked="{{vaultBusy || travelBusy || transportBusy || pilotRunning || pickerShow || confirmShow || focusClearShow || backupShow || backupConfirmShow || backupBusy || privacyConfirmShow}}"
   />
+  <offline-banner />
 </view>

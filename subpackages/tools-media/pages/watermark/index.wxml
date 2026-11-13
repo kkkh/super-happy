@@ -709,4 +709,5 @@
 
   <!-- 保存相册是长任务，期间不弹更新窗口 -->
   <update-guard blocked="{{saving}}" />
+  <offline-banner />
 </view>

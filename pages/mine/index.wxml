@@ -290,4 +290,5 @@
   <privacy-guard />
   <update-guard />
   <meeting-timer-hud />
+  <offline-banner variant="tab" />
 </view>

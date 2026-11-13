@@ -157,7 +157,8 @@
   },
   "usingComponents": {
     "update-guard": "/components/update-guard/index",
-    "meeting-timer-hud": "/components/meeting-timer-hud/index"
+    "meeting-timer-hud": "/components/meeting-timer-hud/index",
+    "offline-banner": "/components/offline-banner/index"
   },
   "window": {
     "navigationStyle": "custom",

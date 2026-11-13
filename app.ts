@@ -16,6 +16,7 @@ import { setAmbientToolCategoryResolver } from './core/theme/ambient-theme'
 import { installPrivacyGuard } from './core/stores/privacy'
 import { deepLinkStore } from './core/stores/deeplink'
 import { preferenceStore } from './core/stores/preference'
+import { networkStore } from './core/stores/network'
 import { warmUpSound } from './core/services/sound'
 import {
   suspendMeetingTimer,
@@ -103,6 +104,8 @@ App({
 
     // 0) 全局偏好：必须先于主题 / 动效 / 音效读取，异常时自动回退默认值
     preferenceStore.init()
+    /* 网络状态：幂等注册，unknown 视为在线，不阻塞启动 */
+    networkStore.init()
     warmUpSound()
 
     // 0.1) 隐私授权监听：必须早于任何敏感 API 调用
@@ -216,6 +219,8 @@ App({
 
     /* 热启动补一次自动清理：跨天 / 跨周后回来也能守住阈值 */
     applyAutoClean()
+    /* 网络状态补检：覆盖后台期间错过的事件 */
+    networkStore.refresh()
     /* 会议倒计时跨后台补算：回前台立即对齐截止时间 */
     syncMeetingTimer()
   },

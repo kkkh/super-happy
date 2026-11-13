@@ -508,3 +508,19 @@
 .fav-managebar__action--disabled {
   color: var(--glass-text-3);
 }
+
+/* ---- 离线：联网工具置灰，只降透明度不改布局 ---- */
+.fav-item--offline {
+  opacity: 0.45;
+}
+
+.fav-offline-tag {
+  align-self: flex-start;
+  margin-top: 4rpx;
+  padding: 2rpx 10rpx;
+  border: 1rpx solid var(--glass-accent-warm);
+  border-radius: 999rpx;
+  color: var(--glass-accent-warm-text);
+  font-size: 18rpx;
+  line-height: 1.4;
+}

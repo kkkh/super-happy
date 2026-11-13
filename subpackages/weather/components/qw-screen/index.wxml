@@ -241,4 +241,6 @@
     bind:reset="onEndpointReset"
   />
 
+  <offline-banner offset="{{180}}" />
+
 </view>

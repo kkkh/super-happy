@@ -48,7 +48,7 @@
 | 分包 | 9 | `tools-core`（31 页）、`tools-daily`（17 页）、`tools-media`（14 页）、`tools-dict`（3 页）、`grow`（9 页）、`works`（3 页）、`campus`（1 页）、`life`（1 页）、`weather`（1 页） |
 | 工具 | 65 | 6 个分类，唯一注册表 `core/toolbox/registry.ts` |
 | 工具分类 | 6 | `calc` 13 / `date` 10 / `text` 15 / `media` 14 / `life` 8 / `work` 5 |
-| 主包组件 | 27 | `components/` 下 27 个组件目录 + `sound-hook.ts` |
+| 主包组件 | 28 | `components/` 下 28 个组件目录 + `sound-hook.ts` |
 | 分包组件 | 29 | grow 9 个、works 2 个、campus 2 个、tools-core 3 个（`weather-glyph`、`web-search-results`、`spatial-hologram`）、weather 13 个（`qw-*`） |
 | 核心 TS 模块 | 77 | `core/` 下全部 `.ts`（含 2 个元宝配置示例 / 本地文件） |
 | 分包 TS 模块 | 212 | `subpackages/` 下业务 `.ts`（含页面 / 组件 / lib / weather，不含 `node_modules` 与 `.d.ts`） |
@@ -74,7 +74,7 @@
          subpackages/works|campus/*（作品集与园枢图集）
          subpackages/weather/*（和风天气 8 组 API / 7 Tab）
 组件层   components/*（Glass 3.0 + g-* 通用 + Workflow + 海报 + 更新守卫）
-状态层   core/stores（ui / preference / history / privacy / deeplink / resume）
+状态层   core/stores（ui / preference / history / privacy / deeplink / resume / network）
          core/toolbox/store（收藏 / 最近使用 / 累计打开）
          core/workflow/workflowStore（流转会话 / 流水线 / 撤销）
          store/index.ts（glassStore 门面）
@@ -204,7 +204,7 @@ flowchart TB
 | `app.json` | `renderer: "skyline"`、`componentFramework: "glass-easel"`、`custom` TabBar、`lazyCodeLoading: "requiredComponents"`、`preloadRule`（首页 Wi-Fi 预下载 `subpackages/tools-core`）、`workers: "workers"`、`darkmode: true`、`__usePrivacyCheck__: true`、`requiredBackgroundModes: ["audio"]`（专注 BGM）、`requiredPrivateInfos: ["getFuzzyLocation"]`（天气模糊定位） |
 | `app.json` 分包 | 9 个：`tools-core`、`tools-daily`、`tools-media`、`tools-dict`、`grow`、`works`、`campus`、`life`、`weather`；共 83 页 |
 | `app.json` 主题 | `navigationStyle: "custom"`、`pageOrientation: "portrait"`、`themeLocation: "theme.json"`、`backgroundColor: "@canvas"` |
-| `app.json` 全局组件 | `update-guard` 与 `meeting-timer-hud` 注册在 `usingComponents`，所有页面可用 |
+| `app.json` 全局组件 | `update-guard`、`meeting-timer-hud` 与 `offline-banner` 注册在 `usingComponents`，所有页面可用 |
 | `theme.json` | `light.canvas = #eef1f7`、`dark.canvas = #070a12`，导航文字黑 / 白 |
 | `project.config.json` | `useCompilerPlugins: ["typescript"]`、`packNpmManually: true`、根包与 tools-core 两条 npm 构建关系、`packOptions.ignore` 排除 `node_modules` / 测试 / Markdown / 设计源文件 / `.github` / `scripts` / `private` / `.key` |
 | `project.private.config.json` | `skylineRenderEnable: true`、`bigPackageSizeSupport: false` |
@@ -499,7 +499,7 @@ sequenceDiagram
 │   ├── index/                 # 工具箱首页
 │   ├── favorites/             # 工具收藏
 │   └── mine/                  # 我的
-├── components/                # 27 个主包组件 + sound-hook.ts
+├── components/                # 28 个主包组件 + sound-hook.ts
 ├── core/
 │   ├── constants/             # 路由、常量、Canvas 调色板
 │   ├── data/                  # 简历 / 作品静态数据
@@ -2661,7 +2661,7 @@ sequenceDiagram
 
 ## 9. 组件库
 
-### 9.1 主包组件（27 个）
+### 9.1 主包组件（28 个）
 
 | 组件 | 作用 | 关键属性 / 事件 |
 |---|---|---|
@@ -2690,6 +2690,7 @@ sequenceDiagram
 | `privacy-guard` | 隐私授权弹窗 | 订阅 `privacyStore` |
 | `update-guard` | 全局更新守门 | `blocked`；全局互斥 |
 | `meeting-timer-hud` | 全局会议倒计时胶囊 | 跨页面显示剩余 / 暂停 / 结束；点击回到计时页 |
+| `offline-banner` | 全局离线提示胶囊 | `variant`（tab / page）、`offset`；断网展开 3s 后收起，恢复联网短暂提示 |
 | `workflow-panel` | 流转工作台 | `show`、`sourceToolId`、`close` |
 | `workflow-receiver` | 目标页注入接收器 | `toolId` |
 
