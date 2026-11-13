@@ -18,7 +18,18 @@
   >
     <view class="home-scroll__inner">
       <view class="home-top">
-        <text class="home-title">工具箱</text>
+        <view class="home-brand" aria-role="img" aria-label="超欢">
+          <image
+            class="home-brand__mark home-brand__mark_light"
+            src="/assets/brand/chaohuan-mark-light.png"
+            mode="widthFix"
+          />
+          <image
+            class="home-brand__mark home-brand__mark_dark"
+            src="/assets/brand/chaohuan-mark-dark.png"
+            mode="widthFix"
+          />
+        </view>
         <text class="home-desc">{{toolTotal}} 个工具，含天气、汇率、搜索等联网能力。</text>
       </view>
 

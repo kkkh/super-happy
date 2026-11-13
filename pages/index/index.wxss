@@ -101,13 +101,50 @@
   margin-bottom: 30rpx;
 }
 
-.home-title {
-  margin-top: 0;
-  color: var(--glass-text);
-  font-size: 56rpx;
-  font-size: calc(56rpx * var(--fs-scale, 1));
-  font-weight: 700;
-  line-height: 1.12;
+/* ---- 品牌标识：宋体字标 + 一笔托笔 + 落款点 ---- */
+.home-brand {
+  display: flex;
+  align-items: flex-start;
+  width: 330rpx;
+  height: 158rpx;
+}
+
+.home-brand__mark {
+  display: block;
+  width: 330rpx;
+  height: auto;
+}
+
+.home-brand__mark_dark {
+  display: none;
+}
+
+/* 系统深色：JS 尚未挂上 .theme-dark 时的首帧兜底 */
+@media (prefers-color-scheme: dark) {
+  .home-brand__mark_light {
+    display: none;
+  }
+
+  .home-brand__mark_dark {
+    display: block;
+  }
+}
+
+/* 手动主题覆盖：必须写在媒体查询之后 */
+.theme-light .home-brand__mark_light {
+  display: block;
+}
+
+.theme-light .home-brand__mark_dark {
+  display: none;
+}
+
+.theme-dark .home-brand__mark_light {
+  display: none;
+}
+
+.theme-dark .home-brand__mark_dark {
+  display: block;
 }
 
 .home-desc {

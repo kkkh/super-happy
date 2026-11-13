@@ -24,6 +24,8 @@ project.private.config.json
 .legacy/
 .screenshots/
 .icon-dist/
+# 品牌设计稿与过程文件：不进仓库，也不进小程序包（见 project.config.json packOptions）
+design/
 tests/visual/reports/
 未命名.png
 preview-qr.png

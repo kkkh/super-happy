@@ -50,6 +50,10 @@
   "packOptions": {
     "ignore": [
       {
+        "value": "design",
+        "type": "folder"
+      },
+      {
         "value": "node_modules",
         "type": "folder"
       },
