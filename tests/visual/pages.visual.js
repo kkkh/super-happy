@@ -678,23 +678,25 @@ async function run() {
 
       if (groupIndex === 0) {
         backups = await readBackups(miniProgram)
-        await writeFixtures(miniProgram)
+      }
 
-        /* 原生重启：让 onLaunch 读取 fixture，同时保留当前自动化会话 */
+      /* 每个入口组都重新写入 fixture 并重启，避免上一组或历史本机字号/主题影响截图 */
+      await writeFixtures(miniProgram)
+      try {
+        await miniProgram.callWxMethod('restartMiniProgram', { path: group.entry })
+        await sleep(3000)
+        await waitForAppReady(miniProgram, 60000)
+      } catch (restartError) {
         try {
-          await miniProgram.callWxMethod('restartMiniProgram', { path: group.entry })
-          await sleep(3000)
-          await waitForAppReady(miniProgram, 60000)
-        } catch (restartError) {
-          try {
-            await miniProgram.close()
-          } catch (error) {
-            /* 连接已关闭时忽略 */
-          }
-          await sleep(2500)
-          miniProgram = await launchProject(automator, cliPath)
+          await miniProgram.close()
+        } catch (error) {
+          /* 连接已关闭时忽略 */
         }
+        await sleep(2500)
+        miniProgram = await launchProject(automator, cliPath)
+      }
 
+      if (groupIndex === 0) {
         const networkType = await detectNetworkType(miniProgram)
         if (networkType === 'none') {
           throw new Error('截图环境处于离线状态，请恢复网络后重试')

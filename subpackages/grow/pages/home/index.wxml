@@ -1,4 +1,4 @@
-<view class="page_root {{themeClass}}">
+<view class="page_root {{themeClass}} {{fsClass}}">
   <!-- 馆内灯光：粒子极光 -->
   <g-aurora density="{{40}}" />
 

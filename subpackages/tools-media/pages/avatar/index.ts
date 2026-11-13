@@ -134,6 +134,10 @@ Page({
         unlinkQuietly(image.path)
         return
       }
+      if (width * height > LIMITS.MEDIA_SOURCE_PIXELS) {
+        this.setData({ error: '图片超过 12MP，请先裁剪或缩小' })
+        return
+      }
       state.renderSeq += 1
       unlinkQuietly(this.data.imagePath)
       unlinkQuietly(this.data.outputPath)

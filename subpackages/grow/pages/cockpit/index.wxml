@@ -1,5 +1,5 @@
 <view
-  class="cockpit-page sg-ambient-surface sg-ambient-iris {{themeClass}} {{themeSwitching ? 'theme-breathing' : ''}}"
+  class="cockpit-page sg-ambient-surface sg-ambient-iris {{themeClass}} {{fsClass}} {{themeSwitching ? 'theme-breathing' : ''}}"
 >
   <!-- 极光背景：light-off 时由 app.wxss 统一降级 -->
   <view class="cockpit-aurora" aria-hidden="true">

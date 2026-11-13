@@ -4,6 +4,7 @@
    ========================================================================== */
 import { createStoreBindings } from 'mobx-miniprogram-bindings'
 import { uiStore } from '../../../../core/stores/ui'
+import { fontScaleClass, syncFontScaleClass } from '../../../../core/services/font-scale'
 import { fetchGreetingCards } from '../../../../core/services/resume'
 import type { GreetingCard } from '../../../../core/types/index'
 import {
@@ -30,6 +31,7 @@ Page({
   data: {
     cards: [] as GreetingCard[],
     themeClass: '',
+    fsClass: fontScaleClass(),
   },
 
   onLoad() {
@@ -59,6 +61,10 @@ Page({
         }
         uiStore.showToast('问候内容加载失败，请稍后重试')
       })
+  },
+
+  onShow() {
+    this.setData({ fsClass: syncFontScaleClass() })
   },
 
   onUnload() {

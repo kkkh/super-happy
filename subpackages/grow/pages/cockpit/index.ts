@@ -10,6 +10,7 @@
 import { createStoreBindings } from 'mobx-miniprogram-bindings'
 import { reaction } from 'mobx-miniprogram'
 import { uiStore } from '../../../../core/stores/ui'
+import { fontScaleClass, syncFontScaleClass } from '../../../../core/services/font-scale'
 import { preferenceStore } from '../../../../core/stores/preference'
 import { historyStore, HISTORY_MAX } from '../../../../core/stores/history'
 import { toolboxStore } from '../../../../core/toolbox/store'
@@ -262,6 +263,7 @@ Page({
   data: {
     themeClass: uiStore.themeClass,
     themeSwitching: false,
+    fsClass: fontScaleClass(),
     isNight: uiStore.resolvedTheme === 'dark',
     themeLabel: uiStore.resolvedThemeLabel,
     navTop: 44,
@@ -403,6 +405,7 @@ Page({
   },
 
   onShow() {
+    this.setData({ fsClass: syncFontScaleClass() })
     const runtime = this as unknown as CockpitRuntime
     runtime.visible = true
     runtime.dirty = false

@@ -5,6 +5,7 @@
    ========================================================================== */
 import { createStoreBindings } from 'mobx-miniprogram-bindings'
 import { uiStore } from '../../../../core/stores/ui'
+import { fontScaleClass, syncFontScaleClass } from '../../../../core/services/font-scale'
 import { APP_VERSION, PRIVACY_VERSION, TIMING } from '../../../../core/constants/index'
 import { TOOLS } from '../../../../core/toolbox/registry'
 import { tapSuccess, tapTick, tapWarn } from '../../../../core/utils/haptics'
@@ -48,6 +49,7 @@ Page({
 
   data: {
     themeClass: uiStore.themeClass,
+    fsClass: fontScaleClass(),
     sections: SECTIONS,
     active: 'privacy',
     scrollTarget: '',
@@ -77,6 +79,7 @@ Page({
   },
 
   onShow() {
+    this.setData({ fsClass: syncFontScaleClass() })
     uiStore.syncNativeChrome()
   },
 

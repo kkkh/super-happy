@@ -118,3 +118,13 @@ test('头像契约：页面 / 注册 / 帮助 / 图片工作流 / 适配器 / �
   const adapters = await import(`${URL_ROOT}core/workflow/workflowAdapters.ts`)
   assert.ok(adapters.getWorkflowAdapter('avatar'), '缺少 avatar 图片适配器')
 })
+
+test('头像 / 九宫格：源图 12MP 上限与压缩工具一致', () => {
+  const limits = read('core/constants/index.ts')
+  const avatar = read('subpackages/tools-media/pages/avatar/index.ts')
+  const nineGrid = read('subpackages/tools-media/pages/nine-grid/index.ts')
+
+  assert.match(limits, /MEDIA_SOURCE_PIXELS:\s*12_000_000/)
+  assert.match(avatar, /LIMITS\.MEDIA_SOURCE_PIXELS/)
+  assert.match(nineGrid, /LIMITS\.MEDIA_SOURCE_PIXELS/)
+})

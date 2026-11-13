@@ -7,6 +7,7 @@
 import { createStoreBindings } from 'mobx-miniprogram-bindings'
 import { resumeStore } from '../../../../core/stores/resume'
 import { uiStore } from '../../../../core/stores/ui'
+import { fontScaleClass, syncFontScaleClass } from '../../../../core/services/font-scale'
 import { fetchStats } from '../../../../core/services/resume'
 import { tapTick } from '../../../../core/utils/haptics'
 import type { HomeEntry, StatItem } from '../../../../core/types/index'
@@ -35,6 +36,7 @@ Page({
   },
 
   data: {
+    fsClass: fontScaleClass(),
     entries: [] as HomeEntry[],
     profileName: '秦超',
     profileAlias: '净忻',
@@ -98,6 +100,7 @@ Page({
   },
 
   onShow() {
+    this.setData({ fsClass: syncFontScaleClass() })
     const state = this as unknown as HomeState
     state.navigating = false
   },

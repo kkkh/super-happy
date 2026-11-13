@@ -3,6 +3,7 @@
    ========================================================================== */
 import { createStoreBindings } from 'mobx-miniprogram-bindings'
 import { uiStore } from '../../../../core/stores/ui'
+import { fontScaleClass, syncFontScaleClass } from '../../../../core/services/font-scale'
 import { fetchAboutBlocks, fetchTimeline } from '../../../../core/services/resume'
 import type { AboutBlock, TimelineEra } from '../../../../core/types/index'
 import {
@@ -30,6 +31,7 @@ Page({
     blocks: [] as AboutBlock[],
     eras: [] as TimelineEra[],
     themeClass: '',
+    fsClass: fontScaleClass(),
     loading: true,
   },
 
@@ -64,6 +66,10 @@ Page({
         this.setData({ loading: false })
         uiStore.showToast('成长内容加载失败，请稍后重试')
       })
+  },
+
+  onShow() {
+    this.setData({ fsClass: syncFontScaleClass() })
   },
 
   onUnload() {

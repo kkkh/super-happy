@@ -1,4 +1,4 @@
-<view class="page_root {{themeClass}}">
+<view class="page_root {{themeClass}} {{fsClass}}">
   <g-navbar title="关于我" back />
 
   <scroll-view enhanced show-scrollbar="{{false}}" bounces="{{false}}" scroll-y type="list" class="about_scroll">

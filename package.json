@@ -24,6 +24,8 @@
     "test:visual:hologram:dry": "node tests/visual/spatial-hologram.visual.js --dry-run",
     "test:visual:pages": "node tests/visual/pages.visual.js",
     "test:visual:pages:update": "node tests/visual/pages.visual.js --update",
+    "test:visual:pages:dark": "node tests/visual/pages.visual.js --theme=dark",
+    "test:visual:pages:update:dark": "node tests/visual/pages.visual.js --update --theme=dark",
     "test:visual:pages:dry": "node tests/visual/pages.visual.js --dry-run",
     "test:e2e:palette": "node tests/e2e/magic-wand-palette.e2e.js",
     "test:e2e:palette:connect": "node tests/e2e/magic-wand-palette.e2e.js --connect",

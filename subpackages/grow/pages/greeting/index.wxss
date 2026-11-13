@@ -44,6 +44,7 @@
 
 .greet_title {
   font-size: 44rpx;
+  font-size: calc(44rpx * var(--fs-scale, 1));
   font-weight: 800;
   color: var(--g-ink);
   letter-spacing: 6rpx;
@@ -51,6 +52,7 @@
 
 .greet_sub {
   font-size: 20rpx;
+  font-size: calc(20rpx * var(--fs-scale, 1));
   color: var(--g-ink-4);
   letter-spacing: 3rpx;
   font-weight: 600;
@@ -105,6 +107,7 @@
 
 .greet_card_title {
   font-size: 32rpx;
+  font-size: calc(32rpx * var(--fs-scale, 1));
   font-weight: 700;
   color: var(--g-ink);
   letter-spacing: 2rpx;
@@ -112,6 +115,7 @@
 
 .greet_card_body {
   font-size: 24rpx;
+  font-size: calc(24rpx * var(--fs-scale, 1));
   color: var(--g-ink-3);
   line-height: 1.7;
 }
@@ -126,6 +130,7 @@
 
 .greet_foot_text {
   font-size: 24rpx;
+  font-size: calc(24rpx * var(--fs-scale, 1));
   color: var(--g-ink-4);
   letter-spacing: 6rpx;
 }

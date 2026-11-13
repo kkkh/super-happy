@@ -149,11 +149,26 @@ Page({
         this.setData({ error: '图片超过 50MB，请换一张或先截图' })
         return
       }
+      let width = image.width
+      let height = image.height
+      if (!width || !height) {
+        const info = await getImageInfo(image.path)
+        width = info.width
+        height = info.height
+      }
+      if (state.destroyed) {
+        unlinkQuietly(image.path)
+        return
+      }
+      if (width * height > LIMITS.MEDIA_SOURCE_PIXELS) {
+        this.setData({ error: '图片超过 12MP，请先裁剪或缩小' })
+        return
+      }
       unlinkTiles(this.data.tiles)
       unlinkQuietly(this.data.imagePath)
       this.setData({
         imagePath: image.path,
-        imageMeta: `${image.width} × ${image.height} · ${formatBytes(image.size)}`,
+        imageMeta: `${width} × ${height} · ${formatBytes(image.size)}`,
         hasResult: false,
         error: '',
         tiles: [],
