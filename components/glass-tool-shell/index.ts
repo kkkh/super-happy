@@ -202,6 +202,8 @@ Component({
   lifetimes: {
     attached() {
       this.setData({ fsClass: syncFontScaleClass() })
+      /* 首帧前对齐原生页背景，避免工具页入场黑闪 */
+      uiStore.syncNativeChrome()
       const holder = this as unknown as ShellState
       holder.scrollTimer = 0
       holder.posterStartTimer = 0

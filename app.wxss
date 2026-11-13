@@ -20,6 +20,8 @@ page {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
   overflow-x: hidden;
+  /* 首帧原生页底色：避免工具页 / 分包页入场瞬间露出黑底 */
+  background-color: var(--glass-canvas);
 }
 
 /* ---- 深色 · 黑曜石（品牌默认基调；系统深色首帧） ---- */
